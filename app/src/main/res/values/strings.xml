@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">kurjer</string>
+
+    <string name="text_font">sans-serif-medium</string>
+    <string name="login_placeholder">Логин</string>
+    <string name="password_placeholder">Пароль</string>
+    <string name="remember_password">Запомнить пароль</string>
+    <string name="login_button_text">Войти</string>
+    <string name="task_list_hint_text">Ниже приведён список активных заданий. Нажмите на задание чтобы просмотреть подробности. Отметьте справа те задания, которые начинаете выполнять и нажмите кнопку "Начать выполнение".</string>
+</resources>

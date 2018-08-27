@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "947396332631",
+    "firebase_url": "https://testfirebase-3f5c1.firebaseio.com",
+    "project_id": "testfirebase-3f5c1",
+    "storage_bucket": "testfirebase-3f5c1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:947396332631:android:5474ffc2336f66e1",
+        "android_client_info": {
+          "package_name": "ru.relabs.kurjer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "947396332631-vnu1qc746b7sam42rs3shcvf7cbdvpk3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCsJzZ0H8oZfDIVnQneSeyB5HAsoIck1FE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

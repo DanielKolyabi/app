@@ -13,10 +13,12 @@ import ru.relabs.kurjer.models.AddressElement
 import ru.relabs.kurjer.ui.adapters.AddressDelegate
 import ru.relabs.kurjer.ui.adapters.TaskAdapter
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
+import ru.relabs.kurjer.ui.helpers.HintAnimationHelper
 import ru.relabs.kurjer.ui.presenters.AddressListPresenter
 
 class AddressListFragment : Fragment() {
     val presenter = AddressListPresenter(this)
+    private lateinit var hintAnimationHelper: HintAnimationHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +31,12 @@ class AddressListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        hintAnimationHelper = HintAnimationHelper(hint_container, hint_icon)
+
+        hint_container.setOnClickListener {
+            hintAnimationHelper.changeState()
+        }
+
         val d = DelegateAdapter<AddressElement>()
 
         d.apply {

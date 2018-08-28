@@ -14,10 +14,13 @@ import android.view.animation.Transformation
 import android.widget.LinearLayout
 import kotlinx.android.synthetic.main.fragment_task_list.*
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.ui.helpers.HintAnimationHelper
+import ru.relabs.kurjer.ui.presenters.TaskListPresenter
 
 
 class TaskListFragment : Fragment() {
-    var hintCollapsed = true
+    val presenter = TaskListPresenter(this)
+    private lateinit var hintAnimationHelper: HintAnimationHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,64 +33,15 @@ class TaskListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        hintAnimationHelper = HintAnimationHelper(hint_container, hint_icon)
         hint_container.setOnClickListener {
-            setHintExpanded(!hintCollapsed)
-            hintCollapsed = !hintCollapsed
+            hintAnimationHelper.changeState()
+        }
+        start.setOnClickListener {
+            presenter.onStartClicked()
         }
     }
 
-    private fun setHintExpanded(expanded: Boolean) {
-        val anim = if (expanded) getCollapseHintAnimation() else getExpandHintAnimation()
-        hint_container.startAnimation(anim.apply {
-            duration = 1000
-        });
-    }
-
-    private fun getExpandHintAnimation(): Animation {
-        hint_container.measure(View.MeasureSpec.makeMeasureSpec(hint_container.width, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
-
-        val lp = (hint_icon.layoutParams as LinearLayout.LayoutParams)
-        val collapsedHeight = hint_icon.height+lp.topMargin+lp.bottomMargin
-        val expandedHeight = hint_container.measuredHeight
-
-        return object : Animation() {
-            override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
-                hint_container.layoutParams.height = if (interpolatedTime == 1f)
-                    expandedHeight
-                else
-                    (collapsedHeight + (expandedHeight - collapsedHeight) * interpolatedTime).toInt()
-                hint_container.requestLayout()
-            }
-
-            override fun willChangeBounds(): Boolean {
-                return true
-            }
-        }
-    }
-
-    private fun getCollapseHintAnimation(): Animation {
-        hint_container.measure(View.MeasureSpec.makeMeasureSpec(hint_container.width, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
-
-        val lp = hint_icon.layoutParams as LinearLayout.LayoutParams
-        val collapsedHeight = hint_icon.height+lp.topMargin+lp.bottomMargin
-        val expandedHeight = hint_container.measuredHeight
-
-        return object : Animation() {
-            override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
-                hint_container.layoutParams.height = if (interpolatedTime == 1f)
-                    collapsedHeight
-                else
-                    (expandedHeight - (expandedHeight - collapsedHeight) * interpolatedTime).toInt()
-                hint_container.requestLayout()
-            }
-
-            override fun willChangeBounds(): Boolean {
-                return true
-            }
-        }
-    }
 
     companion object {
         @JvmStatic

@@ -23,4 +23,13 @@
     <string name="pack_count_label">Пачек:\ </string>
     <string name="prints_count_label">Тираж:\ </string>
     <string name="storage_label">Склад:\ </string>
+    <string name="show_map_button_text">Посмотреть карту</string>
+    <string name="examine_button_text">Я ознакомился</string>
+    <string name="user_explanation_hint">Ваше примечание</string>
+    <string name="make_photo_button">СДЕЛАТЬ ФОТО</string>
+    <string name="close_address_button">Закрыть дом</string>
+    <string name="rejection">Отказ</string>
+    <string name="pile">Стопка</string>
+    <string name="watch">Вахта</string>
+    <string name="euro">Евро</string>
 </resources>

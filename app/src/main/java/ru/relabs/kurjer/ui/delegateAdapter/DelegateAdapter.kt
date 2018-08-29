@@ -9,16 +9,16 @@ import android.view.ViewGroup
 class DelegateAdapter<T>: RecyclerView.Adapter<BaseViewHolder<T>>() {
 
     val data = mutableListOf<T>()
-    val adapters = mutableListOf<IAdapterDelegate<T>>()
+    val delegates = mutableListOf<IAdapterDelegate<T>>()
 
     override fun getItemViewType(position: Int): Int{
-        return adapters.indexOfFirst {
+        return delegates.indexOfFirst {
             it.isForViewType(data, position)
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<T> {
-        return adapters[viewType].onCreateViewHolder(parent, viewType)
+        return delegates[viewType].onCreateViewHolder(parent, viewType)
     }
 
     override fun getItemCount(): Int {
@@ -26,10 +26,10 @@ class DelegateAdapter<T>: RecyclerView.Adapter<BaseViewHolder<T>>() {
     }
 
     override fun onBindViewHolder(holder: BaseViewHolder<T>, position: Int) {
-        adapters[getItemViewType(position)].onBindViewHolder(holder, data, position)
+        delegates[getItemViewType(position)].onBindViewHolder(holder, data, position)
     }
 
-    fun addAdapter(adapter: IAdapterDelegate<T>){
-        adapters.add(adapter)
+    fun addDelegate(delegate: IAdapterDelegate<T>){
+        delegates.add(delegate)
     }
 }

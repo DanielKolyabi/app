@@ -1,26 +1,30 @@
 package ru.relabs.kurjer.ui.fragments
 
 
-import android.app.ActionBar
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.util.Log
-import android.util.TypedValue
+import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.Transformation
-import android.widget.LinearLayout
 import kotlinx.android.synthetic.main.fragment_task_list.*
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.models.AddressModel
+import ru.relabs.kurjer.models.TaskItemModel
+import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.ui.adapters.TaskListAdapter
 import ru.relabs.kurjer.ui.helpers.HintAnimationHelper
 import ru.relabs.kurjer.ui.presenters.TaskListPresenter
+import java.util.*
 
 
 class TaskListFragment : Fragment() {
     val presenter = TaskListPresenter(this)
     private lateinit var hintAnimationHelper: HintAnimationHelper
+    val adapter = TaskListAdapter(
+            { presenter.onTaskSelected(it) },
+            { presenter.onTaskClicked(it) }
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +44,41 @@ class TaskListFragment : Fragment() {
         start.setOnClickListener {
             presenter.onStartClicked()
         }
+
+        tasks_list.layoutManager = LinearLayoutManager(context)
+        tasks_list.adapter = adapter
+        adapter.data.clear()
+        adapter.data.add(TaskModel(
+                1, "Вечерняя Москва", 1250, 5, 0, Date(), Date(System.currentTimeMillis()+86400000), 1, 13, "Петров Пётр Петрович", "http://url.ru", 1,
+                mutableListOf(
+                        TaskItemModel(
+                                AddressModel(1, "ул. Шевченко, д. 25"),
+                                0, 1, listOf("Привет", "Описание", "Три"), 4
+                        ),
+                        TaskItemModel(
+                                AddressModel(1, "ул. Шевченко, д. 25"),
+                                0, 1, listOf("Привет", "Описание", "Три"), 4
+                        ),
+                        TaskItemModel(
+                                AddressModel(1, "ул. Шевченко, д. 25"),
+                                0, 1, listOf("Привет", "Описание", "Три"), 4
+                        ),
+                        TaskItemModel(
+                                AddressModel(1, "ул. Шевченко, д. 25"),
+                                0, 1, listOf("Привет", "Описание", "Три"), 4
+                        ),
+                        TaskItemModel(
+                                AddressModel(1, "ул. Шевченко, д. 25"),
+                                0, 1, listOf("Привет", "Описание", "Три"), 4
+                        ),
+                        TaskItemModel(
+                                AddressModel(1, "ул. Шевченко, д. 25"),
+                                0, 1, listOf("Привет", "Описание", "Три"), 4
+                        )
+                ),
+                false
+        ))
+        adapter.notifyDataSetChanged()
     }
 
 

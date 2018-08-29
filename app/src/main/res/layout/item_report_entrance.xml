@@ -22,6 +22,7 @@
         tools:text="Подъезд 1" />
 
     <Button
+        style="?android:attr/buttonStyleSmall"
         android:id="@+id/euro_select"
         android:layout_width="wrap_content"
         android:minWidth="48dp"

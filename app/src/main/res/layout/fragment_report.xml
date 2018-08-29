@@ -23,7 +23,7 @@
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tasks_list">
+        app:layout_constraintTop_toBottomOf="@+id/tasks_list">
 
         <ImageView
             android:id="@+id/hint_icon"
@@ -36,13 +36,13 @@
 
         <TextView
             android:id="@+id/hint_text"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:fontFamily="@string/text_font"
             android:textColor="#222"
             android:textSize="14sp"
-            tools:text="<b>Пр.1</b>\nПримечание 1\n<b>Пр.2</b>Примечание 2\n<b>Пр.3</b>Примечание 3" />
+            tools:text="Пр.1\nПримечание 1\nПр.2Примечание 2\nПр.3Примечание 3" />
     </LinearLayout>
 
     <android.support.v7.widget.RecyclerView

@@ -10,8 +10,8 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_address_list.*
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.AddressElement
-import ru.relabs.kurjer.ui.adapters.AddressDelegate
-import ru.relabs.kurjer.ui.adapters.TaskAdapter
+import ru.relabs.kurjer.ui.delegates.AddressDelegate
+import ru.relabs.kurjer.ui.delegates.TaskDelegate
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.helpers.HintAnimationHelper
 import ru.relabs.kurjer.ui.presenters.AddressListPresenter
@@ -37,23 +37,20 @@ class AddressListFragment : Fragment() {
             hintAnimationHelper.changeState()
         }
 
-        val d = DelegateAdapter<AddressElement>()
-
-        d.apply {
-            addAdapter(AddressDelegate())
-            addAdapter(TaskAdapter())
-        }
         list.layoutManager = LinearLayoutManager(context)
-        list.adapter = d
+        list.adapter = DelegateAdapter<AddressElement>().apply {
+            addDelegate(AddressDelegate())
+            addDelegate(TaskDelegate())
 
-        d.data.add(AddressElement.AddressModel("test"))
-        d.data.add(AddressElement.TaskModel("test2"))
-        d.data.add(AddressElement.TaskModel("test3"))
-        d.data.add(AddressElement.TaskModel("test4"))
-        d.data.add(AddressElement.AddressModel("test5"))
-        d.data.add(AddressElement.AddressModel("test6"))
+            data.add(AddressElement.AddressModel("test"))
+            data.add(AddressElement.TaskModel("test2"))
+            data.add(AddressElement.TaskModel("test3"))
+            data.add(AddressElement.TaskModel("test4"))
+            data.add(AddressElement.AddressModel("test5"))
+            data.add(AddressElement.AddressModel("test6"))
 
-        d.notifyDataSetChanged()
+            notifyDataSetChanged()
+        }
     }
 
     companion object {

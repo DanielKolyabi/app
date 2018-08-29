@@ -1,4 +1,4 @@
-package ru.relabs.kurjer.ui.adapters
+package ru.relabs.kurjer.ui.delegates
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,14 +6,14 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.AddressElement
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.delegateAdapter.IAdapterDelegate
-import ru.relabs.kurjer.ui.holders.AddressHolder
+import ru.relabs.kurjer.ui.holders.TaskHolder
 
 /**
  * Created by ProOrange on 11.08.2018.
  */
-class AddressDelegate : IAdapterDelegate<AddressElement> {
+class TaskDelegate : IAdapterDelegate<AddressElement> {
     override fun isForViewType(data: List<AddressElement>, position: Int): Boolean {
-        return data[position] is AddressElement.AddressModel
+        return data[position] is AddressElement.TaskModel
     }
 
     override fun onBindViewHolder(holder: BaseViewHolder<AddressElement>, data: List<AddressElement>, position: Int) {
@@ -21,6 +21,6 @@ class AddressDelegate : IAdapterDelegate<AddressElement> {
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<AddressElement> {
-        return AddressHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_address, parent, false))
+        return TaskHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_task, parent, false))
     }
 }

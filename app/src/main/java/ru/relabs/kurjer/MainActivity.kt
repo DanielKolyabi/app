@@ -7,8 +7,10 @@ import android.view.View
 import android.view.Window
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
+import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.fragments.AddressListFragment
 import ru.relabs.kurjer.ui.fragments.LoginFragment
+import ru.relabs.kurjer.ui.fragments.TaskDetailsFragment
 import ru.relabs.kurjer.ui.fragments.TaskListFragment
 
 class MainActivity : AppCompatActivity() {
@@ -41,6 +43,10 @@ class MainActivity : AppCompatActivity() {
     fun showAddressListScreen() {
         navigateTo(AddressListFragment(), true)
         top_app_bar.title.text = "Список адресов"
+    }
+    fun showTaskDetailsScreen(task: TaskModel) {
+        navigateTo(TaskDetailsFragment.newInstance(task), true)
+        top_app_bar.title.text = "Детали задания"
     }
 
     fun navigateTo(fragment: Fragment, isAddToBackStack: Boolean = false) {

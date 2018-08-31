@@ -24,9 +24,9 @@
     <Button
         style="?android:attr/buttonStyleSmall"
         android:id="@+id/euro_select"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:minWidth="48dp"
-        android:layout_height="36dp"
+        android:layout_height="wrap_content"
         android:text="@string/euro"
         android:textAllCaps="false"
         android:textSize="12sp"
@@ -38,9 +38,9 @@
 
     <Button
         android:id="@+id/watch_select"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:minWidth="58dp"
-        android:layout_height="36dp"
+        android:layout_height="wrap_content"
         android:text="@string/watch"
         android:textAllCaps="false"
         android:textSize="12sp"
@@ -52,9 +52,9 @@
 
     <Button
         android:id="@+id/pile_select"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:minWidth="66dp"
-        android:layout_height="36dp"
+        android:layout_height="wrap_content"
         android:text="@string/pile"
         android:textAllCaps="false"
         android:textSize="12sp"
@@ -66,9 +66,9 @@
 
     <Button
         android:id="@+id/rejection_select"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:minWidth="62dp"
-        android:layout_height="36dp"
+        android:layout_height="wrap_content"
         android:text="@string/rejection"
         android:textAllCaps="false"
         android:textSize="12sp"

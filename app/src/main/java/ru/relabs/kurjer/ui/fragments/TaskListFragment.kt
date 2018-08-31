@@ -48,39 +48,13 @@ class TaskListFragment : Fragment() {
         tasks_list.layoutManager = LinearLayoutManager(context)
         tasks_list.adapter = adapter
         adapter.data.clear()
-        adapter.data.add(TaskModel(
-                1, "Вечерняя Москва", 1250, 5, 0, Date(), Date(System.currentTimeMillis()+86400000), 1, 13, "Петров Пётр Петрович", "http://url.ru", 1,
-                mutableListOf(
-                        TaskItemModel(
-                                AddressModel(1, "ул. Шевченко, д. 25"),
-                                0, 1, listOf("Привет", "Описание", "Три"), 4
-                        ),
-                        TaskItemModel(
-                                AddressModel(1, "ул. Шевченко, д. 25"),
-                                0, 1, listOf("Привет", "Описание", "Три"), 4
-                        ),
-                        TaskItemModel(
-                                AddressModel(1, "ул. Шевченко, д. 25"),
-                                0, 1, listOf("Привет", "Описание", "Три"), 4
-                        ),
-                        TaskItemModel(
-                                AddressModel(1, "ул. Шевченко, д. 25"),
-                                0, 1, listOf("Привет", "Описание", "Три"), 4
-                        ),
-                        TaskItemModel(
-                                AddressModel(1, "ул. Шевченко, д. 25"),
-                                0, 1, listOf("Привет", "Описание", "Три"), 4
-                        ),
-                        TaskItemModel(
-                                AddressModel(1, "ул. Шевченко, д. 25"),
-                                0, 1, listOf("Привет", "Описание", "Три"), 4
-                        )
-                ),
-                false
-        ))
-        adapter.notifyDataSetChanged()
+
+        presenter.loadTasks()
     }
 
+    fun setStartButtonActive(active: Boolean) {
+        start.isEnabled = active
+    }
 
     companion object {
         @JvmStatic

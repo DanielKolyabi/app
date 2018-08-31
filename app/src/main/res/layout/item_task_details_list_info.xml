@@ -18,7 +18,7 @@
         app:layout_goneMarginStart="8dp" />
 
     <TextView
-        android:id="@+id/edition_label"
+        android:id="@+id/publisher_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -30,13 +30,13 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/edition_text"
+        android:id="@+id/publisher_text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/edition_label"
-        app:layout_constraintTop_toTopOf="@+id/edition_label"
+        app:layout_constraintStart_toEndOf="@+id/publisher_label"
+        app:layout_constraintTop_toTopOf="@+id/publisher_label"
         tools:text="Вечерняя Москва №4" />
 
 
@@ -48,8 +48,8 @@
         android:fontFamily="@string/text_font"
         android:text="@string/dates_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/edition_label"
-        app:layout_constraintTop_toBottomOf="@id/edition_text" />
+        app:layout_constraintStart_toStartOf="@+id/publisher_label"
+        app:layout_constraintTop_toBottomOf="@id/publisher_text" />
 
     <TextView
         android:id="@+id/dates_text"
@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/edition_text"
+        app:layout_constraintStart_toStartOf="@+id/publisher_text"
         app:layout_constraintTop_toTopOf="@+id/dates_label"
         tools:text="07.02.2018 - 11.02.2018" />
 
@@ -69,7 +69,7 @@
         android:fontFamily="@string/text_font"
         android:text="@string/brigade_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/edition_label"
+        app:layout_constraintStart_toStartOf="@+id/publisher_label"
         app:layout_constraintTop_toBottomOf="@id/dates_text" />
 
     <TextView
@@ -77,7 +77,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        app:layout_constraintStart_toStartOf="@+id/edition_text"
+        app:layout_constraintStart_toStartOf="@+id/publisher_text"
         app:layout_constraintTop_toTopOf="@+id/brigade_label"
         tools:text="3" />
 
@@ -133,15 +133,15 @@
         android:fontFamily="@string/text_font"
         android:text="@string/prints_count_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/edition_label"
+        app:layout_constraintStart_toStartOf="@+id/publisher_label"
         app:layout_constraintTop_toBottomOf="@id/city_text" />
 
     <TextView
-        android:id="@+id/prints_count_text"
+        android:id="@+id/copies_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        app:layout_constraintStart_toStartOf="@+id/edition_text"
+        app:layout_constraintStart_toStartOf="@+id/publisher_text"
         app:layout_constraintTop_toTopOf="@+id/prints_count_label"
         tools:text="2500" />
 
@@ -154,7 +154,7 @@
         android:fontFamily="@string/text_font"
         android:text="@string/pack_count_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/prints_count_text"
+        app:layout_constraintStart_toEndOf="@+id/copies_text"
         app:layout_constraintTop_toBottomOf="@id/city_text" />
 
     <TextView
@@ -196,7 +196,7 @@
         android:fontFamily="@string/text_font"
         android:text="@string/storage_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/edition_label"
+        app:layout_constraintStart_toStartOf="@+id/publisher_label"
         app:layout_constraintTop_toBottomOf="@id/prints_count_label" />
 
     <TextView
@@ -205,7 +205,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/edition_text"
+        app:layout_constraintStart_toStartOf="@+id/publisher_text"
         app:layout_constraintTop_toTopOf="@+id/storage_label"
         tools:text="Москва, Южнобутовская ул., 68, под. 3 (в машину у подъезда).\nСветлана, 8-999-999-99-99" />
 

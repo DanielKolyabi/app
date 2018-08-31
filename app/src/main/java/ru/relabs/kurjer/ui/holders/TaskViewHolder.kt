@@ -16,7 +16,7 @@ class TaskViewHolder(
 
     @SuppressLint("SetTextI18n")
     fun bind(data: TaskModel) {
-        view.title.text = "${data.publisher}, ${data.copies}экз., (${data.brigade}бр/${data.area}уч)"
+        view.title.text = "${data.name} №${data.edition}, ${data.copies}экз., (${data.brigade}бр/${data.area}уч)"
         setIsSelected(data.state > 0)
         setIsActive(data.selected)
 

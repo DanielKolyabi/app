@@ -8,8 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_task_details.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.models.DataModels
-import ru.relabs.kurjer.models.DetailsTableHeader
+import ru.relabs.kurjer.models.DetailsListModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.TaskDetailsHeaderDelegate
@@ -20,7 +19,7 @@ import ru.relabs.kurjer.ui.presenters.TaskDetailsPresenter
 class TaskDetailsFragment : Fragment() {
 
     val presenter = TaskDetailsPresenter(this)
-    val adapter = DelegateAdapter<DataModels>()
+    val adapter = DelegateAdapter<DetailsListModel>()
     lateinit var task: TaskModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,13 +41,17 @@ class TaskDetailsFragment : Fragment() {
 
         adapter.addDelegate(TaskDetailsHeaderDelegate())
         adapter.addDelegate(TaskDetailsInfoDelegate())
-        adapter.addDelegate(TaskDetailsItemDelegate())
+        adapter.addDelegate(TaskDetailsItemDelegate(
+                { presenter.onInfoClicked(it) }
+        ))
 
-        adapter.data.add(task)
-        adapter.data.add(DetailsTableHeader)
-        adapter.data.addAll(task.items)
+        adapter.data.add(DetailsListModel.Task(task))
+        adapter.data.add(DetailsListModel.DetailsTableHeader)
+        adapter.data.addAll(task.items.map { DetailsListModel.TaskItem(it) })
 
         adapter.notifyDataSetChanged()
+
+        examine_button.isEnabled = task.state == 0
     }
 
     companion object {

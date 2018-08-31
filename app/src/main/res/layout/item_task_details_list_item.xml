@@ -15,7 +15,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/number_text"
         android:layout_width="36dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -38,15 +38,15 @@
         android:layout_marginEnd="16dp"
         android:gravity="center"
         android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/textView2"
-        app:layout_constraintEnd_toStartOf="@id/prints_count_text"
+        app:layout_constraintBottom_toBottomOf="@+id/number_text"
+        app:layout_constraintEnd_toStartOf="@id/copies_text"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/textView2"
-        app:layout_constraintTop_toTopOf="@+id/textView2"
+        app:layout_constraintStart_toEndOf="@+id/number_text"
+        app:layout_constraintTop_toTopOf="@+id/number_text"
         tools:text="Чечерский проезд, 22" />
 
     <TextView
-        android:id="@+id/prints_count_text"
+        android:id="@+id/copies_text"
         android:layout_width="48dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
@@ -66,9 +66,9 @@
         android:layout_marginEnd="8dp"
         android:padding="8dp"
         android:src="@drawable/ic_info"
-        app:layout_constraintBottom_toBottomOf="@id/prints_count_text"
+        app:layout_constraintBottom_toBottomOf="@id/copies_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@id/prints_count_text"
-        app:layout_constraintTop_toTopOf="@id/prints_count_text" />
+        app:layout_constraintStart_toEndOf="@id/copies_text"
+        app:layout_constraintTop_toTopOf="@id/copies_text" />
 </android.support.constraint.ConstraintLayout>

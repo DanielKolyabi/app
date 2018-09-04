@@ -1,7 +1,7 @@
 package ru.relabs.kurjer.ui.holders
 
 import android.view.View
-import ru.relabs.kurjer.models.DetailsListModel
+import ru.relabs.kurjer.ui.models.DetailsListModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 
 /**

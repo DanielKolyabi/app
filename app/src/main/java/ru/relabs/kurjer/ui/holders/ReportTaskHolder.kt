@@ -3,7 +3,7 @@ package ru.relabs.kurjer.ui.holders
 import android.view.View
 import kotlinx.android.synthetic.main.item_report_task.view.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.models.ReportTasksListModel
+import ru.relabs.kurjer.ui.models.ReportTasksListModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 
 class ReportTaskHolder(itemView: View, val onTaskClicked: (pos: Int) -> Unit) : BaseViewHolder<ReportTasksListModel>(itemView) {

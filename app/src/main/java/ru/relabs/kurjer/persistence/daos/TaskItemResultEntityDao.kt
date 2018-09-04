@@ -1,0 +1,33 @@
+package ru.relabs.kurjer.persistence.daos
+
+import android.arch.persistence.room.*
+import ru.relabs.kurjer.persistence.entities.TaskItemPhotoEntity
+import ru.relabs.kurjer.persistence.entities.TaskItemResultEntity
+
+/**
+ * Created by ProOrange on 03.09.2018.
+ */
+@Dao
+interface TaskItemResultEntityDao {
+
+    @get:Query("SELECT * FROM task_item_results")
+    val all: List<TaskItemResultEntity>
+
+    @Query("SELECT * FROM task_item_results WHERE id = :id")
+    fun getById(id: Int): TaskItemResultEntity
+
+    @Query("SELECT * FROM task_item_results WHERE task_item_id = :id")
+    fun getByTaskItemId(id: Int): List<TaskItemResultEntity>
+
+    @Update
+    fun update(task: TaskItemResultEntity);
+
+    @Insert
+    fun insert(task: TaskItemResultEntity): Long;
+
+    @Insert
+    fun insertAll(task: List<TaskItemResultEntity>);
+
+    @Delete
+    fun delete(task: TaskItemResultEntity);
+}

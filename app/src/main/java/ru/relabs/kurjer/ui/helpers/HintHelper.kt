@@ -1,18 +1,59 @@
 package ru.relabs.kurjer.ui.helpers
 
+import android.app.Activity
+import android.app.FragmentContainer
+import android.content.SharedPreferences
+import android.support.constraint.ConstraintLayout
+import android.support.v4.app.FragmentActivity
+import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.Transformation
-import android.widget.LinearLayout
-import kotlinx.android.synthetic.main.fragment_task_list.*
-import kotlin.math.exp
+import android.widget.Toast
+import kotlinx.android.synthetic.main.include_hint_container.view.*
+import ru.relabs.kurjer.ui.fragments.LoginFragment
 
 /**
  * Created by ProOrange on 27.08.2018.
  */
-class HintAnimationHelper(val hintContainer: View, private val hintIcon: View, private var expanded: Boolean = false) {
+class HintHelper(val hintContainer: View, val text: String, private var expanded: Boolean = false, val preferences: SharedPreferences) {
 
-    fun changeState(){
+    init {
+        hintContainer.hint_text.text = text
+        hintContainer.setOnClickListener {
+            changeState()
+        }
+        hintContainer.font_plus.setOnClickListener {
+            setFontBigger()
+        }
+        hintContainer.font_minus.setOnClickListener {
+            setFontSmaller()
+        }
+        changeFont(preferences.getFloat("hint_font_size", 16f))
+    }
+
+    private fun changeFont(spFontSize: Float) {
+        if(spFontSize < 12 || spFontSize > 26) return
+        preferences.edit().putFloat("hint_font_size", spFontSize).apply()
+        hintContainer.hint_text.textSize = spFontSize
+        if(expanded) {
+            hintContainer.layoutParams.height = ConstraintLayout.LayoutParams.WRAP_CONTENT
+            hintContainer.requestLayout()
+        }
+    }
+
+    private fun setFontSmaller() {
+        val curFont = hintContainer.hint_text.textSize / hintContainer.resources.displayMetrics.scaledDensity
+        changeFont(curFont - 2)
+    }
+
+    private fun setFontBigger() {
+        val curFont = hintContainer.hint_text.textSize / hintContainer.resources.displayMetrics.scaledDensity
+        changeFont(curFont + 2)
+    }
+
+    fun changeState() {
         setHintExpanded(expanded)
         expanded = !expanded
     }
@@ -29,8 +70,8 @@ class HintAnimationHelper(val hintContainer: View, private val hintIcon: View, p
         hintContainer.measure(View.MeasureSpec.makeMeasureSpec(hintContainer.width, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
 
-        val lp = (hintIcon.layoutParams as LinearLayout.LayoutParams)
-        val collapsedHeight = hintIcon.height+lp.topMargin+lp.bottomMargin
+        val lp = (hintContainer.hint_icon.layoutParams as ConstraintLayout.LayoutParams)
+        val collapsedHeight = hintContainer.hint_icon.height + lp.topMargin + lp.bottomMargin
         val expandedHeight = hintContainer.measuredHeight
 
         return object : Animation() {
@@ -52,8 +93,8 @@ class HintAnimationHelper(val hintContainer: View, private val hintIcon: View, p
         hintContainer.measure(View.MeasureSpec.makeMeasureSpec(hintContainer.width, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
 
-        val lp = hintIcon.layoutParams as LinearLayout.LayoutParams
-        val collapsedHeight = hintIcon.height+lp.topMargin+lp.bottomMargin
+        val lp = hintContainer.hint_icon.layoutParams as ConstraintLayout.LayoutParams
+        val collapsedHeight = hintContainer.hint_icon.height + lp.topMargin + lp.bottomMargin
         val expandedHeight = hintContainer.measuredHeight
 
         return object : Animation() {

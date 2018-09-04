@@ -22,11 +22,11 @@
         tools:text="Подъезд 1" />
 
     <Button
-        style="?android:attr/buttonStyleSmall"
         android:id="@+id/euro_select"
+        style="?android:attr/buttonStyleSmall"
         android:layout_width="0dp"
-        android:minWidth="48dp"
         android:layout_height="wrap_content"
+        android:minWidth="48dp"
         android:text="@string/euro"
         android:textAllCaps="false"
         android:textSize="12sp"
@@ -39,8 +39,8 @@
     <Button
         android:id="@+id/watch_select"
         android:layout_width="0dp"
-        android:minWidth="58dp"
         android:layout_height="wrap_content"
+        android:minWidth="58dp"
         android:text="@string/watch"
         android:textAllCaps="false"
         android:textSize="12sp"
@@ -53,8 +53,8 @@
     <Button
         android:id="@+id/pile_select"
         android:layout_width="0dp"
-        android:minWidth="66dp"
         android:layout_height="wrap_content"
+        android:minWidth="66dp"
         android:text="@string/pile"
         android:textAllCaps="false"
         android:textSize="12sp"
@@ -67,8 +67,8 @@
     <Button
         android:id="@+id/rejection_select"
         android:layout_width="0dp"
-        android:minWidth="62dp"
         android:layout_height="wrap_content"
+        android:minWidth="62dp"
         android:text="@string/rejection"
         android:textAllCaps="false"
         android:textSize="12sp"

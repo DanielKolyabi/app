@@ -8,8 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_task_details.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.models.DetailsListModel
+import ru.relabs.kurjer.ui.models.DetailsListModel
 import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.models.TaskState
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.TaskDetailsHeaderDelegate
 import ru.relabs.kurjer.ui.delegates.TaskDetailsInfoDelegate
@@ -36,6 +37,11 @@ class TaskDetailsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        examine_button.setOnClickListener {
+            presenter.onExaminedClicked(task)
+        }
+
         list.layoutManager = LinearLayoutManager(context)
         list.adapter = adapter
 
@@ -51,7 +57,7 @@ class TaskDetailsFragment : Fragment() {
 
         adapter.notifyDataSetChanged()
 
-        examine_button.isEnabled = task.state == 0
+        examine_button.isEnabled = task.state == TaskState.CREATED
     }
 
     companion object {

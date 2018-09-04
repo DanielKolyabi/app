@@ -1,17 +1,18 @@
 package ru.relabs.kurjer.ui.delegates
 
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.models.ReportPhotosListModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.delegateAdapter.IAdapterDelegate
-import ru.relabs.kurjer.ui.holders.ReportBlankPhotoHolder
+import ru.relabs.kurjer.ui.holders.ReportPhotoHolder
+import ru.relabs.kurjer.ui.models.ReportPhotosListModel
 
 /**
  * Created by ProOrange on 30.08.2018.
  */
-class ReportPhotoDelegate : IAdapterDelegate<ReportPhotosListModel> {
+class ReportPhotoDelegate(private val onRemoveClicked: (holder: RecyclerView.ViewHolder) -> Unit) : IAdapterDelegate<ReportPhotosListModel> {
     override fun isForViewType(data: List<ReportPhotosListModel>, position: Int): Boolean {
         return data[position] is ReportPhotosListModel.TaskItemPhoto
     }
@@ -21,7 +22,7 @@ class ReportPhotoDelegate : IAdapterDelegate<ReportPhotosListModel> {
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<ReportPhotosListModel> {
-        return ReportBlankPhotoHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_report_photo, parent, false))
+        return ReportPhotoHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_report_photo, parent, false), onRemoveClicked)
     }
 }
 

@@ -2,7 +2,7 @@ package ru.relabs.kurjer.ui.holders
 
 import android.view.View
 import kotlinx.android.synthetic.main.item_task_details_list_item.view.*
-import ru.relabs.kurjer.models.DetailsListModel
+import ru.relabs.kurjer.ui.models.DetailsListModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 

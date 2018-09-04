@@ -17,34 +17,13 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
-    <LinearLayout
-        android:id="@+id/hint_container"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:orientation="horizontal"
+    <include
+        layout="@layout/include_hint_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tasks_list">
-
-        <ImageView
-            android:id="@+id/hint_icon"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:src="@drawable/ic_info" />
-
-        <TextView
-            android:id="@+id/hint_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:fontFamily="@string/text_font"
-            android:textColor="#222"
-            android:textSize="14sp"
-            tools:text="Пр.1\nПримечание 1\nПр.2Примечание 2\nПр.3Примечание 3" />
-    </LinearLayout>
+        app:layout_constraintTop_toBottomOf="@+id/tasks_list"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/entrances_list"

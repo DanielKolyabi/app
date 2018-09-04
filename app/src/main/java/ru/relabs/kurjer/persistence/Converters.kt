@@ -6,6 +6,7 @@ package ru.relabs.kurjer.persistence
 
 import android.arch.persistence.room.TypeConverter
 import com.google.gson.Gson
+import ru.relabs.kurjer.models.GPSCoordinatesModel
 import java.util.*
 
 
@@ -22,8 +23,8 @@ class Converters {
     }
 
     @TypeConverter
-    fun jsonToIntList(value: String): List<Int> {
-        return Gson().fromJson(value, listOf<Int>()::class.java)
+    fun jsonToIntList(value: String): MutableList<Int> {
+        return Gson().fromJson(value, mutableListOf<Int>()::class.java)
     }
 
     @TypeConverter
@@ -32,8 +33,8 @@ class Converters {
     }
 
     @TypeConverter
-    fun stringToStringList(value: String): List<String> {
-        return Gson().fromJson(value, listOf<String>()::class.java)
+    fun stringToStringList(value: String): MutableList<String> {
+        return Gson().fromJson(value, mutableListOf<String>()::class.java)
     }
 
     @TypeConverter
@@ -41,4 +42,13 @@ class Converters {
         return Gson().toJson(value)
     }
 
+    @TypeConverter
+    fun gpsToJSON(value: GPSCoordinatesModel): String {
+        return Gson().toJson(value)
+    }
+
+    @TypeConverter
+    fun jsonToGPS(value: String): GPSCoordinatesModel {
+        return Gson().fromJson(value, GPSCoordinatesModel::class.java)
+    }
 }

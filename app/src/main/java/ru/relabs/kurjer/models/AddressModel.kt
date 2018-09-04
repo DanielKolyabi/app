@@ -7,24 +7,27 @@ import android.arch.persistence.room.PrimaryKey
 import android.os.Parcel
 import android.os.Parcelable
 
-@Entity(tableName = "addresses")
 data class AddressModel(
-        @PrimaryKey
         var id: Int,
-        @ColumnInfo(name = "name")
-        var name: String
+        var street: String,
+        var house: Int
 ) : Parcelable {
+
+    val name: String
+        get() = "ул. $street, д. $house"
+
     constructor(parcel: Parcel) : this(
             parcel.readInt(),
-            parcel.readString()) {
+            //parcel.readString(),
+            parcel.readString(),
+            parcel.readInt()) {
     }
-
-    @Ignore
-    constructor() : this(0, "")
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(id)
-        parcel.writeString(name)
+        //parcel.writeString(name)
+        parcel.writeString(street)
+        parcel.writeInt(house)
     }
 
     override fun describeContents(): Int {

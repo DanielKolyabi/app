@@ -2,9 +2,8 @@ package ru.relabs.kurjer.ui.holders
 
 import android.view.View
 import kotlinx.android.synthetic.main.item_addr_list_task.view.*
-import ru.relabs.kurjer.models.AddressListModel
+import ru.relabs.kurjer.ui.models.AddressListModel
 import ru.relabs.kurjer.models.TaskItemModel
-import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 
 /**

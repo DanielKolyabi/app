@@ -1,4 +1,6 @@
-package ru.relabs.kurjer.models
+package ru.relabs.kurjer.ui.models
+
+import ru.relabs.kurjer.models.TaskModel
 
 /**
  * Created by ProOrange on 30.08.2018.

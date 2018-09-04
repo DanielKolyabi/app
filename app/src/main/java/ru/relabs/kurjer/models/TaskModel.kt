@@ -8,9 +8,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import java.util.*
 
-@Entity(tableName = "tasks")
 data class TaskModel(
-        @PrimaryKey
         var id: Int,
         var name: String,
         var edition: Int,
@@ -19,28 +17,20 @@ data class TaskModel(
         var remain: Int,
         var area: Int,
         var state: Int,
-        @ColumnInfo(name = "start_time")
         var startTime: Date,
-        @ColumnInfo(name = "end_time")
         var endTime: Date,
         var region: Int,
         var brigade: Int,
         var brigadier: String,
-        @ColumnInfo(name = "rast_map_url")
         var rastMapUrl: String,
-        @ColumnInfo(name = "user_id")
         var userId: Int,
-        @Ignore
         var items: List<TaskItemModel>,
         var city: String,
-        @ColumnInfo(name = "storage_address")
         var storageAddress: String,
 
         //Temporary var, for some features in lists
         var selected: Boolean
 ) : Parcelable {
-
-    constructor() : this(0, "", 0, 0, 0, 0, 0, 0, Date(), Date(), 0, 0, "", "", 0, listOf<TaskItemModel>(), "", "", false)
 
     constructor(parcel: Parcel) : this(
             parcel.readInt(),
@@ -101,4 +91,11 @@ data class TaskModel(
             return arrayOfNulls(size)
         }
     }
+}
+
+object TaskState{
+    val CREATED = 0
+    val EXAMINED = 1
+    val STARTED = 2
+    val COMPLEATED = 4
 }

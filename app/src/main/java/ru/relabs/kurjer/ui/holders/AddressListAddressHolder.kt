@@ -1,12 +1,10 @@
 package ru.relabs.kurjer.ui.holders
 
 import android.graphics.Color
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
 import android.view.View
 import kotlinx.android.synthetic.main.item_addr_list_address.view.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.models.AddressListModel
+import ru.relabs.kurjer.ui.models.AddressListModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 

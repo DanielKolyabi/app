@@ -1,0 +1,33 @@
+package ru.relabs.kurjer.persistence.daos
+
+import android.arch.persistence.room.*
+import ru.relabs.kurjer.persistence.entities.TaskItemResultEntity
+import ru.relabs.kurjer.persistence.entities.TaskItemResultEntranceEntity
+
+/**
+ * Created by ProOrange on 03.09.2018.
+ */
+@Dao
+interface TaskItemResultEntranceEntityDao {
+
+    @get:Query("SELECT * FROM task_item_result_entrances")
+    val all: List<TaskItemResultEntranceEntity>
+
+    @Query("SELECT * FROM task_item_result_entrances WHERE id = :id")
+    fun getById(id: Int): TaskItemResultEntranceEntity
+
+    @Query("SELECT * FROM task_item_result_entrances WHERE task_item_result_id = :id")
+    fun getByTaskItemResultId(id: Int): List<TaskItemResultEntranceEntity>
+
+    @Update
+    fun update(task: TaskItemResultEntranceEntity);
+
+    @Insert
+    fun insert(task: TaskItemResultEntranceEntity): Long;
+
+    @Insert
+    fun insertAll(task: List<TaskItemResultEntranceEntity>);
+
+    @Delete
+    fun delete(task: TaskItemResultEntranceEntity);
+}

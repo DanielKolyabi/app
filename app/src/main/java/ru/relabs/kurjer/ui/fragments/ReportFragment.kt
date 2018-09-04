@@ -1,6 +1,8 @@
 package ru.relabs.kurjer.ui.fragments
 
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -9,22 +11,27 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_report.*
-import kotlinx.android.synthetic.main.item_report_photo.*
+import kotlinx.android.synthetic.main.include_hint_container.*
+import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.models.*
+import ru.relabs.kurjer.models.TaskItemModel
+import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.ReportBlankPhotoDelegate
 import ru.relabs.kurjer.ui.delegates.ReportEntrancesDelegate
 import ru.relabs.kurjer.ui.delegates.ReportPhotoDelegate
 import ru.relabs.kurjer.ui.delegates.ReportTasksDelegate
-import ru.relabs.kurjer.ui.helpers.HintAnimationHelper
+import ru.relabs.kurjer.ui.helpers.HintHelper
 import ru.relabs.kurjer.ui.helpers.setVisible
+import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
+import ru.relabs.kurjer.ui.models.ReportPhotosListModel
+import ru.relabs.kurjer.ui.models.ReportTasksListModel
 import ru.relabs.kurjer.ui.presenters.ReportPresenter
 
 class ReportFragment : Fragment() {
     lateinit var tasks: List<TaskModel>
     lateinit var taskItems: List<TaskItemModel>
-    private lateinit var hintAnimationHelper: HintAnimationHelper
+    private lateinit var hintHelper: HintHelper
 
     val tasksListAdapter = DelegateAdapter<ReportTasksListModel>()
     val entrancesListAdapter = DelegateAdapter<ReportEntrancesListModel>()
@@ -48,17 +55,20 @@ class ReportFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        hintAnimationHelper = HintAnimationHelper(hint_container, hint_icon)
-        hint_container.setOnClickListener {
-            hintAnimationHelper.changeState()
-        }
+        hintHelper = HintHelper(hint_container, "", false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
 
-        tasksListAdapter.addDelegate(ReportTasksDelegate({
+        tasksListAdapter.addDelegate(ReportTasksDelegate {
             presenter.changeCurrentTask(it)
-        }))
-        entrancesListAdapter.addDelegate(ReportEntrancesDelegate())
-        photosListAdapter.addDelegate(ReportPhotoDelegate())
-        photosListAdapter.addDelegate(ReportBlankPhotoDelegate())
+        })
+        entrancesListAdapter.addDelegate(ReportEntrancesDelegate { type, holder ->
+            presenter.onEntranceSelected(type, holder)
+        })
+        photosListAdapter.addDelegate(ReportPhotoDelegate { holder ->
+            presenter.onRemovePhotoClicked(holder)
+        })
+        photosListAdapter.addDelegate(ReportBlankPhotoDelegate { holder ->
+            presenter.onBlankPhotoClicked(holder)
+        })
 
         tasks_list.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         entrances_list.layoutManager = LinearLayoutManager(context)
@@ -73,9 +83,9 @@ class ReportFragment : Fragment() {
     }
 
     fun showHintText(notes: List<String>) {
-        hint_text.text = Html.fromHtml("<b><h3>Пр. 1</h3></b>\n" + notes.reduceIndexed { i, acc, s ->
-            acc + (if (i == 1) "\n" else "") + "<b><h3>Пр. ${i + 1}</h3></b>\n$s\n"
-        })
+        hint_text.text = Html.fromHtml((1..3).map {
+            "<b><h3>Пр. $it</h3></b>\n" + notes.getOrElse(it - 1) { "" }
+        }.joinToString("\n"))
     }
 
     fun setTaskListVisible(visible: Boolean) {
@@ -85,6 +95,12 @@ class ReportFragment : Fragment() {
     fun setTaskListActiveTask(taskNumber: Int, isActive: Boolean) {
         (tasksListAdapter.data[taskNumber] as? ReportTasksListModel.TaskButton)?.active = isActive
         tasksListAdapter.notifyItemChanged(taskNumber)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (!presenter.onActivityResult(requestCode, resultCode, data)) {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
     }
 
     companion object {

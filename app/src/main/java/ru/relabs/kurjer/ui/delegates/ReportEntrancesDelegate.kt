@@ -1,14 +1,15 @@
 package ru.relabs.kurjer.ui.delegates
 
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.models.ReportEntrancesListModel
+import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.delegateAdapter.IAdapterDelegate
 import ru.relabs.kurjer.ui.holders.ReportEntranceHolder
 
-class ReportEntrancesDelegate : IAdapterDelegate<ReportEntrancesListModel> {
+class ReportEntrancesDelegate(private val onSelectClicked: (type: Int, holder: RecyclerView.ViewHolder) -> Unit) : IAdapterDelegate<ReportEntrancesListModel> {
     override fun isForViewType(data: List<ReportEntrancesListModel>, position: Int): Boolean {
         return data[position] is ReportEntrancesListModel.Entrance
     }
@@ -18,7 +19,10 @@ class ReportEntrancesDelegate : IAdapterDelegate<ReportEntrancesListModel> {
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<ReportEntrancesListModel> {
-        return ReportEntranceHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_report_entrance, parent, false))
+        return ReportEntranceHolder(
+                LayoutInflater.from(parent.context).inflate(R.layout.item_report_entrance, parent, false),
+                onSelectClicked
+        )
     }
 }
 

@@ -3,7 +3,7 @@ package ru.relabs.kurjer.ui.delegates
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.models.DetailsListModel
+import ru.relabs.kurjer.ui.models.DetailsListModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.delegateAdapter.IAdapterDelegate
 import ru.relabs.kurjer.ui.holders.DetailsTableHeaderHolder

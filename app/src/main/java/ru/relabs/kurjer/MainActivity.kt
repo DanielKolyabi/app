@@ -3,13 +3,12 @@ package ru.relabs.kurjer
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.View
 import android.view.Window
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
-import ru.relabs.kurjer.models.AddressListModel
+import ru.relabs.kurjer.ui.models.AddressListModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.fragments.*

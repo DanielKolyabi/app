@@ -1,24 +1,26 @@
 package ru.relabs.kurjer.ui.holders
 
-import android.annotation.SuppressLint
-import android.support.v7.widget.RecyclerView
 import android.view.View
 import kotlinx.android.synthetic.main.item_task_list_task.view.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.helpers.setVisible
+import ru.relabs.kurjer.ui.models.TaskListModel
 
-class TaskViewHolder(
+/**
+ * Created by ProOrange on 31.08.2018.
+ */
+class TaskListTaskHolder(
         val view: View,
         val onSelectedClicked: (position: Int) -> Unit,
         val onTaskClicked: (position: Int) -> Unit
-) : RecyclerView.ViewHolder(view) {
+) : BaseViewHolder<TaskListModel>(view) {
+    override fun onBindViewHolder(item: TaskListModel) {
+        if(item !is TaskListModel.Task) return
 
-    @SuppressLint("SetTextI18n")
-    fun bind(data: TaskModel) {
-        view.title.text = "${data.name} №${data.edition}, ${data.copies}экз., (${data.brigade}бр/${data.area}уч)"
-        setIsSelected(data.state > 0)
-        setIsActive(data.selected)
+        view.title.text = "${item.task.name} №${item.task.edition}, ${item.task.copies}экз., (${item.task.brigade}бр/${item.task.area}уч)"
+        setIsSelected(item.task.state > 0)
+        setIsActive(item.task.selected)
 
         view.selected_icon.setOnClickListener {
             onSelectedClicked(this.adapterPosition)

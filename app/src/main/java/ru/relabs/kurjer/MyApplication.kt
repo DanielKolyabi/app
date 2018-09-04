@@ -25,22 +25,24 @@ class MyApplication : Application() {
                 .fallbackToDestructiveMigration()
                 .build()
 
-        val streets = listOf("Шевченко", "Ленина", "Арбатская", "Шахтёров", "Московская")
+        val streets = listOf("Шевченко", "Ленина", "Арбатская", "Шахтёров", "Московская", "Швейная", "Голицкая", "Горняцкая", "Грибоедова")
         val publishers = listOf("Красная Ночь", "Вечерняя Москва", "Тёмная Речка", "Синяя Машина", "Голубой Вертолёт")
         launch {
-            val tempAddresses = (0..20).map {
+            val tempAddresses = (0..80).map {
                 AddressEntity(it,streets[Random().nextInt(streets.size)], it)
             }
-            val tempTasks = (0..20).map {
+            val tempTasks = (0..4).map {
                 TaskEntity(it, publishers[Random().nextInt(publishers.size)], it, 1250, 10, 0, 5, 0,
                         Date(), Date(System.currentTimeMillis() + 86400000), 1, 13, "Петров Пётр Петрович",
-                        "http://url.ru", 1, "Москва", "Адрес Склада")
+                        "http://url.ru", 1, "Москва", "Адрес Склада",
+                        null, null)
             }
-            val tempTaskItems = (0..200).map {
+            val tempTaskItems = (0..40).map {
+                val freeEntrances = (1..20).toMutableList()
                 val addr = tempAddresses[Random().nextInt(tempAddresses.size)]
                 TaskItemEntity(addr.id, 0, it, listOf<String>(),
                         (0..Random().nextInt(16)).map {
-                            Random().nextInt(20)
+                            freeEntrances.removeAt(Random().nextInt(freeEntrances.size))
                         },
                         1,
                         it / 10,

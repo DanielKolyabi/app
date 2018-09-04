@@ -8,8 +8,8 @@ import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.MyApplication
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.models.TaskState
 import ru.relabs.kurjer.ui.fragments.TaskDetailsFragment
+import java.util.*
 
 class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
     fun onInfoClicked(item: TaskItemModel): Unit {
@@ -17,11 +17,12 @@ class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
     }
 
     fun onExaminedClicked(task: TaskModel) {
-        launch (UI) {
+        launch(UI) {
             withContext(CommonPool) {
                 val db = (fragment.activity!!.application as MyApplication).database
                 val taskEntity = db.taskDao().getById(task.id)
-                taskEntity.state = TaskState.EXAMINED
+                taskEntity.state = TaskModel.EXAMINED
+                taskEntity.updateTime = Date()
                 db.taskDao().update(taskEntity)
             }
             (fragment.context as MainActivity).showTaskListScreen()

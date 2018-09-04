@@ -37,12 +37,16 @@ data class TaskEntity(
         var userId: Int,
         var city: String,
         @ColumnInfo(name = "storage_address")
-        var storageAddress: String
+        var storageAddress: String,
+        @ColumnInfo(name = "update_time")
+        var updateTime: Date?,
+        @ColumnInfo(name = "send_time")
+        var sendTime: Date?
 ){
         fun toTaskModel(db: AppDatabase): TaskModel{
                 return TaskModel(
                         id, name, edition, copies, packs, remain, area, state, startTime, endTime, region, brigade, brigadier, rastMapUrl, userId,
-                        db.taskItemDao().getAllForTask(id).map{ it.toTaskItemModel(db) }, city, storageAddress, false
+                        db.taskItemDao().getAllForTask(id).map{ it.toTaskItemModel(db) }, city, storageAddress, updateTime, sendTime, false
 
                 )
         }

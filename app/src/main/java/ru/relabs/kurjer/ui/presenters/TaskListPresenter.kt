@@ -7,7 +7,6 @@ import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.MyApplication
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.models.TaskState
 import ru.relabs.kurjer.ui.fragments.TaskListFragment
 import ru.relabs.kurjer.ui.models.TaskListModel
 
@@ -49,7 +48,7 @@ class TaskListPresenter(val fragment: TaskListFragment) {
     }
 
     fun isTaskCanSelected(task: TaskModel): Boolean {
-        return task.state == TaskState.EXAMINED || task.state == TaskState.STARTED
+        return task.state == TaskModel.EXAMINED || task.state == TaskModel.STARTED
     }
 
     fun isStartAvailable(): Boolean =
@@ -62,7 +61,7 @@ class TaskListPresenter(val fragment: TaskListFragment) {
         launch(UI) {
             val db = (fragment.activity!!.application as MyApplication).database
             val tasks = withContext(CommonPool) { db.taskDao().all.map { it.toTaskModel(db) } }
-            fragment.adapter.data.addAll(tasks.map { TaskListModel.Task(it) })
+            fragment.adapter.data.addAll(tasks.filter { it.state != TaskModel.COMPLETED }.map { TaskListModel.Task(it) })
             fragment.adapter.notifyDataSetChanged()
             updateStartButton()
             fragment.showListLoading(false)

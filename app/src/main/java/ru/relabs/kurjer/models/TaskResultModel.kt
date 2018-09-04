@@ -10,7 +10,7 @@ data class TaskItemResultModel(
         val id: Int,
         val taskItem: TaskItemModel,
         val gps: GPSCoordinatesModel,
-        val closeTime: Date,
+        val closeTime: Date?,
         val userDescription: String,
         val entrances: List<TaskItemResultEntranceModel>
 )

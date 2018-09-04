@@ -25,7 +25,7 @@ data class TaskItemResultEntity(
         var taskItemId: Int,
         var gps: GPSCoordinatesModel,
         @ColumnInfo(name = "close_time")
-        var closeTime: Date,
+        var closeTime: Date?,
         var description: String
 ) {
     fun toTaskItemResultModel(db: AppDatabase): TaskItemResultModel {
@@ -33,7 +33,7 @@ data class TaskItemResultEntity(
                 id,
                 db.taskItemDao().getById(taskItemId).toTaskItemModel(db),
                 gps, closeTime, description,
-                db.entrancesDao().getByTaskItemResultId(id).map { it.toTaskItemResultEntranceModel(db) }
+                db.entrancesDao().getByTaskItemResultId(id).map { it.toTaskItemResultEntranceModel() }
         )
     }
 }

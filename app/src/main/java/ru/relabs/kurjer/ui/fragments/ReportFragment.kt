@@ -31,6 +31,7 @@ import ru.relabs.kurjer.ui.presenters.ReportPresenter
 class ReportFragment : Fragment() {
     lateinit var tasks: List<TaskModel>
     lateinit var taskItems: List<TaskItemModel>
+    private var selectedTaskItemId: Int = 0
     private lateinit var hintHelper: HintHelper
 
     val tasksListAdapter = DelegateAdapter<ReportTasksListModel>()
@@ -44,6 +45,7 @@ class ReportFragment : Fragment() {
         arguments?.let {
             tasks = it.getParcelableArrayList("tasks")
             taskItems = it.getParcelableArrayList("task_items")
+            selectedTaskItemId = it.getInt("selected_task_id")
         }
     }
 
@@ -70,6 +72,10 @@ class ReportFragment : Fragment() {
             presenter.onBlankPhotoClicked(holder)
         })
 
+        close_button.setOnClickListener {
+            presenter.onCloseClicked()
+        }
+
         tasks_list.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         entrances_list.layoutManager = LinearLayoutManager(context)
         photos_list.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -79,7 +85,14 @@ class ReportFragment : Fragment() {
         photos_list.adapter = photosListAdapter
 
         presenter.fillTasksAdapterData()
-        presenter.changeCurrentTask(0)
+        var currentTask = 0
+        tasks.forEachIndexed { index, taskModel ->
+            if(taskModel.id == selectedTaskItemId){
+                currentTask = index
+                return@forEachIndexed
+            }
+        }
+        presenter.changeCurrentTask(currentTask)
     }
 
     fun showHintText(notes: List<String>) {
@@ -105,11 +118,12 @@ class ReportFragment : Fragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance(task: List<TaskModel>, taskItem: List<TaskItemModel>) =
+        fun newInstance(task: List<TaskModel>, taskItem: List<TaskItemModel>, selectedTaskId: Int) =
                 ReportFragment().apply {
                     arguments = Bundle().apply {
                         putParcelableArrayList("tasks", ArrayList(task))
                         putParcelableArrayList("task_items", ArrayList(taskItem))
+                        putInt("selected_task_id", selectedTaskId)
                     }
                 }
     }

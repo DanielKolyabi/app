@@ -27,7 +27,8 @@ data class TaskModel(
         var items: List<TaskItemModel>,
         var city: String,
         var storageAddress: String,
-
+        var updateTime: Date?,
+        var sendTime: Date?,
         //Temporary var, for some features in lists
         var selected: Boolean
 ) : Parcelable {
@@ -53,6 +54,8 @@ data class TaskModel(
             },
             parcel.readString(),
             parcel.readString(),
+            parcel.readSerializable() as Date,
+            parcel.readSerializable() as Date,
             parcel.readByte() != 0.toByte()) {
     }
 
@@ -75,6 +78,8 @@ data class TaskModel(
         parcel.writeList(items)
         parcel.writeString(city)
         parcel.writeString(storageAddress)
+        parcel.writeSerializable(updateTime)
+        parcel.writeSerializable(sendTime)
         parcel.writeByte(if (selected) 1 else 0)
     }
 
@@ -90,12 +95,10 @@ data class TaskModel(
         override fun newArray(size: Int): Array<TaskModel?> {
             return arrayOfNulls(size)
         }
-    }
-}
 
-object TaskState{
-    val CREATED = 0
-    val EXAMINED = 1
-    val STARTED = 2
-    val COMPLEATED = 4
+        val CREATED = 0
+        val EXAMINED = 1
+        val STARTED = 2
+        val COMPLETED = 4
+    }
 }

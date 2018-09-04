@@ -8,5 +8,4 @@ class TaskListLoaderHolder(itemView: View) : BaseViewHolder<TaskListModel>(itemV
     override fun onBindViewHolder(item: TaskListModel) {
         if(item !is TaskListModel.Loader) return
     }
-
 }

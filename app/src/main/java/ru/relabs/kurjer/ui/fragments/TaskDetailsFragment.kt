@@ -8,13 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_task_details.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.ui.models.DetailsListModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.models.TaskState
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.TaskDetailsHeaderDelegate
 import ru.relabs.kurjer.ui.delegates.TaskDetailsInfoDelegate
 import ru.relabs.kurjer.ui.delegates.TaskDetailsItemDelegate
+import ru.relabs.kurjer.ui.models.DetailsListModel
 import ru.relabs.kurjer.ui.presenters.TaskDetailsPresenter
 
 class TaskDetailsFragment : Fragment() {
@@ -57,7 +56,7 @@ class TaskDetailsFragment : Fragment() {
 
         adapter.notifyDataSetChanged()
 
-        examine_button.isEnabled = task.state == TaskState.CREATED
+        examine_button.isEnabled = task.state == TaskModel.CREATED
     }
 
     companion object {

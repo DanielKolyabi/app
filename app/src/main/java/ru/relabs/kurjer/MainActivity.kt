@@ -2,16 +2,16 @@ package ru.relabs.kurjer
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.view.Window
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
-import ru.relabs.kurjer.ui.models.AddressListModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.fragments.*
+import ru.relabs.kurjer.ui.models.AddressListModel
 
 class MainActivity : AppCompatActivity() {
 
@@ -48,8 +48,12 @@ class MainActivity : AppCompatActivity() {
         changeTitle("Список адресов")
     }
 
-    fun showError(errorMessage: String) {
-        Toast.makeText(applicationContext, errorMessage, Toast.LENGTH_LONG).show()
+    fun showError(errorMessage: String, listener: ErrorButtonsListener? = null) {
+        val builder = AlertDialog.Builder(this)
+                .setMessage(errorMessage)
+                .setPositiveButton("Ок") { _, _ -> listener?.positiveListener() }
+        listener?.let { builder.setNegativeButton("Отмена") { _, _ -> listener?.negativeListener() } }
+        builder.show()
     }
 
     fun showTaskDetailsScreen(task: TaskModel) {
@@ -63,7 +67,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun showTasksReportScreen(tasks: List<AddressListModel.TaskItem>) {
+    fun showTasksReportScreen(tasks: List<AddressListModel.TaskItem>, selectedTaskId: Int) {
 
         navigateTo(ReportFragment.newInstance(
                 tasks.map {
@@ -71,10 +75,12 @@ class MainActivity : AppCompatActivity() {
                 },
                 tasks.map {
                     it.taskItem
-                }), true)
+                },
+                selectedTaskId
+        ), true)
     }
 
-    fun changeTitle(title: String){
+    fun changeTitle(title: String) {
         top_app_bar.title.text = title
     }
 
@@ -131,4 +137,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+}
+
+interface ErrorButtonsListener {
+    fun positiveListener()
+    fun negativeListener()
 }

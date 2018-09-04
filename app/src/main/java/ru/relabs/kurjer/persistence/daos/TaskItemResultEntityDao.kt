@@ -1,7 +1,6 @@
 package ru.relabs.kurjer.persistence.daos
 
 import android.arch.persistence.room.*
-import ru.relabs.kurjer.persistence.entities.TaskItemPhotoEntity
 import ru.relabs.kurjer.persistence.entities.TaskItemResultEntity
 
 /**
@@ -17,7 +16,7 @@ interface TaskItemResultEntityDao {
     fun getById(id: Int): TaskItemResultEntity
 
     @Query("SELECT * FROM task_item_results WHERE task_item_id = :id")
-    fun getByTaskItemId(id: Int): List<TaskItemResultEntity>
+    fun getByTaskItemId(id: Int): TaskItemResultEntity?
 
     @Update
     fun update(task: TaskItemResultEntity);

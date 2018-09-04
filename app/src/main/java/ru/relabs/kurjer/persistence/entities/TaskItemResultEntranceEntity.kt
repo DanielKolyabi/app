@@ -24,10 +24,9 @@ data class TaskItemResultEntranceEntity(
         var entrance: Int,
         var state: Int
 ) {
-    fun toTaskItemResultEntranceModel(db: AppDatabase): TaskItemResultEntranceModel {
+    fun toTaskItemResultEntranceModel(): TaskItemResultEntranceModel {
         return TaskItemResultEntranceModel(
                 id,
-                db.taskItemResultsDao().getById(taskItemResultId).toTaskItemResultModel(db),
                 entrance, state
         )
     }

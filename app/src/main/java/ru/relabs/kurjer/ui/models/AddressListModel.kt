@@ -18,4 +18,5 @@ sealed class AddressListModel {
     ) : AddressListModel()
 
     data class SortingItem(val sortType: Int) : AddressListModel()
+    object Loader : AddressListModel()
 }

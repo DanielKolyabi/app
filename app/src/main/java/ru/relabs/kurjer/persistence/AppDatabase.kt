@@ -10,7 +10,7 @@ import ru.relabs.kurjer.persistence.entities.*
  * Created by ProOrange on 30.08.2018.
  */
 @Database(entities = [AddressEntity::class, TaskEntity::class, TaskItemEntity::class,
-    TaskItemPhotoEntity::class, TaskItemResultEntity::class, TaskItemResultEntranceEntity::class], version = 6)
+    TaskItemPhotoEntity::class, TaskItemResultEntity::class, TaskItemResultEntranceEntity::class], version = 11)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun taskItemDao(): TaskItemEntityDao

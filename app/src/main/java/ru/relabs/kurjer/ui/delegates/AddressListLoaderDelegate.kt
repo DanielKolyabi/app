@@ -3,19 +3,15 @@ package ru.relabs.kurjer.ui.delegates
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.ui.models.AddressListModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.delegateAdapter.IAdapterDelegate
-import ru.relabs.kurjer.ui.holders.AddressListTaskItemHolder
+import ru.relabs.kurjer.ui.models.AddressListModel
+import ru.relabs.kurjer.ui.holders.AddressListLoaderHolder
 
-/**
- * Created by ProOrange on 11.08.2018.
- */
-class AddressListTaskItemDelegate(
-        private val onItemClicked: (addressId: Int, taskId: Int) -> Unit
-) : IAdapterDelegate<AddressListModel> {
+class AddressListLoaderDelegate : IAdapterDelegate<AddressListModel> {
+
     override fun isForViewType(data: List<AddressListModel>, position: Int): Boolean {
-        return data[position] is AddressListModel.TaskItem
+        return data[position] is AddressListModel.Loader
     }
 
     override fun onBindViewHolder(holder: BaseViewHolder<AddressListModel>, data: List<AddressListModel>, position: Int) {
@@ -23,9 +19,6 @@ class AddressListTaskItemDelegate(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<AddressListModel> {
-        return AddressListTaskItemHolder(
-                LayoutInflater.from(parent.context).inflate(R.layout.item_addr_list_task, parent, false),
-                onItemClicked
-        )
+        return AddressListLoaderHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_loading, parent, false))
     }
 }

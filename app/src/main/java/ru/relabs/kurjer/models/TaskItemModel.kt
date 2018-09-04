@@ -3,6 +3,7 @@ package ru.relabs.kurjer.models
 import android.arch.persistence.room.*
 import android.os.Parcel
 import android.os.Parcelable
+import java.util.*
 
 data class TaskItemModel(
         var address: AddressModel,

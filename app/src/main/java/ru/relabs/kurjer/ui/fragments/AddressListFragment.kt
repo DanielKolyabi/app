@@ -16,6 +16,7 @@ import ru.relabs.kurjer.ui.models.AddressListModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.AddressListAddressDelegate
+import ru.relabs.kurjer.ui.delegates.AddressListLoaderDelegate
 import ru.relabs.kurjer.ui.delegates.AddressListSortingDelegate
 import ru.relabs.kurjer.ui.delegates.AddressListTaskItemDelegate
 import ru.relabs.kurjer.ui.helpers.HintHelper
@@ -46,9 +47,8 @@ class AddressListFragment : Fragment() {
 
         adapter.apply {
             addDelegate(AddressListAddressDelegate(tasks.size == 1))
-            addDelegate(AddressListTaskItemDelegate(
-                    { addressId -> presenter.onItemClicked(addressId) }
-            ))
+            addDelegate(AddressListLoaderDelegate())
+            addDelegate(AddressListTaskItemDelegate { addressId, taskId -> presenter.onItemClicked(addressId, taskId) })
             addDelegate(AddressListSortingDelegate(
                     { presenter.changeSortingMethod(it) }
             ))
@@ -58,8 +58,17 @@ class AddressListFragment : Fragment() {
         list.adapter = adapter
 
         if(adapter.data.size == 0) {
+            adapter.data.add(AddressListModel.Loader)
+            adapter.notifyDataSetChanged()
+
             presenter.tasks.addAll(tasks)
             presenter.applySorting()
+        }else{
+            adapter.data.clear()
+            adapter.data.add(AddressListModel.Loader)
+            adapter.notifyDataSetChanged()
+
+            presenter.updateStates()
         }
     }
 

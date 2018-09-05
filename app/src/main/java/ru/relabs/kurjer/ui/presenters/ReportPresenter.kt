@@ -313,7 +313,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
                         }
                 )
                 db.taskDao().update(
-                        db.taskDao().getById(fragment.tasks[currentTask].id).let {
+                        db.taskDao().getById(fragment.tasks[currentTask].id)!!.let {
                             if (it.state == TaskModel.EXAMINED) {
                                 it.state = TaskModel.STARTED
                             }

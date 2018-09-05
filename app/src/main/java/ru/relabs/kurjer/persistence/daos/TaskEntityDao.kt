@@ -13,7 +13,7 @@ interface TaskEntityDao {
     val all: List<TaskEntity>
 
     @Query("SELECT * FROM tasks WHERE id = :id")
-    fun getById(id: Int): TaskEntity
+    fun getById(id: Int): TaskEntity?
 
     @Update
     fun update(task: TaskEntity);

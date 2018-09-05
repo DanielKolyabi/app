@@ -20,7 +20,7 @@ class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
         launch(UI) {
             withContext(CommonPool) {
                 val db = (fragment.activity!!.application as MyApplication).database
-                val taskEntity = db.taskDao().getById(task.id)
+                val taskEntity = db.taskDao().getById(task.id)!!
                 taskEntity.state = TaskModel.EXAMINED
                 taskEntity.updateTime = Date()
                 db.taskDao().update(taskEntity)

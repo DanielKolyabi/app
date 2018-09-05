@@ -16,6 +16,7 @@
         android:fontFamily="@string/text_font"
         android:hint="@string/login_placeholder"
         android:textSize="16sp"
+        android:maxLines="1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,6 +31,8 @@
         android:layout_marginTop="8dp"
         android:fontFamily="@string/text_font"
         android:hint="@string/password_placeholder"
+        android:inputType="textPassword"
+        android:maxLines="1"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="@+id/login_input"
         app:layout_constraintStart_toStartOf="@+id/login_input"
@@ -83,4 +86,25 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/loading"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:elevation="8dp"
+        android:background="#DD444444"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:elevation="4dp"/>
+    </LinearLayout>
 </android.support.constraint.ConstraintLayout>

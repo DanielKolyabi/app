@@ -4,9 +4,19 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
+import retrofit2.HttpException
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.MyApplication
+import ru.relabs.kurjer.activity
+import ru.relabs.kurjer.application
 import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.models.UserModel
+import ru.relabs.kurjer.network.DeliveryServerAPI.api
+import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.network.models.ErrorUtils
+import ru.relabs.kurjer.persistence.AppDatabase
+import ru.relabs.kurjer.persistence.NormalMergeStrategy
+import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.fragments.TaskListFragment
 import ru.relabs.kurjer.ui.models.TaskListModel
 
@@ -60,11 +70,45 @@ class TaskListPresenter(val fragment: TaskListFragment) {
     fun loadTasks() {
         launch(UI) {
             val db = (fragment.activity!!.application as MyApplication).database
-            val tasks = withContext(CommonPool) { db.taskDao().all.map { it.toTaskModel(db) } }
-            fragment.adapter.data.addAll(tasks.filter { it.state != TaskModel.COMPLETED }.map { TaskListModel.Task(it) })
+
+            //Load from network if available
+            if (NetworkHelper.isNetworkAvailable(fragment)) {
+                val newTasks = withContext(CommonPool){loadTasksFromNetwork()}
+                if(newTasks != null){
+                    if(PersistenceHelper.isMergeNeeded(db, newTasks)){
+                        PersistenceHelper.merge(db, newTasks, NormalMergeStrategy())
+                    }
+                }
+            } else {
+                fragment.activity().showError("Отсутствует соединение с интернетом.\nНевозможно обновить данные.")
+            }
+
+            //Load from database
+            val savedTasks = loadTasksFromDatabase(db)
+            fragment.adapter.data.addAll(savedTasks)
             fragment.adapter.notifyDataSetChanged()
             updateStartButton()
             fragment.showListLoading(false)
         }
+    }
+
+    private suspend fun loadTasksFromNetwork(): List<TaskModel>? {
+        try {
+            val tasks = api.getTasks((fragment.application()!!.user as UserModel.Authorized).token).await()
+            return tasks.map{it.toTaskModel()}
+        } catch (e: HttpException) {
+            e.printStackTrace()
+            val err = ErrorUtils.getError(e)
+            fragment.activity().showError("Ошибка №${err.code}.\n${err.message}")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            fragment.activity().showError("Нет ответа от сервера.")
+        }
+        return null
+    }
+
+    suspend fun loadTasksFromDatabase(db: AppDatabase): List<TaskListModel.Task> {
+        val tasks = withContext(CommonPool) { db.taskDao().all.map { it.toTaskModel(db) } }
+        return tasks.filter { it.state != TaskModel.COMPLETED }.map { TaskListModel.Task(it) }
     }
 }

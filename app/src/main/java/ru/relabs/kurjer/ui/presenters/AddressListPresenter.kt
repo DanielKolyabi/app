@@ -62,7 +62,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         launch {
             val db = (fragment.activity!!.application as MyApplication).database
             db.taskDao().update(
-                    db.taskDao().getById(task.id).let{
+                    db.taskDao().getById(task.id)!!.let{
                         it.state = TaskModel.COMPLETED
                         it
                     }

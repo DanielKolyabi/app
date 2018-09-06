@@ -10,7 +10,8 @@ import ru.relabs.kurjer.persistence.entities.*
  * Created by ProOrange on 30.08.2018.
  */
 @Database(entities = [AddressEntity::class, TaskEntity::class, TaskItemEntity::class,
-    TaskItemPhotoEntity::class, TaskItemResultEntity::class, TaskItemResultEntranceEntity::class], version = 11)
+    TaskItemPhotoEntity::class, TaskItemResultEntity::class, TaskItemResultEntranceEntity::class,
+    SendQueryItemEntity::class, ReportQueryItemEntity::class], version = 12)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun taskItemDao(): TaskItemEntityDao
@@ -19,4 +20,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun photosDao(): TaskItemPhotoEntityDao
     abstract fun taskItemResultsDao(): TaskItemResultEntityDao
     abstract fun entrancesDao(): TaskItemResultEntranceEntityDao
+    abstract fun sendQueryDao(): SendQueryDao
+    abstract fun reportQueryDao(): ReportQueryDao
+
 }

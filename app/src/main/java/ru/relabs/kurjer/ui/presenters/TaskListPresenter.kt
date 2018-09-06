@@ -72,16 +72,17 @@ class TaskListPresenter(val fragment: TaskListFragment) {
             val db = (fragment.activity!!.application as MyApplication).database
 
             //Load from network if available
-            if (NetworkHelper.isNetworkAvailable(fragment)) {
-                val newTasks = withContext(CommonPool){loadTasksFromNetwork()}
-                if(newTasks != null){
-                    if(PersistenceHelper.isMergeNeeded(db, newTasks)){
-                        PersistenceHelper.merge(db, newTasks, NormalMergeStrategy())
-                    }
-                }
-            } else {
-                fragment.activity().showError("Отсутствует соединение с интернетом.\nНевозможно обновить данные.")
-            }
+//            if (NetworkHelper.isNetworkAvailable(fragment)) {
+//                val newTasks = withContext(CommonPool){loadTasksFromNetwork()}
+//                if(newTasks != null){
+//                    //TODO: REWRITE FUCKING MERGE!!!
+//                    if(PersistenceHelper.isMergeNeeded(db, newTasks)){
+//                        PersistenceHelper.merge(db, newTasks, NormalMergeStrategy())
+//                    }
+//                }
+//            } else {
+//                fragment.activity().showError("Отсутствует соединение с интернетом.\nНевозможно обновить данные.")
+//            }
 
             //Load from database
             val savedTasks = loadTasksFromDatabase(db)

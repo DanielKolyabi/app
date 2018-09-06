@@ -1,7 +1,10 @@
 package ru.relabs.kurjer
 
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.View
@@ -28,6 +31,38 @@ class MainActivity : AppCompatActivity() {
             val current = supportFragmentManager.findFragmentByTag("fragment")
             setNavigationRefreshVisible(current is TaskListFragment)
         }
+
+        if (!(application as MyApplication).enableLocationListening()) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                showError("Необходимо разрешить приложению получать ваше местоположение.", object : ErrorButtonsListener {
+                    override fun positiveListener() {
+                        ActivityCompat.requestPermissions(this@MainActivity, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
+                    }
+
+                    override fun negativeListener() {}
+                }, true)
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if (requestCode == 1) {
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                showError("Необходимо разрешить приложению получать ваше местоположение.", object : ErrorButtonsListener {
+                    override fun positiveListener() {
+                        ActivityCompat.requestPermissions(this@MainActivity, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
+                    }
+
+                    override fun negativeListener() {
+                        onBackPressed()
+                    }
+                })
+            } else {
+                if (!(application as MyApplication).enableLocationListening()) {
+                    showError("Невозможно включить получение расположения.")
+                }
+            }
+        }
     }
 
     fun showTaskListScreen() {
@@ -48,11 +83,13 @@ class MainActivity : AppCompatActivity() {
         changeTitle("Список адресов")
     }
 
-    fun showError(errorMessage: String, listener: ErrorButtonsListener? = null) {
+    fun showError(errorMessage: String, listener: ErrorButtonsListener? = null, forceHideNegativeButton: Boolean = false) {
         val builder = AlertDialog.Builder(this)
                 .setMessage(errorMessage)
                 .setPositiveButton("Ок") { _, _ -> listener?.positiveListener() }
-        listener?.let { builder.setNegativeButton("Отмена") { _, _ -> listener?.negativeListener() } }
+        if (!forceHideNegativeButton) {
+            listener?.let { builder.setNegativeButton("Отмена") { _, _ -> listener?.negativeListener() } }
+        }
         builder.show()
     }
 

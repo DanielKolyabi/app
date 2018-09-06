@@ -6,7 +6,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.text.Editable
 import android.text.Html
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -55,6 +57,10 @@ class ReportFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_report, container, false)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         hintHelper = HintHelper(hint_container, "", false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
@@ -76,6 +82,16 @@ class ReportFragment : Fragment() {
             presenter.onCloseClicked()
         }
 
+        user_explanation_input.addTextChangedListener(object: TextWatcher {
+            override fun afterTextChanged(s: Editable?) {}
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                presenter.onDescriptionChanged()
+            }
+        })
+
         tasks_list.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         entrances_list.layoutManager = LinearLayoutManager(context)
         photos_list.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -87,7 +103,7 @@ class ReportFragment : Fragment() {
         presenter.fillTasksAdapterData()
         var currentTask = 0
         tasks.forEachIndexed { index, taskModel ->
-            if(taskModel.id == selectedTaskItemId){
+            if (taskModel.id == selectedTaskItemId) {
                 currentTask = index
                 return@forEachIndexed
             }

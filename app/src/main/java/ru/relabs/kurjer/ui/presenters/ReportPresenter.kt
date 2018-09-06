@@ -15,6 +15,7 @@ import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.ErrorButtonsListener
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.MyApplication
+import ru.relabs.kurjer.application
 import ru.relabs.kurjer.files.PathHelper.getTaskItemPhotoFile
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.TaskItemResultEntranceModel
@@ -48,7 +49,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
             fillEntrancesAdapterData(db)
             fillPhotosAdapterData(db)
             fillDescriptionData(db)
-            withContext(UI){
+            withContext(UI) {
                 fragment.loading.visibility = View.GONE
             }
         }
@@ -79,7 +80,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
             val savedEntrance = savedEntrancesAtSameAddress.firstOrNull { saved ->
                 it == saved.entrance
             }
-            val savedState = if(savedEntrance == null) 0 else savedEntrance.state
+            val savedState = if (savedEntrance == null) 0 else savedEntrance.state
 
             ReportEntrancesListModel.Entrance(fragment.taskItems[currentTask], it, savedState)
         }
@@ -107,7 +108,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
             it.taskId in fragment.tasks.map { it.id }
         }.forEach {
             db.taskItemResultsDao().getByTaskItemId(it.id)?.let {
-                db.entrancesDao().getByTaskItemResultId(it.id).filter{
+                db.entrancesDao().getByTaskItemResultId(it.id).filter {
                     it.state != 0
                 }.forEach {
                     result.add(it.toTaskItemResultEntranceModel())
@@ -143,14 +144,24 @@ class ReportPresenter(private val fragment: ReportFragment) {
         fragment.entrancesListAdapter.notifyItemChanged(holder.adapterPosition)
     }
 
-    private fun createOrUpdateTaskResult() {
+    fun onDescriptionChanged() {
+        launch(CommonPool) {
+            try {
+                createOrUpdateTaskResult()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun createOrUpdateTaskResult(gps: GPSCoordinatesModel? = null) {
         val db = (fragment.activity!!.application as MyApplication).database
         val taskItemEntity = db.taskItemDao().getById(fragment.taskItems[currentTask].id)
         val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItemEntity.id)
         if (taskItemResult == null) {
             createTaskItemResult(db)
         } else {
-            updateTaskItemResult(db)
+            updateTaskItemResult(db, gps)
         }
     }
 
@@ -176,7 +187,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
         )
     }
 
-    private fun updateTaskItemResult(db: AppDatabase) {
+    private fun updateTaskItemResult(db: AppDatabase, gps: GPSCoordinatesModel?) {
         val result = db.taskItemResultsDao().getByTaskItemId(fragment.taskItems[currentTask].id)
         val entrances = db.entrancesDao().getByTaskItemResultId(result!!.id)
         result.description = fragment.user_explanation_input.text.toString()
@@ -185,7 +196,9 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 (entData as ReportEntrancesListModel.Entrance).entranceNumber == it.entrance
             } as ReportEntrancesListModel.Entrance).selected
         }
-
+        gps?.let{
+            result.gps = gps
+        }
         db.taskItemResultsDao().update(result)
         entrances.forEach { db.entrancesDao().update(it) }
     }
@@ -246,7 +259,11 @@ class ReportPresenter(private val fragment: ReportFragment) {
         bmp.recycle()
         launch(UI) {
             val db = (fragment.activity!!.application as MyApplication).database
-            val photoEntity = TaskItemPhotoEntity(0, uuid.toString(), GPSCoordinatesModel(0.toDouble(), 0.toDouble(), Date()), fragment.taskItems[currentTask].id)
+            var currentGPS = GPSCoordinatesModel(0.toDouble(), 0.toDouble(), Date())
+            fragment.application()?.let {
+                currentGPS = it.currentLocation
+            }
+            val photoEntity = TaskItemPhotoEntity(0, uuid.toString(), currentGPS, fragment.taskItems[currentTask].id)
             val photoModel = withContext(CommonPool) {
                 val id = db.photosDao().insert(photoEntity)
                 db.photosDao().getById(id.toInt()).toTaskItemPhotoModel(db)
@@ -262,6 +279,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
             requestPhoto()
         }
+
         return photoFile
     }
 
@@ -305,7 +323,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
         launch(UI) {
             val db = (fragment.activity!!.application as MyApplication).database
             withContext(CommonPool) {
-                createOrUpdateTaskResult()
+                createOrUpdateTaskResult(fragment.application()?.currentLocation)
                 db.taskItemDao().update(
                         db.taskItemDao().getById(fragment.taskItems[currentTask].id).let {
                             it.state = 1

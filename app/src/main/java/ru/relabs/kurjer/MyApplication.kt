@@ -3,7 +3,14 @@ package ru.relabs.kurjer
 import android.app.Application
 import android.arch.persistence.room.Room
 import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import kotlinx.coroutines.experimental.launch
+import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.AddressEntity
@@ -19,6 +26,8 @@ class MyApplication : Application() {
     lateinit var database: AppDatabase
     var user: UserModel = UserModel.Unauthorized
     lateinit var deviceUUID: String
+    private lateinit var locationManager: LocationManager
+    var currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
 
     override fun onCreate() {
         super.onCreate()
@@ -30,10 +39,34 @@ class MyApplication : Application() {
                 .build()
 
         fillDatabase(database)
+
+
+    }
+
+    fun enableLocationListening() : Boolean{
+        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return false
+        }
+        val listener = object : LocationListener {
+            override fun onLocationChanged(location: Location?) {
+                location?.let {
+                    currentLocation = GPSCoordinatesModel(it.latitude, it.longitude, Date(it.time))
+                }
+            }
+            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+            override fun onProviderEnabled(provider: String?) {}
+            override fun onProviderDisabled(provider: String?) {}
+        }
+
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, listener)
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, listener)
+
+        return true
     }
 
     fun storeUserCredentials() {
-        if(user !is UserModel.Authorized) return
+        if (user !is UserModel.Authorized) return
         getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
                 .edit()
                 .putString("login", (user as UserModel.Authorized).login)
@@ -44,7 +77,7 @@ class MyApplication : Application() {
     fun getUserCredentials(): UserModel.Authorized? {
         val login = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE).getString("login", "-unknw")
         val token = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE).getString("token", "-unknw")
-        if(token == "-unknw"){
+        if (token == "-unknw") {
             return null
         }
         return UserModel.Authorized(login = login, token = token)

@@ -23,7 +23,7 @@ class Converters {
     }
 
     @TypeConverter
-    fun jsonToIntList(value: String): MutableList<Int> {
+    fun jsonToIntList(value: String): List<Int> {
         return Gson().fromJson(value, mutableListOf<Int>()::class.java)
     }
 
@@ -33,7 +33,17 @@ class Converters {
     }
 
     @TypeConverter
-    fun stringToStringList(value: String): MutableList<String> {
+    fun jsonToIntPairList(value: String): List<Pair<Int, Int>> {
+        return Gson().fromJson(value, listOf<Pair<Int, Int>>()::class.java)
+    }
+
+    @TypeConverter
+    fun intPairListToJSON(value: List<Pair<Int, Int>>): String {
+        return Gson().toJson(value)
+    }
+
+    @TypeConverter
+    fun stringToStringList(value: String): List<String> {
         return Gson().fromJson(value, mutableListOf<String>()::class.java)
     }
 

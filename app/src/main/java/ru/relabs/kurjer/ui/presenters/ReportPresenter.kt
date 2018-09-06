@@ -12,18 +12,14 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
-import ru.relabs.kurjer.ErrorButtonsListener
-import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.MyApplication
-import ru.relabs.kurjer.application
+import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.PathHelper.getTaskItemPhotoFile
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.TaskItemResultEntranceModel
 import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.persistence.AppDatabase
-import ru.relabs.kurjer.persistence.entities.TaskItemPhotoEntity
-import ru.relabs.kurjer.persistence.entities.TaskItemResultEntity
-import ru.relabs.kurjer.persistence.entities.TaskItemResultEntranceEntity
+import ru.relabs.kurjer.persistence.entities.*
 import ru.relabs.kurjer.ui.fragments.ReportFragment
 import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
 import ru.relabs.kurjer.ui.models.ReportPhotosListModel
@@ -196,7 +192,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 (entData as ReportEntrancesListModel.Entrance).entranceNumber == it.entrance
             } as ReportEntrancesListModel.Entrance).selected
         }
-        gps?.let{
+        gps?.let {
             result.gps = gps
         }
         db.taskItemResultsDao().update(result)
@@ -323,7 +319,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
         launch(UI) {
             val db = (fragment.activity!!.application as MyApplication).database
             withContext(CommonPool) {
-                createOrUpdateTaskResult(fragment.application()?.currentLocation)
+                val location = fragment.application()?.currentLocation
+                createOrUpdateTaskResult(location)
                 db.taskItemDao().update(
                         db.taskItemDao().getById(fragment.taskItems[currentTask].id).let {
                             it.state = 1
@@ -334,10 +331,25 @@ class ReportPresenter(private val fragment: ReportFragment) {
                         db.taskDao().getById(fragment.tasks[currentTask].id)!!.let {
                             if (it.state == TaskModel.EXAMINED) {
                                 it.state = TaskModel.STARTED
+                                db.sendQueryDao().insert(
+                                        SendQueryItemEntity(0,
+                                                BuildConfig.API_URL + "/api/v1/tasks/${it.id}/accepted?token=" + (fragment.application()!!.user as UserModel.Authorized).token,
+                                                ""
+                                        )
+                                )
                             }
-                            it.updateTime = Date()
                             it
                         }
+                )
+
+                db.reportQueryDao().insert(
+                        ReportQueryItemEntity(
+                                0, fragment.taskItems[currentTask].id, location,
+                                Date(), fragment.user_explanation_input.text.toString(),
+                                fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.map {
+                                    Pair((it as ReportEntrancesListModel.Entrance).entranceNumber, it.selected)
+                                }
+                        )
                 )
             }
 

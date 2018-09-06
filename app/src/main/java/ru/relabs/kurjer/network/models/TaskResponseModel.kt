@@ -36,7 +36,7 @@ data class TaskResponseModel(
     fun toTaskModel(): TaskModel {
         return TaskModel(
                 id, name, edition, copies, packs, remain, area, state, startTime, endTime, region, brigade, brigadier, rastMapUrl, userId,
-                items.map{it.toTaskItemModel()}, city, storageAddress, null, null, false
+                items.map{it.toTaskItemModel()}, city, storageAddress, false
 
         )
     }

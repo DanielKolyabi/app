@@ -16,10 +16,10 @@ data class ReportQueryItemEntity(
         var id: Int,
         @ColumnInfo(name = "task_item_id")
         var taskItemId: Int,
-        var gps: GPSCoordinatesModel,
+        var gps: GPSCoordinatesModel?,
         @ColumnInfo(name = "close_time")
         var closeTime: Date,
         @ColumnInfo(name = "user_description")
         var userDescription: String,
-        var entrances: List<Int>
+        var entrances: List<Pair<Int, Int>>
 )

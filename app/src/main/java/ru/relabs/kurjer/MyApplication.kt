@@ -117,8 +117,7 @@ class MyApplication : Application() {
             val tempTasks = (0..4).map {
                 TaskEntity(it, publishers[Random().nextInt(publishers.size)], it, 1250, 10, 0, 5, 0,
                         Date(), Date(System.currentTimeMillis() + 86400000), 1, 13, "Петров Пётр Петрович",
-                        "http://url.ru", 1, "Москва", "Адрес Склада",
-                        null, null)
+                        "http://url.ru", 1, "Москва", "Адрес Склада")
             }
             val tempTaskItems = (0..40).map {
                 val freeEntrances = (1..20).toMutableList()

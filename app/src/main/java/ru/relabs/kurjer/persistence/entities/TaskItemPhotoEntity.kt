@@ -15,11 +15,7 @@ import ru.relabs.kurjer.persistence.AppDatabase
  * Created by ProOrange on 03.09.2018.
  */
 
-@Entity(tableName = "task_item_photos", foreignKeys = [ForeignKey(
-        entity = TaskItemEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["task_item_id"]
-)])
+@Entity(tableName = "task_item_photos")
 
 data class TaskItemPhotoEntity(
         @PrimaryKey(autoGenerate = true)

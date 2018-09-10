@@ -15,7 +15,8 @@ import java.util.*
 @Entity(tableName = "task_item_results", foreignKeys = [ForeignKey(
         entity = TaskItemEntity::class,
         parentColumns = ["id"],
-        childColumns = ["task_item_id"]
+        childColumns = ["task_item_id"],
+        onDelete = ForeignKey.CASCADE
 )])
 
 data class TaskItemResultEntity(

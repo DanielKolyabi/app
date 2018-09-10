@@ -2,9 +2,7 @@ package ru.relabs.kurjer.persistence.entities
 
 import android.arch.persistence.room.ColumnInfo
 import android.arch.persistence.room.Entity
-import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.PrimaryKey
-import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.persistence.AppDatabase
 import java.util.*
@@ -37,13 +35,25 @@ data class TaskEntity(
         var userId: Int,
         var city: String,
         @ColumnInfo(name = "storage_address")
-        var storageAddress: String
-){
-        fun toTaskModel(db: AppDatabase): TaskModel{
-                return TaskModel(
-                        id, name, edition, copies, packs, remain, area, state, startTime, endTime, region, brigade, brigadier, rastMapUrl, userId,
-                        db.taskItemDao().getAllForTask(id).map{ it.toTaskItemModel(db) }, city, storageAddress, false
+        var storageAddress: String,
+        var iteration: Int
+) {
+    fun toTaskModel(db: AppDatabase): TaskModel {
+        return TaskModel(
+                id, name, edition, copies, packs, remain, area, state, startTime, endTime, region, brigade, brigadier, rastMapUrl, userId,
+                db.taskItemDao().getAllForTask(id).map { it.toTaskItemModel(db) }, city, storageAddress, iteration, false
 
-                )
-        }
+        )
+    }
+
+    fun fromSiriusState(): Int =
+            when (state) {
+                0, 10, 11, 20 -> TaskModel.CREATED
+                30 -> TaskModel.EXAMINED
+                40 -> TaskModel.STARTED
+                12, 50, 60 -> TaskModel.COMPLETED
+                else -> TaskModel.COMPLETED
+
+            }
+
 }

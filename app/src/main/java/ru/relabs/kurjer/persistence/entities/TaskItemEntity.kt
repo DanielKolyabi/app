@@ -1,11 +1,12 @@
 package ru.relabs.kurjer.persistence.entities
 
-import android.arch.persistence.room.*
-import ru.relabs.kurjer.models.AddressModel
+import android.arch.persistence.room.ColumnInfo
+import android.arch.persistence.room.Entity
+import android.arch.persistence.room.ForeignKey
+import android.arch.persistence.room.ForeignKey.CASCADE
+import android.arch.persistence.room.PrimaryKey
 import ru.relabs.kurjer.models.TaskItemModel
-import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.persistence.AppDatabase
-import java.util.*
 
 /**
  * Created by ProOrange on 31.08.2018.
@@ -14,11 +15,8 @@ import java.util.*
 @Entity(tableName = "task_items", foreignKeys = [ForeignKey(
         entity = TaskEntity::class,
         parentColumns = ["id"],
-        childColumns = ["task_id"]
-), ForeignKey(
-        entity = AddressEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["address_id"]
+        childColumns = ["task_id"],
+        onDelete = CASCADE
 )])
 
 data class TaskItemEntity(
@@ -37,7 +35,7 @@ data class TaskItemEntity(
 ){
         fun toTaskItemModel(db: AppDatabase): TaskItemModel{
                 return TaskItemModel(
-                        db.addressDao().getById(addressId).toAddressModel(),
+                        db.addressDao().getById(addressId)!!.toAddressModel(),
                         state, id, notes, entrances, subarea, bypass, copies
                 )
         }

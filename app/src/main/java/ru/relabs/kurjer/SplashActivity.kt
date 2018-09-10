@@ -17,10 +17,10 @@ class SplashActivity : AppCompatActivity() {
         setContentView(R.layout.activity_splash)
         supportActionBar?.hide();
 
-        //startService(Intent(this, ReportService::class.java))
+        startService(Intent(this, ReportService::class.java))
 
         AsyncTask.execute {
-            //Thread.sleep(2000)
+            Thread.sleep(2000)
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             finish()

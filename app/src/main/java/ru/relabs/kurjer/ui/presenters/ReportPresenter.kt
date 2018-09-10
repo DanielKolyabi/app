@@ -3,6 +3,7 @@ package ru.relabs.kurjer.ui.presenters
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
 import android.support.v7.widget.RecyclerView
@@ -13,11 +14,13 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.*
+import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper.getTaskItemPhotoFile
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.TaskItemResultEntranceModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
+import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.*
 import ru.relabs.kurjer.ui.fragments.ReportFragment
@@ -27,12 +30,15 @@ import ru.relabs.kurjer.ui.models.ReportTasksListModel
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
+import android.os.StrictMode
+
+
 
 
 const val REQUEST_PHOTO = 1
 
 class ReportPresenter(private val fragment: ReportFragment) {
-
+    lateinit var photoUUID: UUID
     var currentTask = 0
 
     fun changeCurrentTask(taskNumber: Int) {
@@ -205,8 +211,11 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
     private fun requestPhoto() {
+        photoUUID = UUID.randomUUID()
+        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID)
 
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile))
 
         if (intent.resolveActivity(fragment.context?.packageManager) != null) {
             fragment.startActivityForResult(intent, REQUEST_PHOTO)
@@ -218,6 +227,11 @@ class ReportPresenter(private val fragment: ReportFragment) {
             if (resultCode != RESULT_OK) {
                 (fragment.context as MainActivity).showError("Не удалось сделать фото.")
                 return false
+            }
+            val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID)
+            if(photoFile.exists()){
+                saveNewPhoto(BitmapFactory.decodeFile(photoFile.absolutePath))
+                return true
             }
 
             if (data == null) {
@@ -237,29 +251,32 @@ class ReportPresenter(private val fragment: ReportFragment) {
         return false
     }
 
-    private fun saveNewPhoto(bmp: Bitmap): File? {
-        val uuid = UUID.randomUUID()
-        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], uuid)
+    private fun saveNewPhoto(bmp: Bitmap?): File? {
+        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID)
+        if (bmp != null) {
+            val photo = ImageUtils.resizeBitmap(bmp, 1280f, 768f)
+            bmp.recycle()
 
-        MediaStore.Images.Media.insertImage(fragment.context!!.contentResolver, bmp, null, null)
+            MediaStore.Images.Media.insertImage(fragment.context!!.contentResolver, photo, null, null)
 
-        try {
-            val fos = FileOutputStream(photoFile)
-            bmp.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-            fos.close()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return null
+            try {
+                val fos = FileOutputStream(photoFile)
+                photo.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                fos.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return null
+            }
+
+            photo.recycle()
         }
-
-        bmp.recycle()
         launch(UI) {
             val db = (fragment.activity!!.application as MyApplication).database
             var currentGPS = GPSCoordinatesModel(0.toDouble(), 0.toDouble(), Date())
             fragment.application()?.let {
                 currentGPS = it.currentLocation
             }
-            val photoEntity = TaskItemPhotoEntity(0, uuid.toString(), currentGPS, fragment.taskItems[currentTask].id)
+            val photoEntity = TaskItemPhotoEntity(0, photoUUID.toString(), currentGPS, fragment.taskItems[currentTask].id)
             val photoModel = withContext(CommonPool) {
                 val id = db.photosDao().insert(photoEntity)
                 db.photosDao().getById(id.toInt()).toTaskItemPhotoModel(db)
@@ -282,8 +299,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
     fun onRemovePhotoClicked(holder: RecyclerView.ViewHolder) {
         val status = File((fragment.photosListAdapter.data[holder.adapterPosition] as ReportPhotosListModel.TaskItemPhoto).photoURI.path).delete()
         if (!status) {
-            (fragment.context as MainActivity).showError("Не возможно удалить фото.")
-            return
+            (fragment.context as MainActivity).showError("Не возможно удалить фото из памяти.")
         }
         val taskItemPhotoId = (fragment.photosListAdapter.data[holder.adapterPosition] as ReportPhotosListModel.TaskItemPhoto).taskItem.id
         launch {
@@ -318,6 +334,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
     private fun closeTaskItem() {
         launch(UI) {
             val db = (fragment.activity!!.application as MyApplication).database
+            val userToken = (fragment.application()!!.user as UserModel.Authorized).token
             withContext(CommonPool) {
                 val location = fragment.application()?.currentLocation
                 createOrUpdateTaskResult(location)
@@ -329,7 +346,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 )
                 db.taskDao().update(
                         db.taskDao().getById(fragment.tasks[currentTask].id)!!.let {
-                            if (it.state == TaskModel.EXAMINED) {
+                            if (it.state and TaskModel.EXAMINED != 0) {
                                 it.state = TaskModel.STARTED
                                 db.sendQueryDao().insert(
                                         SendQueryItemEntity(0,
@@ -342,16 +359,18 @@ class ReportPresenter(private val fragment: ReportFragment) {
                         }
                 )
 
-                db.reportQueryDao().insert(
-                        ReportQueryItemEntity(
-                                0, fragment.taskItems[currentTask].id, location,
-                                Date(), fragment.user_explanation_input.text.toString(),
-                                fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.map {
-                                    Pair((it as ReportEntrancesListModel.Entrance).entranceNumber, it.selected)
-                                }
-                        )
+                val reportItem = ReportQueryItemEntity(
+                        0, fragment.taskItems[currentTask].id, fragment.tasks[currentTask].id, location,
+                        Date(), fragment.user_explanation_input.text.toString(),
+                        fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.map {
+                            Pair((it as ReportEntrancesListModel.Entrance).entranceNumber, it.selected)
+                        },
+                        userToken
                 )
+
+                db.reportQueryDao().insert(reportItem)
             }
+
 
             (fragment.context as MainActivity).onBackPressed()
         }

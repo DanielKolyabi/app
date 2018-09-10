@@ -8,6 +8,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.os.StrictMode
 import android.support.v4.content.ContextCompat
 import kotlinx.coroutines.experimental.launch
 import ru.relabs.kurjer.models.GPSCoordinatesModel
@@ -31,16 +32,13 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().build())
         deviceUUID = getOrGenerateDeviceUUID()
 
         database = Room
                 .databaseBuilder(applicationContext, ru.relabs.kurjer.persistence.AppDatabase::class.java, "deliveryman")
                 .fallbackToDestructiveMigration()
                 .build()
-
-        fillDatabase(database)
-
-
     }
 
     fun enableLocationListening() : Boolean{
@@ -59,8 +57,9 @@ class MyApplication : Application() {
         }
 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, listener)
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, listener)
+        //TODO: Watch for another methods of work with gps
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0f, listener)
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0f, listener)
 
         return true
     }
@@ -117,7 +116,7 @@ class MyApplication : Application() {
             val tempTasks = (0..4).map {
                 TaskEntity(it, publishers[Random().nextInt(publishers.size)], it, 1250, 10, 0, 5, 0,
                         Date(), Date(System.currentTimeMillis() + 86400000), 1, 13, "Петров Пётр Петрович",
-                        "http://url.ru", 1, "Москва", "Адрес Склада")
+                        "http://url.ru", 1, "Москва", "Адрес Склада", 1)
             }
             val tempTaskItems = (0..40).map {
                 val freeEntrances = (1..20).toMutableList()

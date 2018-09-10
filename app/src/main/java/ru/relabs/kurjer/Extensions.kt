@@ -8,9 +8,9 @@ import android.support.v4.app.Fragment
  */
 
 fun Fragment.application(): MyApplication?{
-    return this.activity?.application as MyApplication
+    return this.activity?.application as? MyApplication
 }
 
-fun Fragment.activity(): MainActivity{
-    return this.context as MainActivity
+fun Fragment.activity(): MainActivity?{
+    return this.context as? MainActivity
 }

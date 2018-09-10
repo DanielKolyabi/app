@@ -12,16 +12,22 @@ interface TaskEntityDao {
     @get:Query("SELECT * FROM tasks")
     val all: List<TaskEntity>
 
+    @get:Query("SELECT * FROM tasks WHERE state = 4")
+    val allClosed: List<TaskEntity>
+
+    @get:Query("SELECT * FROM tasks WHERE state != 4")
+    val allOpened: List<TaskEntity>
+
     @Query("SELECT * FROM tasks WHERE id = :id")
     fun getById(id: Int): TaskEntity?
 
     @Update
     fun update(task: TaskEntity);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(task: TaskEntity);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(task: List<TaskEntity>);
 
     @Delete

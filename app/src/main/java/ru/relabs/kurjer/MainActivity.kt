@@ -30,6 +30,13 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.addOnBackStackChangedListener {
             val current = supportFragmentManager.findFragmentByTag("fragment")
             setNavigationRefreshVisible(current is TaskListFragment)
+            changeTitle(
+                    when(current){
+                        is TaskListFragment -> "Список заданий"
+                        is AddressListFragment -> "Список адресов"
+                        else -> "..."
+                    }
+            )
         }
 
         if (!(application as MyApplication).enableLocationListening()) {
@@ -40,7 +47,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     override fun negativeListener() {}
-                }, true)
+                }, "Ок", "")
             }
         }
     }
@@ -83,13 +90,17 @@ class MainActivity : AppCompatActivity() {
         changeTitle("Список адресов")
     }
 
-    fun showError(errorMessage: String, listener: ErrorButtonsListener? = null, forceHideNegativeButton: Boolean = false) {
+    fun showError(errorMessage: String, listener: ErrorButtonsListener? = null, forcePositiveButtonName: String = "Ок", forceNegativeButtonName: String = "Отмена") {
         val builder = AlertDialog.Builder(this)
                 .setMessage(errorMessage)
-                .setPositiveButton("Ок") { _, _ -> listener?.positiveListener() }
-        if (!forceHideNegativeButton) {
-            listener?.let { builder.setNegativeButton("Отмена") { _, _ -> listener?.negativeListener() } }
+
+        if (forceNegativeButtonName.isNotBlank()) {
+            builder.setPositiveButton(forcePositiveButtonName) { _, _ -> listener?.positiveListener() }
         }
+        if (forceNegativeButtonName.isNotBlank()) {
+            builder.setNegativeButton(forceNegativeButtonName) { _, _ -> listener?.negativeListener() }
+        }
+
         builder.show()
     }
 

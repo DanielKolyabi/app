@@ -22,10 +22,10 @@ interface TaskItemPhotoEntityDao {
     @Update
     fun update(task: TaskItemPhotoEntity);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(task: TaskItemPhotoEntity): Long;
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(task: List<TaskItemPhotoEntity>);
 
     @Delete

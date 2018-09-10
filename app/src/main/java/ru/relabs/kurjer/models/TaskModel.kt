@@ -6,6 +6,7 @@ import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.PrimaryKey
 import android.os.Parcel
 import android.os.Parcelable
+import ru.relabs.kurjer.persistence.entities.TaskEntity
 import java.util.*
 
 data class TaskModel(
@@ -27,6 +28,7 @@ data class TaskModel(
         var items: List<TaskItemModel>,
         var city: String,
         var storageAddress: String,
+        var iteration: Int,
         //Temporary var, for some features in lists
         var selected: Boolean
 ) : Parcelable {
@@ -52,6 +54,7 @@ data class TaskModel(
             },
             parcel.readString(),
             parcel.readString(),
+            parcel.readInt(),
             parcel.readByte() != 0.toByte()) {
     }
 
@@ -74,11 +77,19 @@ data class TaskModel(
         parcel.writeList(items)
         parcel.writeString(city)
         parcel.writeString(storageAddress)
+        parcel.writeInt(iteration)
         parcel.writeByte(if (selected) 1 else 0)
     }
 
     override fun describeContents(): Int {
         return 0
+    }
+
+    fun toTaskEntity(): TaskEntity {
+        return TaskEntity(
+                id, name, edition, copies, packs, remain, area, state, startTime, endTime, region, brigade, brigadier, rastMapUrl, userId,
+                city, storageAddress, iteration
+        )
     }
 
     companion object CREATOR : Parcelable.Creator<TaskModel> {
@@ -94,5 +105,6 @@ data class TaskModel(
         val EXAMINED = 1
         val STARTED = 2
         val COMPLETED = 4
+        val BY_OTHER_USER = 8
     }
 }

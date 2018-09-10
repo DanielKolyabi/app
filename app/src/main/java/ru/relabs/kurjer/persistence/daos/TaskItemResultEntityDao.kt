@@ -21,10 +21,10 @@ interface TaskItemResultEntityDao {
     @Update
     fun update(task: TaskItemResultEntity);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(task: TaskItemResultEntity): Long;
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(task: List<TaskItemResultEntity>);
 
     @Delete

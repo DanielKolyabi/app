@@ -4,10 +4,16 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
+import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.MyApplication
+import ru.relabs.kurjer.application
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.models.UserModel
+import ru.relabs.kurjer.persistence.AppDatabase
+import ru.relabs.kurjer.persistence.PersistenceHelper
+import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import ru.relabs.kurjer.ui.fragments.AddressListFragment
 import ru.relabs.kurjer.ui.helpers.TaskAddressSorter
 import ru.relabs.kurjer.ui.models.AddressListModel
@@ -27,7 +33,6 @@ class AddressListPresenter(val fragment: AddressListFragment) {
 
     fun applySorting() {
         val items = mutableListOf<AddressListModel.TaskItem>()
-        checkTasksIsClosed()
 
         tasks.forEach { task ->
             items.addAll(
@@ -44,29 +49,18 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         fragment.adapter.notifyDataSetChanged()
     }
 
-    private fun checkTasksIsClosed() {
+    private fun checkTasksIsClosed(db: AppDatabase) {
         tasks.removeAll {
-            if(isAllTaskItemsClosed(it)){
-                closeTask(it)
+            if (isAllTaskItemsClosed(it)) {
+                PersistenceHelper.closeTask(db, it)
+                db.sendQueryDao().insert(
+                        SendQueryItemEntity(0,
+                                BuildConfig.API_URL + "/api/v1/tasks/${it.id}/completed?token=" + (fragment.application()!!.user as UserModel.Authorized).token,
+                                "")
+                )
                 return@removeAll true
             }
             return@removeAll false
-        }
-
-        if(tasks.size == 0){
-            (fragment.context as MainActivity).showTaskListScreen()
-        }
-    }
-
-    private fun closeTask(task: TaskModel) {
-        launch {
-            val db = (fragment.activity!!.application as MyApplication).database
-            db.taskDao().update(
-                    db.taskDao().getById(task.id)!!.let{
-                        it.state = TaskModel.COMPLETED
-                        it
-                    }
-            )
         }
     }
 
@@ -80,13 +74,13 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         return TaskAddressSorter.getAddressesWithTasksList(sorted)
     }
 
-    private fun isAllTaskItemsClosed(task: TaskModel): Boolean{
+    private fun isAllTaskItemsClosed(task: TaskModel): Boolean {
         return !task.items.any { it.state != TaskItemModel.CLOSED }
     }
 
     fun onItemClicked(addressId: Int, taskId: Int) {
         (fragment.context as? MainActivity)?.showTasksReportScreen(fragment.adapter.data.filter {
-            (it is AddressListModel.TaskItem) && it.taskItem.address.id == addressId
+            (it is AddressListModel.TaskItem) && it.taskItem.address.id == addressId && it.taskItem.state != TaskItemModel.CLOSED
         }.map {
             it as AddressListModel.TaskItem
         }, taskId)
@@ -108,6 +102,11 @@ class AddressListPresenter(val fragment: AddressListFragment) {
             }
 
             applySorting()
+
+            withContext(CommonPool) { checkTasksIsClosed(db) }
+            if (tasks.size == 0) {
+                (fragment.context as MainActivity).showTaskListScreen()
+            }
         }
     }
 

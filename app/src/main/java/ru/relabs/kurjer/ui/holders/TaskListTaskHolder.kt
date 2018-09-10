@@ -1,8 +1,12 @@
 package ru.relabs.kurjer.ui.holders
 
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.view.View
 import kotlinx.android.synthetic.main.item_task_list_task.view.*
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.helpers.setVisible
 import ru.relabs.kurjer.ui.models.TaskListModel
@@ -19,7 +23,7 @@ class TaskListTaskHolder(
         if(item !is TaskListModel.Task) return
 
         view.title.text = "${item.task.name} №${item.task.edition}, ${item.task.copies}экз., (${item.task.brigade}бр/${item.task.area}уч)"
-        setIsSelected(item.task.state > 0)
+        setIsSelected(item.task.state > 0, item.task.state and TaskModel.BY_OTHER_USER != 0)
         setIsActive(item.task.selected)
 
         view.selected_icon.setOnClickListener {
@@ -31,8 +35,11 @@ class TaskListTaskHolder(
         }
     }
 
-    fun setIsSelected(selected: Boolean) {
+    fun setIsSelected(selected: Boolean, byOtherUser: Boolean) {
         view.active_icon.setVisible(selected)
+        if(byOtherUser){
+            view.active_icon.setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN)
+        }
     }
 
     fun setIsActive(active: Boolean) {

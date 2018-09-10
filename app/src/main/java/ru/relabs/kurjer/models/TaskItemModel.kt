@@ -1,9 +1,10 @@
 package ru.relabs.kurjer.models
 
-import android.arch.persistence.room.*
 import android.os.Parcel
 import android.os.Parcelable
-import java.util.*
+import ru.relabs.kurjer.persistence.entities.AddressEntity
+import ru.relabs.kurjer.persistence.entities.TaskEntity
+import ru.relabs.kurjer.persistence.entities.TaskItemEntity
 
 data class TaskItemModel(
         var address: AddressModel,
@@ -39,6 +40,12 @@ data class TaskItemModel(
 
     override fun describeContents(): Int {
         return 0
+    }
+
+    fun toTaskItemEntity(parentTaskId: Int): TaskItemEntity {
+        return TaskItemEntity(
+                address.id, state, id, notes, entrances, subarea, bypass, copies, parentTaskId
+        )
     }
 
     companion object CREATOR : Parcelable.Creator<TaskItemModel> {

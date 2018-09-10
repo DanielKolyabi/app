@@ -2,103 +2,112 @@ package ru.relabs.kurjer.persistence
 
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.withContext
-import ru.relabs.kurjer.models.TaskItemModel
+import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.persistence.entities.AddressEntity
+import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
+import java.util.*
 
 /**
  * Created by ProOrange on 05.09.2018.
  */
 
 object PersistenceHelper {
-    suspend fun isMergeNeeded(db: AppDatabase, newTasks: List<TaskModel>): Boolean {
-        return true
+
+    fun removeUnusedClosedTasks(db: AppDatabase) {
+        //Remove all closed tasks, that haven't any report in query
+        db.taskDao().allClosed.forEach {
+            if (db.reportQueryDao().getByTaskId(it.id).isEmpty()) {
+                db.taskDao().delete(it)
+            }
+        }
     }
 
-    suspend fun merge(db: AppDatabase, newTasks: List<TaskModel>, stategy: MergeStrategy) {
+    fun closeTask(db: AppDatabase, task: TaskModel) {
+        //Remove all taskItems
+        db.taskItemDao().getAllForTask(task.id).forEach { taskItem ->
+            db.taskItemResultsDao().getByTaskItemId(taskItem.id)?.let { taskItemResult ->
+                db.entrancesDao().getByTaskItemResultId(taskItemResult.id).forEach { entrance ->
+                    db.entrancesDao().delete(entrance)
+                }
+                db.taskItemResultsDao().delete(taskItemResult)
+            }
+            db.taskItemDao().delete(taskItem)
+        }
+    }
+
+    suspend fun removeReport(db: AppDatabase, report: ReportQueryItemEntity) {
+        db.reportQueryDao().delete(report)
+        db.photosDao().getByTaskItemId(report.taskItemId).forEach {
+            //Delete photo
+            val file = PathHelper.getTaskItemPhotoFileByID(report.taskItemId, UUID.fromString(it.UUID))
+            file.delete()
+            db.photosDao().delete(it)
+        }
+    }
+
+    suspend fun merge(db: AppDatabase, newTasks: List<TaskModel>): Boolean {
+        var isSomethingChanged = false
         withContext(CommonPool) {
-            //Task disappear
-            val oldTasks = db.taskDao().all
-            val newTasksIDs = newTasks.map { it.id }
-            oldTasks.forEach {
-                if (it.id !in newTasksIDs) {
-                    stategy.onTaskDisappear(db, it.toTaskModel(db))
+            val savedTasksIDs = db.taskDao().all.map { it.id }
+            val newTasksIDs = db.taskDao().all.map { it.id }
+            //Process not existed new tasks
+            newTasks.filter { it.id !in savedTasksIDs }.forEach { task ->
+                //Add task
+                db.taskDao().insert(task.toTaskEntity().apply {
+                    state = fromSiriusState()
+                })
+                task.items.forEach { item ->
+                    //Add address
+                    if (db.addressDao().getById(item.address.id) == null) {
+                        db.addressDao().insert(AddressEntity(item.address.id, item.address.street, item.address.house))
+                    }
+                    //Add item
+                    db.taskItemDao().insert(item.toTaskItemEntity(task.id))
                 }
             }
 
-            newTasks.forEach { task ->
-                val savedTask = db.taskDao().getById(task.id)
-                //Task appear
-                if (savedTask == null) {
-                    stategy.onTaskAppear(db, task)
-                    return@forEach
-                }
-                //Task changed
-                val savedTaskModel = savedTask.toTaskModel(db)
-                if (stategy.isTaskChanged(task, savedTaskModel)) {
-                    stategy.onTaskChanged(db, task, savedTaskModel)
-                }
+            //Process tasks that not existed in newTasks
+            db.taskDao().all.filter { it.id !in newTasksIDs }.forEach { task ->
+                //Close task because it not existed on server
+                closeTask(db, task.toTaskModel(db))
+            }
 
-                val savedTaskItems = db.taskItemDao().getAllForTask(savedTask.id)
-                val savedTaskItemsIDs = savedTaskItems.map { it.id }
-                //Appear task items
-                val newTaskItems = task.items.filter { it.id !in savedTaskItemsIDs }
-                newTaskItems.forEach { newTaskItem ->
-                    stategy.onTaskItemAppear(db, newTaskItem)
-                }
-                //Disappear task items
-                val newTaskItemsIDs = task.items.map { it.id }
-                val lostTaskItems = savedTaskItems.filter { it.id !in newTaskItemsIDs }
-                lostTaskItems.forEach { lostTaskItem ->
-                    stategy.onTaskItemDisappear(db, lostTaskItem.toTaskItemModel(db))
-                }
-                //Changed task items
-                savedTaskItemsIDs.intersect(newTaskItemsIDs).forEach { id ->
-                    val newItem = task.items.find { it.id == id }!!
-                    val oldItem = savedTaskItems.find { it.id == id }!!.toTaskItemModel(db)
+            //Process existed new tasks
+            newTasks.filter { it.id in savedTasksIDs }.forEach { task ->
+                val savedTask = db.taskDao().getById(task.id)!!
+                //Task in work or completed
+                if (savedTask.state == TaskModel.STARTED || savedTask.state == TaskModel.COMPLETED) {
+                    //Closed or completed
+                    if (task.state == 60 || task.state == 50) {
+                        closeTask(db, savedTask.toTaskModel(db))
+                        return@forEach
+                    } else {
+                        //ignore, should i return state 40 and iteration into server?
+                    }
+                    //Task not in work
+                } else {
+                    if (task.iteration <= savedTask.iteration) return@forEach
 
-                    if (stategy.isTaskItemChanged(newItem, oldItem)) {
-                        stategy.onTaskItemChanged(db, newItem, oldItem)
+                    val examinedByOtherUser = if(db.taskDao().getById(task.id)!!.state == TaskModel.CREATED
+                            && task.toTaskEntity().fromSiriusState() == TaskModel.EXAMINED) TaskModel.BY_OTHER_USER else 0
+
+                    db.taskDao().update(task.toTaskEntity().apply {
+                        state = fromSiriusState() and examinedByOtherUser
+                    })
+                    task.items.forEach {
+                        if (db.addressDao().getById(it.address.id) == null) {
+                            db.addressDao().insert(it.address.toAddressEntity())
+                        }
+                        db.taskItemDao().update(it.toTaskItemEntity(task.id))
+                    }
+                    isSomethingChanged = true
+                    if (savedTask.state and TaskModel.EXAMINED != 0) {
+                        //TODO: Notify user about changes
                     }
                 }
             }
         }
-    }
-}
-
-interface MergeStrategy {
-    fun onTaskItemAppear(db: AppDatabase, newTaskItem: TaskItemModel)
-    fun onTaskItemDisappear(db: AppDatabase, oldTaskItem: TaskItemModel)
-    fun onTaskItemChanged(db: AppDatabase, newItem: TaskItemModel, oldItem: TaskItemModel)
-
-    fun onTaskAppear(db: AppDatabase, newTask: TaskModel)
-    fun onTaskDisappear(db: AppDatabase, oldTask: TaskModel)
-    fun onTaskChanged(db: AppDatabase, newTask: TaskModel, oldTask: TaskModel)
-
-    fun isTaskChanged(newTask: TaskModel, oldTask: TaskModel): Boolean {
-        return newTask.startTime != oldTask.startTime ||
-                newTask.endTime != oldTask.endTime ||
-                newTask.state != oldTask.state ||
-                newTask.area != oldTask.area ||
-                newTask.brigade != oldTask.brigade ||
-                newTask.brigadier != oldTask.brigadier ||
-                newTask.city != oldTask.city ||
-                newTask.copies != oldTask.copies ||
-                newTask.edition != oldTask.edition ||
-                newTask.name != oldTask.name ||
-                newTask.packs != oldTask.packs ||
-                newTask.rastMapUrl != oldTask.rastMapUrl ||
-                newTask.region != oldTask.region ||
-                newTask.remain != oldTask.remain ||
-                newTask.storageAddress != oldTask.storageAddress
-    }
-
-    fun isTaskItemChanged(newItem: TaskItemModel, oldItem: TaskItemModel): Boolean {
-        return newItem.address.id != oldItem.address.id
-                || newItem.state != oldItem.state
-                || newItem.entrances != oldItem.entrances
-                || newItem.notes != oldItem.notes
-                || newItem.bypass != oldItem.bypass
-                || newItem.copies != oldItem.copies
-                || newItem.subarea != oldItem.subarea
+        return isSomethingChanged
     }
 }

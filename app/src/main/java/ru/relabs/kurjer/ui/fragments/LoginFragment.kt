@@ -47,6 +47,7 @@ class LoginFragment : Fragment() {
         remember_password_text.setOnClickListener {
             presenter.onRememberPasswordClick()
         }
+        login_button?.isEnabled = true
         login_button.setOnClickListener {
             presenter.onLoginClick(login_input.text.toString(), password_input.text.toString())
         }
@@ -66,8 +67,8 @@ class LoginFragment : Fragment() {
     }
 
     fun setLoginButtonLoading(state: Boolean) {
-        login_button.isEnabled = !state
-        loading.setVisible(state)
+        login_button?.isEnabled = !state
+        loading?.setVisible(state)
     }
 
     companion object {

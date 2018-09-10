@@ -6,6 +6,7 @@ import android.arch.persistence.room.Ignore
 import android.arch.persistence.room.PrimaryKey
 import android.os.Parcel
 import android.os.Parcelable
+import ru.relabs.kurjer.persistence.entities.AddressEntity
 
 data class AddressModel(
         var id: Int,
@@ -32,6 +33,10 @@ data class AddressModel(
 
     override fun describeContents(): Int {
         return 0
+    }
+
+    fun toAddressEntity(): AddressEntity {
+        return AddressEntity(id, street, house)
     }
 
     companion object CREATOR : Parcelable.Creator<AddressModel> {

@@ -13,7 +13,8 @@ import ru.relabs.kurjer.persistence.AppDatabase
 @Entity(tableName = "task_item_result_entrances", foreignKeys = [ForeignKey(
         entity = TaskItemResultEntity::class,
         parentColumns = ["id"],
-        childColumns = ["task_item_result_id"]
+        childColumns = ["task_item_result_id"],
+        onDelete = ForeignKey.CASCADE
 )])
 
 data class TaskItemResultEntranceEntity(

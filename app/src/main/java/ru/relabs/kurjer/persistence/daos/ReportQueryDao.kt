@@ -15,13 +15,16 @@ interface ReportQueryDao {
     @Query("SELECT * FROM report_query WHERE id = :id")
     fun getById(id: Int): ReportQueryItemEntity
 
+    @Query("SELECT * FROM report_query WHERE task_id = :id")
+    fun getByTaskId(id: Int): List<ReportQueryItemEntity>
+
     @Update
     fun update(address: ReportQueryItemEntity);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(address: ReportQueryItemEntity);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(address: List<ReportQueryItemEntity>);
 
     @Delete

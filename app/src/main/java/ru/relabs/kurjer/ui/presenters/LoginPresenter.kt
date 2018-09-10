@@ -4,6 +4,7 @@ import kotlinx.android.synthetic.main.fragment_login.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import retrofit2.HttpException
+import ru.relabs.kurjer.ErrorButtonsListener
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.activity
 import ru.relabs.kurjer.application
@@ -35,7 +36,7 @@ class LoginPresenter(val fragment: LoginFragment) {
                     api.loginByToken(pwd, fragment.application()!!.deviceUUID).await()
 
                 if (response.error != null) {
-                    fragment.activity().showError("Ошибка №${response.error.code}\n${response.error.message}")
+                    fragment.activity()?.showError("Ошибка №${response.error.code}\n${response.error.message}")
                     return@launch
                 }
                 fragment.application()!!.user = UserModel.Authorized(response.user!!.login, response.token!!)
@@ -49,13 +50,34 @@ class LoginPresenter(val fragment: LoginFragment) {
             } catch (e: HttpException) {
                 e.printStackTrace()
                 val err = ErrorUtils.getError(e)
-                fragment.activity().showError("Ошибка №${err.code}.\n${err.message}")
+                fragment.activity()?.showError("Ошибка №${err.code}.\n${err.message}")
             } catch (e: Exception) {
                 e.printStackTrace()
-                fragment.activity().showError("Нет ответа от сервера.")
+                fragment.activity()?.showError("Нет ответа от сервера.",
+                        object: ErrorButtonsListener {
+                            override fun negativeListener() {
+                                val status = loginOffline()
+                                if(!status){
+                                    fragment.activity()?.showError("Невозможно войти оффлайн. Необходима авторизация через сервер.")
+                                    return
+                                }
+                                (fragment.activity as? MainActivity)?.showTaskListScreen()
+                            }
+
+                            override fun positiveListener() {}
+                        }
+                , "Ок", "Войти Оффлайн")
             }
             fragment.setLoginButtonLoading(false)
         }
+    }
+
+    fun loginOffline(): Boolean{
+        fragment.application() ?: return false
+        val user = fragment.application()!!.getUserCredentials()
+        user ?: return false
+        fragment.application()!!.user = user
+        return true
     }
 
     fun resetAuthByToken() {

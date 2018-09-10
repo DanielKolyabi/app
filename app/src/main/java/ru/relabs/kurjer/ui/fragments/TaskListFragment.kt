@@ -8,10 +8,12 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import kotlinx.android.synthetic.main.fragment_task_list.*
 import kotlinx.android.synthetic.main.include_hint_container.*
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.activity
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.TaskListLoaderDelegate
 import ru.relabs.kurjer.ui.delegates.TaskListTaskDelegate
@@ -40,6 +42,10 @@ class TaskListFragment : Fragment() {
         start.setOnClickListener {
             presenter.onStartClicked()
         }
+        activity()?.findViewById<View>(R.id.refresh_button)?.setOnClickListener {
+            showListLoading(true)
+            presenter.loadTasks(true)
+        }
 
         adapter.addDelegate(TaskListTaskDelegate(
                 { presenter.onTaskSelected(it) },
@@ -54,22 +60,17 @@ class TaskListFragment : Fragment() {
 
         showListLoading(true)
         presenter.updateStartButton()
-        presenter.loadTasks()
+        presenter.loadTasks(adapter.data.size == 1 && adapter.data.first() == TaskListModel.Loader)
     }
 
     fun setStartButtonActive(active: Boolean) {
         start?.isEnabled = active
     }
 
-    fun showListLoading(isLoading: Boolean){
-        if(isLoading){
-            if(adapter.data.isEmpty() || adapter.data.first() !is TaskListModel.Loader){
+    fun showListLoading(isLoading: Boolean) {
+        if (isLoading) {
+            if (adapter.data.isEmpty() || adapter.data.first() !is TaskListModel.Loader) {
                 adapter.data.add(0, TaskListModel.Loader)
-                adapter.notifyDataSetChanged()
-            }
-        }else{
-            if(adapter.data.isEmpty() || adapter.data.first() is TaskListModel.Loader){
-                adapter.data.removeAt(0)
                 adapter.notifyDataSetChanged()
             }
         }

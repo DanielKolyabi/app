@@ -25,10 +25,10 @@ interface TaskItemEntityDao {
     @Update
     fun update(item: TaskItemEntity);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(item: TaskItemEntity);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(item: List<TaskItemEntity>);
 
     @Delete

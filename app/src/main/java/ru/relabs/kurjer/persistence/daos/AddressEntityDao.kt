@@ -13,15 +13,15 @@ interface AddressEntityDao {
     val all: List<AddressEntity>
 
     @Query("SELECT * FROM addresses WHERE id = :id")
-    fun getById(id: Int): AddressEntity
+    fun getById(id: Int): AddressEntity?
 
     @Update
     fun update(address: AddressEntity);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(address: AddressEntity);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(address: List<AddressEntity>);
 
     @Delete

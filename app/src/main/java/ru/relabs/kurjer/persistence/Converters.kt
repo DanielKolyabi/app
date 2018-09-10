@@ -34,12 +34,13 @@ class Converters {
 
     @TypeConverter
     fun jsonToIntPairList(value: String): List<Pair<Int, Int>> {
-        return Gson().fromJson(value, listOf<Pair<Int, Int>>()::class.java)
+        val list = Gson().fromJson(value, mutableListOf<MutableList<Int>>()::class.java)
+        return list.map{Pair(it[0], it[1])}
     }
 
     @TypeConverter
     fun intPairListToJSON(value: List<Pair<Int, Int>>): String {
-        return Gson().toJson(value)
+        return Gson().toJson(value.map{listOf(it.first, it.second)})
     }
 
     @TypeConverter

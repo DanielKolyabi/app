@@ -1,6 +1,11 @@
 package ru.relabs.kurjer
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
@@ -11,12 +16,73 @@ import android.view.View
 import android.view.Window
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withContext
+import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.network.DeliveryServerAPI
+import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.network.models.UpdateInfo
 import ru.relabs.kurjer.ui.fragments.*
+import ru.relabs.kurjer.ui.helpers.setVisible
 import ru.relabs.kurjer.ui.models.AddressListModel
+import java.io.File
+import java.net.URL
 
 class MainActivity : AppCompatActivity() {
+    private val broadcastReceiver = object: BroadcastReceiver(){
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent ?: return
+            if(intent.getBooleanExtra("tasks_changed", false)){
+                showError("Необходимо обновить список заданий.", object: ErrorButtonsListener{
+                    override fun positiveListener() {
+                        showTaskListScreen(true)
+                    }
+
+                    override fun negativeListener() {}
+                }, "Ок", "")
+            }
+        }
+    }
+    private var intentFilter = IntentFilter("NOW")
+
+    override fun onResume() {
+        registerReceiver(broadcastReceiver, intentFilter)
+        super.onResume()
+    }
+
+    override fun onPause() {
+        unregisterReceiver(broadcastReceiver)
+        super.onPause()
+
+    }
+
+    fun showPermissionsRequest(permissionsList: Array<String>, canDenied: Boolean) {
+        if (permissionsList.isEmpty()) {
+            return
+        }
+        var msg = "Необходимо разрешить приложению:\n"
+        permissionsList.forEach {
+            msg += when (it) {
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE -> "Доступ к записи файлов"
+                android.Manifest.permission.ACCESS_FINE_LOCATION -> "Доступ к получению местоположения"
+                else -> "Неизвестно"
+            } + "\n"
+        }
+
+        showError(msg, object : ErrorButtonsListener {
+            override fun positiveListener() {
+                ActivityCompat.requestPermissions(this@MainActivity, permissionsList, 1)
+            }
+
+            override fun negativeListener() {
+                finish()
+            }
+        }, "Ок", if (canDenied) "Отмена" else "")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,56 +96,123 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.addOnBackStackChangedListener {
             val current = supportFragmentManager.findFragmentByTag("fragment")
             setNavigationRefreshVisible(current is TaskListFragment)
-            changeTitle(
-                    when(current){
-                        is TaskListFragment -> "Список заданий"
-                        is AddressListFragment -> "Список адресов"
-                        else -> "..."
-                    }
-            )
-        }
-
-        if (!(application as MyApplication).enableLocationListening()) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                showError("Необходимо разрешить приложению получать ваше местоположение.", object : ErrorButtonsListener {
-                    override fun positiveListener() {
-                        ActivityCompat.requestPermissions(this@MainActivity, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
-                    }
-
-                    override fun negativeListener() {}
-                }, "Ок", "")
+            when (current) {
+                is TaskListFragment -> changeTitle("Список заданий")
+                is AddressListFragment -> changeTitle("Список адресов")
             }
         }
+        val permissions = mutableListOf<String>()
+        if (!(application as MyApplication).enableLocationListening()) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
+
+        showPermissionsRequest(permissions.toTypedArray(), false)
+        loading.setVisible(true)
+        checkUpdates()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (requestCode == 1) {
-            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                showError("Необходимо разрешить приложению получать ваше местоположение.", object : ErrorButtonsListener {
-                    override fun positiveListener() {
-                        ActivityCompat.requestPermissions(this@MainActivity, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
-                    }
-
-                    override fun negativeListener() {
-                        onBackPressed()
-                    }
-                })
-            } else {
-                if (!(application as MyApplication).enableLocationListening()) {
-                    showError("Невозможно включить получение расположения.")
+            permissions.indexOfFirst { it == android.Manifest.permission.ACCESS_FINE_LOCATION }.let {
+                if (it >= 0 && grantResults[it] == PackageManager.PERMISSION_GRANTED && !(application as MyApplication).enableLocationListening()) {
+                    showError("Невозможно включить геолокацию")
                 }
+            }
+            val deniedPermission = permissions.filterIndexed { index, _ ->
+                grantResults[index] != PackageManager.PERMISSION_GRANTED
+            }
+
+            showPermissionsRequest(deniedPermission.toTypedArray(), true)
+        } else {
+            supportFragmentManager.findFragmentByTag("fragment")?.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+    fun installUpdate(url: URL) {
+        launch(UI) {
+            var file: File? = null
+            withContext(CommonPool) {
+                try {
+                    file = NetworkHelper.loadUpdateFile(url)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    loading.setVisible(false)
+                    showError("Не удалось загрузить файл обновления.")
+                }
+            }
+
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            loading.setVisible(false)
+            startActivity(intent)
+        }
+    }
+
+    private fun processUpdate(updateInfo: UpdateInfo): Boolean {
+        if (updateInfo.version > BuildConfig.VERSION_CODE) {
+
+            showError("Доступно новое обновление.", object : ErrorButtonsListener {
+                override fun positiveListener() {
+                    try {
+                        installUpdate(URL(updateInfo.url))
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        loading.setVisible(false)
+                        showError("Не удалось установить обновление")
+                    }
+                }
+
+                override fun negativeListener() {
+                    loading.setVisible(false)
+                }
+
+            }, "Установить", if (updateInfo.isRequired) "" else "Напомнить позже")
+            return true
+        }
+        return false
+    }
+
+    fun checkUpdates() {
+        launch(UI) {
+            try {
+                val updateInfo = DeliveryServerAPI.api.getUpdateInfo().await()
+                if (updateInfo.last_required.version <= BuildConfig.VERSION_CODE
+                        && updateInfo.last_optional.version <= BuildConfig.VERSION_CODE) {
+                    loading.setVisible(false)
+                    return@launch
+                }
+
+                if (processUpdate(updateInfo.last_required)) return@launch
+                if (processUpdate(updateInfo.last_optional)) return@launch
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                loading.setVisible(false)
+                showError("Не удалось получить информацию об обновлениях.")
             }
         }
     }
 
-    fun showTaskListScreen() {
-        navigateTo(TaskListFragment())
+    fun showTaskListScreen(shouldUpdate: Boolean = false) {
+        navigateTo(TaskListFragment.newInstance(shouldUpdate))
         changeTitle("Список заданий")
     }
 
     fun showLoginScreen() {
         navigateTo(LoginFragment())
         changeTitle("Авторизация")
+    }
+
+    fun showYandexMap(address: AddressModel) {
+        navigateTo(YandexMapFragment.newInstance(address), true)
+        changeTitle(address.name)
     }
 
     fun showAddressListScreen(tasks: List<TaskModel>) {
@@ -90,17 +223,17 @@ class MainActivity : AppCompatActivity() {
         changeTitle("Список адресов")
     }
 
-    fun showError(errorMessage: String, listener: ErrorButtonsListener? = null, forcePositiveButtonName: String = "Ок", forceNegativeButtonName: String = "Отмена") {
+    fun showError(errorMessage: String, listener: ErrorButtonsListener? = null, forcePositiveButtonName: String = "Ок", forceNegativeButtonName: String = "") {
         val builder = AlertDialog.Builder(this)
                 .setMessage(errorMessage)
 
-        if (forceNegativeButtonName.isNotBlank()) {
+        if (forcePositiveButtonName.isNotBlank()) {
             builder.setPositiveButton(forcePositiveButtonName) { _, _ -> listener?.positiveListener() }
         }
         if (forceNegativeButtonName.isNotBlank()) {
             builder.setNegativeButton(forceNegativeButtonName) { _, _ -> listener?.negativeListener() }
         }
-
+        builder.setCancelable(false)
         builder.show()
     }
 

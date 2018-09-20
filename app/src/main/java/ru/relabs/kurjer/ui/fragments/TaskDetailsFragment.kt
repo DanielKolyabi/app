@@ -41,6 +41,10 @@ class TaskDetailsFragment : Fragment() {
             presenter.onExaminedClicked(task)
         }
 
+        show_map_button.setOnClickListener {
+            presenter.onMapClicked(task)
+        }
+
         list.layoutManager = LinearLayoutManager(context)
         list.adapter = adapter
 

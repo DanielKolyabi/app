@@ -26,9 +26,13 @@ class TaskListFragment : Fragment() {
     val presenter = TaskListPresenter(this)
     private lateinit var hintHelper: HintHelper
     val adapter = DelegateAdapter<TaskListModel>()
-
+    private var shouldUpdate: Boolean = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        arguments?.let {
+            shouldUpdate = it.getBoolean("shouldUpdate", false)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -56,11 +60,14 @@ class TaskListFragment : Fragment() {
 
         tasks_list.layoutManager = LinearLayoutManager(context)
         tasks_list.adapter = adapter
+
+        val shouldLoadFromNetwork = shouldUpdate// || (adapter.data.size == 0 || (adapter.data.size == 1 && adapter.data.first() == TaskListModel.Loader))
+
         adapter.data.clear()
 
         showListLoading(true)
         presenter.updateStartButton()
-        presenter.loadTasks(adapter.data.size == 1 && adapter.data.first() == TaskListModel.Loader)
+        presenter.loadTasks(shouldLoadFromNetwork)
     }
 
     fun setStartButtonActive(active: Boolean) {
@@ -78,6 +85,11 @@ class TaskListFragment : Fragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance() = TaskListFragment()
+        fun newInstance(shouldUpdate: Boolean) =
+                TaskListFragment().apply {
+                    arguments = Bundle().apply {
+                        putBoolean("shouldUpdate", shouldUpdate)
+                    }
+                }
     }
 }

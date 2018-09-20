@@ -4,6 +4,11 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 
+repositories {
+    maven {
+        url "http://maven.google.com/"
+    }
+}
 
 android {
     compileSdkVersion 27
@@ -13,11 +18,17 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
+
+        ndk {
+            abiFilters("armeabi-v7a", "x86")
+        }
+
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         debug {
             buildConfigField("String", "API_URL", '"http://192.168.250.109:8080"')
+            buildConfigField("String", "YA_KEY", '"f86e62d6-db16-4014-9469-843e6da30b3d"')
         }
         release {
             buildConfigField("String", "API_URL", '"http://192.168.250.109:8080"')
@@ -54,6 +65,8 @@ dependencies {
 
     implementation 'com.github.bumptech.glide:glide:4.8.0'
     kapt 'com.github.bumptech.glide:compiler:4.8.0'
+
+    implementation 'com.yandex.android:mapkit:3.0.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

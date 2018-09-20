@@ -18,6 +18,8 @@ data class ReportQueryItemEntity(
         var taskItemId: Int,
         @ColumnInfo(name = "task_id")
         var taskId: Int,
+        @ColumnInfo(name = "image_folder_id")
+        var imageFolderId: Int,
         var gps: GPSCoordinatesModel?,
         @ColumnInfo(name = "close_time")
         var closeTime: Date,

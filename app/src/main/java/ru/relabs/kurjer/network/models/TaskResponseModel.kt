@@ -21,7 +21,6 @@ data class TaskResponseModel(
         val startTime: Date,
         @SerializedName("end_time")
         val endTime: Date,
-        val region: Int,
         val brigade: Int,
         val brigadier: String,
         @SerializedName("rast_map_url")
@@ -36,7 +35,7 @@ data class TaskResponseModel(
 ) {
     fun toTaskModel(): TaskModel {
         return TaskModel(
-                id, name, edition, copies, packs, remain, area, state, startTime, endTime, region, brigade, brigadier, rastMapUrl, userId,
+                id, name, edition, copies, packs, remain, area, state, startTime, endTime, brigade, brigadier, rastMapUrl, userId,
                 items.map{it.toTaskItemModel()}, city, storageAddress, iteration, false
 
         )

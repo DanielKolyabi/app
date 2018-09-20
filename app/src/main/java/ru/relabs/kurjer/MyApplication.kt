@@ -10,9 +10,14 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.os.StrictMode
 import android.support.v4.content.ContextCompat
+import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.FirebaseMessagingService
+import com.yandex.mapkit.MapKitFactory
 import kotlinx.coroutines.experimental.launch
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
+import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.AddressEntity
 import ru.relabs.kurjer.persistence.entities.TaskEntity
@@ -32,6 +37,9 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        MapKitFactory.setApiKey(BuildConfig.YA_KEY);
+
         StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().build())
         deviceUUID = getOrGenerateDeviceUUID()
 
@@ -106,40 +114,30 @@ class MyApplication : Application() {
         return deviceUUID
     }
 
-    fun fillDatabase(database: AppDatabase) {
-        val streets = listOf("Шевченко", "Ленина", "Арбатская", "Шахтёров", "Московская", "Швейная", "Голицкая", "Горняцкая", "Грибоедова")
-        val publishers = listOf("Красная Ночь", "Вечерняя Москва", "Тёмная Речка", "Синяя Машина", "Голубой Вертолёт")
-        launch {
-            val tempAddresses = (0..80).map {
-                AddressEntity(it, streets[Random().nextInt(streets.size)], it)
-            }
-            val tempTasks = (0..4).map {
-                TaskEntity(it, publishers[Random().nextInt(publishers.size)], it, 1250, 10, 0, 5, 0,
-                        Date(), Date(System.currentTimeMillis() + 86400000), 1, 13, "Петров Пётр Петрович",
-                        "http://url.ru", 1, "Москва", "Адрес Склада", 1)
-            }
-            val tempTaskItems = (0..40).map {
-                val freeEntrances = (1..20).toMutableList()
-                val addr = tempAddresses[Random().nextInt(tempAddresses.size)]
-                TaskItemEntity(addr.id, 0, it, listOf<String>(),
-                        (0..Random().nextInt(16)).map {
-                            freeEntrances.removeAt(Random().nextInt(freeEntrances.size))
-                        },
-                        1,
-                        it / 10,
-                        100,
-                        it / 10
+    fun savePushToken(pushToken: String) {
+        getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+                .edit()
+                .putString("firebase_token", pushToken)
+                .apply()
 
-                )
+    }
+
+    fun sendPushToken(pushToken: String?) {
+        if(user !is UserModel.Authorized) return
+
+        if(pushToken != null) {
+            DeliveryServerAPI.api.sendPushToken((user as UserModel.Authorized).token, pushToken)
+
+        }else{
+            val token = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE).getString("firebase_token", "notoken")
+            if(token != "notoken"){
+                sendPushToken(token)
+                return
             }
-            if (database.addressDao().all.isEmpty()) {
-                database.addressDao().insertAll(tempAddresses)
-            }
-            if (database.taskDao().all.isEmpty()) {
-                database.taskDao().insertAll(tempTasks)
-            }
-            if (database.taskItemDao().all.isEmpty()) {
-                database.taskItemDao().insertAll(tempTaskItems)
+
+            FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener {
+                savePushToken(it.token)
+                sendPushToken(it.token)
             }
         }
     }

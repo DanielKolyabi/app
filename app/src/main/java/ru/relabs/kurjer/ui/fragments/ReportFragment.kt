@@ -61,6 +61,11 @@ class ReportFragment : Fragment() {
         super.onDestroy()
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        presenter.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         hintHelper = HintHelper(hint_container, "", false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
@@ -75,7 +80,7 @@ class ReportFragment : Fragment() {
             presenter.onRemovePhotoClicked(holder)
         })
         photosListAdapter.addDelegate(ReportBlankPhotoDelegate { holder ->
-            presenter.onBlankPhotoClicked(holder)
+            presenter.onBlankPhotoClicked()
         })
 
         close_button.setOnClickListener {

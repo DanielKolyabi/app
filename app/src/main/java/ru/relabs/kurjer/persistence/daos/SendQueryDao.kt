@@ -20,7 +20,7 @@ interface SendQueryDao {
     fun update(address: SendQueryItemEntity);
 
     @Insert
-    fun insert(address: SendQueryItemEntity);
+    fun insert(address: SendQueryItemEntity): Long;
 
     @Insert
     fun insertAll(address: List<SendQueryItemEntity>);

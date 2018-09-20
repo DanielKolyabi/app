@@ -1,11 +1,14 @@
 package ru.relabs.kurjer.ui.presenters
 
+import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_report.*
@@ -20,7 +23,6 @@ import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.TaskItemResultEntranceModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
-import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.*
 import ru.relabs.kurjer.ui.fragments.ReportFragment
@@ -30,9 +32,6 @@ import ru.relabs.kurjer.ui.models.ReportTasksListModel
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
-import android.os.StrictMode
-
-
 
 
 const val REQUEST_PHOTO = 1
@@ -206,8 +205,34 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
 
-    fun onBlankPhotoClicked(holder: RecyclerView.ViewHolder) {
+    fun onBlankPhotoClicked() {
+//        if (ContextCompat.checkSelfPermission(fragment.context!!, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+//            fragment.activity()?.showError("Необходимо разрешить приложению доступ к записи файлов.", object : ErrorButtonsListener {
+//                override fun positiveListener() {
+//                    fragment.requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 2)
+//                }
+//
+//                override fun negativeListener() {}
+//            }, "Ок", "")
+//        } else {
         requestPhoto()
+//        }
+    }
+
+    fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if (permissions[0] == android.Manifest.permission.WRITE_EXTERNAL_STORAGE) {
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                fragment.activity()?.showError("Необходимо разрешить приложению получать ваше местоположение.", object : ErrorButtonsListener {
+                    override fun positiveListener() {
+                        fragment.requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
+                    }
+
+                    override fun negativeListener() {}
+                }, "Ок", "Отмена")
+            } else {
+                requestPhoto()
+            }
+        }
     }
 
     private fun requestPhoto() {
@@ -225,11 +250,13 @@ class ReportPresenter(private val fragment: ReportFragment) {
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode == REQUEST_PHOTO) {
             if (resultCode != RESULT_OK) {
-                (fragment.context as MainActivity).showError("Не удалось сделать фото.")
+                if(resultCode != RESULT_CANCELED) {
+                    (fragment.context as MainActivity).showError("Не удалось сделать фото.")
+                }
                 return false
             }
             val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID)
-            if(photoFile.exists()){
+            if (photoFile.exists()) {
                 saveNewPhoto(BitmapFactory.decodeFile(photoFile.absolutePath))
                 return true
             }
@@ -257,12 +284,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
             val photo = ImageUtils.resizeBitmap(bmp, 1280f, 768f)
             bmp.recycle()
 
-            MediaStore.Images.Media.insertImage(fragment.context!!.contentResolver, photo, null, null)
-
             try {
-                val fos = FileOutputStream(photoFile)
-                photo.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-                fos.close()
+                ImageUtils.saveImage(photo, photoFile, fragment.context?.contentResolver)
             } catch (e: Exception) {
                 e.printStackTrace()
                 return null
@@ -325,7 +348,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 }
 
                 override fun negativeListener() {}
-            })
+            }, "Да", "Нет")
             return
         }
         closeTaskItem()
@@ -360,7 +383,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 )
 
                 val reportItem = ReportQueryItemEntity(
-                        0, fragment.taskItems[currentTask].id, fragment.tasks[currentTask].id, location,
+                        0, fragment.taskItems[currentTask].id, fragment.tasks[currentTask].id, fragment.taskItems[currentTask].address.id, location,
                         Date(), fragment.user_explanation_input.text.toString(),
                         fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.map {
                             Pair((it as ReportEntrancesListModel.Entrance).entranceNumber, it.selected)

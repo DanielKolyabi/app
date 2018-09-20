@@ -1,21 +1,22 @@
 package ru.relabs.kurjer
 
-import android.app.Notification
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
+import android.support.v4.app.NotificationCompat
+import android.util.Log
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
+import retrofit2.HttpException
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
-import java.io.BufferedOutputStream
-import java.io.BufferedWriter
-import java.io.OutputStreamWriter
+import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -29,13 +30,22 @@ class ReportService : Service() {
     }
 
     private fun notification(body: String): Notification {
+        val channelId = "notification_channel"
         val pi = PendingIntent.getService(this, 0, Intent(this, ReportService::class.java).apply { putExtra("stopService", true) }, PendingIntent.FLAG_CANCEL_CURRENT)
-        return Notification.Builder(applicationContext)
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            val notificationChannel = NotificationChannel(channelId, "Курьер", NotificationManager.IMPORTANCE_DEFAULT)
+            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(notificationChannel)
+        }
+
+        return NotificationCompat.Builder(applicationContext)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(body)
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .setWhen(System.currentTimeMillis())
                 .addAction(R.drawable.ic_stop_black_24dp, "Отключить", pi)
+                .setChannelId(channelId)
+                .setOnlyAlertOnce(true)
                 .build();
     }
 
@@ -100,20 +110,19 @@ class ReportService : Service() {
     }
 
     private fun sendSendQuery(item: SendQueryItemEntity) {
-        val urlConnection = URL(item.url).openConnection() as HttpURLConnection
-        urlConnection.apply {
+        Log.d("reporter", "try to send ${item.url}")
+        val urlConnection = URL(item.url)
+        with(urlConnection.openConnection() as HttpURLConnection){
             requestMethod = "POST"
-            doInput = true
-            doOutput = true
+
+            val wr = OutputStreamWriter(outputStream);
+            wr.write(item.post_data);
+            wr.flush();
+
+            if(responseCode != 200){
+                throw Exception("Wrong response code.")
+            }
         }
-        val stream = BufferedOutputStream(urlConnection.outputStream)
-        BufferedWriter(OutputStreamWriter(stream, "UTF-8")).apply {
-            write(item.post_data)
-            flush()
-            close()
-        }
-        stream.close()
-        urlConnection.connect()
     }
 
     private fun getSendQuery(db: AppDatabase): SendQueryItemEntity? {

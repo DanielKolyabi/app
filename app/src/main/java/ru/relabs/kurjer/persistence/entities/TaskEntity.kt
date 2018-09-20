@@ -26,7 +26,6 @@ data class TaskEntity(
         var startTime: Date,
         @ColumnInfo(name = "end_time")
         var endTime: Date,
-        var region: Int,
         var brigade: Int,
         var brigadier: String,
         @ColumnInfo(name = "rast_map_url")
@@ -40,7 +39,7 @@ data class TaskEntity(
 ) {
     fun toTaskModel(db: AppDatabase): TaskModel {
         return TaskModel(
-                id, name, edition, copies, packs, remain, area, state, startTime, endTime, region, brigade, brigadier, rastMapUrl, userId,
+                id, name, edition, copies, packs, remain, area, state, startTime, endTime, brigade, brigadier, rastMapUrl, userId,
                 db.taskItemDao().getAllForTask(id).map { it.toTaskItemModel(db) }, city, storageAddress, iteration, false
 
         )

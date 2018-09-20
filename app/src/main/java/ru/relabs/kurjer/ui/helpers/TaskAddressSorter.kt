@@ -24,14 +24,18 @@ object TaskAddressSorter {
         return taskItems.sortedWith(compareBy<AddressListModel.TaskItem> { it.taskItem.state }
                 .thenBy { it.taskItem.subarea }
                 .thenBy { it.taskItem.bypass }
+                .thenBy { it.taskItem.address.city }
                 .thenBy { it.taskItem.address.street }
-                .thenBy { it.taskItem.address.house })
+                .thenBy { it.taskItem.address.house }
+                .thenBy { it.taskItem.address.houseName })
     }
 
     fun sortTaskItemsAlphabetic(taskItems: List<AddressListModel.TaskItem>): List<AddressListModel.TaskItem> {
         return taskItems.sortedWith(compareBy<AddressListModel.TaskItem> { it.taskItem.state }
+                .thenBy { it.taskItem.address.city }
                 .thenBy { it.taskItem.address.street }
-                .thenBy { it.taskItem.address.house })
+                .thenBy { it.taskItem.address.house }
+                .thenBy { it.taskItem.address.houseName })
     }
 
     val STANDART = 1

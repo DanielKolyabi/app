@@ -10,25 +10,35 @@ import ru.relabs.kurjer.persistence.entities.AddressEntity
 
 data class AddressModel(
         var id: Int,
+        var city: String,
         var street: String,
-        var house: Int
+        var house: Int,
+        var houseName: String,
+        var lat: Double,
+        var long: Double
 ) : Parcelable {
 
     val name: String
-        get() = "ул. $street, д. $house"
+        get() = "$street, д. $houseName"
 
     constructor(parcel: Parcel) : this(
             parcel.readInt(),
-            //parcel.readString(),
             parcel.readString(),
-            parcel.readInt()) {
+            parcel.readString(),
+            parcel.readInt(),
+            parcel.readString(),
+            parcel.readDouble(),
+            parcel.readDouble()) {
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(id)
-        //parcel.writeString(name)
+        parcel.writeString(city)
         parcel.writeString(street)
         parcel.writeInt(house)
+        parcel.writeString(houseName)
+        parcel.writeDouble(lat)
+        parcel.writeDouble(long)
     }
 
     override fun describeContents(): Int {
@@ -36,7 +46,7 @@ data class AddressModel(
     }
 
     fun toAddressEntity(): AddressEntity {
-        return AddressEntity(id, street, house)
+        return AddressEntity(id, city, street, house, houseName, lat, long)
     }
 
     companion object CREATOR : Parcelable.Creator<AddressModel> {

@@ -10,10 +10,11 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import ru.relabs.kurjer.BuildConfig
-import ru.relabs.kurjer.network.models.AuthResponseModel
-import ru.relabs.kurjer.network.models.StatusResponse
-import ru.relabs.kurjer.network.models.TaskItemReportModel
-import ru.relabs.kurjer.network.models.TaskResponseModel
+import com.google.gson.GsonBuilder
+import com.google.gson.Gson
+import ru.relabs.kurjer.network.models.*
+import java.util.*
+
 
 /**
  * Created by ProOrange on 23.08.2018.
@@ -29,11 +30,15 @@ object DeliveryServerAPI {
             .addInterceptor(interceptor)
             .build()
 
+    var gson = GsonBuilder()
+            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+            .create()
+
     private val retrofit = Retrofit.Builder()
             .baseUrl(BuildConfig.API_URL)
             .client(client)
             .addCallAdapterFactory(CoroutineCallAdapterFactory())
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
     interface IDeliveryServerAPI {
@@ -51,6 +56,15 @@ object DeliveryServerAPI {
         @POST("api/v1/tasks/{id}/report")
         @Multipart
         fun sendTaskReport(@Path("id") taskItemId: Int, @Query("token") token: String, @Part("data") data: TaskItemReportModel, @Part photos: List<MultipartBody.Part>): Deferred<StatusResponse>
+
+        @GET("api/v1/update")
+        fun getUpdateInfo(): Deferred<UpdateInfoResponse>
+
+        @POST("api/v1/push_token")
+        fun sendPushToken(@Query("token") token: String, @Query("push_token") pushToken: String): Deferred<StatusResponse>
+
+        @POST("api/v1/coords")
+        fun sendGPS(@Query("token") token: String, @Query("lat") lat: Double, @Query("long") long: Double, @Query("time") time: String): Deferred<StatusResponse>
     }
 
     val api = retrofit.create(IDeliveryServerAPI::class.java)

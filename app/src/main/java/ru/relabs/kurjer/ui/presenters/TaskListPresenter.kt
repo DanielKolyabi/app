@@ -67,6 +67,7 @@ class TaskListPresenter(val fragment: TaskListFragment) {
 
     fun loadTasks(loadFromNetwork: Boolean = false) {
         launch(UI) {
+            fragment.application() ?: return@launch
             val db = fragment.application()!!.database
 
             //Load from network if available
@@ -88,8 +89,30 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                     }
 
                     if (newTasks.isNotEmpty()) {
-                        if (PersistenceHelper.merge(db, newTasks)) {
+                        val mergeResult = PersistenceHelper.merge(
+                                db,
+                                newTasks,
+                                {
+                                    try {
+                                        NetworkHelper.loadTaskRasterizeMap(it, fragment.context?.contentResolver)
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                },
+                                { oldTask, newTask ->
+                                    if(oldTask.rastMapUrl != newTask.rastMapUrl){
+                                        try {
+                                            NetworkHelper.loadTaskRasterizeMap(newTask, fragment.context?.contentResolver)
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                        }
+                                    }
+                                }
+                        )
+                        if (mergeResult.isTasksChanged) {
                             fragment.activity()?.showError("Задания были обновлены.")
+                        } else if (mergeResult.isNewTasksAdded) {
+                            fragment.activity()?.showError("Обновление прошло успешно.")
                         }
                     }
                 } else {

@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.ui.presenters
 
+import android.widget.Toast
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
@@ -8,6 +9,7 @@ import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.MyApplication
 import ru.relabs.kurjer.application
+import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
@@ -17,6 +19,10 @@ import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import ru.relabs.kurjer.ui.fragments.AddressListFragment
 import ru.relabs.kurjer.ui.helpers.TaskAddressSorter
 import ru.relabs.kurjer.ui.models.AddressListModel
+import android.support.v4.content.ContextCompat.startActivity
+import android.content.Intent
+import android.net.Uri
+
 
 /**
  * Created by ProOrange on 09.08.2018.
@@ -105,9 +111,22 @@ class AddressListPresenter(val fragment: AddressListFragment) {
 
             withContext(CommonPool) { checkTasksIsClosed(db) }
             if (tasks.size == 0) {
-                (fragment.context as MainActivity).showTaskListScreen()
+                (fragment.context as MainActivity).showTaskListScreen(true)
             }
         }
+    }
+
+    fun onItemMapClicked(task: TaskModel) {
+        fragment.context ?: return
+        val image = PathHelper.getTaskRasterizeMapFile(task)
+        if(!image.exists()){
+            Toast.makeText(fragment.context, "Файл карты не найден.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val intent = Intent()
+        intent.action = Intent.ACTION_VIEW
+        intent.setDataAndType(Uri.fromFile(image), "image/*")
+        startActivity(fragment.context!!, intent, null)
     }
 
 }

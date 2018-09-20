@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.persistence
 
+import android.util.Log
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.files.PathHelper
@@ -23,9 +24,9 @@ object PersistenceHelper {
         }
     }
 
-    fun closeTask(db: AppDatabase, task: TaskModel) {
+    fun closeTaskById(db: AppDatabase, taskId: Int){
         //Remove all taskItems
-        db.taskItemDao().getAllForTask(task.id).forEach { taskItem ->
+        db.taskItemDao().getAllForTask(taskId).forEach { taskItem ->
             db.taskItemResultsDao().getByTaskItemId(taskItem.id)?.let { taskItemResult ->
                 db.entrancesDao().getByTaskItemResultId(taskItemResult.id).forEach { entrance ->
                     db.entrancesDao().delete(entrance)
@@ -34,6 +35,12 @@ object PersistenceHelper {
             }
             db.taskItemDao().delete(taskItem)
         }
+        //Remove rast map
+        PathHelper.getTaskRasterizeMapFileById(taskId).delete()
+    }
+
+    fun closeTask(db: AppDatabase, task: TaskModel) {
+        closeTaskById(db, task.id)
     }
 
     suspend fun removeReport(db: AppDatabase, report: ReportQueryItemEntity) {
@@ -46,31 +53,43 @@ object PersistenceHelper {
         }
     }
 
-    suspend fun merge(db: AppDatabase, newTasks: List<TaskModel>): Boolean {
-        var isSomethingChanged = false
+    suspend fun merge(
+            db: AppDatabase,
+            newTasks: List<TaskModel>,
+            onNewTaskAppear: (task: TaskModel) -> Unit,
+            onTaskChanged: (oldTask: TaskModel, newTask: TaskModel) -> Unit
+    ): MergeResult {
+        val result = MergeResult(false, false)
         withContext(CommonPool) {
             val savedTasksIDs = db.taskDao().all.map { it.id }
-            val newTasksIDs = db.taskDao().all.map { it.id }
-            //Process not existed new tasks
-            newTasks.filter { it.id !in savedTasksIDs }.forEach { task ->
-                //Add task
-                db.taskDao().insert(task.toTaskEntity().apply {
-                    state = fromSiriusState()
-                })
-                task.items.forEach { item ->
-                    //Add address
-                    if (db.addressDao().getById(item.address.id) == null) {
-                        db.addressDao().insert(AddressEntity(item.address.id, item.address.street, item.address.house))
-                    }
-                    //Add item
-                    db.taskItemDao().insert(item.toTaskItemEntity(task.id))
-                }
-            }
+            val newTasksIDs = newTasks.map { it.id }
 
             //Process tasks that not existed in newTasks
             db.taskDao().all.filter { it.id !in newTasksIDs }.forEach { task ->
                 //Close task because it not existed on server
                 closeTask(db, task.toTaskModel(db))
+
+                Log.d("merge", "Close task: ${task.id}")
+            }
+
+            //Process not existed new tasks
+            newTasks.filter { it.id !in savedTasksIDs }.forEach { task ->
+                //Add task
+                val newTaskId = db.taskDao().insert(task.toTaskEntity().apply {
+                    state = fromSiriusState()
+                })
+                result.isNewTasksAdded = true
+                onNewTaskAppear(task)
+                Log.d("merge", "Add task ID: $newTaskId")
+                task.items.forEach { item ->
+                    //Add address
+                    if (db.addressDao().getById(item.address.id) == null) {
+                        db.addressDao().insert(item.address.toAddressEntity())
+                    }
+                    //Add item
+                    val newId = db.taskItemDao().insert(item.toTaskItemEntity(task.id))
+                    Log.d("merge", "Add taskItem ID: $newId")
+                }
             }
 
             //Process existed new tasks
@@ -87,27 +106,36 @@ object PersistenceHelper {
                     }
                     //Task not in work
                 } else {
-                    if (task.iteration <= savedTask.iteration) return@forEach
+                    if (task.iteration <= savedTask.iteration && task.toTaskEntity().fromSiriusState() == savedTask.state) return@forEach
 
-                    val examinedByOtherUser = if(db.taskDao().getById(task.id)!!.state == TaskModel.CREATED
+                    val examinedByOtherUser = if (db.taskDao().getById(task.id)!!.state == TaskModel.CREATED
                             && task.toTaskEntity().fromSiriusState() == TaskModel.EXAMINED) TaskModel.BY_OTHER_USER else 0
+
+                    onTaskChanged(savedTask.toTaskModel(db), task)
 
                     db.taskDao().update(task.toTaskEntity().apply {
                         state = fromSiriusState() and examinedByOtherUser
                     })
+
                     task.items.forEach {
                         if (db.addressDao().getById(it.address.id) == null) {
                             db.addressDao().insert(it.address.toAddressEntity())
                         }
-                        db.taskItemDao().update(it.toTaskItemEntity(task.id))
+
+                        db.taskItemDao().insert(it.toTaskItemEntity(task.id))
                     }
-                    isSomethingChanged = true
+                    result.isTasksChanged = true
                     if (savedTask.state and TaskModel.EXAMINED != 0) {
                         //TODO: Notify user about changes
                     }
                 }
             }
         }
-        return isSomethingChanged
+        return result
     }
 }
+
+data class MergeResult(
+        var isTasksChanged: Boolean,
+        var isNewTasksAdded: Boolean
+)

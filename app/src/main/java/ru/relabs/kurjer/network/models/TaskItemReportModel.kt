@@ -9,6 +9,12 @@ import java.util.*
  */
 
 data class TaskItemReportModel(
+        @SerializedName("task_id")
+        var taskId: Int,
+        @SerializedName("task_item_id")
+        var taskItemId: Int,
+        @SerializedName("image_folder_id")
+        var imageFolderId: Int,
         var gps: GPSCoordinatesModel?,
         @SerializedName("close_time")
         var closeTime: Date,

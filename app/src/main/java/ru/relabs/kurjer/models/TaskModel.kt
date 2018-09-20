@@ -20,7 +20,6 @@ data class TaskModel(
         var state: Int,
         var startTime: Date,
         var endTime: Date,
-        var region: Int,
         var brigade: Int,
         var brigadier: String,
         var rastMapUrl: String,
@@ -45,7 +44,6 @@ data class TaskModel(
             parcel.readSerializable() as Date,
             parcel.readSerializable() as Date,
             parcel.readInt(),
-            parcel.readInt(),
             parcel.readString(),
             parcel.readString(),
             parcel.readInt(),
@@ -69,7 +67,6 @@ data class TaskModel(
         parcel.writeInt(state)
         parcel.writeSerializable(startTime)
         parcel.writeSerializable(endTime)
-        parcel.writeInt(region)
         parcel.writeInt(brigade)
         parcel.writeString(brigadier)
         parcel.writeString(rastMapUrl)
@@ -87,7 +84,7 @@ data class TaskModel(
 
     fun toTaskEntity(): TaskEntity {
         return TaskEntity(
-                id, name, edition, copies, packs, remain, area, state, startTime, endTime, region, brigade, brigadier, rastMapUrl, userId,
+                id, name, edition, copies, packs, remain, area, state, startTime, endTime, brigade, brigadier, rastMapUrl, userId,
                 city, storageAddress, iteration
         )
     }

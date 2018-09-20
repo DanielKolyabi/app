@@ -1,7 +1,11 @@
 package ru.relabs.kurjer.files
 
+import android.content.ContentResolver
 import android.graphics.Bitmap
+import android.provider.MediaStore
 import android.util.Log
+import java.io.File
+import java.io.FileOutputStream
 
 /**
  * Created by ProOrange on 10.09.2018.
@@ -20,5 +24,15 @@ object ImageUtils {
         }
         Log.d("Resizer", "Calculated: $newWidth x $newHeight")
         return Bitmap.createScaledBitmap(b, newWidth.toInt(), newHeight.toInt(), false)
+    }
+
+    fun saveImage(b: Bitmap, f: File, contentResolver: ContentResolver? = null) {
+        contentResolver?.let{
+            MediaStore.Images.Media.insertImage(contentResolver, b, null, null)
+        }
+
+        val fos = FileOutputStream(f)
+        b.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+        fos.close()
     }
 }

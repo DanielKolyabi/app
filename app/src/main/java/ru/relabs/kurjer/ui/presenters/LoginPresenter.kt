@@ -1,8 +1,10 @@
 package ru.relabs.kurjer.ui.presenters
 
 import kotlinx.android.synthetic.main.fragment_login.*
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withContext
 import retrofit2.HttpException
 import ru.relabs.kurjer.ErrorButtonsListener
 import ru.relabs.kurjer.MainActivity
@@ -50,8 +52,10 @@ class LoginPresenter(val fragment: LoginFragment) {
                 }
                 fragment.application()!!.sendPushToken(null)
                 if (!authByToken) {
-                    db.taskDao().all.forEach {
-                        PersistenceHelper.closeTaskById(db, it.id)
+                    withContext(CommonPool) {
+                        db.taskDao().all.forEach {
+                            PersistenceHelper.closeTaskById(db, it.id)
+                        }
                     }
                 }
                 (fragment.activity as? MainActivity)?.showTaskListScreen(true)

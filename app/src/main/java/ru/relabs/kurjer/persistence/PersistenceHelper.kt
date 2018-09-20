@@ -114,7 +114,7 @@ object PersistenceHelper {
                     onTaskChanged(savedTask.toTaskModel(db), task)
 
                     db.taskDao().update(task.toTaskEntity().apply {
-                        state = fromSiriusState() and examinedByOtherUser
+                        state = fromSiriusState() xor examinedByOtherUser
                     })
 
                     task.items.forEach {

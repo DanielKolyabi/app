@@ -5,7 +5,6 @@ import android.graphics.PointF
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.graphics.ColorUtils
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -65,7 +64,7 @@ class YandexMapFragment : Fragment(), UserLocationObjectListener {
         if (application() != null) {
             point = Point(application()!!.currentLocation.lat, application()!!.currentLocation.long)
         }
-        mapview.map.isRotateGesturesEnabled = false;
+        mapview.map.isRotateGesturesEnabled = false
         if (address.lat != 0.0 && address.long != 0.0) {
             point = Point(address.lat, address.long)
 

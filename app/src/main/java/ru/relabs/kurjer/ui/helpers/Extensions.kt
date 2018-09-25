@@ -3,7 +3,6 @@ package ru.relabs.kurjer.ui.helpers
 import android.view.View
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.logging.SimpleFormatter
 
 /**
  * Created by ProOrange on 29.08.2018.

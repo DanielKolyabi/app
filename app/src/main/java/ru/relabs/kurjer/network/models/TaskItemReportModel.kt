@@ -22,7 +22,7 @@ data class TaskItemReportModel(
         var userDescription: String,
         var entrances: List<Pair<Int, Int>>,
         var photos: Map<String, PhotoReportModel>
-) {}
+)
 
 data class PhotoReportModel(
     val hash: String,

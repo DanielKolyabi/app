@@ -1,9 +1,5 @@
 package ru.relabs.kurjer.models
 
-import android.arch.persistence.room.ColumnInfo
-import android.arch.persistence.room.Entity
-import android.arch.persistence.room.Ignore
-import android.arch.persistence.room.PrimaryKey
 import android.os.Parcel
 import android.os.Parcelable
 import ru.relabs.kurjer.persistence.entities.AddressEntity
@@ -28,8 +24,7 @@ data class AddressModel(
             parcel.readInt(),
             parcel.readString(),
             parcel.readDouble(),
-            parcel.readDouble()) {
-    }
+            parcel.readDouble())
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(id)

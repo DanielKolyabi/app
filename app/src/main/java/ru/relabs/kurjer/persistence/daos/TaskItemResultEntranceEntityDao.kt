@@ -1,7 +1,6 @@
 package ru.relabs.kurjer.persistence.daos
 
 import android.arch.persistence.room.*
-import ru.relabs.kurjer.persistence.entities.TaskItemResultEntity
 import ru.relabs.kurjer.persistence.entities.TaskItemResultEntranceEntity
 
 /**
@@ -20,14 +19,14 @@ interface TaskItemResultEntranceEntityDao {
     fun getByTaskItemResultId(id: Int): List<TaskItemResultEntranceEntity>
 
     @Update
-    fun update(task: TaskItemResultEntranceEntity);
+    fun update(task: TaskItemResultEntranceEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(task: TaskItemResultEntranceEntity): Long;
+    fun insert(task: TaskItemResultEntranceEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(task: List<TaskItemResultEntranceEntity>);
+    fun insertAll(task: List<TaskItemResultEntranceEntity>)
 
     @Delete
-    fun delete(task: TaskItemResultEntranceEntity);
+    fun delete(task: TaskItemResultEntranceEntity)
 }

@@ -2,8 +2,6 @@ package ru.relabs.kurjer.models
 
 import android.os.Parcel
 import android.os.Parcelable
-import ru.relabs.kurjer.persistence.entities.AddressEntity
-import ru.relabs.kurjer.persistence.entities.TaskEntity
 import ru.relabs.kurjer.persistence.entities.TaskItemEntity
 
 data class TaskItemModel(
@@ -24,8 +22,7 @@ data class TaskItemModel(
             parcel.createIntArray().toList(),
             parcel.readInt(),
             parcel.readInt(),
-            parcel.readInt()) {
-    }
+            parcel.readInt())
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeParcelable(address, flags)

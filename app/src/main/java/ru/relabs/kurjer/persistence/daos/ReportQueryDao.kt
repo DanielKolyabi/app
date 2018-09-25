@@ -19,14 +19,14 @@ interface ReportQueryDao {
     fun getByTaskId(id: Int): List<ReportQueryItemEntity>
 
     @Update
-    fun update(address: ReportQueryItemEntity);
+    fun update(address: ReportQueryItemEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(address: ReportQueryItemEntity);
+    fun insert(address: ReportQueryItemEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(address: List<ReportQueryItemEntity>);
+    fun insertAll(address: List<ReportQueryItemEntity>)
 
     @Delete
-    fun delete(address: ReportQueryItemEntity);
+    fun delete(address: ReportQueryItemEntity)
 }

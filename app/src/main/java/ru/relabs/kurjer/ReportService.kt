@@ -10,20 +10,18 @@ import android.util.Log
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
-import retrofit2.HttpException
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
-import java.io.*
+import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
 
 class ReportService : Service() {
     private lateinit var thread: Job
-    private lateinit var notification: Notification
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -41,12 +39,12 @@ class ReportService : Service() {
         return NotificationCompat.Builder(applicationContext)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(body)
-                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setSmallIcon(R.drawable.ic_arrow)
                 .setWhen(System.currentTimeMillis())
                 .addAction(R.drawable.ic_stop_black_24dp, "Отключить", pi)
                 .setChannelId(channelId)
                 .setOnlyAlertOnce(true)
-                .build();
+                .build()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -115,9 +113,9 @@ class ReportService : Service() {
         with(urlConnection.openConnection() as HttpURLConnection){
             requestMethod = "POST"
 
-            val wr = OutputStreamWriter(outputStream);
-            wr.write(item.post_data);
-            wr.flush();
+            val wr = OutputStreamWriter(outputStream)
+            wr.write(item.post_data)
+            wr.flush()
 
             if(responseCode != 200){
                 throw Exception("Wrong response code.")

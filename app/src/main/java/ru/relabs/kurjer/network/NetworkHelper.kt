@@ -2,11 +2,9 @@ package ru.relabs.kurjer.network
 
 import android.content.ContentResolver
 import android.content.Context
-import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.Uri
-import android.support.v4.app.Fragment
 import android.util.Log
 import android.webkit.MimeTypeMap
 import okhttp3.MediaType
@@ -20,14 +18,10 @@ import ru.relabs.kurjer.network.models.PhotoReportModel
 import ru.relabs.kurjer.network.models.TaskItemReportModel
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.TaskItemPhotoEntity
-import java.io.DataInputStream
-import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.math.BigInteger
+import java.net.HttpURLConnection
 import java.net.URL
-import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
 import java.util.*
 
 /**
@@ -58,7 +52,7 @@ object NetworkHelper {
                 data.gps, data.closeTime, data.userDescription, data.entrances, photosMap
         )
 
-        return api.sendTaskReport(data.taskItemId, data.token, reportObject, photoParts).await().status!!
+        return api.sendTaskReport(data.taskItemId, data.token, reportObject, photoParts).await().status
     }
 
     private fun photoEntityToPart(partName: String, reportEnt: ReportQueryItemEntity, photoEnt: TaskItemPhotoEntity): MultipartBody.Part {
@@ -73,10 +67,10 @@ object NetworkHelper {
                 MediaType.parse(mime),
                 photoFile
         )
-        return MultipartBody.Part.createFormData(partName, photoFile.name, requestFile);
+        return MultipartBody.Part.createFormData(partName, photoFile.name, requestFile)
     }
 
-    fun loadTaskRasterizeMap(task: TaskModel, contentResolver: ContentResolver?){
+    fun loadTaskRasterizeMap(task: TaskModel, contentResolver: ContentResolver?) {
         val url = URL(task.rastMapUrl)
         val bmp = BitmapFactory.decodeStream(url.openStream())
         val mapFile = PathHelper.getTaskRasterizeMapFile(task)
@@ -84,22 +78,35 @@ object NetworkHelper {
         bmp.recycle()
     }
 
-    fun loadUpdateFile(url: URL): File {
+    fun loadUpdateFile(url: URL, onDownloadUpdate: (current: Int, total: Int) -> Unit): File {
         val file = PathHelper.getUpdateFile()
-        val fos = FileOutputStream(file)
+        val connection = url.openConnection() as HttpURLConnection
         val stream = url.openStream()
+        val fos = FileOutputStream(file)
+        try {
+            val fileSize = connection.contentLength
 
-        val b = ByteArray(2048)
-        var length: Int
 
-        var read = stream.read(b)
-        while(read != -1) {
-            fos.write(b, 0, read)
-            read = stream.read(b)
+            val b = ByteArray(2048)
+            var length: Int
+
+            var read = stream.read(b)
+            var total = read
+            while (read != -1) {
+                fos.write(b, 0, read)
+                read = stream.read(b)
+                total += read
+                Log.d("loader", "$total/$fileSize")
+                onDownloadUpdate(total, fileSize)
+            }
+        } catch (e: Exception) {
+            throw e
+        } finally {
+            stream.close()
+            connection.disconnect()
+            fos.close()
         }
 
-        stream.close()
-        fos.close()
 
         return file
     }

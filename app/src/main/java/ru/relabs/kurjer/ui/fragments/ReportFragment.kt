@@ -57,10 +57,6 @@ class ReportFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_report, container, false)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         presenter.onRequestPermissionsResult(requestCode, permissions, grantResults)

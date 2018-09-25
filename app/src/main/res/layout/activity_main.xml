@@ -5,26 +5,47 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
     <LinearLayout
         android:id="@+id/loading"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:orientation="horizontal"
+        android:background="#DD444444"
+        android:clickable="true"
+        android:elevation="8dp"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:visibility="visible"
+        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:elevation="8dp"
-        android:background="#DD444444"
-        android:clickable="true"
-        android:focusable="true"
-        android:visibility="gone">
-        <ProgressBar
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/loader_progress_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:elevation="4dp"/>
+            android:gravity="center"
+            android:visibility="gone"
+            android:fontFamily="@string/text_font"
+            android:textSize="24sp"
+            tools:visibility="visible"
+            android:textColor="#DDD"
+
+            tools:text="Загрузка 1/100" />
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:elevation="4dp" />
+
     </LinearLayout>
+
+
     <android.support.constraint.ConstraintLayout
         android:id="@+id/top_app_bar"
         android:layout_width="match_parent"

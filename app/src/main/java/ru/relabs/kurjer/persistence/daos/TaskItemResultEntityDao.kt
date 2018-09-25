@@ -19,14 +19,14 @@ interface TaskItemResultEntityDao {
     fun getByTaskItemId(id: Int): TaskItemResultEntity?
 
     @Update
-    fun update(task: TaskItemResultEntity);
+    fun update(task: TaskItemResultEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(task: TaskItemResultEntity): Long;
+    fun insert(task: TaskItemResultEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(task: List<TaskItemResultEntity>);
+    fun insertAll(task: List<TaskItemResultEntity>)
 
     @Delete
-    fun delete(task: TaskItemResultEntity);
+    fun delete(task: TaskItemResultEntity)
 }

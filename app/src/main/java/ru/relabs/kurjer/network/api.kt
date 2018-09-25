@@ -1,19 +1,16 @@
 package ru.relabs.kurjer.network
 
+import com.google.gson.GsonBuilder
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.experimental.CoroutineCallAdapterFactory
 import kotlinx.coroutines.experimental.Deferred
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import ru.relabs.kurjer.BuildConfig
-import com.google.gson.GsonBuilder
-import com.google.gson.Gson
 import ru.relabs.kurjer.network.models.*
-import java.util.*
 
 
 /**

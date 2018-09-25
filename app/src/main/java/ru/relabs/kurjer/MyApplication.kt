@@ -11,17 +11,11 @@ import android.os.Bundle
 import android.os.StrictMode
 import android.support.v4.content.ContextCompat
 import com.google.firebase.iid.FirebaseInstanceId
-import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.FirebaseMessagingService
 import com.yandex.mapkit.MapKitFactory
-import kotlinx.coroutines.experimental.launch
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.persistence.AppDatabase
-import ru.relabs.kurjer.persistence.entities.AddressEntity
-import ru.relabs.kurjer.persistence.entities.TaskEntity
-import ru.relabs.kurjer.persistence.entities.TaskItemEntity
 import java.util.*
 
 /**
@@ -38,7 +32,7 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        MapKitFactory.setApiKey(BuildConfig.YA_KEY);
+        MapKitFactory.setApiKey(BuildConfig.YA_KEY)
 
         StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().build())
         deviceUUID = getOrGenerateDeviceUUID()

@@ -12,14 +12,13 @@ import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.View
 import android.view.Window
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
-import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
@@ -31,13 +30,14 @@ import ru.relabs.kurjer.ui.helpers.setVisible
 import ru.relabs.kurjer.ui.models.AddressListModel
 import java.io.File
 import java.net.URL
+import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
-    private val broadcastReceiver = object: BroadcastReceiver(){
+    private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent ?: return
-            if(intent.getBooleanExtra("tasks_changed", false)){
-                showError("Необходимо обновить список заданий.", object: ErrorButtonsListener{
+            if (intent.getBooleanExtra("tasks_changed", false)) {
+                showError("Необходимо обновить список заданий.", object : ErrorButtonsListener {
                     override fun positiveListener() {
                         showTaskListScreen(true)
                     }
@@ -69,6 +69,7 @@ class MainActivity : AppCompatActivity() {
             msg += when (it) {
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE -> "Доступ к записи файлов"
                 android.Manifest.permission.ACCESS_FINE_LOCATION -> "Доступ к получению местоположения"
+                android.Manifest.permission.REQUEST_INSTALL_PACKAGES -> "Разрешать устанавливать приложения"
                 else -> "Неизвестно"
             } + "\n"
         }
@@ -86,9 +87,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.requestFeature(Window.FEATURE_ACTION_BAR);
+        window.requestFeature(Window.FEATURE_ACTION_BAR)
         setContentView(R.layout.activity_main)
-        supportActionBar?.hide();
+        supportActionBar?.hide()
         back_button.setOnClickListener {
             onBackPressed()
         }
@@ -110,6 +111,9 @@ class MainActivity : AppCompatActivity() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
+//        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.REQUEST_INSTALL_PACKAGES) != PackageManager.PERMISSION_GRANTED) {
+//            permissions.add(android.Manifest.permission.REQUEST_INSTALL_PACKAGES)
+//        }
 
         showPermissionsRequest(permissions.toTypedArray(), false)
         loading.setVisible(true)
@@ -134,24 +138,38 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun installUpdate(url: URL) {
-        launch(UI) {
+        launch {
             var file: File? = null
-            withContext(CommonPool) {
-                try {
-                    file = NetworkHelper.loadUpdateFile(url)
-                } catch (e: Exception) {
-                    e.printStackTrace()
+            try {
+                progress_bar.isIndeterminate = false
+                file = NetworkHelper.loadUpdateFile(url) { current, total ->
+                    val percents = current.toFloat()/total.toFloat()
+                    launch(UI){
+                        loader_progress_text.setVisible(true)
+                        loader_progress_text.setText("Загрузка: ${(percents*100).roundToInt()}%")
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                launch(UI) {
+                    loader_progress_text.setVisible(false)
                     loading.setVisible(false)
+                    progress_bar.isIndeterminate = true
                     showError("Не удалось загрузить файл обновления.")
                 }
+                return@launch
             }
 
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            launch(UI) {
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive")
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                progress_bar.isIndeterminate = true
+                loader_progress_text.setVisible(false)
+                loading.setVisible(false)
+                startActivity(intent)
             }
-            loading.setVisible(false)
-            startActivity(intent)
         }
     }
 
@@ -161,6 +179,7 @@ class MainActivity : AppCompatActivity() {
             showError("Доступно новое обновление.", object : ErrorButtonsListener {
                 override fun positiveListener() {
                     try {
+                        Log.d("updates", "Try install from ${updateInfo.url}")
                         installUpdate(URL(updateInfo.url))
                     } catch (e: Exception) {
                         e.printStackTrace()

@@ -5,7 +5,6 @@ import android.arch.persistence.room.Entity
 import android.arch.persistence.room.ForeignKey
 import android.arch.persistence.room.PrimaryKey
 import ru.relabs.kurjer.models.TaskItemResultEntranceModel
-import ru.relabs.kurjer.persistence.AppDatabase
 
 /**
  * Created by ProOrange on 03.09.2018.

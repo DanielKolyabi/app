@@ -2,7 +2,6 @@ package ru.relabs.kurjer.ui.holders
 
 import android.graphics.Color
 import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
 import android.view.View
 import kotlinx.android.synthetic.main.item_task_list_task.view.*
 import ru.relabs.kurjer.R

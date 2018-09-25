@@ -1,7 +1,6 @@
 package ru.relabs.kurjer.persistence.daos
 
 import android.arch.persistence.room.*
-import ru.relabs.kurjer.persistence.entities.TaskEntity
 import ru.relabs.kurjer.persistence.entities.TaskItemPhotoEntity
 
 /**
@@ -20,14 +19,14 @@ interface TaskItemPhotoEntityDao {
     fun getByTaskItemId(id: Int): List<TaskItemPhotoEntity>
 
     @Update
-    fun update(task: TaskItemPhotoEntity);
+    fun update(task: TaskItemPhotoEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(task: TaskItemPhotoEntity): Long;
+    fun insert(task: TaskItemPhotoEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(task: List<TaskItemPhotoEntity>);
+    fun insertAll(task: List<TaskItemPhotoEntity>)
 
     @Delete
-    fun delete(task: TaskItemPhotoEntity);
+    fun delete(task: TaskItemPhotoEntity)
 }

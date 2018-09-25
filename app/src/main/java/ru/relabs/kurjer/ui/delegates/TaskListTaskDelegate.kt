@@ -5,9 +5,7 @@ import android.view.ViewGroup
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.delegateAdapter.IAdapterDelegate
-import ru.relabs.kurjer.ui.holders.DetailsTableItemHolder
 import ru.relabs.kurjer.ui.holders.TaskListTaskHolder
-import ru.relabs.kurjer.ui.models.DetailsListModel
 import ru.relabs.kurjer.ui.models.TaskListModel
 
 /**

@@ -1,7 +1,6 @@
 package ru.relabs.kurjer.network.models
 
 import com.google.gson.annotations.SerializedName
-import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 
 data class TaskItemResponseModel(

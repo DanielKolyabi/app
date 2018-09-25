@@ -2,12 +2,8 @@ package ru.relabs.kurjer.persistence.entities
 
 import android.arch.persistence.room.ColumnInfo
 import android.arch.persistence.room.Entity
-import android.arch.persistence.room.ForeignKey
 import android.arch.persistence.room.PrimaryKey
-import android.net.Uri
-import ru.relabs.kurjer.files.PathHelper.getTaskItemPhotoFile
 import ru.relabs.kurjer.models.GPSCoordinatesModel
-import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskItemPhotoModel
 import ru.relabs.kurjer.persistence.AppDatabase
 

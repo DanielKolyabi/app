@@ -8,7 +8,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
-import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_report.*
@@ -30,7 +29,6 @@ import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
 import ru.relabs.kurjer.ui.models.ReportPhotosListModel
 import ru.relabs.kurjer.ui.models.ReportTasksListModel
 import java.io.File
-import java.io.FileOutputStream
 import java.util.*
 
 
@@ -81,7 +79,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
             val savedEntrance = savedEntrancesAtSameAddress.firstOrNull { saved ->
                 it == saved.entrance
             }
-            val savedState = if (savedEntrance == null) 0 else savedEntrance.state
+            val savedState = savedEntrance?.state ?: 0
 
             ReportEntrancesListModel.Entrance(fragment.taskItems[currentTask], it, savedState)
         }

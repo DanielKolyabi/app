@@ -30,8 +30,7 @@ object PathHelper {
     }
 
     fun getTaskItemPhotoFileByID(taskItemID: Int, uuid: UUID): File {
-        val picture = File(getTaskItemPhotoFolderById(taskItemID), uuid.toString()+".jpg")
-        return picture
+        return File(getTaskItemPhotoFolderById(taskItemID), uuid.toString()+".jpg")
     }
 
     fun getTaskRasterizeMapFile(task: TaskModel): File {

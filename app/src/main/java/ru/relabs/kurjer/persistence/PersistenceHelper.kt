@@ -5,7 +5,6 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.persistence.entities.AddressEntity
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import java.util.*
 
@@ -24,7 +23,7 @@ object PersistenceHelper {
         }
     }
 
-    fun closeTaskById(db: AppDatabase, taskId: Int){
+    fun closeTaskById(db: AppDatabase, taskId: Int) {
         //Remove all taskItems
         db.taskItemDao().getAllForTask(taskId).forEach { taskItem ->
             db.taskItemResultsDao().getByTaskItemId(taskItem.id)?.let { taskItemResult ->
@@ -35,15 +34,20 @@ object PersistenceHelper {
             }
             db.taskItemDao().delete(taskItem)
         }
+        //Remove task
+        db.taskDao().getById(taskId)?.let {
+            db.taskDao().delete(it)
+        }
         //Remove rast map
         PathHelper.getTaskRasterizeMapFileById(taskId).delete()
     }
+
 
     fun closeTask(db: AppDatabase, task: TaskModel) {
         closeTaskById(db, task.id)
     }
 
-    suspend fun removeReport(db: AppDatabase, report: ReportQueryItemEntity) {
+    fun removeReport(db: AppDatabase, report: ReportQueryItemEntity) {
         db.reportQueryDao().delete(report)
         db.photosDao().getByTaskItemId(report.taskItemId).forEach {
             //Delete photo

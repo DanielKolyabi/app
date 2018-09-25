@@ -1,7 +1,6 @@
 package ru.relabs.kurjer.ui.models
 
 import android.net.Uri
-import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskItemPhotoModel
 
 /**

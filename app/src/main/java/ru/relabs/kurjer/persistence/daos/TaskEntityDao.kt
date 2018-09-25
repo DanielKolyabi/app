@@ -22,14 +22,14 @@ interface TaskEntityDao {
     fun getById(id: Int): TaskEntity?
 
     @Update
-    fun update(task: TaskEntity);
+    fun update(task: TaskEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(task: TaskEntity): Long;
+    fun insert(task: TaskEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(task: List<TaskEntity>);
+    fun insertAll(task: List<TaskEntity>)
 
     @Delete
-    fun delete(task: TaskEntity);
+    fun delete(task: TaskEntity)
 }

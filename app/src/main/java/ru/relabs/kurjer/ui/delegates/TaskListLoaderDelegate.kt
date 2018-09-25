@@ -5,9 +5,7 @@ import android.view.ViewGroup
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.delegateAdapter.IAdapterDelegate
-import ru.relabs.kurjer.ui.holders.AddressListSortingHolder
 import ru.relabs.kurjer.ui.holders.TaskListLoaderHolder
-import ru.relabs.kurjer.ui.models.AddressListModel
 import ru.relabs.kurjer.ui.models.TaskListModel
 
 class TaskListLoaderDelegate : IAdapterDelegate<TaskListModel> {

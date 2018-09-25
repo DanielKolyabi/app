@@ -1,9 +1,5 @@
 package ru.relabs.kurjer.models
 
-import android.arch.persistence.room.ColumnInfo
-import android.arch.persistence.room.Entity
-import android.arch.persistence.room.Ignore
-import android.arch.persistence.room.PrimaryKey
 import android.os.Parcel
 import android.os.Parcelable
 import ru.relabs.kurjer.persistence.entities.TaskEntity
@@ -53,8 +49,7 @@ data class TaskModel(
             parcel.readString(),
             parcel.readString(),
             parcel.readInt(),
-            parcel.readByte() != 0.toByte()) {
-    }
+            parcel.readByte() != 0.toByte())
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(id)

@@ -3,7 +3,6 @@ package ru.relabs.kurjer.ui.presenters
 import android.content.Intent
 import android.net.Uri
 import android.support.v4.content.ContextCompat
-import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
@@ -21,7 +20,7 @@ import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import ru.relabs.kurjer.ui.fragments.TaskDetailsFragment
 
 class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
-    fun onInfoClicked(item: TaskItemModel): Unit {
+    fun onInfoClicked(item: TaskItemModel) {
         (fragment.context as? MainActivity)?.showTaskItemExplanation(item)
     }
 

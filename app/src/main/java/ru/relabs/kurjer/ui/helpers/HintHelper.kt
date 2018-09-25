@@ -1,18 +1,11 @@
 package ru.relabs.kurjer.ui.helpers
 
-import android.app.Activity
-import android.app.FragmentContainer
 import android.content.SharedPreferences
 import android.support.constraint.ConstraintLayout
-import android.support.v4.app.FragmentActivity
-import android.util.Log
-import android.util.TypedValue
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.Transformation
-import android.widget.Toast
 import kotlinx.android.synthetic.main.include_hint_container.view.*
-import ru.relabs.kurjer.ui.fragments.LoginFragment
 
 /**
  * Created by ProOrange on 27.08.2018.
@@ -63,7 +56,7 @@ class HintHelper(val hintContainer: View, val text: String, private var expanded
         val anim = if (expanded) getCollapseHintAnimation() else getExpandHintAnimation()
         hintContainer.startAnimation(anim.apply {
             duration = 250
-        });
+        })
     }
 
     private fun getExpandHintAnimation(): Animation {

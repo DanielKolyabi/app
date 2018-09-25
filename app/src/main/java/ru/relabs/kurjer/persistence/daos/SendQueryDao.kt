@@ -1,7 +1,6 @@
 package ru.relabs.kurjer.persistence.daos
 
 import android.arch.persistence.room.*
-import ru.relabs.kurjer.persistence.entities.AddressEntity
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 
 /**
@@ -17,14 +16,14 @@ interface SendQueryDao {
     fun getById(id: Int): SendQueryItemEntity
 
     @Update
-    fun update(address: SendQueryItemEntity);
+    fun update(address: SendQueryItemEntity)
 
     @Insert
-    fun insert(address: SendQueryItemEntity): Long;
+    fun insert(address: SendQueryItemEntity): Long
 
     @Insert
-    fun insertAll(address: List<SendQueryItemEntity>);
+    fun insertAll(address: List<SendQueryItemEntity>)
 
     @Delete
-    fun delete(address: SendQueryItemEntity);
+    fun delete(address: SendQueryItemEntity)
 }

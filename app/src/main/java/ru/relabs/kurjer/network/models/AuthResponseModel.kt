@@ -1,7 +1,5 @@
 package ru.relabs.kurjer.network.models
 
-import com.google.gson.annotations.SerializedName
-
 /**
  * Created by ProOrange on 05.09.2018.
  */

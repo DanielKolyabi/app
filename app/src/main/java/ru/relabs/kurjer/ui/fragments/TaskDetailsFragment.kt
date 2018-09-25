@@ -54,12 +54,14 @@ class TaskDetailsFragment : Fragment() {
                 { presenter.onInfoClicked(it) }
         ))
 
-        adapter.data.add(DetailsListModel.Task(task))
-        adapter.data.add(DetailsListModel.DetailsTableHeader)
-        adapter.data.addAll(task.items.map { DetailsListModel.TaskItem(it) })
 
-        adapter.notifyDataSetChanged()
+        if(adapter.data.isEmpty()) {
+            adapter.data.add(DetailsListModel.Task(task))
+            adapter.data.add(DetailsListModel.DetailsTableHeader)
+            adapter.data.addAll(task.items.map { DetailsListModel.TaskItem(it) })
 
+            adapter.notifyDataSetChanged()
+        }
         examine_button.isEnabled = task.state == TaskModel.CREATED
     }
 

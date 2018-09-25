@@ -16,8 +16,8 @@ android {
         applicationId "ru.relabs.kurjer"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 10
-        versionName "1.1.5"
+        versionCode 12
+        versionName "1.1.12"
 
         ndk {
             abiFilters("armeabi-v7a", "x86")

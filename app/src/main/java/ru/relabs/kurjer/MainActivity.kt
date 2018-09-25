@@ -199,6 +199,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun checkUpdates() {
+        if(!NetworkHelper.isNetworkAvailable(this)){
+            loading.setVisible(false)
+            showError("Не удалось получить информацию об обновлениях.")
+            return
+        }
+
         launch(UI) {
             try {
                 val updateInfo = DeliveryServerAPI.api.getUpdateInfo().await()

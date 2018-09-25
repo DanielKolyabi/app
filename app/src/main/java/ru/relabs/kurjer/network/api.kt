@@ -11,6 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.network.models.*
+import java.util.concurrent.TimeUnit
 
 
 /**
@@ -25,6 +26,7 @@ object DeliveryServerAPI {
 
     private val client = OkHttpClient.Builder()
             .addInterceptor(interceptor)
+            .connectTimeout(15, TimeUnit.SECONDS)
             .build()
 
     var gson = GsonBuilder()

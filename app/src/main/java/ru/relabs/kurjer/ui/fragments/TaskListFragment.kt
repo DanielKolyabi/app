@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import kotlinx.android.synthetic.main.include_hint_container.*
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.activity
+import ru.relabs.kurjer.application
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.TaskListLoaderDelegate
 import ru.relabs.kurjer.ui.delegates.TaskListTaskDelegate
@@ -60,13 +62,15 @@ class TaskListFragment : Fragment() {
         tasks_list.layoutManager = LinearLayoutManager(context)
         tasks_list.adapter = adapter
 
-        val shouldLoadFromNetwork = shouldUpdate// || (adapter.data.size == 0 || (adapter.data.size == 1 && adapter.data.first() == TaskListModel.Loader))
+        if(adapter.data.isEmpty()) {
+            val shouldLoadFromNetwork = shouldUpdate // || (adapter.data.size == 0 || (adapter.data.size == 1 && adapter.data.first() == TaskListModel.Loader))
 
-        adapter.data.clear()
+            adapter.data.clear()
 
-        showListLoading(true)
-        presenter.updateStartButton()
-        presenter.loadTasks(shouldLoadFromNetwork)
+            showListLoading(true)
+            presenter.updateStartButton()
+            presenter.loadTasks(shouldLoadFromNetwork)
+        }
     }
 
     fun setStartButtonActive(active: Boolean) {

@@ -43,8 +43,8 @@ class MyApplication : Application() {
                 .build()
     }
 
-    fun enableLocationListening() : Boolean{
-        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+    fun enableLocationListening(): Boolean {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return false
         }
         val listener = object : LocationListener {
@@ -53,6 +53,7 @@ class MyApplication : Application() {
                     currentLocation = GPSCoordinatesModel(it.latitude, it.longitude, Date(it.time))
                 }
             }
+
             override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
             override fun onProviderEnabled(provider: String?) {}
             override fun onProviderDisabled(provider: String?) {}
@@ -117,14 +118,17 @@ class MyApplication : Application() {
     }
 
     fun sendPushToken(pushToken: String?) {
-        if(user !is UserModel.Authorized) return
+        if (user !is UserModel.Authorized) return
 
-        if(pushToken != null) {
-            DeliveryServerAPI.api.sendPushToken((user as UserModel.Authorized).token, pushToken)
-
-        }else{
+        if (pushToken != null) {
+            try {
+                DeliveryServerAPI.api.sendPushToken((user as UserModel.Authorized).token, pushToken)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else {
             val token = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE).getString("firebase_token", "notoken")
-            if(token != "notoken"){
+            if (token != "notoken") {
                 sendPushToken(token)
                 return
             }

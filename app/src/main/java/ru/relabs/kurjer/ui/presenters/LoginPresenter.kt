@@ -12,6 +12,7 @@ import ru.relabs.kurjer.activity
 import ru.relabs.kurjer.application
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI.api
+import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.ErrorUtils
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.fragments.LoginFragment
@@ -30,6 +31,11 @@ class LoginPresenter(val fragment: LoginFragment) {
     }
 
     fun onLoginClick(login: String, pwd: String) {
+        if(!NetworkHelper.isNetworkAvailable(fragment.context)){
+            showOfflineLoginOffer()
+            return
+        }
+
         launch(UI) {
             val db = fragment.application()!!.database
 
@@ -66,23 +72,27 @@ class LoginPresenter(val fragment: LoginFragment) {
                 fragment.activity()?.showError("Ошибка №${err.code}.\n${err.message}")
             } catch (e: Exception) {
                 e.printStackTrace()
-                fragment.activity()?.showError("Нет ответа от сервера.",
-                        object : ErrorButtonsListener {
-                            override fun negativeListener() {
-                                val status = loginOffline()
-                                if (!status) {
-                                    fragment.activity()?.showError("Невозможно войти оффлайн. Необходима авторизация через сервер.")
-                                    return
-                                }
-                                (fragment.activity as? MainActivity)?.showTaskListScreen(false)
-                            }
-
-                            override fun positiveListener() {}
-                        }
-                        , "Ок", "Войти Оффлайн")
+                showOfflineLoginOffer()
             }
             fragment.setLoginButtonLoading(false)
         }
+    }
+
+    fun showOfflineLoginOffer(){
+        fragment.activity()?.showError("Нет ответа от сервера.",
+                object : ErrorButtonsListener {
+                    override fun negativeListener() {
+                        val status = loginOffline()
+                        if (!status) {
+                            fragment.activity()?.showError("Невозможно войти оффлайн. Необходима авторизация через сервер.")
+                            return
+                        }
+                        (fragment.activity as? MainActivity)?.showTaskListScreen(false)
+                    }
+
+                    override fun positiveListener() {}
+                }
+                , "Ок", "Войти Оффлайн")
     }
 
     fun loginOffline(): Boolean {

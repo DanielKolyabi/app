@@ -81,11 +81,11 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                         e.printStackTrace()
                         val err = ErrorUtils.getError(e)
                         newTasks = listOf()
-                        fragment.activity()?.showError("Ошибка №${err.code}.\n${err.message}")
+                        fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить в ручную.\nОшибка №${err.code}.")
                     } catch (e: Exception) {
                         e.printStackTrace()
                         newTasks = listOf()
-                        fragment.activity()?.showError("Нет ответа от сервера.")
+                        fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить в ручную.")
                     }
 
                     if (newTasks.isNotEmpty()) {

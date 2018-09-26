@@ -27,6 +27,7 @@ object DeliveryServerAPI {
     private val client = OkHttpClient.Builder()
             .addInterceptor(interceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
             .build()
 
     var gson = GsonBuilder()

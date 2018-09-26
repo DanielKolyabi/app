@@ -33,7 +33,49 @@ class TaskListPresenter(val fragment: TaskListFragment) {
             selected = !selected
         }
         fragment.adapter.notifyItemChanged(pos)
+        updateIntersectedTasks()
         updateStartButton()
+    }
+
+    fun updateIntersectedTasks() {
+        val tasks = fragment.adapter.data
+
+        val selectedTasks = tasks.filter { it is TaskListModel.Task && it.task.selected }
+        val oldStates = tasks.map {
+            if (it !is TaskListModel.Task) false
+            else it.hasSelectedTasksWithSimilarAddress
+        }
+
+        val newStates = oldStates.map { false }.toMutableList()
+
+        for (selectedTask in selectedTasks) {
+            for ((i, task) in tasks.withIndex()) {
+                if (task == selectedTask) continue
+                if (task !is TaskListModel.Task) continue
+                if (selectedTask !is TaskListModel.Task) continue
+                if (newStates[i]) continue
+
+                if (isTasksHasIntersectedAddresses(selectedTask.task, task.task)) {
+                    newStates[i] = true
+                }
+            }
+        }
+
+        oldStates.forEachIndexed { i, state ->
+            if (state != newStates[i]) {
+                (fragment.adapter.data[i] as TaskListModel.Task).hasSelectedTasksWithSimilarAddress = newStates[i]
+                fragment.adapter.notifyItemChanged(i)
+            }
+        }
+    }
+
+    fun isTasksHasIntersectedAddresses(task1: TaskModel, task2: TaskModel): Boolean {
+        for (taskItem in task1.items) {
+            if (task2.items.find { it.address.id == taskItem.address.id } != null) {
+                return true
+            }
+        }
+        return false
     }
 
     fun onTaskClicked(pos: Int) {
@@ -100,7 +142,7 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                                     }
                                 },
                                 { oldTask, newTask ->
-                                    if(oldTask.rastMapUrl != newTask.rastMapUrl){
+                                    if (oldTask.rastMapUrl != newTask.rastMapUrl) {
                                         try {
                                             NetworkHelper.loadTaskRasterizeMap(newTask, fragment.context?.contentResolver)
                                         } catch (e: Exception) {

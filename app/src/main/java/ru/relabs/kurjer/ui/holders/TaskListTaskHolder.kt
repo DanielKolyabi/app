@@ -32,6 +32,12 @@ class TaskListTaskHolder(
         view.container.setOnClickListener {
             onTaskClicked(this.adapterPosition)
         }
+
+        if(item.hasSelectedTasksWithSimilarAddress){
+            view.setBackgroundColor(Color.GRAY)
+        }else{
+            view.setBackgroundColor(Color.TRANSPARENT)
+        }
     }
 
     fun setIsSelected(selected: Boolean, byOtherUser: Boolean) {

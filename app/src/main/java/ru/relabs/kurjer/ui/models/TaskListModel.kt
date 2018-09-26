@@ -7,5 +7,5 @@ import ru.relabs.kurjer.models.TaskModel
  */
 sealed class TaskListModel {
     object Loader: TaskListModel()
-    data class Task(val task: TaskModel): TaskListModel()
+    data class Task(val task: TaskModel, var hasSelectedTasksWithSimilarAddress: Boolean = false): TaskListModel()
 }

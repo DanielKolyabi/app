@@ -11,9 +11,9 @@
     <application
         android:name = "ru.relabs.kurjer.MyApplication"
         android:allowBackup="true"
-        android:icon="@drawable/ic_arrow"
+        android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_arrow"
+        android:roundIcon="@drawable/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".SplashActivity">

@@ -23,26 +23,10 @@ import ru.relabs.kurjer.application
 import ru.relabs.kurjer.models.AddressModel
 
 
-class YandexMapFragment : Fragment(), UserLocationObjectListener {
+class YandexMapFragment : Fragment() {
     private lateinit var userLocationLayer: UserLocationLayer
     private lateinit var address: AddressModel
 
-    override fun onObjectUpdated(userLocationView: UserLocationView, p1: ObjectEvent?) {
-
-        userLocationLayer.setAnchor(
-                PointF((mapview.width * 0.5).toFloat(), (mapview.height * 0.5).toFloat()),
-                PointF((mapview.width * 0.5).toFloat(), (mapview.height * 0.83).toFloat()))
-
-        userLocationView.pin.setIcon(ImageProvider.fromResource(
-                context, R.drawable.ic_arrow))
-        userLocationView.arrow.setIcon(ImageProvider.fromResource(
-                context, R.drawable.ic_arrow))
-        userLocationView.accuracyCircle.fillColor = Color.argb(125, 255, 63, 81)
-    }
-
-    override fun onObjectRemoved(p0: UserLocationView?) {}
-
-    override fun onObjectAdded(p0: UserLocationView?) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,20 +66,22 @@ class YandexMapFragment : Fragment(), UserLocationObjectListener {
         userLocationLayer = mapview.map.userLocationLayer
         userLocationLayer.isEnabled = true
         userLocationLayer.isHeadingEnabled = true
-        userLocationLayer.setObjectListener(this)
     }
 
-    override fun onStop() {
+    override fun onStop(){
         super.onStop()
-        mapview.onStop()
         MapKitFactory.getInstance().onStop()
+        mapview.onStop()
     }
 
     override fun onStart() {
         super.onStart()
-        mapview.onStart()
         MapKitFactory.getInstance().onStart()
+        mapview.onStart()
     }
+
+
+
 
     companion object {
 

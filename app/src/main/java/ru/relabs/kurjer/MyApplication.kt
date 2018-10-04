@@ -26,8 +26,20 @@ class MyApplication : Application() {
     lateinit var database: AppDatabase
     var user: UserModel = UserModel.Unauthorized
     lateinit var deviceUUID: String
-    private lateinit var locationManager: LocationManager
+    private var locationManager: LocationManager? = null
     var currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
+    val listener = object : LocationListener {
+        override fun onLocationChanged(location: Location?) {
+            location?.let {
+                currentLocation = GPSCoordinatesModel(it.latitude, it.longitude, Date(it.time))
+            }
+        }
+
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+        override fun onProviderEnabled(provider: String?) {}
+        override fun onProviderDisabled(provider: String?) {}
+    }
+
 
     override fun onCreate() {
         super.onCreate()
@@ -47,24 +59,17 @@ class MyApplication : Application() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return false
         }
-        val listener = object : LocationListener {
-            override fun onLocationChanged(location: Location?) {
-                location?.let {
-                    currentLocation = GPSCoordinatesModel(it.latitude, it.longitude, Date(it.time))
-                }
-            }
-
-            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-            override fun onProviderEnabled(provider: String?) {}
-            override fun onProviderDisabled(provider: String?) {}
-        }
 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         //TODO: Watch for another methods of work with gps
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 0f, listener)
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0f, listener)
+        locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 30*1000, 10f, listener)
+        locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30*1000, 10f, listener)
 
         return true
+    }
+
+    fun disableLocationListening(){
+        locationManager?.removeUpdates(listener)
     }
 
     fun storeUserCredentials() {

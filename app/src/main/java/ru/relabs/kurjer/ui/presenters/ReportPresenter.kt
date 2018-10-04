@@ -2,6 +2,7 @@ package ru.relabs.kurjer.ui.presenters
 
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -18,10 +19,7 @@ import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper.getTaskItemPhotoFile
-import ru.relabs.kurjer.models.GPSCoordinatesModel
-import ru.relabs.kurjer.models.TaskItemResultEntranceModel
-import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.models.UserModel
+import ru.relabs.kurjer.models.*
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.*
 import ru.relabs.kurjer.ui.fragments.ReportFragment
@@ -53,6 +51,12 @@ class ReportPresenter(private val fragment: ReportFragment) {
             }
         }
 
+        fragment.close_button.isEnabled = !(Date() < fragment.tasks[currentTask].startTime ||
+                Date() > Date(fragment.tasks[currentTask].endTime.time + 3 * 24 * 60 * 60 * 1000))
+
+        fragment.close_button.isEnabled = fragment.close_button.isEnabled && fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
+        fragment.user_explanation_input.isEnabled = fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
+
         (fragment.context as? MainActivity)?.changeTitle(fragment.taskItems[currentTask].address.name)
     }
 
@@ -73,13 +77,23 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
 
     fun fillEntrancesAdapterData(db: AppDatabase) {
-        val savedEntrancesAtSameAddress = findEntrancesByAddress(db)
+        val sharedPref = fragment.activity()?.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+        val shouldLoadSameAddress = sharedPref?.getBoolean("remember_report_states", false) ?: false
+
+        val savedEntrancesAtSameAddress = if (shouldLoadSameAddress)
+            findEntrancesByAddress(db)
+        else
+            listOf()
+
         //create entrance models with loading state from saved address
         val entrances = fragment.taskItems[currentTask].entrances.map {
             val savedEntrance = savedEntrancesAtSameAddress.firstOrNull { saved ->
                 it == saved.entrance
             }
-            val savedState = savedEntrance?.state ?: 0
+            val savedState = if (shouldLoadSameAddress)
+                savedEntrance?.state ?: 0
+            else
+                0
 
             ReportEntrancesListModel.Entrance(fragment.taskItems[currentTask], it, savedState)
         }
@@ -153,7 +167,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
         }
     }
 
-    private fun createOrUpdateTaskResult(gps: GPSCoordinatesModel? = null) {
+    private suspend fun createOrUpdateTaskResult(gps: GPSCoordinatesModel? = null) {
         val db = (fragment.activity!!.application as MyApplication).database
         val taskItemEntity = db.taskItemDao().getById(fragment.taskItems[currentTask].id)
         val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItemEntity.id)
@@ -186,10 +200,10 @@ class ReportPresenter(private val fragment: ReportFragment) {
         )
     }
 
-    private fun updateTaskItemResult(db: AppDatabase, gps: GPSCoordinatesModel?) {
+    private suspend fun updateTaskItemResult(db: AppDatabase, gps: GPSCoordinatesModel?) {
         val result = db.taskItemResultsDao().getByTaskItemId(fragment.taskItems[currentTask].id)
         val entrances = db.entrancesDao().getByTaskItemResultId(result!!.id)
-        result.description = fragment.user_explanation_input.text.toString()
+        result.description = withContext(UI) {fragment.user_explanation_input.text.toString()}
         entrances.map {
             it.state = (fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.first { entData ->
                 (entData as ReportEntrancesListModel.Entrance).entranceNumber == it.entrance
@@ -248,7 +262,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode == REQUEST_PHOTO) {
             if (resultCode != RESULT_OK) {
-                if(resultCode != RESULT_CANCELED) {
+                if (resultCode != RESULT_CANCELED) {
                     (fragment.context as MainActivity).showError("Не удалось сделать фото.")
                 }
                 return false

@@ -30,7 +30,8 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".MainActivity" />
+        <activity android:name=".MainActivity"
+            android:screenOrientation="locked"/>
 
         <service
             android:name=".ReportService"

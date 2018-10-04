@@ -57,6 +57,33 @@ object PersistenceHelper {
         }
     }
 
+    suspend fun isMergeNeeded(
+            db: AppDatabase,
+            newTasks: List<TaskModel>
+    ): Boolean{
+        return withContext(CommonPool) {
+            val savedTasksIDs = db.taskDao().all.map { it.id }
+            val newTasksIDs = newTasks.map { it.id }
+
+            newTasks.filter { it.id !in savedTasksIDs }.forEach { task ->
+                return@withContext true
+            }
+
+            newTasks.filter { it.id in savedTasksIDs }.forEach { task ->
+                val savedTask = db.taskDao().getById(task.id)!!
+                if (savedTask.state == TaskModel.STARTED || savedTask.state == TaskModel.COMPLETED) {
+                    if (task.state == 60 || task.state == 50) {
+                        return@withContext true
+                    }
+                } else {
+                    if (task.iteration <= savedTask.iteration && task.toTaskEntity().fromSiriusState() == savedTask.state) return@forEach
+                    return@withContext true
+                }
+            }
+            return@withContext false
+        }
+    }
+
     suspend fun merge(
             db: AppDatabase,
             newTasks: List<TaskModel>,

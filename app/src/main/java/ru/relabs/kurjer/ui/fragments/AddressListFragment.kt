@@ -55,7 +55,7 @@ class AddressListFragment : Fragment() {
             ))
             addDelegate(AddressListLoaderDelegate())
             addDelegate(AddressListTaskItemDelegate(
-                    { addressId, taskId -> presenter.onItemClicked(addressId, taskId) },
+                    { task -> presenter.onItemClicked(task) },
                     { task -> presenter.onItemMapClicked(task) }
             ))
             addDelegate(AddressListSortingDelegate(

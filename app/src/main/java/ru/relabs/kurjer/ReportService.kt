@@ -10,6 +10,8 @@ import android.util.Log
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
+import ru.relabs.kurjer.models.UserModel
+import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
@@ -31,7 +33,7 @@ class ReportService : Service() {
         val channelId = "notification_channel"
         val pi = PendingIntent.getService(this, 0, Intent(this, ReportService::class.java).apply { putExtra("stopService", true) }, PendingIntent.FLAG_CANCEL_CURRENT)
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannel = NotificationChannel(channelId, "Курьер", NotificationManager.IMPORTANCE_DEFAULT)
             (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(notificationChannel)
         }
@@ -56,31 +58,48 @@ class ReportService : Service() {
         startForeground(1, notification("Сервис отправки данных."))
 
         val db = (application as MyApplication).database
+        var lastTasksChecking = System.currentTimeMillis()
 
         thread = launch {
             while (true) {
                 var isTaskSended = false
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
                     val sendQuery = getSendQuery(db)
+                    val reportQuery = getReportQuery(db)
                     if (sendQuery != null) {
                         try {
                             sendSendQuery(sendQuery)
                             isTaskSended = true
                             db.sendQueryDao().delete(sendQuery)
                         } catch (e: Exception) {
-                            e.printStackTrace()
+                            e.logError()
                         }
-                    } else {
-                        getReportQuery(db)?.let {
+                    } else if (reportQuery != null) {
+                        try {
+                            sendReportQuery(db, reportQuery)
+                            isTaskSended = true
+                            PersistenceHelper.removeReport(db, reportQuery)
+                        } catch (e: Exception) {
+                            e.logError()
+                        }
+                    } else if (System.currentTimeMillis() - lastTasksChecking > 10 * 60 * 1000) {
+                        val app = application as? MyApplication
+                        if (app != null && app.user is UserModel.Authorized) {
+                            val user = app.user as UserModel.Authorized
                             try {
-                                sendReportQuery(db, it)
-                                isTaskSended = true
-                                PersistenceHelper.removeReport(db, it)
+                                val tasks = DeliveryServerAPI.api.getTasks(user.token).await()
+                                if (PersistenceHelper.isMergeNeeded(app.database, tasks.map { it.toTaskModel() })) {
+                                    val int = Intent().apply {
+                                        putExtra("tasks_changed", true)
+                                        action = "NOW"
+                                    }
+                                    sendBroadcast(int)
+                                }
                             } catch (e: Exception) {
-                                e.printStackTrace()
-                                return@let
+                                e.logError()
                             }
                         }
+                        lastTasksChecking = System.currentTimeMillis()
                     }
                 }
                 updateNotificationText(db)
@@ -110,14 +129,14 @@ class ReportService : Service() {
     private fun sendSendQuery(item: SendQueryItemEntity) {
         Log.d("reporter", "try to send ${item.url}")
         val urlConnection = URL(item.url)
-        with(urlConnection.openConnection() as HttpURLConnection){
+        with(urlConnection.openConnection() as HttpURLConnection) {
             requestMethod = "POST"
 
             val wr = OutputStreamWriter(outputStream)
             wr.write(item.post_data)
             wr.flush()
 
-            if(responseCode != 200){
+            if (responseCode != 200) {
                 throw Exception("Wrong response code.")
             }
         }

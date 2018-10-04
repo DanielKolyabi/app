@@ -6,16 +6,19 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.text.Editable
 import android.text.Html
 import android.text.TextWatcher
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.include_hint_container.*
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.activity
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
@@ -29,6 +32,7 @@ import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
 import ru.relabs.kurjer.ui.models.ReportPhotosListModel
 import ru.relabs.kurjer.ui.models.ReportTasksListModel
 import ru.relabs.kurjer.ui.presenters.ReportPresenter
+import java.util.*
 
 class ReportFragment : Fragment() {
     lateinit var tasks: List<TaskModel>
@@ -64,6 +68,8 @@ class ReportFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        activity()?.setChainButtonVisible(true)
+
         hintHelper = HintHelper(hint_container, "", false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
 
         tasksListAdapter.addDelegate(ReportTasksDelegate {
@@ -78,6 +84,15 @@ class ReportFragment : Fragment() {
         photosListAdapter.addDelegate(ReportBlankPhotoDelegate { holder ->
             presenter.onBlankPhotoClicked()
         })
+
+        val listClickInterceptor = object : RecyclerView.OnItemTouchListener {
+            override fun onTouchEvent(rv: RecyclerView?, e: MotionEvent?) {}
+
+            override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean =
+                taskItems[presenter.currentTask].state == TaskItemModel.CLOSED
+
+            override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+        }
 
         close_button.setOnClickListener {
             presenter.onCloseClicked()
@@ -99,7 +114,9 @@ class ReportFragment : Fragment() {
 
         tasks_list.adapter = tasksListAdapter
         entrances_list.adapter = entrancesListAdapter
+        entrances_list.addOnItemTouchListener(listClickInterceptor)
         photos_list.adapter = photosListAdapter
+        photos_list.addOnItemTouchListener(listClickInterceptor)
 
         presenter.fillTasksAdapterData()
         var currentTask = 0

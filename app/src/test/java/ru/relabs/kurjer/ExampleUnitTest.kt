@@ -1,4 +1,4 @@
-package ru.relabs.kurjer
+package abix.kurjer
 
 import org.junit.Test
 

@@ -5,10 +5,6 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
-import ru.relabs.kurjer.BuildConfig
-import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.MyApplication
-import ru.relabs.kurjer.application
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
@@ -22,6 +18,7 @@ import ru.relabs.kurjer.ui.models.AddressListModel
 import android.support.v4.content.ContextCompat.startActivity
 import android.content.Intent
 import android.net.Uri
+import ru.relabs.kurjer.*
 
 
 /**
@@ -84,12 +81,17 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         return !task.items.any { it.state != TaskItemModel.CLOSED }
     }
 
-    fun onItemClicked(addressId: Int, taskId: Int) {
-        (fragment.context as? MainActivity)?.showTasksReportScreen(fragment.adapter.data.filter {
-            (it is AddressListModel.TaskItem) && it.taskItem.address.id == addressId && it.taskItem.state != TaskItemModel.CLOSED
-        }.map {
-            it as AddressListModel.TaskItem
-        }, taskId)
+    fun onItemClicked(task: AddressListModel.TaskItem) {
+
+        if(task.taskItem.state != TaskItemModel.CLOSED){
+            (fragment.context as? MainActivity)?.showTasksReportScreen(fragment.adapter.data.filter {
+                (it is AddressListModel.TaskItem) && it.taskItem.address.id == task.taskItem.address.id && it.taskItem.state != TaskItemModel.CLOSED
+            }.map {
+                it as AddressListModel.TaskItem
+            }, task.parentTask.id)
+        } else {
+            (fragment.context as? MainActivity)?.showTasksReportScreen(listOf(task), task.parentTask.id)
+        }
     }
 
     fun updateStates() {

@@ -14,3 +14,12 @@ fun Fragment.application(): MyApplication?{
 fun Fragment.activity(): MainActivity?{
     return this.context as? MainActivity
 }
+
+fun Throwable.logError(force: Boolean = false){
+    this.printStackTrace()
+
+    if(force || BuildConfig.DEBUG) {
+        val stacktrace = CustomLog.getStacktraceAsString(this)
+        CustomLog.writeToFile(stacktrace)
+    }
+}

@@ -17,6 +17,7 @@
         android:orientation="vertical"
         android:visibility="visible"
         android:gravity="center"
+        tools:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -61,18 +62,18 @@
             android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginBottom="16dp"
             android:layout_marginEnd="8dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginStart="8dp"
             android:fontFamily="@string/text_font"
             android:textColor="@color/common_google_signin_btn_text_dark_pressed"
             android:textSize="20sp"
+            android:maxLines="2"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/back_button"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="Авторизация" />
+            android:gravity="center_vertical"
+            tools:text="Длинный адрес текст ужас беда проблема перенос круто" />
 
         <ImageView
             android:id="@+id/refresh_button"
@@ -103,6 +104,22 @@
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_back"
             tools:visibility="visible"
+            android:clickable="true"
+            android:focusable="true"/>
+
+        <ImageView
+            android:id="@+id/chain_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:adjustViewBounds="true"
+            android:layout_marginEnd="56dp"
+            android:padding="8dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_chain_disabled"
+            tools:visibility="invisible"
             android:clickable="true"
             android:focusable="true"/>
 

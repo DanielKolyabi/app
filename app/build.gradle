@@ -16,8 +16,8 @@ android {
         applicationId "ru.relabs.kurjer"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 14
-        versionName "1.1.14"
+        versionCode 29
+        versionName "1.2.9"
 
         ndk {
             abiFilters("armeabi-v7a", "x86")
@@ -53,8 +53,8 @@ dependencies {
     implementation 'com.android.support:recyclerview-v7:27.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
 
-    implementation 'com.google.firebase:firebase-core:16.0.3'
-    implementation 'com.google.firebase:firebase-messaging:17.3.0'
+    implementation 'com.google.firebase:firebase-core:16.0.4'
+    implementation 'com.google.firebase:firebase-messaging:17.3.3'
 
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'

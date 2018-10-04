@@ -155,6 +155,8 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                             fragment.activity()?.showError("Задания были обновлены.")
                         } else if (mergeResult.isNewTasksAdded) {
                             fragment.activity()?.showError("Обновление прошло успешно.")
+                        } else {
+                            fragment.activity()?.showError("Нет новых заданий.")
                         }
                     }
                 } else {

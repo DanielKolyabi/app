@@ -13,7 +13,7 @@ import ru.relabs.kurjer.ui.holders.AddressListTaskItemHolder
  * Created by ProOrange on 11.08.2018.
  */
 class AddressListTaskItemDelegate(
-        private val onItemClicked: (addressId: Int, taskId: Int) -> Unit,
+        private val onItemClicked: (task: AddressListModel.TaskItem) -> Unit,
         private val onItemMapClicked: (task: TaskModel) -> Unit
 ) : IAdapterDelegate<AddressListModel> {
     override fun isForViewType(data: List<AddressListModel>, position: Int): Boolean {

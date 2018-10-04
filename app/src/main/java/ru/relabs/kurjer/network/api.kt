@@ -28,6 +28,7 @@ object DeliveryServerAPI {
             .addInterceptor(interceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
             .build()
 
     var gson = GsonBuilder()

@@ -68,6 +68,12 @@ class LoginPresenter(val fragment: LoginFragment) {
 
             } catch (e: HttpException) {
                 e.printStackTrace()
+
+                if(e.code() == 502){
+                    showOfflineLoginOffer()
+                    return@launch
+                }
+
                 val err = ErrorUtils.getError(e)
                 fragment.activity()?.showError("Ошибка №${err.code}.\n${err.message}")
             } catch (e: Exception) {

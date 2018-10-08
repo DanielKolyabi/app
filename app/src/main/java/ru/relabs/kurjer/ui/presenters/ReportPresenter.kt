@@ -1,8 +1,8 @@
 package ru.relabs.kurjer.ui.presenters
 
+import android.app.Activity
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -19,7 +19,10 @@ import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper.getTaskItemPhotoFile
-import ru.relabs.kurjer.models.*
+import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.models.TaskItemModel
+import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.*
 import ru.relabs.kurjer.ui.fragments.ReportFragment
@@ -69,66 +72,39 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
     fun fillTasksAdapterData() {
+        fragment.setTaskListVisible(fragment.tasks.size > 1)
+
+        fragment.tasksListAdapter.data.clear()
         fragment.tasksListAdapter.data.addAll(fragment.tasks.mapIndexed { i, it ->
             ReportTasksListModel.TaskButton(it, i, i == 0)
         })
         fragment.tasksListAdapter.notifyDataSetChanged()
     }
 
-
-    fun fillEntrancesAdapterData(db: AppDatabase) {
-        val sharedPref = fragment.activity()?.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-        val shouldLoadSameAddress = sharedPref?.getBoolean("remember_report_states", false) ?: false
-
-        val savedEntrancesAtSameAddress = if (shouldLoadSameAddress)
-            findEntrancesByAddress(db)
-        else
-            listOf()
-
-        //create entrance models with loading state from saved address
-        val entrances = fragment.taskItems[currentTask].entrances.map {
-            val savedEntrance = savedEntrancesAtSameAddress.firstOrNull { saved ->
-                it == saved.entrance
-            }
-            val savedState = if (shouldLoadSameAddress)
-                savedEntrance?.state ?: 0
-            else
-                0
-
-            ReportEntrancesListModel.Entrance(fragment.taskItems[currentTask], it, savedState)
+    private fun getTaskItemEntranceData(taskItem: TaskItemModel, db: AppDatabase): List<ReportEntrancesListModel.Entrance> {
+        val entrances = taskItem.entrances.map {
+            it.coupleEnabled = it.coupleEnabled && fragment.taskItems.size > 1
+            ReportEntrancesListModel.Entrance(taskItem, it.num, 0, it.coupleEnabled)
         }
-        //find saved state directly for this entrances
-        db.taskItemResultsDao().getByTaskItemId(fragment.taskItems[currentTask].id)?.let {
+        db.taskItemResultsDao().getByTaskItemId(taskItem.id)?.let {
             val savedEntrances = db.entrancesDao().getByTaskItemResultId(it.id)
-            entrances.map { ent ->
+            entrances.forEach { ent ->
                 ent.selected = savedEntrances.first { it.entrance == ent.entranceNumber }.state
             }
         }
 
+        return entrances
+    }
+
+    private fun fillEntrancesAdapterData(db: AppDatabase) {
+
+        val entrances = getTaskItemEntranceData(fragment.taskItems[currentTask], db)
+
         launch(UI) {
             fragment.entrancesListAdapter.data.clear()
-            if (fragment.tasks.size > 1) {
-                fragment.setTaskListVisible(true)
-            }
             fragment.entrancesListAdapter.data.addAll(entrances)
             fragment.entrancesListAdapter.notifyDataSetChanged()
         }
-    }
-
-    private fun findEntrancesByAddress(db: AppDatabase): List<TaskItemResultEntranceModel> {
-        val result = mutableListOf<TaskItemResultEntranceModel>()
-        db.taskItemDao().getByAddressId(fragment.taskItems[currentTask].address.id).filter {
-            it.taskId in fragment.tasks.map { it.id }
-        }.forEach {
-            db.taskItemResultsDao().getByTaskItemId(it.id)?.let {
-                db.entrancesDao().getByTaskItemResultId(it.id).filter {
-                    it.state != 0
-                }.forEach {
-                    result.add(it.toTaskItemResultEntranceModel())
-                }
-            }
-        }
-        return result
     }
 
     fun fillPhotosAdapterData(db: AppDatabase) {
@@ -151,41 +127,78 @@ class ReportPresenter(private val fragment: ReportFragment) {
     fun onEntranceSelected(type: Int, holder: RecyclerView.ViewHolder) {
         val data = (fragment.entrancesListAdapter.data[holder.adapterPosition] as ReportEntrancesListModel.Entrance)
         data.selected = data.selected xor type
+        val entrances = fragment.entrancesListAdapter.data
+                .filter { it is ReportEntrancesListModel.Entrance }
+                .map { it as ReportEntrancesListModel.Entrance }
+
         launch(CommonPool) {
-            createOrUpdateTaskResult()
+            val db = (fragment.activity!!.application as MyApplication).database
+
+            if (data.coupleEnabled) {
+                for (taskItem in fragment.taskItems) {
+                    if (taskItem == fragment.taskItems[currentTask]) {
+                        continue
+                    }
+
+                    val taskItemEntrances = getTaskItemEntranceData(taskItem, db)
+                    val cur = taskItemEntrances[data.entranceNumber - 1].selected
+                    if (cur and type != data.selected and type) {
+                        taskItemEntrances[data.entranceNumber - 1].selected = cur xor type
+                    }
+                    createOrUpdateTaskResult(taskItem.id, entrances = taskItemEntrances)
+                }
+            }
+            createOrUpdateTaskResult(fragment.taskItems[currentTask].id, entrances = entrances)
+
+            withContext(UI) { fragment.entrancesListAdapter.notifyItemChanged(holder.adapterPosition) }
         }
-        fragment.entrancesListAdapter.notifyItemChanged(holder.adapterPosition)
     }
 
     fun onDescriptionChanged() {
+        val description = fragment.user_explanation_input.text.toString()
+
         launch(CommonPool) {
             try {
-                createOrUpdateTaskResult()
+                createOrUpdateTaskResult(fragment.taskItems[currentTask].id, description = description)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
 
-    private suspend fun createOrUpdateTaskResult(gps: GPSCoordinatesModel? = null) {
+    private suspend fun createOrUpdateTaskResult(
+            taskItemId: Int,
+            gps: GPSCoordinatesModel? = null,
+            description: String? = null,
+            entrances: List<ReportEntrancesListModel.Entrance>? = null
+    ) {
         val db = (fragment.activity!!.application as MyApplication).database
-        val taskItemEntity = db.taskItemDao().getById(fragment.taskItems[currentTask].id)
+        val taskItemEntity = db.taskItemDao().getById(taskItemId)
         val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItemEntity.id)
         if (taskItemResult == null) {
-            createTaskItemResult(db)
-        } else {
-            updateTaskItemResult(db, gps)
+            createTaskItemResult(taskItemId, db)
+        }
+
+        gps?.let {
+            updateTaskItemGPSResult(taskItemId, db, it)
+        }
+        description?.let {
+            updateTaskItemDescriptionResult(taskItemId, db, description)
+        }
+        entrances?.let {
+            updateTaskItemEntrancesResult(taskItemId, db, entrances)
         }
     }
 
-    private fun createTaskItemResult(db: AppDatabase) {
+
+    private fun createTaskItemResult(taskItemId: Int, db: AppDatabase) {
         val newId = db.taskItemResultsDao().insert(
                 TaskItemResultEntity(
                         0,
-                        fragment.taskItems[currentTask].id,
+                        taskItemId,
                         GPSCoordinatesModel(0.0, 0.0, Date()),
                         null,
-                        fragment.user_explanation_input.text.toString()
+                        ""
                 )
         )
         db.entrancesDao().insertAll(
@@ -194,41 +207,44 @@ class ReportPresenter(private val fragment: ReportFragment) {
                             0,
                             newId.toInt(),
                             (it as ReportEntrancesListModel.Entrance).entranceNumber,
-                            it.selected
+                            0
                     )
                 }
         )
     }
 
-    private suspend fun updateTaskItemResult(db: AppDatabase, gps: GPSCoordinatesModel?) {
-        val result = db.taskItemResultsDao().getByTaskItemId(fragment.taskItems[currentTask].id)
-        val entrances = db.entrancesDao().getByTaskItemResultId(result!!.id)
-        result.description = withContext(UI) {fragment.user_explanation_input.text.toString()}
-        entrances.map {
-            it.state = (fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.first { entData ->
-                (entData as ReportEntrancesListModel.Entrance).entranceNumber == it.entrance
-            } as ReportEntrancesListModel.Entrance).selected
-        }
+    private suspend fun updateTaskItemGPSResult(taskItemId: Int, db: AppDatabase, gps: GPSCoordinatesModel?) {
+        val result = db.taskItemResultsDao().getByTaskItemId(taskItemId)
         gps?.let {
-            result.gps = gps
+            result?.gps = gps
         }
-        db.taskItemResultsDao().update(result)
-        entrances.forEach { db.entrancesDao().update(it) }
+        result?.let {
+            db.taskItemResultsDao().update(it)
+        }
     }
 
+    private suspend fun updateTaskItemDescriptionResult(taskItemId: Int, db: AppDatabase, description: String) {
+        val result = db.taskItemResultsDao().getByTaskItemId(taskItemId)
+        result?.let {
+            it.description = description
+            db.taskItemResultsDao().update(it)
+        }
+    }
+
+    private suspend fun updateTaskItemEntrancesResult(taskItemId: Int, db: AppDatabase, entrances: List<ReportEntrancesListModel.Entrance>) {
+        val result = db.taskItemResultsDao().getByTaskItemId(taskItemId)
+        result ?: return
+        val savedEntrances = db.entrancesDao().getByTaskItemResultId(result.id)
+        savedEntrances.map {
+            val sameEntrance = entrances.firstOrNull { entrance -> it.entrance == entrance.entranceNumber }
+            val state = sameEntrance?.selected ?: 0
+            it.state = state
+        }
+        savedEntrances.forEach { db.entrancesDao().update(it) }
+    }
 
     fun onBlankPhotoClicked() {
-//        if (ContextCompat.checkSelfPermission(fragment.context!!, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-//            fragment.activity()?.showError("Необходимо разрешить приложению доступ к записи файлов.", object : ErrorButtonsListener {
-//                override fun positiveListener() {
-//                    fragment.requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 2)
-//                }
-//
-//                override fun negativeListener() {}
-//            }, "Ок", "")
-//        } else {
         requestPhoto()
-//        }
     }
 
     fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -370,9 +386,21 @@ class ReportPresenter(private val fragment: ReportFragment) {
         launch(UI) {
             val db = (fragment.activity!!.application as MyApplication).database
             val userToken = (fragment.application()!!.user as UserModel.Authorized).token
+            val entrances = fragment.entrancesListAdapter.data
+                    .filter { it is ReportEntrancesListModel.Entrance }
+                    .map { it as ReportEntrancesListModel.Entrance }
+            val description = fragment.user_explanation_input.text.toString()
+
             withContext(CommonPool) {
                 val location = fragment.application()?.currentLocation
-                createOrUpdateTaskResult(location)
+
+                createOrUpdateTaskResult(
+                        fragment.taskItems[currentTask].id,
+                        gps = location,
+                        description = description,
+                        entrances = entrances
+                )
+
                 db.taskItemDao().update(
                         db.taskItemDao().getById(fragment.taskItems[currentTask].id).let {
                             it.state = 1
@@ -406,8 +434,33 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 db.reportQueryDao().insert(reportItem)
             }
 
+            val int = Intent().apply {
+                putExtra("changed_item", fragment.taskItems[currentTask])
+                putExtra("changed_task", fragment.tasks[currentTask])
+            }
+            fragment.targetFragment?.onActivityResult(1, Activity.RESULT_OK, int)
 
-            (fragment.context as MainActivity).onBackPressed()
+            fragment.taskItems.removeAt(currentTask)
+            fragment.tasks.removeAt(currentTask)
+            fillTasksAdapterData()
+            if (fragment.tasks.size > 0) {
+                changeCurrentTask(0)
+            } else {
+                (fragment.context as MainActivity).onBackPressed()
+            }
         }
+    }
+
+    fun onCouplingChanged(adapterPosition: Int) {
+        val entrance = fragment.entrancesListAdapter.data[adapterPosition] as ReportEntrancesListModel.Entrance
+        val currentCoupleState = fragment.taskItems[currentTask].entrances[adapterPosition].coupleEnabled
+
+        entrance.coupleEnabled = !currentCoupleState && fragment.taskItems.size > 1
+
+        for (taskItem in fragment.taskItems) {
+            taskItem.entrances[adapterPosition].coupleEnabled = entrance.coupleEnabled
+        }
+
+        fragment.entrancesListAdapter.notifyItemChanged(adapterPosition)
     }
 }

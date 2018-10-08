@@ -1,10 +1,13 @@
 package ru.relabs.kurjer.ui.fragments
 
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +16,7 @@ import kotlinx.android.synthetic.main.include_hint_container.*
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.activity
+import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.AddressListAddressDelegate
@@ -34,6 +38,13 @@ class AddressListFragment : Fragment() {
 
         arguments?.let {
             tasks = it.getParcelableArrayList("tasks")
+            for(task in tasks){
+                for(taskItem in task.items){
+                    for(entrance in taskItem.entrances){
+                        entrance.coupleEnabled = true
+                    }
+                }
+            }
         }
     }
 
@@ -81,6 +92,15 @@ class AddressListFragment : Fragment() {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        data ?: return
+        if(requestCode != 1 || resultCode != Activity.RESULT_OK) return
+
+        val changedItem = data.extras.get("changed_item") as TaskItemModel
+        val changedTask = data.extras.get("changed_task") as TaskModel
+
+        presenter.onDataChanged(changedTask, changedItem)
+    }
 
     companion object {
         fun newInstance(tasks: List<TaskModel>) =

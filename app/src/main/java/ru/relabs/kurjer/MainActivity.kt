@@ -97,9 +97,6 @@ class MainActivity : AppCompatActivity() {
         back_button.setOnClickListener {
             onBackPressed()
         }
-        chain_button.setOnClickListener {
-            onChainPressed()
-        }
 
         showLoginScreen()
         Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler())
@@ -110,9 +107,6 @@ class MainActivity : AppCompatActivity() {
                 is TaskListFragment -> changeTitle("Список заданий")
                 is AddressListFragment -> changeTitle("Список адресов")
             }
-            if (current !is ReportFragment) {
-                setChainButtonVisible(false)
-            }
         }
         val permissions = mutableListOf<String>()
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -122,44 +116,9 @@ class MainActivity : AppCompatActivity() {
             permissions.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
 
-        setChainButtonIconEnabled(
-                getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-                        .getBoolean("remember_report_states", false)
-        )
-
         showPermissionsRequest(permissions.toTypedArray(), false)
         loading.setVisible(true)
         checkUpdates()
-    }
-
-    fun setChainButtonVisible(visible: Boolean) {
-        //TODO: Remove Chain_Button
-        chain_button.setVisible(false)//visible)
-    }
-
-    private fun onChainPressed() {
-        val pref = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-        val currentState = pref.getBoolean("remember_report_states", false)
-        val nextState = !currentState
-        var message = "Включено запоминание выбора для одинаковых адресов"
-        if (!nextState) {
-            message = "Выключено запоминание выбора для одинаковых адресов"
-        }
-        setChainButtonIconEnabled(nextState)
-
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-
-        pref.edit()
-                .putBoolean("remember_report_states", nextState)
-                .apply()
-    }
-
-    private fun setChainButtonIconEnabled(enabled: Boolean){
-        if (!enabled) {
-            chain_button.setImageResource(R.drawable.ic_chain_disabled)
-        } else {
-            chain_button.setImageResource(R.drawable.ic_chain_enabled)
-        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -267,27 +226,35 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun showTaskListScreen(shouldUpdate: Boolean = false) {
-        navigateTo(TaskListFragment.newInstance(shouldUpdate))
+    fun showTaskListScreen(shouldUpdate: Boolean = false): TaskListFragment {
+        val fragment = TaskListFragment.newInstance(shouldUpdate)
+        navigateTo(fragment)
         changeTitle("Список заданий")
+        return fragment
     }
 
-    fun showLoginScreen() {
-        navigateTo(LoginFragment())
+    fun showLoginScreen(): LoginFragment {
+        val fragment = LoginFragment()
+        navigateTo(fragment)
         changeTitle("Авторизация")
+        return fragment
     }
 
-    fun showYandexMap(address: AddressModel) {
-        navigateTo(YandexMapFragment.newInstance(address), true)
+    fun showYandexMap(address: AddressModel): YandexMapFragment {
+        val fragment = YandexMapFragment.newInstance(address)
+        navigateTo(fragment, true)
         changeTitle(address.name)
+        return fragment
     }
 
-    fun showAddressListScreen(tasks: List<TaskModel>) {
+    fun showAddressListScreen(tasks: List<TaskModel>): AddressListFragment {
         if (tasks.isEmpty()) {
             showError("Вы не выбрали ни одной задачи.")
         }
-        navigateTo(AddressListFragment.newInstance(tasks), true)
+        val fragment = AddressListFragment.newInstance(tasks)
+        navigateTo(fragment, true)
         changeTitle("Список адресов")
+        return fragment
     }
 
     fun showError(errorMessage: String, listener: ErrorButtonsListener? = null, forcePositiveButtonName: String = "Ок", forceNegativeButtonName: String = "") {
@@ -315,9 +282,9 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun showTasksReportScreen(tasks: List<AddressListModel.TaskItem>, selectedTaskId: Int) {
+    fun showTasksReportScreen(tasks: List<AddressListModel.TaskItem>, selectedTaskId: Int): ReportFragment {
 
-        navigateTo(ReportFragment.newInstance(
+        val fragment = ReportFragment.newInstance(
                 tasks.map {
                     it.parentTask
                 },
@@ -325,7 +292,9 @@ class MainActivity : AppCompatActivity() {
                     it.taskItem
                 },
                 selectedTaskId
-        ), true)
+        )
+        navigateTo(fragment, true)
+        return fragment
     }
 
     fun changeTitle(title: String) {

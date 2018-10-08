@@ -5,6 +5,7 @@ import android.arch.persistence.room.Entity
 import android.arch.persistence.room.ForeignKey
 import android.arch.persistence.room.ForeignKey.CASCADE
 import android.arch.persistence.room.PrimaryKey
+import ru.relabs.kurjer.models.EntranceModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.persistence.AppDatabase
 
@@ -36,7 +37,7 @@ data class TaskItemEntity(
         fun toTaskItemModel(db: AppDatabase): TaskItemModel{
                 return TaskItemModel(
                         db.addressDao().getById(addressId)!!.toAddressModel(),
-                        state, id, notes, entrances, subarea, bypass, copies
+                        state, id, notes, entrances.map{ EntranceModel(it, false) }, subarea, bypass, copies
                 )
         }
 }

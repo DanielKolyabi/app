@@ -9,7 +9,7 @@ import ru.relabs.kurjer.models.TaskModel
 sealed class AddressListModel {
 
     data class Address(
-            val taskItem: TaskItemModel
+            val taskItems: MutableList<TaskItemModel>
     ) : AddressListModel()
 
     data class TaskItem(

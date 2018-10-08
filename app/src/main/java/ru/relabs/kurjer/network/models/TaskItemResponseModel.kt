@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.network.models
 
 import com.google.gson.annotations.SerializedName
+import ru.relabs.kurjer.models.EntranceModel
 import ru.relabs.kurjer.models.TaskItemModel
 
 data class TaskItemResponseModel(
@@ -17,6 +18,6 @@ data class TaskItemResponseModel(
         var taskId: Int
 ) {
     fun toTaskItemModel(): TaskItemModel {
-        return TaskItemModel(address.toAddressModel(), state, id, notes, entrances, subarea, bypass, copies)
+        return TaskItemModel(address.toAddressModel(), state, id, notes, entrances.map{ EntranceModel(it, false) }, subarea, bypass, copies)
     }
 }

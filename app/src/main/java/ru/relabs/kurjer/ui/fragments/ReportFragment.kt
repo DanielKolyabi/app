@@ -18,7 +18,6 @@ import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.include_hint_container.*
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.activity
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
@@ -35,8 +34,8 @@ import ru.relabs.kurjer.ui.presenters.ReportPresenter
 import java.util.*
 
 class ReportFragment : Fragment() {
-    lateinit var tasks: List<TaskModel>
-    lateinit var taskItems: List<TaskItemModel>
+    lateinit var tasks: MutableList<TaskModel>
+    lateinit var taskItems: MutableList<TaskItemModel>
     private var selectedTaskItemId: Int = 0
     private lateinit var hintHelper: HintHelper
 
@@ -68,16 +67,19 @@ class ReportFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity()?.setChainButtonVisible(true)
 
         hintHelper = HintHelper(hint_container, "", false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
 
         tasksListAdapter.addDelegate(ReportTasksDelegate {
             presenter.changeCurrentTask(it)
         })
-        entrancesListAdapter.addDelegate(ReportEntrancesDelegate { type, holder ->
-            presenter.onEntranceSelected(type, holder)
-        })
+        entrancesListAdapter.addDelegate(
+                ReportEntrancesDelegate({ type, holder ->
+                    presenter.onEntranceSelected(type, holder)
+                }, { adapterPosition ->
+                    presenter.onCouplingChanged(adapterPosition)
+                })
+        )
         photosListAdapter.addDelegate(ReportPhotoDelegate { holder ->
             presenter.onRemovePhotoClicked(holder)
         })
@@ -89,7 +91,7 @@ class ReportFragment : Fragment() {
             override fun onTouchEvent(rv: RecyclerView?, e: MotionEvent?) {}
 
             override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean =
-                taskItems[presenter.currentTask].state == TaskItemModel.CLOSED
+                    taskItems[presenter.currentTask].state == TaskItemModel.CLOSED
 
             override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
         }
@@ -98,7 +100,7 @@ class ReportFragment : Fragment() {
             presenter.onCloseClicked()
         }
 
-        user_explanation_input.addTextChangedListener(object: TextWatcher {
+        user_explanation_input.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {}
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -136,10 +138,11 @@ class ReportFragment : Fragment() {
     }
 
     fun setTaskListVisible(visible: Boolean) {
-        tasks_list.setVisible(true)
+        tasks_list.setVisible(visible)
     }
 
     fun setTaskListActiveTask(taskNumber: Int, isActive: Boolean) {
+        if(tasksListAdapter.data.size <= taskNumber) return
         (tasksListAdapter.data[taskNumber] as? ReportTasksListModel.TaskButton)?.active = isActive
         tasksListAdapter.notifyItemChanged(taskNumber)
     }

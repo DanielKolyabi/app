@@ -4,12 +4,17 @@ import android.os.Parcel
 import android.os.Parcelable
 import ru.relabs.kurjer.persistence.entities.TaskItemEntity
 
+data class EntranceModel(
+        val num: Int,
+        var coupleEnabled: Boolean
+)
+
 data class TaskItemModel(
         var address: AddressModel,
         var state: Int,
         var id: Int,
         var notes: List<String>,
-        var entrances: List<Int>,
+        var entrances: List<EntranceModel>,
         var subarea: Int,
         var bypass: Int,
         var copies: Int
@@ -19,7 +24,9 @@ data class TaskItemModel(
             parcel.readInt(),
             parcel.readInt(),
             parcel.createStringArrayList(),
-            parcel.createIntArray().toList(),
+            parcel.createIntArray().toList().map{
+                EntranceModel(it, false)
+            },
             parcel.readInt(),
             parcel.readInt(),
             parcel.readInt())
@@ -29,7 +36,7 @@ data class TaskItemModel(
         parcel.writeInt(state)
         parcel.writeInt(id)
         parcel.writeStringList(notes)
-        parcel.writeIntArray(entrances.toIntArray())
+        parcel.writeIntArray(entrances.map{it.num}.toIntArray())
         parcel.writeInt(subarea)
         parcel.writeInt(bypass)
         parcel.writeInt(copies)
@@ -41,7 +48,7 @@ data class TaskItemModel(
 
     fun toTaskItemEntity(parentTaskId: Int): TaskItemEntity {
         return TaskItemEntity(
-                address.id, state, id, notes, entrances, subarea, bypass, copies, parentTaskId
+                address.id, state, id, notes, entrances.map{it.num}, subarea, bypass, copies, parentTaskId
         )
     }
 

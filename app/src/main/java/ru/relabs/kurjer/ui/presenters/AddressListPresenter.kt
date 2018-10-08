@@ -1,10 +1,18 @@
 package ru.relabs.kurjer.ui.presenters
 
+import android.content.Intent
+import android.net.Uri
+import android.support.v4.content.ContextCompat.startActivity
+import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
+import ru.relabs.kurjer.BuildConfig
+import ru.relabs.kurjer.MainActivity
+import ru.relabs.kurjer.MyApplication
+import ru.relabs.kurjer.application
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
@@ -15,10 +23,6 @@ import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import ru.relabs.kurjer.ui.fragments.AddressListFragment
 import ru.relabs.kurjer.ui.helpers.TaskAddressSorter
 import ru.relabs.kurjer.ui.models.AddressListModel
-import android.support.v4.content.ContextCompat.startActivity
-import android.content.Intent
-import android.net.Uri
-import ru.relabs.kurjer.*
 
 
 /**
@@ -83,12 +87,12 @@ class AddressListPresenter(val fragment: AddressListFragment) {
 
     fun onItemClicked(task: AddressListModel.TaskItem) {
 
-        if(task.taskItem.state != TaskItemModel.CLOSED){
-            (fragment.context as? MainActivity)?.showTasksReportScreen(fragment.adapter.data.filter {
+        if (task.taskItem.state != TaskItemModel.CLOSED) {
+            val frag = (fragment.context as? MainActivity)?.showTasksReportScreen(fragment.adapter.data.filter {
                 (it is AddressListModel.TaskItem) && it.taskItem.address.id == task.taskItem.address.id && it.taskItem.state != TaskItemModel.CLOSED
             }.map {
                 it as AddressListModel.TaskItem
-            }, task.parentTask.id)
+            }, task.parentTask.id)?.setTargetFragment(fragment, 1)
         } else {
             (fragment.context as? MainActivity)?.showTasksReportScreen(listOf(task), task.parentTask.id)
         }
@@ -121,7 +125,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
     fun onItemMapClicked(task: TaskModel) {
         fragment.context ?: return
         val image = PathHelper.getTaskRasterizeMapFile(task)
-        if(!image.exists()){
+        if (!image.exists()) {
             Toast.makeText(fragment.context, "Файл карты не найден.", Toast.LENGTH_SHORT).show()
             return
         }
@@ -129,6 +133,15 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         intent.action = Intent.ACTION_VIEW
         intent.setDataAndType(Uri.fromFile(image), "image/*")
         startActivity(fragment.context!!, intent, null)
+    }
+
+    fun onDataChanged(changedTask: TaskModel, changedItem: TaskItemModel) {
+        val taskIdx = tasks.indexOf(changedTask)
+        val taskItemIdx = tasks[taskIdx].items.indexOf(changedItem)
+
+        val items = tasks[taskIdx].items.toMutableList()
+        items[taskItemIdx] = changedItem
+        tasks[taskIdx].items = items
     }
 
 }

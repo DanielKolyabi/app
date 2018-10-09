@@ -16,6 +16,8 @@ import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.ErrorUtils
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.fragments.LoginFragment
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * Created by ProOrange on 24.08.2018.
@@ -41,10 +43,12 @@ class LoginPresenter(val fragment: LoginFragment) {
 
             fragment.setLoginButtonLoading(true)
             try {
+                val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
+
                 val response = if (!authByToken)
-                    api.login(login, pwd, fragment.application()!!.deviceUUID).await()
+                    api.login(login, pwd, fragment.application()!!.deviceUUID, time).await()
                 else
-                    api.loginByToken(pwd, fragment.application()!!.deviceUUID).await()
+                    api.loginByToken(pwd, fragment.application()!!.deviceUUID, time).await()
 
                 if (response.error != null) {
                     fragment.activity()?.showError("Ошибка №${response.error.code}\n${response.error.message}")

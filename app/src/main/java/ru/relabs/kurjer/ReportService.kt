@@ -20,6 +20,8 @@ import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class ReportService : Service() {
@@ -86,8 +88,9 @@ class ReportService : Service() {
                         val app = application as? MyApplication
                         if (app != null && app.user is UserModel.Authorized) {
                             val user = app.user as UserModel.Authorized
+                            val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
                             try {
-                                val tasks = DeliveryServerAPI.api.getTasks(user.token).await()
+                                val tasks = DeliveryServerAPI.api.getTasks(user.token, time).await()
                                 if (PersistenceHelper.isMergeNeeded(app.database, tasks.map { it.toTaskModel() })) {
                                     val int = Intent().apply {
                                         putExtra("tasks_changed", true)

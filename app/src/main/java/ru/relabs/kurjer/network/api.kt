@@ -11,6 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.network.models.*
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -45,14 +46,14 @@ object DeliveryServerAPI {
     interface IDeliveryServerAPI {
         @POST("api/v1/auth")
         @FormUrlEncoded
-        fun login(@Field("login") login: String, @Field("password") password: String, @Field("device_id") deviceId: String): Deferred<AuthResponseModel>
+        fun login(@Field("login") login: String, @Field("password") password: String, @Field("device_id") deviceId: String, @Field("current_time") currentTime: String): Deferred<AuthResponseModel>
 
         @POST("api/v1/auth/token")
         @FormUrlEncoded
-        fun loginByToken(@Field("token") token: String, @Field("device_id") deviceId: String): Deferred<AuthResponseModel>
+        fun loginByToken(@Field("token") token: String, @Field("device_id") deviceId: String, @Field("current_time") currentTime: String): Deferred<AuthResponseModel>
 
         @GET("api/v1/tasks")
-        fun getTasks(@Query("token") token: String): Deferred<List<TaskResponseModel>>
+        fun getTasks(@Query("token") token: String, @Query("current_time") currentTime: String): Deferred<List<TaskResponseModel>>
 
         @POST("api/v1/tasks/{id}/report")
         @Multipart

@@ -5,6 +5,7 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import retrofit2.HttpException
+import ru.relabs.kurjer.ErrorButtonsListener
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.activity
 import ru.relabs.kurjer.application
@@ -17,6 +18,8 @@ import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.fragments.TaskListFragment
 import ru.relabs.kurjer.ui.models.TaskListModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * Created by ProOrange on 27.08.2018.
@@ -123,6 +126,15 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                         e.printStackTrace()
                         val err = ErrorUtils.getError(e)
                         newTasks = listOf()
+                        if(err.code == 3){ //INVALID_DATE_TIME
+                            fragment.activity()?.showError(err.message, object: ErrorButtonsListener{
+                                override fun positiveListener() {
+                                    fragment.activity()?.showLoginScreen()
+                                }
+                                override fun negativeListener() {}
+                            })
+                            return@launch
+                        }
                         fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить в ручную.\nОшибка №${err.code}.")
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -176,7 +188,8 @@ class TaskListPresenter(val fragment: TaskListFragment) {
     }
 
     private suspend fun loadTasksFromNetwork(): List<TaskModel> {
-        val tasks = api.getTasks((fragment.application()!!.user as UserModel.Authorized).token).await()
+        val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
+        val tasks = api.getTasks((fragment.application()!!.user as UserModel.Authorized).token, time).await()
         return tasks.map { it.toTaskModel() }
     }
 

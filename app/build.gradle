@@ -16,8 +16,8 @@ android {
         applicationId "ru.relabs.kurjer"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 31
-        versionName "1.2.11"
+        versionCode 32
+        versionName "1.2.12"
 
         ndk {
             abiFilters("armeabi-v7a", "x86")
@@ -27,7 +27,7 @@ android {
     }
     buildTypes {
         debug {
-            buildConfigField("String", "API_URL", '"http://warp.courr.ru:8084"')
+            buildConfigField("String", "API_URL", '"http://192.168.250.109:8080"')
             buildConfigField("String", "YA_KEY", '"f86e62d6-db16-4014-9469-843e6da30b3d"')
         }
         release {

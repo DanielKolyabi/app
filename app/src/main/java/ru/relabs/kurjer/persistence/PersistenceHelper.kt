@@ -6,6 +6,7 @@ import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
+import java.io.File
 import java.util.*
 
 /**
@@ -55,6 +56,7 @@ object PersistenceHelper {
             file.delete()
             db.photosDao().delete(it)
         }
+        PathHelper.getTaskItemPhotoFolderById(report.taskItemId).delete()
     }
 
     suspend fun isMergeNeeded(

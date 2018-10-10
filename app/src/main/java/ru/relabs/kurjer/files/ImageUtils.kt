@@ -32,7 +32,7 @@ object ImageUtils {
         }
 
         val fos = FileOutputStream(f)
-        b.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+        b.compress(Bitmap.CompressFormat.JPEG, 75, fos)
         fos.close()
     }
 }

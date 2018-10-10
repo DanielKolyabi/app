@@ -1,9 +1,6 @@
 package ru.relabs.kurjer
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -97,6 +94,26 @@ class MainActivity : AppCompatActivity() {
         back_button.setOnClickListener {
             onBackPressed()
         }
+        device_uuid.setOnClickListener {
+            val deviceUUID = (application as? MyApplication)?.deviceUUID?.split("-")?.last() ?: ""
+            if(deviceUUID == ""){
+                showError("Не удалось получить device UUID")
+                return@setOnClickListener
+            }
+            showError("Device UUID part: $deviceUUID", object : ErrorButtonsListener{
+                override fun positiveListener() {
+                    try {
+                        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.primaryClip = ClipData.newPlainText("Device UUID", deviceUUID)
+                        Toast.makeText(this@MainActivity, "Скопированно в буфер обмена", Toast.LENGTH_LONG).show()
+                    }catch (e: java.lang.Exception){
+                        Toast.makeText(this@MainActivity, "Произошла ошибка", Toast.LENGTH_LONG).show()
+                    }
+                }
+
+                override fun negativeListener() {}
+            }, "Скопировать", "Ок")
+        }
 
         showLoginScreen()
         Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler())
@@ -107,6 +124,7 @@ class MainActivity : AppCompatActivity() {
                 is TaskListFragment -> changeTitle("Список заданий")
                 is AddressListFragment -> changeTitle("Список адресов")
             }
+            setDeviceIdButtonVisible(current is TaskListFragment)
         }
         val permissions = mutableListOf<String>()
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -172,6 +190,10 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         }
+    }
+
+    private fun setDeviceIdButtonVisible(visible: Boolean) {
+        device_uuid.setVisible(visible)
     }
 
     private fun processUpdate(updateInfo: UpdateInfo): Boolean {
@@ -321,6 +343,7 @@ class MainActivity : AppCompatActivity() {
 
         setNavigationBackVisible(backVisible)
         setNavigationRefreshVisible(fragment is TaskListFragment)
+        setDeviceIdButtonVisible(fragment is TaskListFragment)
     }
 
     private fun setNavigationRefreshVisible(visible: Boolean) {

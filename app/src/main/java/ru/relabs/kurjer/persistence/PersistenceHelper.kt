@@ -4,6 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.files.PathHelper
+import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import java.io.File
@@ -120,6 +121,10 @@ object PersistenceHelper {
                         db.addressDao().insert(item.address.toAddressEntity())
                     }
                     //Add item
+                    val reportForThisTask = db.taskItemResultsDao().getByTaskItemId(item.id)
+                    if(reportForThisTask != null){
+                        item.state = TaskItemModel.CLOSED
+                    }
                     val newId = db.taskItemDao().insert(item.toTaskItemEntity(task.id))
                     Log.d("merge", "Add taskItem ID: $newId")
                 }
@@ -155,12 +160,14 @@ object PersistenceHelper {
                             db.addressDao().insert(it.address.toAddressEntity())
                         }
 
+                        val reportForThisTask = db.taskItemResultsDao().getByTaskItemId(it.id)
+                        if(reportForThisTask != null){
+                            it.state = TaskItemModel.CLOSED
+                        }
+
                         db.taskItemDao().insert(it.toTaskItemEntity(task.id))
                     }
                     result.isTasksChanged = true
-                    if (savedTask.state and TaskModel.EXAMINED != 0) {
-                        //TODO: Notify user about changes
-                    }
                 }
             }
         }

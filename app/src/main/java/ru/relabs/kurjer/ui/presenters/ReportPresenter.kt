@@ -83,7 +83,10 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
     private fun getTaskItemEntranceData(taskItem: TaskItemModel, db: AppDatabase): List<ReportEntrancesListModel.Entrance> {
         val entrances = taskItem.entrances.map {
-            it.coupleEnabled = it.coupleEnabled && fragment.taskItems.size > 1
+            it.coupleEnabled = it.coupleEnabled
+                    && fragment.taskItems.size > 1
+                    && taskItem.state == TaskItemModel.CREATED
+
             ReportEntrancesListModel.Entrance(taskItem, it.num, 0, it.coupleEnabled)
         }
         db.taskItemResultsDao().getByTaskItemId(taskItem.id)?.let {
@@ -136,7 +139,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
             if (data.coupleEnabled) {
                 for (taskItem in fragment.taskItems) {
-                    if (taskItem == fragment.taskItems[currentTask]) {
+                    if (taskItem == fragment.taskItems[currentTask] || taskItem.state == TaskItemModel.CLOSED) {
                         continue
                     }
 
@@ -364,22 +367,14 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
     fun onCloseClicked() {
-        val nothingSelected = !fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.any {
-            (it as ReportEntrancesListModel.Entrance).selected != 0
-        }
-        //nothingSelected = nothingSelected or fragment.user_explanation_input.text.isBlank()
+        (fragment.context as MainActivity).showError("Вы уверен что хотите закрыть адрес?", object : ErrorButtonsListener {
+            override fun positiveListener() {
+                closeTaskItem()
+            }
 
-        if (nothingSelected) {
-            (fragment.context as MainActivity).showError("Вы уверен что хотите закрыть адрес?", object : ErrorButtonsListener {
-                override fun positiveListener() {
-                    closeTaskItem()
-                }
-
-                override fun negativeListener() {}
-            }, "Да", "Нет")
-            return
-        }
-        closeTaskItem()
+            override fun negativeListener() {}
+        }, "Да", "Нет")
+        return
     }
 
     private fun closeTaskItem() {
@@ -458,7 +453,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
         entrance.coupleEnabled = !currentCoupleState && fragment.taskItems.size > 1
 
         for (taskItem in fragment.taskItems) {
-            taskItem.entrances[adapterPosition].coupleEnabled = entrance.coupleEnabled
+            taskItem.entrances[adapterPosition].coupleEnabled = entrance.coupleEnabled && entrance.taskItem.state == TaskItemModel.CREATED
         }
 
         fragment.entrancesListAdapter.notifyItemChanged(adapterPosition)

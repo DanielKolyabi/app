@@ -3,7 +3,6 @@ package ru.relabs.kurjer.ui.presenters
 import android.content.Intent
 import android.net.Uri
 import android.support.v4.content.ContextCompat.startActivity
-import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
@@ -87,15 +86,11 @@ class AddressListPresenter(val fragment: AddressListFragment) {
 
     fun onItemClicked(task: AddressListModel.TaskItem) {
 
-        if (task.taskItem.state != TaskItemModel.CLOSED) {
-            val frag = (fragment.context as? MainActivity)?.showTasksReportScreen(fragment.adapter.data.filter {
-                (it is AddressListModel.TaskItem) && it.taskItem.address.id == task.taskItem.address.id && it.taskItem.state != TaskItemModel.CLOSED
-            }.map {
-                it as AddressListModel.TaskItem
-            }, task.parentTask.id)?.setTargetFragment(fragment, 1)
-        } else {
-            (fragment.context as? MainActivity)?.showTasksReportScreen(listOf(task), task.parentTask.id)
-        }
+        val frag = (fragment.context as? MainActivity)?.showTasksReportScreen(fragment.adapter.data.filter {
+            (it is AddressListModel.TaskItem) && it.taskItem.address.id == task.taskItem.address.id
+        }.map {
+            it as AddressListModel.TaskItem
+        }, task.parentTask.id)?.setTargetFragment(fragment, 1)
     }
 
     fun updateStates() {

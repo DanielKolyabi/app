@@ -64,6 +64,7 @@ class ReportService : Service() {
 
         thread = launch {
             while (true) {
+                Log.d("reporter", "Looper tick")
                 var isTaskSended = false
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
                     val sendQuery = getSendQuery(db)
@@ -119,6 +120,7 @@ class ReportService : Service() {
     }
 
     private suspend fun sendReportQuery(db: AppDatabase, item: ReportQueryItemEntity) {
+        Log.d("reporter", "Try to send report #${item.id}")
         NetworkHelper.sendReport(
                 item,
                 db.photosDao().getByTaskItemId(item.taskItemId)

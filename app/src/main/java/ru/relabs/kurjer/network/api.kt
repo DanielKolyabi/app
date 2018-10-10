@@ -13,6 +13,9 @@ import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.network.models.*
 import java.util.*
 import java.util.concurrent.TimeUnit
+import android.text.TextUtils
+import okhttp3.Interceptor
+import okhttp3.Response
 
 
 /**
@@ -25,8 +28,22 @@ object DeliveryServerAPI {
         interceptor.level = HttpLoggingInterceptor.Level.BASIC
     }
 
+    var timeoutInterceptor: Interceptor = Interceptor { chain ->
+        val request = chain.request()
+
+        if(!request.url().toString().matches(Regex(".*/api/v1/tasks/[0-9]*/report.*"))){
+            return@Interceptor chain.proceed(request)
+        }
+
+        chain.withConnectTimeout(15, TimeUnit.SECONDS)
+                .withReadTimeout(120, TimeUnit.SECONDS)
+                .withWriteTimeout(120, TimeUnit.SECONDS)
+                .proceed(request)
+    }
+
     private val client = OkHttpClient.Builder()
             .addInterceptor(interceptor)
+            .addInterceptor(timeoutInterceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)

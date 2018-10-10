@@ -364,8 +364,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
     fun onCloseClicked() {
-        val nothingSelected = fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.any {
-            (it as ReportEntrancesListModel.Entrance).selected == 0
+        val nothingSelected = !fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.any {
+            (it as ReportEntrancesListModel.Entrance).selected != 0
         }
         //nothingSelected = nothingSelected or fragment.user_explanation_input.text.isBlank()
 

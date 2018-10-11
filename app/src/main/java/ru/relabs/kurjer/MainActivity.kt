@@ -31,12 +31,17 @@ import java.net.URL
 import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
+    private var needRefreshShowed = false
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent ?: return
+            if(needRefreshShowed) return
+
             if (intent.getBooleanExtra("tasks_changed", false)) {
+                needRefreshShowed = true
                 showError("Необходимо обновить список заданий.", object : ErrorButtonsListener {
                     override fun positiveListener() {
+                        needRefreshShowed = false
                         showTaskListScreen(true)
                     }
 
@@ -48,14 +53,13 @@ class MainActivity : AppCompatActivity() {
     private var intentFilter = IntentFilter("NOW")
 
     override fun onResume() {
-        registerReceiver(broadcastReceiver, intentFilter)
 
         (application as MyApplication).enableLocationListening()
         super.onResume()
     }
 
     override fun onPause() {
-        unregisterReceiver(broadcastReceiver)
+        //unregisterReceiver(broadcastReceiver)
         (application as? MyApplication)?.disableLocationListening()
         super.onPause()
 
@@ -134,6 +138,7 @@ class MainActivity : AppCompatActivity() {
             permissions.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
 
+        registerReceiver(broadcastReceiver, intentFilter)
         showPermissionsRequest(permissions.toTypedArray(), false)
         loading.setVisible(true)
         checkUpdates()

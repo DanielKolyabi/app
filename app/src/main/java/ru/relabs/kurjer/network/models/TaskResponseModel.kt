@@ -29,14 +29,14 @@ data class TaskResponseModel(
         val userId: Int,
         val city: String,
         @SerializedName("storage_address")
-        val storageAddress: String,
+        val storageAddress: String?,
         val iteration: Int,
         val items: List<TaskItemResponseModel>
 ) {
     fun toTaskModel(): TaskModel {
         return TaskModel(
                 id, name, edition, copies, packs, remain, area, state, startTime, endTime, brigade, brigadier, rastMapUrl, userId,
-                items.map{it.toTaskItemModel()}, city, storageAddress, iteration, false
+                items.map{it.toTaskItemModel()}, city, storageAddress ?: "", iteration, false
 
         )
     }

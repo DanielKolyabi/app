@@ -15,11 +15,12 @@ object ImageUtils {
         Log.d("Resizer", "Target: $width x $height; Original: ${b.width} x ${b.height}")
         var newWidth = width
         var newHeight = height
-        if (b.width > b.height) {
+        if (b.width > width) {
             newWidth = width
-            newHeight = b.height.toFloat() * (height / b.width.toFloat())
-        } else if (b.width < b.height) {
-            newWidth = b.width.toFloat() * (width / b.height.toFloat())
+            newHeight = b.height.toFloat() * (width/b.width.toFloat())
+        }
+        if (b.height > height) {
+            newWidth = b.width.toFloat() * (height / b.height.toFloat())
             newHeight = height
         }
         Log.d("Resizer", "Calculated: $newWidth x $newHeight")

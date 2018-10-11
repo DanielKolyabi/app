@@ -54,8 +54,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
             }
         }
 
-        fragment.close_button.isEnabled = !(Date() < fragment.tasks[currentTask].startTime ||
-                Date() > Date(fragment.tasks[currentTask].endTime.time + 3 * 24 * 60 * 60 * 1000))
+        fragment.close_button.isEnabled = fragment.tasks[currentTask].isAvailableByDate(Date())
 
         fragment.close_button.isEnabled = fragment.close_button.isEnabled && fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
         fragment.user_explanation_input.isEnabled = fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
@@ -76,7 +75,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
         fragment.tasksListAdapter.data.clear()
         fragment.tasksListAdapter.data.addAll(fragment.tasks.mapIndexed { i, it ->
-            ReportTasksListModel.TaskButton(it, i, i == 0)
+            ReportTasksListModel.TaskButton(it, i, i == currentTask)
         })
         fragment.tasksListAdapter.notifyDataSetChanged()
     }
@@ -312,7 +311,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
     private fun saveNewPhoto(bmp: Bitmap?): File? {
         val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID)
         if (bmp != null) {
-            val photo = ImageUtils.resizeBitmap(bmp, 1280f, 768f)
+            val photo = ImageUtils.resizeBitmap(bmp, 1024f, 768f)
             bmp.recycle()
 
             try {
@@ -398,7 +397,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
                 db.taskItemDao().update(
                         db.taskItemDao().getById(fragment.taskItems[currentTask].id).let {
-                            it.state = 1
+                            it.state = TaskItemModel.CLOSED
                             it
                         }
                 )
@@ -435,11 +434,16 @@ class ReportPresenter(private val fragment: ReportFragment) {
             }
             fragment.targetFragment?.onActivityResult(1, Activity.RESULT_OK, int)
 
-            fragment.taskItems.removeAt(currentTask)
-            fragment.tasks.removeAt(currentTask)
+            fragment.taskItems[currentTask].state = TaskItemModel.CLOSED
             fillTasksAdapterData()
-            if (fragment.tasks.size > 0) {
-                changeCurrentTask(0)
+            val dateNow = Date()
+            val openedTasks = fragment.taskItems.filterIndexed { i, it ->
+                val parent = fragment.tasks[i]
+                it.state == TaskItemModel.CREATED && parent.isAvailableByDate(dateNow)
+            }
+            if (openedTasks.isNotEmpty()) {
+                val openedTaskPos = fragment.taskItems.indexOf(openedTasks.first())
+                changeCurrentTask(openedTaskPos)
             } else {
                 (fragment.context as MainActivity).onBackPressed()
             }

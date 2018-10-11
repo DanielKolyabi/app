@@ -91,7 +91,7 @@ class ReportFragment : Fragment() {
             override fun onTouchEvent(rv: RecyclerView?, e: MotionEvent?) {}
 
             override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean =
-                    taskItems[presenter.currentTask].state == TaskItemModel.CLOSED
+                    taskItems[presenter.currentTask].state == TaskItemModel.CLOSED || !tasks[presenter.currentTask].isAvailableByDate(Date())
 
             override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
         }

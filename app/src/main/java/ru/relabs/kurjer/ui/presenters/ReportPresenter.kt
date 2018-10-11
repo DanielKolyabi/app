@@ -71,7 +71,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
     fun fillTasksAdapterData() {
-        fragment.setTaskListVisible(fragment.tasks.size > 1)
+        fragment.setTaskListVisible(true)
 
         fragment.tasksListAdapter.data.clear()
         fragment.tasksListAdapter.data.addAll(fragment.tasks.mapIndexed { i, it ->

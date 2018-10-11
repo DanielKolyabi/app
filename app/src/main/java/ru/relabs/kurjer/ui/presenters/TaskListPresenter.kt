@@ -31,10 +31,13 @@ class TaskListPresenter(val fragment: TaskListFragment) {
             (fragment.context as? MainActivity)?.showError("Вы должны ознакомиться с заданием.")
             return
         }
-
-        task.apply {
-            selected = !selected
+        if (!task.isAvailableByDate(Date())){
+            (fragment.context as? MainActivity)?.showError("Дата начала распространения не наступила.")
+            return
         }
+
+        task.selected = !task.selected
+
         fragment.adapter.notifyItemChanged(pos)
         updateIntersectedTasks()
         updateStartButton()

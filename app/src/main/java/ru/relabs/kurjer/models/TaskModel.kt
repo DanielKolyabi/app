@@ -84,7 +84,7 @@ data class TaskModel(
         )
     }
 
-    fun isAvailableByDate(date: Date): Boolean = (date >= startTime && date <= Date(endTime.time + 3 * 24 * 60 * 60 * 1000))
+    fun isAvailableByDate(date: Date): Boolean = (date >= startTime)// && date <= Date(endTime.time + 3 * 24 * 60 * 60 * 1000))
 
 
     companion object CREATOR : Parcelable.Creator<TaskModel> {

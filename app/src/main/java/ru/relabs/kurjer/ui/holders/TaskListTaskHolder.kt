@@ -50,6 +50,8 @@ class TaskListTaskHolder(
         view.active_icon.setVisible(selected)
         if(byOtherUser){
             view.active_icon.setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN)
+        }else{
+            view.active_icon.setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY)
         }
     }
 

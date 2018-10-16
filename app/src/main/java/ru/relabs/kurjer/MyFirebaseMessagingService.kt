@@ -49,6 +49,18 @@ class MyFirebaseMessagingService: FirebaseMessagingService() {
             }
             sendBroadcast(int)
         }
+        if(data.containsKey("closed_task_id")){
+            run {
+                val taskItemId = data["closed_task_id"]?.toIntOrNull()
+                taskItemId ?: return@run
+
+                val int = Intent().apply {
+                    putExtra("task_item_closed", taskItemId)
+                    action = "NOW"
+                }
+                sendBroadcast(int)
+            }
+        }
     }
 
 }

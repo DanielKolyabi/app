@@ -1,8 +1,10 @@
 package ru.relabs.kurjer.ui.fragments
 
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -45,6 +47,23 @@ class ReportFragment : Fragment() {
 
     private val presenter = ReportPresenter(this)
 
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent ?: return
+            val taskItemId = intent.getIntExtra("task_item_closed", 0)
+            if (taskItemId != 0) {
+               for(taskItem in taskItems){
+                   if(taskItem.id == taskItemId){
+                       taskItem.state = TaskItemModel.CLOSED
+                       presenter.changeCurrentTask(presenter.currentTask)
+                       break
+                   }
+               }
+            }
+        }
+    }
+    private val intentFilter = IntentFilter("NOW")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -52,6 +71,12 @@ class ReportFragment : Fragment() {
             taskItems = it.getParcelableArrayList("task_items")
             selectedTaskItemId = it.getInt("selected_task_id")
         }
+        activity?.registerReceiver(broadcastReceiver, intentFilter)
+    }
+
+    override fun onDestroy() {
+        activity?.unregisterReceiver(broadcastReceiver)
+        super.onDestroy()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,

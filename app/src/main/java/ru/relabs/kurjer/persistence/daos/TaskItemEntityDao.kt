@@ -13,7 +13,7 @@ interface TaskItemEntityDao {
     val all: List<TaskItemEntity>
 
     @Query("SELECT * FROM task_items WHERE id = :id")
-    fun getById(id: Int): TaskItemEntity
+    fun getById(id: Int): TaskItemEntity?
 
     @Query("SELECT * FROM task_items WHERE task_id = :taskId")
     fun getAllForTask(taskId: Int): List<TaskItemEntity>

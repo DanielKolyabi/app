@@ -103,7 +103,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
             withContext(CommonPool) {
                 tasks.forEach { task ->
                     task.items.map { item ->
-                        val savedState = db.taskItemDao().getById(item.id).state
+                        val savedState = db.taskItemDao().getById(item.id)!!.state
                         if (savedState != item.state) {
                             item.state = savedState
                         }

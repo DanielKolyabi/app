@@ -2,8 +2,10 @@ package ru.relabs.kurjer.ui.fragments
 
 
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -33,6 +35,25 @@ class AddressListFragment : Fragment() {
     lateinit var tasks: List<TaskModel>
     val adapter = DelegateAdapter<AddressListModel>()
 
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent ?: return
+            val taskItemId = intent.getIntExtra("task_item_closed", 0)
+            if (taskItemId != 0) {
+                for(task in tasks){
+                    for(taskItem in task.items){
+                        if(taskItem.id == taskItemId){
+                            taskItem.state = TaskItemModel.CLOSED
+                            presenter.updateStates()
+                            break
+                        }
+                    }
+                }
+            }
+        }
+    }
+    private val intentFilter = IntentFilter("NOW")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -46,6 +67,12 @@ class AddressListFragment : Fragment() {
                 }
             }
         }
+        activity?.registerReceiver(broadcastReceiver, intentFilter)
+    }
+
+    override fun onDestroy() {
+        activity?.unregisterReceiver(broadcastReceiver)
+        super.onDestroy()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,

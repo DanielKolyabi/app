@@ -23,6 +23,6 @@ data class TaskItemPhotoEntity(
         var taskId: Int
 ){
     fun toTaskItemPhotoModel(db: AppDatabase): TaskItemPhotoModel {
-        return TaskItemPhotoModel(id, UUID, db.taskItemDao().getById(taskId).toTaskItemModel(db), gps)
+        return TaskItemPhotoModel(id, UUID, db.taskItemDao().getById(taskId)!!.toTaskItemModel(db), gps)
     }
 }

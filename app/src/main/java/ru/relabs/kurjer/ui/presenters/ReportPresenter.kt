@@ -176,7 +176,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
     ) {
         val db = (fragment.activity!!.application as MyApplication).database
         val taskItemEntity = db.taskItemDao().getById(taskItemId)
-        val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItemEntity.id)
+        val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItemEntity!!.id)
         if (taskItemResult == null) {
             createTaskItemResult(taskItemId, db)
         }
@@ -396,9 +396,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 )
 
                 db.taskItemDao().update(
-                        db.taskItemDao().getById(fragment.taskItems[currentTask].id).let {
-                            it.state = TaskItemModel.CLOSED
-                            it
+                        db.taskItemDao().getById(fragment.taskItems[currentTask].id)!!.apply {
+                            state = TaskItemModel.CLOSED
                         }
                 )
                 db.taskDao().update(

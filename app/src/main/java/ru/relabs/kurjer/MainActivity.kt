@@ -15,6 +15,7 @@ import android.view.Window
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import ru.relabs.kurjer.models.AddressModel
@@ -37,21 +38,33 @@ class MainActivity : AppCompatActivity() {
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent ?: return
-            if(needRefreshShowed) return
-
 
             if (intent.getBooleanExtra("tasks_changed", false)) {
+                if (needRefreshShowed) return
+
                 val current = supportFragmentManager?.findFragmentByTag("fragment")
 
                 needRefreshShowed = true
                 showTasksRefreshDialog(current !is TaskListFragment)
             }
+            if (intent.getIntExtra("task_item_closed", 0) != 0) {
+                run {
+                    val db = (application as? MyApplication)?.database
+                    db ?: return@run
+                    launch(CommonPool) {
+                        db.taskItemDao().getById(intent.getIntExtra("task_item_closed", 0))?.let {
+                            it.state = TaskItemModel.CLOSED
+                            db.taskItemDao().update(it)
+                        }
+                    }
+                }
+            }
         }
     }
     private var intentFilter = IntentFilter("NOW")
 
-    private fun showTasksRefreshDialog(cancelable: Boolean){
-        val negative = if(cancelable) "Позже" else ""
+    private fun showTasksRefreshDialog(cancelable: Boolean) {
+        val negative = if (cancelable) "Позже" else ""
         showError("Необходимо обновить список заданий.", object : ErrorButtonsListener {
             override fun positiveListener() {
                 needRefreshShowed = false
@@ -113,17 +126,17 @@ class MainActivity : AppCompatActivity() {
         }
         device_uuid.setOnClickListener {
             val deviceUUID = (application as? MyApplication)?.deviceUUID?.split("-")?.last() ?: ""
-            if(deviceUUID == ""){
+            if (deviceUUID == "") {
                 showError("Не удалось получить device UUID")
                 return@setOnClickListener
             }
-            showError("Device UUID part: $deviceUUID", object : ErrorButtonsListener{
+            showError("Device UUID part: $deviceUUID", object : ErrorButtonsListener {
                 override fun positiveListener() {
                     try {
                         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         clipboard.primaryClip = ClipData.newPlainText("Device UUID", deviceUUID)
                         Toast.makeText(this@MainActivity, "Скопированно в буфер обмена", Toast.LENGTH_LONG).show()
-                    }catch (e: java.lang.Exception){
+                    } catch (e: java.lang.Exception) {
                         Toast.makeText(this@MainActivity, "Произошла ошибка", Toast.LENGTH_LONG).show()
                     }
                 }
@@ -142,7 +155,7 @@ class MainActivity : AppCompatActivity() {
                 is AddressListFragment -> changeTitle("Список адресов")
             }
             setDeviceIdButtonVisible(current is TaskListFragment)
-            if(needForceRefresh && current is TaskListFragment){
+            if (needForceRefresh && current is TaskListFragment) {
                 showTasksRefreshDialog(false)
             }
         }

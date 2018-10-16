@@ -32,7 +32,7 @@ data class TaskItemResultEntity(
     fun toTaskItemResultModel(db: AppDatabase): TaskItemResultModel {
         return TaskItemResultModel(
                 id,
-                db.taskItemDao().getById(taskItemId).toTaskItemModel(db),
+                db.taskItemDao().getById(taskItemId)!!.toTaskItemModel(db),
                 gps, closeTime, description,
                 db.entrancesDao().getByTaskItemResultId(id).map { it.toTaskItemResultEntranceModel() }
         )

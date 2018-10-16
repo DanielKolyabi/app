@@ -92,7 +92,7 @@ class ReportService : Service() {
                             val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
                             try {
                                 val tasks = DeliveryServerAPI.api.getTasks(user.token, time).await()
-                                if (PersistenceHelper.isMergeNeeded(app.database, tasks.map { it.toTaskModel() })) {
+                                if (PersistenceHelper.isMergeNeeded(app.database, tasks.map { it.toTaskModel(app.deviceUUID) })) {
                                     val int = Intent().apply {
                                         putExtra("tasks_changed", true)
                                         action = "NOW"

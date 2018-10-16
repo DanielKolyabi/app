@@ -79,7 +79,7 @@ object PersistenceHelper {
                         return@withContext true
                     }
                 } else {
-                    if (task.iteration <= savedTask.iteration && task.toTaskEntity().fromSiriusState() == savedTask.state) return@forEach
+                    if (task.iteration <= savedTask.iteration && task.state == savedTask.state) return@forEach
                     return@withContext true
                 }
             }
@@ -109,9 +109,7 @@ object PersistenceHelper {
             //Process not existed new tasks
             newTasks.filter { it.id !in savedTasksIDs }.forEach { task ->
                 //Add task
-                val newTaskId = db.taskDao().insert(task.toTaskEntity().apply {
-                    state = fromSiriusState()
-                })
+                val newTaskId = db.taskDao().insert(task.toTaskEntity())
                 result.isNewTasksAdded = true
                 onNewTaskAppear(task)
                 Log.d("merge", "Add task ID: $newTaskId")
@@ -144,15 +142,15 @@ object PersistenceHelper {
                     }
                     //Task not in work
                 } else {
-                    if (task.iteration <= savedTask.iteration && task.toTaskEntity().fromSiriusState() == savedTask.state) return@forEach
+                    if (task.iteration <= savedTask.iteration && task.toTaskEntity().state == savedTask.state) return@forEach
 
                     val examinedByOtherUser = if (db.taskDao().getById(task.id)!!.state == TaskModel.CREATED
-                            && task.toTaskEntity().fromSiriusState() == TaskModel.EXAMINED) TaskModel.BY_OTHER_USER else 0
+                            && task.toTaskEntity().state == TaskModel.EXAMINED) TaskModel.BY_OTHER_USER else 0
 
                     onTaskChanged(savedTask.toTaskModel(db), task)
 
                     db.taskDao().update(task.toTaskEntity().apply {
-                        state = fromSiriusState() xor examinedByOtherUser
+                        state = state xor examinedByOtherUser
                     })
 
                     task.items.forEach {

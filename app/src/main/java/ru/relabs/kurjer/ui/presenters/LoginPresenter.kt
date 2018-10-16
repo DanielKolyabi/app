@@ -1,15 +1,14 @@
 package ru.relabs.kurjer.ui.presenters
 
+import android.content.Context
+import android.util.Log
 import kotlinx.android.synthetic.main.fragment_login.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import retrofit2.HttpException
-import ru.relabs.kurjer.ErrorButtonsListener
-import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.activity
-import ru.relabs.kurjer.application
+import ru.relabs.kurjer.*
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI.api
 import ru.relabs.kurjer.network.NetworkHelper
@@ -40,7 +39,7 @@ class LoginPresenter(val fragment: LoginFragment) {
 
         launch(UI) {
             val db = fragment.application()!!.database
-
+            val sharedPref = fragment.application()!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
             fragment.setLoginButtonLoading(true)
             try {
                 val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
@@ -61,13 +60,15 @@ class LoginPresenter(val fragment: LoginFragment) {
                     fragment.application()?.restoreUserCredentials()
                 }
                 fragment.application()!!.sendPushToken(null)
-                if (!authByToken) {
+                if (sharedPref.getString("last_login", "") != response.user.login) {
+                    Log.d("login", "Clear local database. User changed. Last login ${sharedPref.getString("last_login", "")}. New login ${response.user.login}")
                     withContext(CommonPool) {
                         db.taskDao().all.forEach {
                             PersistenceHelper.closeTaskById(db, it.id)
                         }
                     }
                 }
+                sharedPref.edit().putString("last_login", response.user.login).apply()
                 (fragment.activity as? MainActivity)?.showTaskListScreen(true)
 
             } catch (e: HttpException) {

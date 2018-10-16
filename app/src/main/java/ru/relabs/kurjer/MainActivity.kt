@@ -32,25 +32,38 @@ import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
     private var needRefreshShowed = false
+    private var needForceRefresh = false
+
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent ?: return
             if(needRefreshShowed) return
 
-            if (intent.getBooleanExtra("tasks_changed", false)) {
-                needRefreshShowed = true
-                showError("Необходимо обновить список заданий.", object : ErrorButtonsListener {
-                    override fun positiveListener() {
-                        needRefreshShowed = false
-                        showTaskListScreen(true)
-                    }
 
-                    override fun negativeListener() {}
-                }, "Ок", "")
+            if (intent.getBooleanExtra("tasks_changed", false)) {
+                val current = supportFragmentManager?.findFragmentByTag("fragment")
+
+                needRefreshShowed = true
+                showTasksRefreshDialog(current !is TaskListFragment)
             }
         }
     }
     private var intentFilter = IntentFilter("NOW")
+
+    private fun showTasksRefreshDialog(cancelable: Boolean){
+        val negative = if(cancelable) "Позже" else ""
+        showError("Необходимо обновить список заданий.", object : ErrorButtonsListener {
+            override fun positiveListener() {
+                needRefreshShowed = false
+                needForceRefresh = false
+                showTaskListScreen(true)
+            }
+
+            override fun negativeListener() {
+                needForceRefresh = true
+            }
+        }, "Ок", negative)
+    }
 
     override fun onResume() {
 
@@ -129,6 +142,9 @@ class MainActivity : AppCompatActivity() {
                 is AddressListFragment -> changeTitle("Список адресов")
             }
             setDeviceIdButtonVisible(current is TaskListFragment)
+            if(needForceRefresh && current is TaskListFragment){
+                showTasksRefreshDialog(false)
+            }
         }
         val permissions = mutableListOf<String>()
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {

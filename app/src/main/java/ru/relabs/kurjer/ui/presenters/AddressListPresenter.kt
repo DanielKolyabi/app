@@ -3,15 +3,13 @@ package ru.relabs.kurjer.ui.presenters
 import android.content.Intent
 import android.net.Uri
 import android.support.v4.content.ContextCompat.startActivity
+import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
-import ru.relabs.kurjer.BuildConfig
-import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.MyApplication
-import ru.relabs.kurjer.application
+import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
@@ -95,7 +93,12 @@ class AddressListPresenter(val fragment: AddressListFragment) {
 
     fun updateStates() {
         launch(UI) {
-            val db = (fragment.activity!!.application as MyApplication).database
+            val db = (fragment.activity?.application as? MyApplication)?.database
+            db ?: run {
+                Log.d("address_list", "database is null")
+                CustomLog.writeToFile("Database is null. address_list updateStates")
+                return@launch
+            }
 
             withContext(CommonPool) {
                 tasks.forEach { task ->

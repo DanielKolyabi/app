@@ -104,7 +104,7 @@ class TaskListPresenter(val fragment: TaskListFragment) {
     }
 
     fun isTaskCanSelected(task: TaskModel): Boolean {
-        return (task.state and TaskModel.EXAMINED != 0) || task.state == TaskModel.STARTED
+        return (task.state and TaskModel.EXAMINED != 0) || (task.state and TaskModel.STARTED != 0)
     }
 
     fun isStartAvailable(): Boolean =
@@ -191,9 +191,10 @@ class TaskListPresenter(val fragment: TaskListFragment) {
     }
 
     private suspend fun loadTasksFromNetwork(): List<TaskModel> {
+        val app = fragment.application()
         val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
         val tasks = api.getTasks((fragment.application()!!.user as UserModel.Authorized).token, time).await()
-        return tasks.map { it.toTaskModel() }
+        return tasks.map { it.toTaskModel(app?.deviceUUID ?: "") }
     }
 
     suspend fun loadTasksFromDatabase(db: AppDatabase): List<TaskListModel.Task> {

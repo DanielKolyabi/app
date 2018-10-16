@@ -22,7 +22,13 @@ class TaskListTaskHolder(
         if(item !is TaskListModel.Task) return
 
         view.title.text = "${item.task.name} №${item.task.edition}, ${item.task.copies}экз., (${item.task.brigade}бр/${item.task.area}уч)"
-        setIsSelected(item.task.state > 0, item.task.state and TaskModel.BY_OTHER_USER != 0)
+
+        var realState = item.task.state
+        if(item.task.state and TaskModel.BY_OTHER_USER != 0){
+            realState = item.task.state xor TaskModel.BY_OTHER_USER
+        }
+
+        setIsSelected(realState > 0, item.task.state and TaskModel.BY_OTHER_USER != 0)
         setIsActive(item.task.selected)
 
         view.selected_icon.setOnClickListener {

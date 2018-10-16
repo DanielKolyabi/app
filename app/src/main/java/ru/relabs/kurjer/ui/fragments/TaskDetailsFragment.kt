@@ -62,7 +62,7 @@ class TaskDetailsFragment : Fragment() {
 
             adapter.notifyDataSetChanged()
         }
-        examine_button.isEnabled = task.state == TaskModel.CREATED
+        examine_button.isEnabled = (task.state and TaskModel.CREATED != 0)
     }
 
     companion object {

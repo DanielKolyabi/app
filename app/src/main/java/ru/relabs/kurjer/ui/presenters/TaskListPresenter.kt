@@ -121,14 +121,14 @@ class TaskListPresenter(val fragment: TaskListFragment) {
             //Load from network if available
             if (loadFromNetwork) {
                 if (NetworkHelper.isNetworkAvailable(fragment.context)) {
-                    var newTasks: List<TaskModel>
+                    var newTasks: List<TaskModel>?
 
                     try {
                         newTasks = withContext(CommonPool) { loadTasksFromNetwork() }
                     } catch (e: HttpException) {
                         e.printStackTrace()
                         val err = ErrorUtils.getError(e)
-                        newTasks = listOf()
+                        newTasks = null
                         if(err.code == 3){ //INVALID_DATE_TIME
                             fragment.activity()?.showError(err.message, object: ErrorButtonsListener{
                                 override fun positiveListener() {
@@ -141,11 +141,11 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                         fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить в ручную.\nОшибка №${err.code}.")
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        newTasks = listOf()
+                        newTasks = null
                         fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить в ручную.")
                     }
 
-                    if (newTasks.isNotEmpty()) {
+                    if (newTasks != null) {
                         val mergeResult = PersistenceHelper.merge(
                                 db,
                                 newTasks,

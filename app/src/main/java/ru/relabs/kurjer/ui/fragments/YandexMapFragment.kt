@@ -1,7 +1,5 @@
 package ru.relabs.kurjer.ui.fragments
 
-import android.graphics.Color
-import android.graphics.PointF
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.graphics.ColorUtils
@@ -11,12 +9,8 @@ import android.view.ViewGroup
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Circle
 import com.yandex.mapkit.geometry.Point
-import com.yandex.mapkit.layers.ObjectEvent
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.user_location.UserLocationLayer
-import com.yandex.mapkit.user_location.UserLocationObjectListener
-import com.yandex.mapkit.user_location.UserLocationView
-import com.yandex.runtime.image.ImageProvider
 import kotlinx.android.synthetic.main.fragment_yandex_map.*
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.application
@@ -58,7 +52,7 @@ class YandexMapFragment : Fragment() {
                     R.color.colorPrimary,
                     2f,
                     ColorUtils.setAlphaComponent(resources.getColor(R.color.colorAccent), 125)
-                    )
+            )
         }
         mapview.map.move(
                 CameraPosition(point, 14f, 0f, 0f)
@@ -66,9 +60,18 @@ class YandexMapFragment : Fragment() {
         userLocationLayer = mapview.map.userLocationLayer
         userLocationLayer.isEnabled = true
         userLocationLayer.isHeadingEnabled = true
+
+        my_position.setOnClickListener {
+            if (application() != null) {
+                val point = Point(application()!!.currentLocation.lat, application()!!.currentLocation.long)
+                mapview.map.move(
+                        CameraPosition(point, 14f, 0f, 0f)
+                )
+            }
+        }
     }
 
-    override fun onStop(){
+    override fun onStop() {
         super.onStop()
         MapKitFactory.getInstance().onStop()
         mapview.onStop()
@@ -79,8 +82,6 @@ class YandexMapFragment : Fragment() {
         MapKitFactory.getInstance().onStart()
         mapview.onStart()
     }
-
-
 
 
     companion object {

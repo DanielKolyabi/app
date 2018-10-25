@@ -16,8 +16,8 @@ android {
         applicationId "ru.relabs.kurjer"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 39
-        versionName "1.2.19"
+        versionCode 43
+        versionName "1.3.0"
 
         ndk {
             abiFilters("armeabi-v7a", "x86")
@@ -28,11 +28,11 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "API_URL", '"http://warp.courr.ru:8084"')
-            buildConfigField("String", "YA_KEY", '"f86e62d6-db16-4014-9469-843e6da30b3d"')
+            buildConfigField("String", "YA_KEY", '"9be78b32-1265-4157-bf15-999b8d747a5c"')
         }
         release {
-            buildConfigField("String", "API_URL", '"http://warp.courr.ru:8083"')
-            buildConfigField("String", "YA_KEY", '"f86e62d6-db16-4014-9469-843e6da30b3d"')
+            buildConfigField("String", "API_URL", '"https://courrmobileapi.courr.ru"')
+            buildConfigField("String", "YA_KEY", '"9be78b32-1265-4157-bf15-999b8d747a5c"')
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

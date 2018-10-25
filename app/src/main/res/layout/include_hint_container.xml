@@ -7,11 +7,13 @@
     android:layout_height="48dp"
     android:orientation="horizontal"
     tools:layout_height="wrap_content">
+
     <View
         android:layout_width="match_parent"
         android:layout_height="8dp"
         android:background="@drawable/gradient_top"
         app:layout_constraintTop_toTopOf="parent" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="8dp"
@@ -30,30 +32,35 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/hint_text"
+    <ScrollView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:fontFamily="@string/text_font"
-        android:gravity="start"
-        android:textColor="#222"
-        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/hint_icon"
-        app:layout_constraintTop_toTopOf="@id/hint_icon"
-        tools:text="Тут подсказка" />
+        app:layout_constraintTop_toTopOf="@id/hint_icon">
+
+        <TextView
+            android:id="@+id/hint_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:fontFamily="@string/text_font"
+            android:gravity="start"
+            android:textColor="#222"
+            android:textSize="16sp"
+            tools:text="Тут подсказка" />
+    </ScrollView>
 
     <ImageView
         android:id="@+id/font_plus"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingStart="8dp"
-        android:paddingTop="8dp"
         android:adjustViewBounds="true"
         android:clickable="true"
         android:focusable="true"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
         app:layout_constraintEnd_toEndOf="@+id/hint_icon"
         app:layout_constraintStart_toStartOf="@+id/hint_icon"
         app:layout_constraintTop_toBottomOf="@+id/hint_icon"
@@ -63,11 +70,11 @@
         android:id="@+id/font_minus"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingStart="8dp"
-        android:paddingTop="8dp"
         android:adjustViewBounds="true"
         android:clickable="true"
         android:focusable="true"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
         app:layout_constraintEnd_toEndOf="@+id/font_plus"
         app:layout_constraintStart_toStartOf="@+id/font_plus"
         app:layout_constraintTop_toBottomOf="@+id/font_plus"

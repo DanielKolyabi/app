@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_task_details.*
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.models.TaskModel.CREATOR.TASK_STATE_MASK
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.TaskDetailsHeaderDelegate
 import ru.relabs.kurjer.ui.delegates.TaskDetailsInfoDelegate
@@ -62,7 +63,8 @@ class TaskDetailsFragment : Fragment() {
 
             adapter.notifyDataSetChanged()
         }
-        examine_button.isEnabled = (task.state and TaskModel.CREATED != 0)
+        val state = task.state and TASK_STATE_MASK
+        examine_button.isEnabled = state == 0
     }
 
     companion object {

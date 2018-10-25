@@ -15,7 +15,7 @@ class ReportEntranceHolder(
 ) : BaseViewHolder<ReportEntrancesListModel>(itemView) {
     override fun onBindViewHolder(item: ReportEntrancesListModel) {
         if (item !is ReportEntrancesListModel.Entrance) return
-        itemView.entrance_title.text = "Подъезд ${item.entranceNumber}"
+        itemView.entrance_title.text = "Под. ${item.entranceNumber}"
         with(itemView) {
             setSelectButtonActive(euro_select, (item.selected and 0x0001) > 0)
             euro_select.setOnClickListener {

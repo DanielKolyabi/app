@@ -36,7 +36,7 @@ class ReportService : Service() {
         val pi = PendingIntent.getService(this, 0, Intent(this, ReportService::class.java).apply { putExtra("stopService", true) }, PendingIntent.FLAG_CANCEL_CURRENT)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(channelId, "Курьер", NotificationManager.IMPORTANCE_DEFAULT)
+            val notificationChannel = NotificationChannel(channelId, getString(R.string.app_name), NotificationManager.IMPORTANCE_DEFAULT)
             (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(notificationChannel)
         }
 
@@ -64,24 +64,24 @@ class ReportService : Service() {
 
         thread = launch {
             while (true) {
-                Log.d("reporter", "Looper tick")
+                //Log.d("reporter", "Looper tick")
                 var isTaskSended = false
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
                     val sendQuery = getSendQuery(db)
                     val reportQuery = getReportQuery(db)
-                    if (sendQuery != null) {
-                        try {
-                            sendSendQuery(sendQuery)
-                            isTaskSended = true
-                            db.sendQueryDao().delete(sendQuery)
-                        } catch (e: Exception) {
-                            e.logError()
-                        }
-                    } else if (reportQuery != null) {
+                    if (reportQuery != null) {
                         try {
                             sendReportQuery(db, reportQuery)
                             isTaskSended = true
                             PersistenceHelper.removeReport(db, reportQuery)
+                        } catch (e: Exception) {
+                            e.logError()
+                        }
+                    } else if (sendQuery != null) {
+                        try {
+                            sendSendQuery(sendQuery)
+                            isTaskSended = true
+                            db.sendQueryDao().delete(sendQuery)
                         } catch (e: Exception) {
                             e.logError()
                         }

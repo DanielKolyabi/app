@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Курьер</string>
+    <string name="app_name">Курьер v2</string>
 
     <string name="text_font">sans-serif-medium</string>
     <string name="login_placeholder">Логин</string>

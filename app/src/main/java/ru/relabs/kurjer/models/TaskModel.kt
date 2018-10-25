@@ -101,5 +101,6 @@ data class TaskModel(
         val STARTED = 2
         val COMPLETED = 4
         val BY_OTHER_USER = 8
+        val TASK_STATE_MASK = 7
     }
 }

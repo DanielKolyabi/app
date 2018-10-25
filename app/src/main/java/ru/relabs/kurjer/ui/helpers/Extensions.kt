@@ -13,6 +13,13 @@ fun View.setVisible(visible: Boolean) {
 }
 
 fun Date.formated(): String {
-    val formatter = SimpleDateFormat("dd.MM.YYYY", Locale("ru", "RU"))
-    return formatter.format(this)
+    try {
+        return SimpleDateFormat("dd.MM.YYYY", Locale("ru", "RU")).format(this)
+    }catch (e: Throwable){
+        e.printStackTrace()
+        val cal = Calendar.getInstance().apply {
+            time = this@formated
+        }
+        return "${cal.get(Calendar.DAY_OF_MONTH)}.${cal.get(Calendar.MONTH)}.${cal.get(Calendar.YEAR)}"
+    }
 }

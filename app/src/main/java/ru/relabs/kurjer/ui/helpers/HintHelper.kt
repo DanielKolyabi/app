@@ -30,10 +30,10 @@ class HintHelper(val hintContainer: View, val text: String, private var expanded
         if(spFontSize < 12 || spFontSize > 26) return
         preferences.edit().putFloat("hint_font_size", spFontSize).apply()
         hintContainer.hint_text.textSize = spFontSize
-        if(expanded) {
-            hintContainer.layoutParams.height = ConstraintLayout.LayoutParams.WRAP_CONTENT
-            hintContainer.requestLayout()
-        }
+//        if(expanded) {
+//            hintContainer.layoutParams.height = ConstraintLayout.LayoutParams.WRAP_CONTENT
+//            hintContainer.requestLayout()
+//        }
     }
 
     private fun setFontSmaller() {
@@ -65,7 +65,7 @@ class HintHelper(val hintContainer: View, val text: String, private var expanded
 
         val lp = (hintContainer.hint_icon.layoutParams as ConstraintLayout.LayoutParams)
         val collapsedHeight = hintContainer.hint_icon.height + lp.topMargin + lp.bottomMargin
-        val expandedHeight = hintContainer.measuredHeight
+        val expandedHeight = Math.min(hintContainer.measuredHeight, 200*hintContainer.resources.displayMetrics.density.toInt())
 
         return object : Animation() {
             override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
@@ -88,7 +88,7 @@ class HintHelper(val hintContainer: View, val text: String, private var expanded
 
         val lp = hintContainer.hint_icon.layoutParams as ConstraintLayout.LayoutParams
         val collapsedHeight = hintContainer.hint_icon.height + lp.topMargin + lp.bottomMargin
-        val expandedHeight = hintContainer.measuredHeight
+        val expandedHeight = Math.min(hintContainer.measuredHeight, 200*hintContainer.resources.displayMetrics.density.toInt())
 
         return object : Animation() {
             override fun applyTransformation(interpolatedTime: Float, t: Transformation) {

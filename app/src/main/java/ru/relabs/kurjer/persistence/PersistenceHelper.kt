@@ -102,7 +102,7 @@ object PersistenceHelper {
             db.taskDao().all.filter { it.id !in newTasksIDs }.forEach { task ->
                 //Close task because it not existed on server
                 closeTask(db, task.toTaskModel(db))
-
+                result.isTasksChanged = true
                 Log.d("merge", "Close task: ${task.id}")
             }
 

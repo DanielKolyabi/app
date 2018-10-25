@@ -7,7 +7,7 @@
 
     <TextView
         android:id="@+id/entrance_title"
-        android:layout_width="80dp"
+        android:layout_width="55dp"
         android:layout_height="0dp"
         android:layout_marginBottom="8dp"
         android:layout_marginStart="8dp"
@@ -19,7 +19,7 @@
         app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Подъезд 1"
+        tools:text="Под. 11"
         android:clickable="true"
         android:focusable="true"
         android:background="@drawable/bg_entrance_couple_enabled"/>
@@ -79,5 +79,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/pile_select"
-        app:layout_constraintTop_toTopOf="@+id/pile_select" />
+        app:layout_constraintTop_toTopOf="@+id/pile_select"
+        android:layout_marginEnd="8dp"/>
 </android.support.constraint.ConstraintLayout>

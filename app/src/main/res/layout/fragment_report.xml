@@ -11,46 +11,55 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        tools:layout_height="64dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        tools:layout_height="64dp"
         tools:visibility="visible" />
 
     <include
         layout="@layout/include_hint_container"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tasks_list"
         android:layout_width="match_parent"
-        android:layout_height="48dp"/>
+        android:layout_height="48dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tasks_list" />
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/entrances_list"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/photos_list"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/hint_container"
+        app:layout_constraintBottom_toTopOf="@id/user_explanation_input"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/hint_container" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/photos_list"
-        android:layout_width="match_parent"
-        android:layout_height="96dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/user_explanation_input"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/entrances_list"/>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/entrances_list"
+            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            android:fadeScrollbars="false"
+            android:scrollbars="vertical"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/photos_list"/>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/photos_list"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"/>
+    </android.support.constraint.ConstraintLayout>
 
     <EditText
 
         android:id="@+id/user_explanation_input"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:background="#DDD"
@@ -58,11 +67,12 @@
         android:hint="@string/user_explanation_hint"
         android:inputType="textMultiLine"
         android:scrollbars="vertical"
-        app:layout_constraintHeight_max="128dp"
-        app:layout_constraintHeight_min="48dp"
         app:layout_constraintBottom_toTopOf="@+id/close_button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintHeight_max="128dp"
+        app:layout_constraintHeight_min="48dp"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/close_button"
@@ -78,14 +88,15 @@
         android:id="@+id/loading"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="#FAFAFA"
+        android:elevation="8dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:elevation="8dp"
-        android:background="#FAFAFA"
         tools:visibility="gone">
+
         <ProgressBar
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

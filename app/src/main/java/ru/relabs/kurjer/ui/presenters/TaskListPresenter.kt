@@ -4,6 +4,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.experimental.withTimeout
 import retrofit2.HttpException
 import ru.relabs.kurjer.ErrorButtonsListener
 import ru.relabs.kurjer.MainActivity
@@ -20,6 +21,7 @@ import ru.relabs.kurjer.ui.fragments.TaskListFragment
 import ru.relabs.kurjer.ui.models.TaskListModel
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * Created by ProOrange on 27.08.2018.
@@ -31,7 +33,7 @@ class TaskListPresenter(val fragment: TaskListFragment) {
             (fragment.context as? MainActivity)?.showError("Вы должны ознакомиться с заданием.")
             return
         }
-        if (!task.isAvailableByDate(Date())){
+        if (!task.isAvailableByDate(Date())) {
             (fragment.context as? MainActivity)?.showError("Дата начала распространения не наступила.")
             return
         }
@@ -124,16 +126,21 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                     var newTasks: List<TaskModel>?
 
                     try {
-                        newTasks = withContext(CommonPool) { loadTasksFromNetwork() }
+                        newTasks = withContext(CommonPool) {
+                            withTimeout(7 * 60, TimeUnit.SECONDS) {
+                                loadTasksFromNetwork()
+                            }
+                        }
                     } catch (e: HttpException) {
                         e.printStackTrace()
                         val err = ErrorUtils.getError(e)
                         newTasks = null
-                        if(err.code == 3){ //INVALID_DATE_TIME
-                            fragment.activity()?.showError(err.message, object: ErrorButtonsListener{
+                        if (err.code == 3) { //INVALID_DATE_TIME
+                            fragment.activity()?.showError(err.message, object : ErrorButtonsListener {
                                 override fun positiveListener() {
                                     fragment.activity()?.showLoginScreen()
                                 }
+
                                 override fun negativeListener() {}
                             })
                             return@launch

@@ -3,19 +3,17 @@ package ru.relabs.kurjer.network
 import com.google.gson.GsonBuilder
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.experimental.CoroutineCallAdapterFactory
 import kotlinx.coroutines.experimental.Deferred
+import okhttp3.Interceptor
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.network.models.*
-import java.util.*
 import java.util.concurrent.TimeUnit
-import android.text.TextUtils
-import okhttp3.Interceptor
-import okhttp3.Response
 
 
 /**
@@ -24,29 +22,37 @@ import okhttp3.Response
 object DeliveryServerAPI {
 
     private val interceptor = HttpLoggingInterceptor()
+
     init {
         interceptor.level = HttpLoggingInterceptor.Level.BASIC
     }
 
-    var timeoutInterceptor: Interceptor = Interceptor { chain ->
-        val request = chain.request()
+    val timeoutInterceptor = object : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val request = chain.request()
 
-        if(!request.url().toString().matches(Regex(".*/api/v1/tasks/[0-9]*/report.*"))){
-            return@Interceptor chain.proceed(request)
+            if (request.url().toString().matches(Regex(".*/api/v1/tasks/[0-9]*/report.*"))) {
+                return chain.withConnectTimeout(5, TimeUnit.SECONDS)
+                        .withReadTimeout(120, TimeUnit.SECONDS)
+                        .withWriteTimeout(120, TimeUnit.SECONDS)
+                        .proceed(request)
+            } else if (request.url().toString().matches(Regex(".*/api/v1/tasks.*"))) {
+                return chain.withConnectTimeout(5, TimeUnit.SECONDS)
+                        .withReadTimeout(7, TimeUnit.MINUTES)
+                        .withWriteTimeout(10, TimeUnit.SECONDS)
+                        .proceed(request)
+            } else {
+                return chain.withConnectTimeout(5, TimeUnit.SECONDS)
+                        .withReadTimeout(15, TimeUnit.SECONDS)
+                        .withWriteTimeout(10, TimeUnit.SECONDS)
+                        .proceed(request)
+            }
         }
-
-        chain.withConnectTimeout(15, TimeUnit.SECONDS)
-                .withReadTimeout(120, TimeUnit.SECONDS)
-                .withWriteTimeout(120, TimeUnit.SECONDS)
-                .proceed(request)
     }
 
     private val client = OkHttpClient.Builder()
             .addInterceptor(interceptor)
             .addInterceptor(timeoutInterceptor)
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
             .build()
 
     var gson = GsonBuilder()

@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
                 val current = supportFragmentManager?.findFragmentByTag("fragment")
 
                 needRefreshShowed = true
-                showTasksRefreshDialog(current !is TaskListFragment)
+                showTasksRefreshDialog(true)
             }
             if (intent.getIntExtra("task_item_closed", 0) != 0) {
                 run {
@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity() {
             }
             setDeviceIdButtonVisible(current is TaskListFragment)
             if (needForceRefresh && current is TaskListFragment) {
-                showTasksRefreshDialog(false)
+                showTasksRefreshDialog(true)
             }
         }
         val permissions = mutableListOf<String>()

@@ -85,7 +85,7 @@ class ReportService : Service() {
                         } catch (e: Exception) {
                             e.logError()
                         }
-                    } else if (System.currentTimeMillis() - lastTasksChecking > 10 * 60 * 1000) {
+                    } else if (System.currentTimeMillis() - lastTasksChecking > 25 * 60 * 1000) {
                         val app = application as? MyApplication
                         if (app != null && app.user is UserModel.Authorized) {
                             val user = app.user as UserModel.Authorized

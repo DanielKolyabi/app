@@ -69,7 +69,7 @@ class LoginPresenter(val fragment: LoginFragment) {
                     }
                 }
                 sharedPref.edit().putString("last_login", response.user.login).apply()
-                (fragment.activity as? MainActivity)?.showTaskListScreen(true)
+                (fragment.activity as? MainActivity)?.showTaskListScreen(!authByToken)
 
             } catch (e: HttpException) {
                 e.printStackTrace()

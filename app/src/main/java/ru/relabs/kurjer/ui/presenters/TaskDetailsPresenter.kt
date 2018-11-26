@@ -26,26 +26,29 @@ class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
 
     fun onExaminedClicked(task: TaskModel) {
         launch(UI) {
-            withContext(CommonPool) {
-                val db = (fragment.activity!!.application as MyApplication).database
-                val taskEntity = db.taskDao().getById(task.id)!!
-                taskEntity.state = TaskModel.EXAMINED
-                db.taskDao().update(taskEntity)
+            val db = (fragment.activity?.application as? MyApplication)?.database
+            db?.let {
+                withContext(CommonPool) {
+                    val taskEntity = db.taskDao().getById(task.id)!!
+                    taskEntity.state = TaskModel.EXAMINED
+                    db.taskDao().update(taskEntity)
 
-                db.sendQueryDao().insert(
-                        SendQueryItemEntity(0,
-                                BuildConfig.API_URL + "/api/v1/tasks/${taskEntity.id}/examined?token=" + (fragment.application()!!.user as UserModel.Authorized).token,
-                                ""
-                        )
-                )
+                    db.sendQueryDao().insert(
+                            SendQueryItemEntity(0,
+                                    BuildConfig.API_URL + "/api/v1/tasks/${taskEntity.id}/examined?token=" + (fragment.application()!!.user as UserModel.Authorized).token,
+                                    ""
+                            )
+                    )
+                }
+                (fragment.context as MainActivity).showTaskListScreen(false)
             }
-            (fragment.context as MainActivity).showTaskListScreen(false)
         }
     }
+
     fun onMapClicked(task: TaskModel) {
         fragment.context ?: return
         val image = PathHelper.getTaskRasterizeMapFile(task)
-        if(!image.exists()){
+        if (!image.exists()) {
             Toast.makeText(fragment.context, "Файл карты не найден.", Toast.LENGTH_SHORT).show()
             return
         }

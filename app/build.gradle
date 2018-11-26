@@ -24,8 +24,8 @@ android {
         applicationId "abix.kurjer"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 46
-        versionName "46"
+        versionCode 48
+        versionName "48"
 
         ndk {
             abiFilters("armeabi-v7a", "x86")
@@ -35,7 +35,7 @@ android {
     }
     buildTypes {
         debug {
-            buildConfigField("String", "API_URL", '"https://courrmobileapi.courr.ru"')//http://warp.courr.ru:8084"')
+            buildConfigField("String", "API_URL", '"http://warp.courr.ru:8084"')
             buildConfigField("String", "YA_KEY", '"9be78b32-1265-4157-bf15-999b8d747a5c"')
             signingConfig signingConfigs.config
         }
@@ -65,11 +65,15 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.11.0'
     implementation 'com.jakewharton.retrofit:retrofit2-kotlin-coroutines-experimental-adapter:1.0.0'
+
     implementation 'android.arch.persistence.room:runtime:1.1.1'
     kapt "android.arch.persistence.room:compiler:1.1.1"
+
     implementation 'com.github.bumptech.glide:glide:4.8.0'
     kapt 'com.github.bumptech.glide:compiler:4.8.0'
+
     implementation 'com.yandex.android:mapkit:3.0.0'
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

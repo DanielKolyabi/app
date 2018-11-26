@@ -25,7 +25,7 @@ import java.util.*
 
 
 class ReportService : Service() {
-    private lateinit var thread: Job
+    private var thread: Job? = null
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -152,7 +152,7 @@ class ReportService : Service() {
     }
 
     override fun onDestroy() {
-        thread.cancel()
+        thread?.cancel()
         stopForeground(true)
         super.onDestroy()
     }

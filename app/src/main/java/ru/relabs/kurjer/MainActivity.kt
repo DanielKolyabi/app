@@ -18,6 +18,7 @@ import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import ru.relabs.kurjer.CustomLog.getStacktraceAsString
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
@@ -314,17 +315,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showError(errorMessage: String, listener: ErrorButtonsListener? = null, forcePositiveButtonName: String = "Ок", forceNegativeButtonName: String = "") {
-        val builder = AlertDialog.Builder(this)
-                .setMessage(errorMessage)
+        try {
+            val builder = AlertDialog.Builder(this)
+                    .setMessage(errorMessage)
 
-        if (forcePositiveButtonName.isNotBlank()) {
-            builder.setPositiveButton(forcePositiveButtonName) { _, _ -> listener?.positiveListener() }
+            if (forcePositiveButtonName.isNotBlank()) {
+                builder.setPositiveButton(forcePositiveButtonName) { _, _ -> listener?.positiveListener() }
+            }
+            if (forceNegativeButtonName.isNotBlank()) {
+                builder.setNegativeButton(forceNegativeButtonName) { _, _ -> listener?.negativeListener() }
+            }
+            builder.setCancelable(false)
+            builder.show()
+        }catch (e: Throwable){
+            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
         }
-        if (forceNegativeButtonName.isNotBlank()) {
-            builder.setNegativeButton(forceNegativeButtonName) { _, _ -> listener?.negativeListener() }
-        }
-        builder.setCancelable(false)
-        builder.show()
     }
 
     fun showTaskDetailsScreen(task: TaskModel) {
@@ -358,26 +363,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun navigateTo(fragment: Fragment, isAddToBackStack: Boolean = false) {
-        if (!isAddToBackStack) {
-            clearBackStack()
-        }
-
-        supportFragmentManager.beginTransaction().apply {
-            replace(R.id.fragment_container, fragment, "fragment")
-            if (isAddToBackStack) {
-                addToBackStack(null)
+        try {
+            if (!isAddToBackStack) {
+                clearBackStack()
             }
-        }.commit()
 
-        val backVisible = when (fragment) {
-            is LoginFragment -> false
-            is TaskListFragment -> false
-            else -> true
+            supportFragmentManager.beginTransaction().apply {
+                replace(R.id.fragment_container, fragment, "fragment")
+                if (isAddToBackStack) {
+                    addToBackStack(null)
+                }
+            }.commit()
+
+            val backVisible = when (fragment) {
+                is LoginFragment -> false
+                is TaskListFragment -> false
+                else -> true
+            }
+
+            setNavigationBackVisible(backVisible)
+            setNavigationRefreshVisible(fragment is TaskListFragment)
+            setDeviceIdButtonVisible(fragment is TaskListFragment)
+        } catch (e: Throwable) {
+            CustomLog.writeToFile(getStacktraceAsString(e))
+            e.printStackTrace()
         }
-
-        setNavigationBackVisible(backVisible)
-        setNavigationRefreshVisible(fragment is TaskListFragment)
-        setDeviceIdButtonVisible(fragment is TaskListFragment)
     }
 
     private fun setNavigationRefreshVisible(visible: Boolean) {
@@ -400,14 +410,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (supportFragmentManager.backStackEntryCount > 0) {
-            supportFragmentManager.popBackStack()
-        } else {
+        try {
+            if (supportFragmentManager.backStackEntryCount > 0) {
+                supportFragmentManager.popBackStack()
+            } else {
+                super.onBackPressed()
+            }
+
+            setNavigationBackVisible(supportFragmentManager.backStackEntryCount > 1)
+        } catch (e: Throwable){
+            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
             super.onBackPressed()
         }
-
-        setNavigationBackVisible(supportFragmentManager.backStackEntryCount > 1)
-
     }
 
 

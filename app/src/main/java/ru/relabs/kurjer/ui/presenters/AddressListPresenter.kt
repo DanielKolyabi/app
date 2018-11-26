@@ -53,13 +53,13 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         fragment.adapter.notifyDataSetChanged()
     }
 
-    private fun checkTasksIsClosed(db: AppDatabase) {
+    private fun checkTasksIsClosed(db: AppDatabase, currentUserToken: String) {
         tasks.removeAll {
             if (isAllTaskItemsClosed(it)) {
                 PersistenceHelper.closeTask(db, it)
                 db.sendQueryDao().insert(
                         SendQueryItemEntity(0,
-                                BuildConfig.API_URL + "/api/v1/tasks/${it.id}/completed?token=" + (fragment.application()!!.user as UserModel.Authorized).token,
+                                BuildConfig.API_URL + "/api/v1/tasks/${it.id}/completed?token=" + currentUserToken,
                                 "")
                 )
                 return@removeAll true
@@ -83,15 +83,14 @@ class AddressListPresenter(val fragment: AddressListFragment) {
     }
 
     fun onItemClicked(task: AddressListModel.TaskItem) {
-
-        val frag = (fragment.context as? MainActivity)?.showTasksReportScreen(fragment.adapter.data.filter {
+        fragment.activity()?.showTasksReportScreen(fragment.adapter.data.filter {
             (it is AddressListModel.TaskItem) && it.taskItem.address.id == task.taskItem.address.id
         }.map {
             it as AddressListModel.TaskItem
         }, task.parentTask.id)?.setTargetFragment(fragment, 1)
     }
 
-    fun updateStates() {
+    fun updateStates(currentUserToken: String?) {
         launch(UI) {
             val db = (fragment.activity?.application as? MyApplication)?.database
             db ?: run {
@@ -103,7 +102,8 @@ class AddressListPresenter(val fragment: AddressListFragment) {
             withContext(CommonPool) {
                 tasks.forEach { task ->
                     task.items.map { item ->
-                        val savedState = db.taskItemDao().getById(item.id)!!.state
+                        val savedState = db.taskItemDao().getById(item.id)?.state
+                        savedState ?: return@map
                         if (savedState != item.state) {
                             item.state = savedState
                         }
@@ -112,10 +112,13 @@ class AddressListPresenter(val fragment: AddressListFragment) {
             }
 
             applySorting()
-
-            withContext(CommonPool) { checkTasksIsClosed(db) }
+            currentUserToken?.let {
+                withContext(CommonPool) { checkTasksIsClosed(db, currentUserToken) }
+            }
             if (tasks.size == 0) {
-                (fragment.context as MainActivity).showTaskListScreen(true)
+                (fragment.context as? MainActivity)?.showTaskListScreen(false)
+            }else{
+                fragment.scrollListToSavedPosition()
             }
         }
     }

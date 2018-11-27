@@ -354,7 +354,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
             }
 
             photoModel?.let {
-                fragment.photosListAdapter.data.add(fragment.photosListAdapter.data.size - 1,
+                fragment.photosListAdapter.data.add(
                         ReportPhotosListModel.TaskItemPhoto(
                                 it,
                                 Uri.fromFile(photoFile)

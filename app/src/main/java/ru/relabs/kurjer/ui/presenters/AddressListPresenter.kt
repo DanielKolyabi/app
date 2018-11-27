@@ -57,11 +57,11 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         tasks.removeAll {
             if (isAllTaskItemsClosed(it)) {
                 PersistenceHelper.closeTask(db, it)
-                db.sendQueryDao().insert(
-                        SendQueryItemEntity(0,
-                                BuildConfig.API_URL + "/api/v1/tasks/${it.id}/completed?token=" + currentUserToken,
-                                "")
-                )
+//                db.sendQueryDao().insert(
+//                        SendQueryItemEntity(0,
+//                                BuildConfig.API_URL + "/api/v1/tasks/${it.id}/completed?token=" + currentUserToken,
+//                                "")
+//                )
                 return@removeAll true
             }
             return@removeAll false

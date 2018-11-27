@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -9,11 +8,12 @@
     <Button
         android:id="@+id/sort_standart"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
+        android:layout_height="36dp"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:text="@string/sort_standart_button"
         android:textAllCaps="false"
+        android:textSize="10sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/sort_alphabetic"
         app:layout_constraintHorizontal_bias="0.5"
@@ -23,9 +23,10 @@
     <Button
         android:id="@+id/sort_alphabetic"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="36dp"
         android:text="@string/sort_alphabetic_button"
         android:textAllCaps="false"
+        android:textSize="10sp"
         app:layout_constraintBottom_toBottomOf="@+id/sort_standart"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"

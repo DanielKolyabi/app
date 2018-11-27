@@ -16,7 +16,8 @@
         android:roundIcon="@drawable/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".SplashActivity">
+        <activity android:name=".SplashActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -31,7 +32,7 @@
         </service>
 
         <activity android:name=".MainActivity"
-            android:screenOrientation="locked"/>
+            android:screenOrientation="portrait"/>
 
         <service
             android:name=".ReportService"

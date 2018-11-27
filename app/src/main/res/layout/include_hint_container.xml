@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/hint_container"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
+    android:layout_height="32dp"
     android:orientation="horizontal"
     tools:layout_height="wrap_content">
 
@@ -22,8 +22,8 @@
 
     <ImageView
         android:id="@+id/hint_icon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:paddingStart="8dp"
@@ -48,8 +48,8 @@
             android:fontFamily="@string/text_font"
             android:gravity="start"
             android:textColor="#222"
-            android:textSize="16sp"
-            tools:text="Тут подсказка" />
+            android:textSize="12sp"
+            tools:text="Тут подсказка\nдве строки" />
     </ScrollView>
 
     <ImageView

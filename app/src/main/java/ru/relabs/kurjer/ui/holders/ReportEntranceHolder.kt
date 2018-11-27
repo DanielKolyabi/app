@@ -39,7 +39,7 @@ class ReportEntranceHolder(
             onCoupleClicked(this.adapterPosition)
         }
 
-        if(item.coupleEnabled){
+        if(!item.coupleEnabled){
             itemView.entrance_title.setBackgroundResource(R.drawable.bg_entrance_couple_enabled)
         }else{
             itemView.entrance_title.setBackgroundColor(Color.parseColor("#000000ff"))

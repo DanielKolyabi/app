@@ -23,7 +23,7 @@ class HintHelper(val hintContainer: View, val text: String, private var expanded
         hintContainer.font_minus.setOnClickListener {
             setFontSmaller()
         }
-        changeFont(preferences.getFloat("hint_font_size", 16f))
+        changeFont(preferences.getFloat("hint_font_size", 12f))
     }
 
     private fun changeFont(spFontSize: Float) {

@@ -40,9 +40,10 @@ class MyApplication : Application() {
         override fun onProviderDisabled(provider: String?) {}
     }
 
-
     override fun onCreate() {
         super.onCreate()
+
+        instance = this
 
         MapKitFactory.setApiKey(BuildConfig.YA_KEY)
 
@@ -143,5 +144,9 @@ class MyApplication : Application() {
                 sendPushToken(it.token)
             }
         }
+    }
+
+    companion object {
+        lateinit var instance: MyApplication
     }
 }

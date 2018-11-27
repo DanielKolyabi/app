@@ -38,10 +38,7 @@ class YandexMapFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         MapKitFactory.initialize(this.context)
-        var point = Point(0.0, 0.0)
-        if (application() != null) {
-            point = Point(application()!!.currentLocation.lat, application()!!.currentLocation.long)
-        }
+        var point = Point(application().currentLocation.lat, application().currentLocation.long)
         mapview.map.isRotateGesturesEnabled = false
         if (address.lat != 0.0 && address.long != 0.0) {
             point = Point(address.lat, address.long)
@@ -62,12 +59,12 @@ class YandexMapFragment : Fragment() {
         userLocationLayer.isHeadingEnabled = true
 
         my_position.setOnClickListener {
-            if (application() != null) {
-                val point = Point(application()!!.currentLocation.lat, application()!!.currentLocation.long)
-                mapview.map.move(
-                        CameraPosition(point, 14f, 0f, 0f)
-                )
-            }
+            mapview.map.move(
+                    CameraPosition(
+                            Point(application().currentLocation.lat, application().currentLocation.long),
+                            14f, 0f, 0f
+                    )
+            )
         }
     }
 

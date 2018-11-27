@@ -38,28 +38,28 @@ class LoginPresenter(val fragment: LoginFragment) {
         }
 
         launch(UI) {
-            val db = fragment.application()!!.database
-            val sharedPref = fragment.application()!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+            val db = application().database
+            val sharedPref = application().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
             fragment.setLoginButtonLoading(true)
             try {
                 val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
 
                 val response = if (!authByToken)
-                    api.login(login, pwd, fragment.application()!!.deviceUUID, time).await()
+                    api.login(login, pwd, application().deviceUUID, time).await()
                 else
-                    api.loginByToken(pwd, fragment.application()!!.deviceUUID, time).await()
+                    api.loginByToken(pwd, application().deviceUUID, time).await()
 
                 if (response.error != null) {
                     fragment.activity()?.showError("Ошибка №${response.error.code}\n${response.error.message}")
                     return@launch
                 }
-                fragment.application()!!.user = UserModel.Authorized(response.user!!.login, response.token!!)
+                application().user = UserModel.Authorized(response.user!!.login, response.token!!)
                 if (isPasswordRemembered) {
-                    fragment.application()?.storeUserCredentials()
+                    application().storeUserCredentials()
                 } else {
-                    fragment.application()?.restoreUserCredentials()
+                    application().restoreUserCredentials()
                 }
-                fragment.application()!!.sendPushToken(null)
+                application().sendPushToken(null)
                 if (sharedPref.getString("last_login", "") != response.user.login) {
                     Log.d("login", "Clear local database. User changed. Last login ${sharedPref.getString("last_login", "")}. New login ${response.user.login}")
                     withContext(CommonPool) {
@@ -107,10 +107,9 @@ class LoginPresenter(val fragment: LoginFragment) {
     }
 
     fun loginOffline(): Boolean {
-        fragment.application() ?: return false
-        val user = fragment.application()!!.getUserCredentials()
+        val user = application().getUserCredentials()
         user ?: return false
-        fragment.application()!!.user = user
+        application().user = user
         return true
     }
 
@@ -119,7 +118,7 @@ class LoginPresenter(val fragment: LoginFragment) {
     }
 
     fun loadUserCredentials() {
-        val credentials = fragment.application()?.getUserCredentials()
+        val credentials = application().getUserCredentials()
         credentials ?: return
         fragment.login_input.setText(credentials.login)
         fragment.password_input.setText(credentials.token)

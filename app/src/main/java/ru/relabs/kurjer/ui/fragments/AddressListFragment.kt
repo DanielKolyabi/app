@@ -89,7 +89,7 @@ class AddressListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         hintHelper = HintHelper(hint_container, resources.getString(R.string.address_list_hint_text), false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
 
-        currentUserToken = (application()!!.user as UserModel.Authorized).token
+        currentUserToken = (application().user as UserModel.Authorized).token
 
         adapter.apply {
             addDelegate(AddressListAddressDelegate(
@@ -141,8 +141,7 @@ class AddressListFragment : Fragment() {
     }
 
     private suspend fun loadTasksFromDatabase() {
-        val db = application()?.database
-        db ?: return
+        val db = application().database
         withContext(CommonPool) {
             tasks = taskIds.map {
                 db.taskDao().getById(it)?.toTaskModel(db)

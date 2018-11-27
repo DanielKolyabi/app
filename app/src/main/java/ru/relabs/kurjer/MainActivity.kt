@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
 
-        (application as MyApplication).enableLocationListening()
+        MyApplication.instance.enableLocationListening()
         super.onResume()
     }
 
@@ -177,7 +177,7 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (requestCode == 1) {
             permissions.indexOfFirst { it == android.Manifest.permission.ACCESS_FINE_LOCATION }.let {
-                if (it >= 0 && grantResults[it] == PackageManager.PERMISSION_GRANTED && !(application as MyApplication).enableLocationListening()) {
+                if (it >= 0 && grantResults[it] == PackageManager.PERMISSION_GRANTED && !MyApplication.instance.enableLocationListening()) {
                     showError("Невозможно включить геолокацию")
                 }
             }

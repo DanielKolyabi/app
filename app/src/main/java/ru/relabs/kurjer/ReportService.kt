@@ -59,7 +59,7 @@ class ReportService : Service() {
 
         startForeground(1, notification("Сервис отправки данных."))
 
-        val db = (application as MyApplication).database
+        val db = MyApplication.instance.database
         var lastTasksChecking = System.currentTimeMillis()
 
         thread = launch {
@@ -86,8 +86,8 @@ class ReportService : Service() {
                             e.logError()
                         }
                     } else if (System.currentTimeMillis() - lastTasksChecking > 25 * 60 * 1000) {
-                        val app = application as? MyApplication
-                        if (app != null && app.user is UserModel.Authorized) {
+                        val app = MyApplication.instance
+                        if (app.user is UserModel.Authorized) {
                             val user = app.user as UserModel.Authorized
                             val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
                             try {

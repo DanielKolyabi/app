@@ -33,8 +33,8 @@ class MyFirebaseMessagingService: FirebaseMessagingService() {
         if(data.containsKey("request_gps")){
            (application as? MyApplication)?.user as? UserModel.Authorized ?: return
             launch{
-                val coordinates = (application as MyApplication).currentLocation
-                val token = ((application as MyApplication).user as UserModel.Authorized).token
+                val coordinates = MyApplication.instance.currentLocation
+                val token = (MyApplication.instance.user as UserModel.Authorized).token
                 try {
                     DeliveryServerAPI.api.sendGPS(token, coordinates.lat, coordinates.long, SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(coordinates.time)).await()
                 }catch (e:Exception){

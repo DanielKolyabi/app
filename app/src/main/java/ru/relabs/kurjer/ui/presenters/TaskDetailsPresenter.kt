@@ -35,7 +35,7 @@ class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
 
                     db.sendQueryDao().insert(
                             SendQueryItemEntity(0,
-                                    BuildConfig.API_URL + "/api/v1/tasks/${taskEntity.id}/examined?token=" + (fragment.application()!!.user as UserModel.Authorized).token,
+                                    BuildConfig.API_URL + "/api/v1/tasks/${taskEntity.id}/examined?token=" + (application().user as UserModel.Authorized).token,
                                     ""
                             )
                     )

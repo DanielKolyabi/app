@@ -117,8 +117,7 @@ class TaskListPresenter(val fragment: TaskListFragment) {
 
     fun loadTasks(loadFromNetwork: Boolean = false) {
         launch(UI) {
-            fragment.application() ?: return@launch
-            val db = fragment.application()!!.database
+            val db = application().database
 
             //Load from network if available
             if (loadFromNetwork) {
@@ -198,10 +197,10 @@ class TaskListPresenter(val fragment: TaskListFragment) {
     }
 
     private suspend fun loadTasksFromNetwork(): List<TaskModel> {
-        val app = fragment.application()
+        val app = application()
         val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
-        val tasks = api.getTasks((fragment.application()!!.user as UserModel.Authorized).token, time).await()
-        return tasks.map { it.toTaskModel(app?.deviceUUID ?: "") }
+        val tasks = api.getTasks((app.user as UserModel.Authorized).token, time).await()
+        return tasks.map { it.toTaskModel(app.deviceUUID) }
     }
 
     suspend fun loadTasksFromDatabase(db: AppDatabase): List<TaskListModel.Task> {

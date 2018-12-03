@@ -14,28 +14,28 @@
         android:clickable="true"
         android:elevation="8dp"
         android:focusable="true"
+        android:gravity="center"
         android:orientation="vertical"
         android:visibility="visible"
-        android:gravity="center"
-        tools:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
 
         <TextView
             android:id="@+id/loader_progress_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:gravity="center"
-            android:visibility="gone"
             android:fontFamily="@string/text_font"
-            android:textSize="24sp"
-            tools:visibility="visible"
+            android:gravity="center"
             android:textColor="#DDD"
+            android:textSize="24sp"
+            android:visibility="gone"
+            tools:text="Загрузка 1/100"
 
-            tools:text="Загрузка 1/100" />
+            tools:visibility="visible" />
 
         <ProgressBar
             android:id="@+id/progress_bar"
@@ -62,50 +62,82 @@
             android:id="@+id/title"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:fontFamily="@string/text_font"
+            android:gravity="center_vertical"
+            android:maxLines="2"
             android:textColor="@color/common_google_signin_btn_text_dark_pressed"
             android:textSize="20sp"
-            android:maxLines="2"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/back_button"
             app:layout_constraintStart_toEndOf="@id/device_uuid"
             app:layout_constraintTop_toTopOf="parent"
-            android:gravity="center_vertical"
             tools:text="Длинный адрес текст ужас беда проблема перенос круто" />
 
         <ImageView
             android:id="@+id/refresh_button"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:adjustViewBounds="true"
             android:layout_marginEnd="8dp"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:focusable="true"
             android:padding="4dp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_reload_disabled"
-            tools:visibility="visible"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/search_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="56dp"
+            android:adjustViewBounds="true"
             android:clickable="true"
-            android:focusable="true" />
+            android:focusable="true"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_search_white_24dp"
+            tools:visibility="visible" />
 
         <ImageView
             android:id="@+id/back_button"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:adjustViewBounds="true"
             android:layout_marginEnd="8dp"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:focusable="true"
             android:padding="8dp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_back"
-            tools:visibility="visible"
-            android:clickable="true"
-            android:focusable="true"/>
+            tools:visibility="visible" />
+
+        <AutoCompleteTextView
+            android:id="@+id/search_input"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:imeOptions="actionDone"
+            android:inputType="textAutoComplete"
+            android:maxLines="1"
+            android:completionThreshold="1"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/search_button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"
+            android:textColor="#fff"
+            android:textColorHint="#ccc"
+            tools:visibility="visible"/>
 
         <ImageView
             android:id="@+id/device_uuid"
@@ -113,8 +145,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:src="@drawable/ic_priority_high_black_24dp"
-            android:visibility="gone"
-            />
+            android:visibility="gone" />
 
     </android.support.constraint.ConstraintLayout>
 

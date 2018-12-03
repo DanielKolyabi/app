@@ -1,7 +1,7 @@
 package ru.relabs.kurjer.ui.helpers
 
 import android.view.View
-import java.text.SimpleDateFormat
+import org.joda.time.DateTime
 import java.util.*
 
 /**
@@ -13,13 +13,5 @@ fun View.setVisible(visible: Boolean) {
 }
 
 fun Date.formated(): String {
-    try {
-        return SimpleDateFormat("dd.MM.YYYY", Locale("ru", "RU")).format(this)
-    }catch (e: Throwable){
-        e.printStackTrace()
-        val cal = Calendar.getInstance().apply {
-            time = this@formated
-        }
-        return "${cal.get(Calendar.DAY_OF_MONTH)}.${cal.get(Calendar.MONTH)}.${cal.get(Calendar.YEAR)}"
-    }
+    return DateTime(this).toString("dd.MM.yyyy")
 }

@@ -12,16 +12,14 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AutoCompleteTextView
 import kotlinx.android.synthetic.main.fragment_address_list.*
 import kotlinx.android.synthetic.main.include_hint_container.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
-import ru.relabs.kurjer.BuildConfig
-import ru.relabs.kurjer.R
-import ru.relabs.kurjer.activity
-import ru.relabs.kurjer.application
+import ru.relabs.kurjer.*
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
@@ -31,10 +29,52 @@ import ru.relabs.kurjer.ui.delegates.AddressListLoaderDelegate
 import ru.relabs.kurjer.ui.delegates.AddressListSortingDelegate
 import ru.relabs.kurjer.ui.delegates.AddressListTaskItemDelegate
 import ru.relabs.kurjer.ui.helpers.HintHelper
+import ru.relabs.kurjer.ui.helpers.TaskAddressSorter
 import ru.relabs.kurjer.ui.models.AddressListModel
 import ru.relabs.kurjer.ui.presenters.AddressListPresenter
 
-class AddressListFragment : Fragment() {
+class AddressListFragment : Fragment(), SearchableFragment {
+    override fun onSearchItems(filter: String): List<String> {
+        if (filter.contains(",")) {
+            return adapter.data.asSequence()
+                    .filter { it is AddressListModel.Address }
+                    .filter {
+                        (it as AddressListModel.Address).taskItems.first().address.name.contains(filter, true)
+                    }
+                    .map {
+                        (it as AddressListModel.Address).taskItems.first().address.name
+                    }
+                    .toList()
+        } else {
+            return adapter.data.asSequence()
+                    .filter { it is AddressListModel.Address }
+                    .filter {
+                        (it as AddressListModel.Address).taskItems.first().address.street.contains(filter, true)
+                    }
+                    .map {
+                        (it as AddressListModel.Address).taskItems.first().address.street + ","
+                    }
+                    .distinct()
+                    .toList()
+        }
+    }
+
+    override fun onItemSelected(item: String, searchView: AutoCompleteTextView) {
+
+        if (presenter.sortingMethod != TaskAddressSorter.ALPHABETIC) {
+            presenter.changeSortingMethod(TaskAddressSorter.ALPHABETIC)
+        }
+
+        val itemIndex = adapter.data.indexOfFirst {
+            (it as? AddressListModel.Address)?.taskItems?.first()?.address?.name?.contains(item, true)
+                    ?: false
+        }
+        if (itemIndex < 0) {
+            return
+        }
+        list.smoothScrollToPosition(itemIndex)
+    }
+
     val presenter = AddressListPresenter(this)
     private lateinit var hintHelper: HintHelper
     private var taskIds: List<Int> = listOf()
@@ -51,12 +91,12 @@ class AddressListFragment : Fragment() {
             intent ?: return
             val taskItemId = intent.getIntExtra("task_item_closed", 0)
             if (taskItemId != 0) {
-                for (task in tasks) {
+                mainLoop@ for (task in tasks) {
                     for (taskItem in task.items) {
                         if (taskItem.id == taskItemId) {
                             taskItem.state = TaskItemModel.CLOSED
                             presenter.updateStates(currentUserToken)
-                            break
+                            break@mainLoop
                         }
                     }
                 }
@@ -137,7 +177,12 @@ class AddressListFragment : Fragment() {
     }
 
     public fun scrollListToSavedPosition() {
-        (list.layoutManager as LinearLayoutManager).scrollToPosition(listScrollPosition)
+        try {
+            (list.layoutManager as LinearLayoutManager).scrollToPosition(listScrollPosition)
+        } catch (e: Throwable) {
+            e.printStackTrace()
+            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
+        }
     }
 
     private suspend fun loadTasksFromDatabase() {

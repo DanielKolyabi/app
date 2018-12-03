@@ -10,6 +10,7 @@ import android.util.Log
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
+import org.joda.time.DateTime
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.network.NetworkHelper
@@ -20,8 +21,6 @@ import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 class ReportService : Service() {
@@ -89,7 +88,7 @@ class ReportService : Service() {
                         val app = MyApplication.instance
                         if (app.user is UserModel.Authorized) {
                             val user = app.user as UserModel.Authorized
-                            val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
+                            val time = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
                             try {
                                 val tasks = DeliveryServerAPI.api.getTasks(user.token, time).await()
                                 if (PersistenceHelper.isMergeNeeded(app.database, tasks.map { it.toTaskModel(app.deviceUUID) })) {

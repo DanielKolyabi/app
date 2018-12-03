@@ -24,8 +24,8 @@ android {
         applicationId "abix.kurjer"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 49
-        versionName "49"
+        versionCode 51
+        versionName "51"
 
         ndk {
             abiFilters("armeabi-v7a", "x86")
@@ -75,6 +75,7 @@ dependencies {
     implementation 'com.yandex.android:mapkit:3.0.0'
 
     testImplementation 'junit:junit:4.12'
+    implementation 'joda-time:joda-time:2.10.1'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }

@@ -23,10 +23,7 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
-import ru.relabs.kurjer.ui.delegates.ReportBlankPhotoDelegate
-import ru.relabs.kurjer.ui.delegates.ReportEntrancesDelegate
-import ru.relabs.kurjer.ui.delegates.ReportPhotoDelegate
-import ru.relabs.kurjer.ui.delegates.ReportTasksDelegate
+import ru.relabs.kurjer.ui.delegates.*
 import ru.relabs.kurjer.ui.helpers.HintHelper
 import ru.relabs.kurjer.ui.helpers.setVisible
 import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
@@ -111,6 +108,9 @@ class ReportFragment : Fragment() {
         photosListAdapter.addDelegate(ReportBlankPhotoDelegate { holder ->
             presenter.onBlankPhotoClicked()
         })
+        photosListAdapter.addDelegate(ReportBlankMultiPhotoDelegate { holder ->
+            presenter.onBlankMultiPhotoClicked()
+        })
 
         val listClickInterceptor = object : RecyclerView.OnItemTouchListener {
             override fun onTouchEvent(rv: RecyclerView?, e: MotionEvent?) {}
@@ -158,8 +158,8 @@ class ReportFragment : Fragment() {
 
     fun showHintText(notes: List<String>) {
         hint_text.text = Html.fromHtml((1..3).map {
-            "<b><h3>Пр. $it</h3></b>\n" + notes.getOrElse(it - 1) { "" }
-        }.joinToString("\n"))
+            "<b>Пр. $it</b><br/>" + notes.getOrElse(it-1) { "" }
+        }.joinToString("<br/>"))
     }
 
     fun setTaskListVisible(visible: Boolean) {

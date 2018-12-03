@@ -2,11 +2,13 @@ package ru.relabs.kurjer.ui.presenters
 
 import android.content.Context
 import android.util.Log
+import android.util.TypedValue
 import kotlinx.android.synthetic.main.fragment_login.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
+import org.joda.time.DateTime
 import retrofit2.HttpException
 import ru.relabs.kurjer.*
 import ru.relabs.kurjer.models.UserModel
@@ -15,8 +17,6 @@ import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.ErrorUtils
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.fragments.LoginFragment
-import java.text.SimpleDateFormat
-import java.util.*
 
 /**
  * Created by ProOrange on 24.08.2018.
@@ -27,12 +27,16 @@ class LoginPresenter(val fragment: LoginFragment) {
     private var authByToken = false
 
     fun onRememberPasswordClick() {
-        isPasswordRemembered = !isPasswordRemembered
+        setRememberPassword(!isPasswordRemembered)
         fragment.setRememberPasswordEnabled(isPasswordRemembered)
     }
 
+    fun setRememberPassword(enabled: Boolean) {
+        isPasswordRemembered = enabled
+    }
+
     fun onLoginClick(login: String, pwd: String) {
-        if(!NetworkHelper.isNetworkAvailable(fragment.context)){
+        if (!NetworkHelper.isNetworkAvailable(fragment.context)) {
             showOfflineLoginOffer()
             return
         }
@@ -42,7 +46,7 @@ class LoginPresenter(val fragment: LoginFragment) {
             val sharedPref = application().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
             fragment.setLoginButtonLoading(true)
             try {
-                val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
+                val time = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
 
                 val response = if (!authByToken)
                     api.login(login, pwd, application().deviceUUID, time).await()
@@ -74,7 +78,7 @@ class LoginPresenter(val fragment: LoginFragment) {
             } catch (e: HttpException) {
                 e.printStackTrace()
 
-                if(e.code() == 502){
+                if (e.code() == 502) {
                     showOfflineLoginOffer()
                     return@launch
                 }
@@ -89,7 +93,7 @@ class LoginPresenter(val fragment: LoginFragment) {
         }
     }
 
-    fun showOfflineLoginOffer(){
+    fun showOfflineLoginOffer() {
         fragment.activity()?.showError("Нет ответа от сервера.",
                 object : ErrorButtonsListener {
                     override fun negativeListener() {
@@ -123,7 +127,8 @@ class LoginPresenter(val fragment: LoginFragment) {
         fragment.login_input.setText(credentials.login)
         fragment.password_input.setText(credentials.token)
         authByToken = true
-        isPasswordRemembered = true
+        setRememberPassword(true)
+        fragment.shouldResetRememberOnInput = true
         fragment.setRememberPasswordEnabled(true)
     }
 }

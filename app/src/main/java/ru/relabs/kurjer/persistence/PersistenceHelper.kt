@@ -7,7 +7,6 @@ import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
-import java.io.File
 import java.util.*
 
 /**
@@ -63,7 +62,7 @@ object PersistenceHelper {
     suspend fun isMergeNeeded(
             db: AppDatabase,
             newTasks: List<TaskModel>
-    ): Boolean{
+    ): Boolean {
         return withContext(CommonPool) {
             val savedTasksIDs = db.taskDao().all.map { it.id }
             val newTasksIDs = newTasks.map { it.id }
@@ -120,7 +119,7 @@ object PersistenceHelper {
                     }
                     //Add item
                     val reportForThisTask = db.taskItemResultsDao().getByTaskItemId(item.id)
-                    if(reportForThisTask != null){
+                    if (reportForThisTask != null) {
                         item.state = TaskItemModel.CLOSED
                     }
                     val newId = db.taskItemDao().insert(item.toTaskItemEntity(task.id))
@@ -142,7 +141,14 @@ object PersistenceHelper {
                     }
                     //Task not in work
                 } else {
-                    if (task.iteration <= savedTask.iteration && task.toTaskEntity().state == savedTask.state) return@forEach
+                    if (
+                            task.iteration <= savedTask.iteration
+                            && task.toTaskEntity().state == savedTask.state
+                            && task.startTime == savedTask.startTime
+                            && task.endTime == savedTask.endTime
+                    ) {
+                        return@forEach
+                    }
 
                     val examinedByOtherUser = if (db.taskDao().getById(task.id)!!.state == TaskModel.CREATED
                             && task.toTaskEntity().state == TaskModel.EXAMINED) TaskModel.BY_OTHER_USER else 0
@@ -159,7 +165,7 @@ object PersistenceHelper {
                         }
 
                         val reportForThisTask = db.taskItemResultsDao().getByTaskItemId(it.id)
-                        if(reportForThisTask != null){
+                        if (reportForThisTask != null) {
                             it.state = TaskItemModel.CLOSED
                         }
 

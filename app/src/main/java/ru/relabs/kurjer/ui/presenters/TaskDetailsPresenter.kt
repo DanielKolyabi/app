@@ -40,7 +40,7 @@ class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
                             )
                     )
                 }
-                (fragment.context as MainActivity).showTaskListScreen(false)
+                (fragment.context as MainActivity).showTaskListScreen(false, fragment.posInList)
             }
         }
     }

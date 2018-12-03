@@ -27,7 +27,7 @@ data class TaskModel(
         //Temporary var, for some features in lists
         var selected: Boolean
 ) : Parcelable {
-
+    val displayName = "${name} №${edition}, ${copies}экз., (${brigade}бр/${area}уч)"
     constructor(parcel: Parcel) : this(
             parcel.readInt(),
             parcel.readString(),

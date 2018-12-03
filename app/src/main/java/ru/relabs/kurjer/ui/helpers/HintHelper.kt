@@ -17,6 +17,9 @@ class HintHelper(val hintContainer: View, val text: String, private var expanded
         hintContainer.setOnClickListener {
             changeState()
         }
+        hintContainer.hint_text.setOnClickListener {
+            changeState()
+        }
         hintContainer.font_plus.setOnClickListener {
             setFontBigger()
         }

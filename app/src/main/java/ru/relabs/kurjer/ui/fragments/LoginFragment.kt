@@ -18,19 +18,22 @@ class LoginFragment : Fragment() {
 
     val presenter = LoginPresenter(this)
 
+    var shouldResetRememberOnInput = false
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_login, container, false)
     }
 
     fun setRememberPasswordEnabled(enabled: Boolean) {
+        presenter.setRememberPassword(enabled)
         val size = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48f, resources.displayMetrics).toInt()
         remember_password_text.setCompoundDrawables(
                 context?.getDrawable(
                         if (enabled)
-                            R.drawable.ic_check_circle_selected
+                            R.drawable.checked_checkbox
                         else
-                            R.drawable.ic_check_circle_unselected
+                            R.drawable.unchecked_checkbox
                 )?.apply {
                     setBounds(0, 0, size, size)
                 }, null, null, null
@@ -39,7 +42,7 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setRememberPasswordEnabled(false)
+        setRememberPasswordEnabled(true)
         remember_password_text.setOnClickListener {
             presenter.onRememberPasswordClick()
         }
@@ -51,6 +54,12 @@ class LoginFragment : Fragment() {
             override fun afterTextChanged(s: Editable?) {}
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (!shouldResetRememberOnInput) {
+                    return
+                }
+                if(s?.length == 0){
+                    shouldResetRememberOnInput = false
+                }
                 setRememberPasswordEnabled(false)
                 presenter.resetAuthByToken()
             }

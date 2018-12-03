@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_task_details.*
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.TaskModel.CREATOR.TASK_STATE_MASK
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
@@ -22,11 +23,13 @@ class TaskDetailsFragment : Fragment() {
     val presenter = TaskDetailsPresenter(this)
     val adapter = DelegateAdapter<DetailsListModel>()
     lateinit var task: TaskModel
+    var posInList = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
             task = it.getParcelable("task")
+            posInList = it.getInt("pos_in_list")
         }
     }
 
@@ -56,10 +59,25 @@ class TaskDetailsFragment : Fragment() {
         ))
 
 
-        if(adapter.data.isEmpty()) {
+        if (adapter.data.isEmpty()) {
             adapter.data.add(DetailsListModel.Task(task))
             adapter.data.add(DetailsListModel.DetailsTableHeader)
-            adapter.data.addAll(task.items.map { DetailsListModel.TaskItem(it) })
+            adapter.data.addAll(
+                    task.items.sortedWith(compareBy<TaskItemModel> { it.subarea }
+                            .thenBy { it.bypass }
+                            .thenBy { it.address.city }
+                            .thenBy { it.address.street }
+                            .thenBy { it.address.house }
+                            .thenBy { it.address.houseName }
+                            .thenBy { it.state }
+                    ).groupBy {
+                        it.address.id
+                    }.toList().sortedBy {
+                        !it.second.any { it.state != TaskItemModel.CLOSED }
+                    }.toMap().flatMap {
+                        it.value
+                    }.map { DetailsListModel.TaskItem(it) }
+            )
 
             adapter.notifyDataSetChanged()
         }
@@ -70,10 +88,11 @@ class TaskDetailsFragment : Fragment() {
     companion object {
 
         @JvmStatic
-        fun newInstance(task: TaskModel) =
+        fun newInstance(task: TaskModel, posInList: Int = 0) =
                 TaskDetailsFragment().apply {
                     arguments = Bundle().apply {
                         putParcelable("task", task)
+                        putInt("pos_in_list", posInList)
                     }
                 }
     }

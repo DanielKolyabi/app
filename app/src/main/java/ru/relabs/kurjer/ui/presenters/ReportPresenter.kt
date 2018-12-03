@@ -37,6 +37,7 @@ const val REQUEST_PHOTO = 1
 
 class ReportPresenter(private val fragment: ReportFragment) {
     lateinit var photoUUID: UUID
+    var photoMultiMode: Boolean = false
     var currentTask = 0
 
     fun changeCurrentTask(taskNumber: Int) {
@@ -120,6 +121,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
         launch(UI) {
             fragment.photosListAdapter.data.add(ReportPhotosListModel.BlankPhoto)
+            fragment.photosListAdapter.data.add(ReportPhotosListModel.BlankMultiPhoto)
             taskPhotos.forEach {
                 fragment.photosListAdapter.data.add(
                         ReportPhotosListModel.TaskItemPhoto(it, it.getPhotoURI())
@@ -256,6 +258,10 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
     fun onBlankPhotoClicked() {
+        requestPhoto(false)
+    }
+
+    fun onBlankMultiPhotoClicked() {
         requestPhoto()
     }
 
@@ -275,8 +281,9 @@ class ReportPresenter(private val fragment: ReportFragment) {
         }
     }
 
-    private fun requestPhoto() {
+    private fun requestPhoto(multiPhoto: Boolean = true) {
         photoUUID = UUID.randomUUID()
+        photoMultiMode = multiPhoto
         val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID)
 
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -361,7 +368,9 @@ class ReportPresenter(private val fragment: ReportFragment) {
             }
             fragment.photosListAdapter.notifyItemRangeChanged(fragment.photosListAdapter.data.size - 1, 2)
 
-            requestPhoto()
+            if (photoMultiMode) {
+                requestPhoto()
+            }
         }
 
         return photoFile

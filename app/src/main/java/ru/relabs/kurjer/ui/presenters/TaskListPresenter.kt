@@ -5,6 +5,7 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import kotlinx.coroutines.experimental.withTimeout
+import org.joda.time.DateTime
 import retrofit2.HttpException
 import ru.relabs.kurjer.ErrorButtonsListener
 import ru.relabs.kurjer.MainActivity
@@ -19,7 +20,6 @@ import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.fragments.TaskListFragment
 import ru.relabs.kurjer.ui.models.TaskListModel
-import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -88,7 +88,7 @@ class TaskListPresenter(val fragment: TaskListFragment) {
 
     fun onTaskClicked(pos: Int) {
         val task = (fragment.adapter.data[pos] as? TaskListModel.Task)?.task ?: return
-        (fragment.context as MainActivity).showTaskDetailsScreen(task)
+        (fragment.context as MainActivity).showTaskDetailsScreen(task, pos)
     }
 
     fun onStartClicked() {
@@ -193,12 +193,13 @@ class TaskListPresenter(val fragment: TaskListFragment) {
             fragment.adapter.data.addAll(savedTasks)
             fragment.adapter.notifyDataSetChanged()
             updateStartButton()
+            fragment.scrollListToTarget()
         }
     }
 
     private suspend fun loadTasksFromNetwork(): List<TaskModel> {
         val app = application()
-        val time = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(Date())
+        val time = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
         val tasks = api.getTasks((app.user as UserModel.Authorized).token, time).await()
         return tasks.map { it.toTaskModel(app.deviceUUID) }
     }

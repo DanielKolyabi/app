@@ -10,8 +10,11 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.KeyEvent
 import android.view.View
 import android.view.Window
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
@@ -25,12 +28,14 @@ import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.UpdateInfo
+import ru.relabs.kurjer.ui.adapters.SearchInputAdapter
 import ru.relabs.kurjer.ui.fragments.*
 import ru.relabs.kurjer.ui.helpers.setVisible
 import ru.relabs.kurjer.ui.models.AddressListModel
 import java.io.File
 import java.net.URL
 import kotlin.math.roundToInt
+
 
 class MainActivity : AppCompatActivity() {
     private var needRefreshShowed = false
@@ -100,6 +105,7 @@ class MainActivity : AppCompatActivity() {
         permissionsList.forEach {
             msg += when (it) {
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE -> "Доступ к записи файлов"
+                android.Manifest.permission.READ_EXTERNAL_STORAGE -> "Доступ к чтению файлов"
                 android.Manifest.permission.ACCESS_FINE_LOCATION -> "Доступ к получению местоположения"
                 android.Manifest.permission.REQUEST_INSTALL_PACKAGES -> "Разрешать устанавливать приложения"
                 else -> "Неизвестно"
@@ -150,11 +156,24 @@ class MainActivity : AppCompatActivity() {
         Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler())
         supportFragmentManager.addOnBackStackChangedListener {
             val current = supportFragmentManager.findFragmentByTag("fragment")
+
+            setSearchButtonVisible(current is TaskListFragment || current is AddressListFragment)
+            if (search_input.visibility == View.VISIBLE) {
+                search_input.setVisible(false)
+                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(search_input.windowToken, 0)
+                top_app_bar.title.setVisible(true)
+            }
+
             setNavigationRefreshVisible(current is TaskListFragment)
             when (current) {
-                is TaskListFragment -> changeTitle("Список заданий")
-                is AddressListFragment -> changeTitle("Список адресов")
+                is TaskListFragment ->
+                    changeTitle("Список заданий")
+                is AddressListFragment ->
+                    changeTitle("Список адресов")
             }
+
+            updateSearchInputHint(current)
+
             setDeviceIdButtonVisible(current is TaskListFragment)
             if (needForceRefresh && current is TaskListFragment) {
                 showTasksRefreshDialog(true)
@@ -167,11 +186,54 @@ class MainActivity : AppCompatActivity() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
 
         registerReceiver(broadcastReceiver, intentFilter)
         showPermissionsRequest(permissions.toTypedArray(), false)
         loading.setVisible(true)
         checkUpdates()
+
+        search_button.setOnClickListener {
+            val current = supportFragmentManager.findFragmentByTag("fragment")
+            if (current !is TaskListFragment && current !is AddressListFragment) {
+                setSearchButtonVisible(false)
+                return@setOnClickListener
+            }
+            setSearchInputVisible(true)
+            (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.showSoftInput(search_input, InputMethodManager.SHOW_IMPLICIT)
+            search_input.requestFocus()
+        }
+        val adapter = SearchInputAdapter(this, R.layout.item_search, R.id.text, supportFragmentManager)
+        search_input.setAdapter(adapter)
+
+        search_input.setOnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                    actionId == EditorInfo.IME_ACTION_DONE ||
+                    actionId == EditorInfo.IME_ACTION_NEXT ||
+                    event != null &&
+                    event.action == KeyEvent.ACTION_DOWN &&
+                    event.keyCode == KeyEvent.KEYCODE_ENTER) {
+
+                val current = supportFragmentManager.findFragmentByTag("fragment") as? SearchableFragment
+                current ?: return@setOnEditorActionListener true
+
+                current.onItemSelected(search_input.text.toString(), search_input)
+
+                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(search_input.windowToken, 0)
+
+                search_input.setVisible(false)
+                top_app_bar.title.setVisible(true)
+
+                if (current is TaskListFragment) {
+                    setDeviceIdButtonVisible(true)
+                }
+
+                return@setOnEditorActionListener true
+            }
+            return@setOnEditorActionListener false
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -231,6 +293,21 @@ class MainActivity : AppCompatActivity() {
         device_uuid.setVisible(visible)
     }
 
+    private fun setSearchButtonVisible(visible: Boolean) {
+        search_button.setVisible(visible)
+        if (!visible) {
+            setSearchInputVisible(visible)
+        }
+    }
+
+    private fun setSearchInputVisible(visible: Boolean) {
+        search_input.setVisible(visible)
+        search_input.setText("")
+        setDeviceIdButtonVisible(!visible)
+        top_app_bar.title.setVisible(!visible)
+    }
+
+
     private fun processUpdate(updateInfo: UpdateInfo): Boolean {
         if (updateInfo.version > BuildConfig.VERSION_CODE) {
 
@@ -283,8 +360,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun showTaskListScreen(shouldUpdate: Boolean = false): TaskListFragment {
-        val fragment = TaskListFragment.newInstance(shouldUpdate)
+    fun showTaskListScreen(shouldUpdate: Boolean = false, posInList: Int = 0): TaskListFragment {
+        val fragment = TaskListFragment.newInstance(shouldUpdate, posInList)
         navigateTo(fragment)
         changeTitle("Список заданий")
         return fragment
@@ -327,13 +404,13 @@ class MainActivity : AppCompatActivity() {
             }
             builder.setCancelable(false)
             builder.show()
-        }catch (e: Throwable){
+        } catch (e: Throwable) {
             CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
         }
     }
 
-    fun showTaskDetailsScreen(task: TaskModel) {
-        navigateTo(TaskDetailsFragment.newInstance(task), true)
+    fun showTaskDetailsScreen(task: TaskModel, posInList: Int) {
+        navigateTo(TaskDetailsFragment.newInstance(task, posInList), true)
         changeTitle("Детали задания")
     }
 
@@ -381,12 +458,29 @@ class MainActivity : AppCompatActivity() {
                 else -> true
             }
 
+            updateSearchInputHint(fragment)
+            setSearchButtonVisible(fragment is TaskListFragment || fragment is AddressListFragment)
+            if (search_input.visibility == View.VISIBLE) {
+                search_input.setVisible(false)
+                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(search_input.windowToken, 0)
+                top_app_bar.title.setVisible(true)
+            }
             setNavigationBackVisible(backVisible)
             setNavigationRefreshVisible(fragment is TaskListFragment)
             setDeviceIdButtonVisible(fragment is TaskListFragment)
         } catch (e: Throwable) {
             CustomLog.writeToFile(getStacktraceAsString(e))
             e.printStackTrace()
+        }
+    }
+
+    private fun updateSearchInputHint(fragment: Fragment?) {
+
+        when (fragment) {
+            is TaskListFragment ->
+                search_input?.hint = "Номер участка"
+            is AddressListFragment ->
+                search_input?.hint = "Пробел - список улиц"
         }
     }
 
@@ -411,6 +505,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         try {
+            if (search_input.visibility == View.VISIBLE) {
+                search_input.setVisible(false)
+                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(search_input.windowToken, 0)
+                top_app_bar.title.setVisible(true)
+                val current = supportFragmentManager?.findFragmentByTag("fragment")
+                if (current is TaskListFragment) {
+                    setDeviceIdButtonVisible(true)
+                }
+                return
+            }
+
             if (supportFragmentManager.backStackEntryCount > 0) {
                 supportFragmentManager.popBackStack()
             } else {
@@ -418,7 +523,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             setNavigationBackVisible(supportFragmentManager.backStackEntryCount > 1)
-        } catch (e: Throwable){
+        } catch (e: Throwable) {
             CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
             super.onBackPressed()
         }

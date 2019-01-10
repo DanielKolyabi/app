@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-
+apply plugin: 'io.fabric'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
@@ -7,6 +7,7 @@ apply plugin: 'kotlin-android-extensions'
 repositories {
     maven {
         url "http://maven.google.com/"
+        maven { url 'https://maven.fabric.io/public' }
     }
 }
 
@@ -24,8 +25,8 @@ android {
         applicationId "abix.kurjer"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 51
-        versionName "51"
+        versionCode 53
+        versionName "53"
 
         ndk {
             abiFilters("armeabi-v7a", "x86")
@@ -35,7 +36,7 @@ android {
     }
     buildTypes {
         debug {
-            buildConfigField("String", "API_URL", '"http://warp.courr.ru:8084"')
+            buildConfigField("String", "API_URL", '"https://courrmobileapi.courr.ru"')//http://warp.courr.ru:8084"')
             buildConfigField("String", "YA_KEY", '"9be78b32-1265-4157-bf15-999b8d747a5c"')
             signingConfig signingConfigs.config
         }
@@ -73,6 +74,10 @@ dependencies {
     kapt 'com.github.bumptech.glide:compiler:4.8.0'
 
     implementation 'com.yandex.android:mapkit:3.0.0'
+
+    implementation('com.crashlytics.sdk.android:crashlytics:2.9.8@aar') {
+        transitive = true;
+    }
 
     testImplementation 'junit:junit:4.12'
     implementation 'joda-time:joda-time:2.10.1'

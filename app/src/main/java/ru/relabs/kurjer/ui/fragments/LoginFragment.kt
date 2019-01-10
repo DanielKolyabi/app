@@ -5,14 +5,19 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_login.*
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
+import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.ui.helpers.setVisible
 import ru.relabs.kurjer.ui.presenters.LoginPresenter
+import java.util.*
 
 class LoginFragment : Fragment() {
 
@@ -50,6 +55,9 @@ class LoginFragment : Fragment() {
         login_button.setOnClickListener {
             presenter.onLoginClick(login_input.text.toString(), password_input.text.toString())
         }
+
+        app_version.text = resources.getString(R.string.app_version_label, BuildConfig.VERSION_CODE)
+
         val myTextWatcher = object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {}
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}

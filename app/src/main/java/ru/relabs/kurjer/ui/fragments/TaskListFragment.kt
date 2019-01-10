@@ -40,8 +40,11 @@ class TaskListFragment : Fragment(), SearchableFragment {
 
     override fun onItemSelected(item: String, searchView: AutoCompleteTextView) {
         val itemIndex = adapter.data.indexOfFirst {
-            "${(it as TaskListModel.Task).task.name} №${it.task.edition} ${it.task.area}уч".contains(item)
-                    ?: false
+            if(it is TaskListModel.Task) {
+                "${it.task.name} №${it.task.edition} ${it.task.area}уч".contains(item)
+            }else{
+                false
+            }
         }
         if (itemIndex < 0) {
             return

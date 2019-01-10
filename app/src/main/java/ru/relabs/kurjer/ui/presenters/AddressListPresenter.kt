@@ -9,14 +9,15 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
-import ru.relabs.kurjer.*
+import ru.relabs.kurjer.CustomLog
+import ru.relabs.kurjer.MainActivity
+import ru.relabs.kurjer.MyApplication
+import ru.relabs.kurjer.activity
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
-import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import ru.relabs.kurjer.ui.fragments.AddressListFragment
 import ru.relabs.kurjer.ui.helpers.TaskAddressSorter
 import ru.relabs.kurjer.ui.models.AddressListModel
@@ -53,15 +54,10 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         fragment.adapter.notifyDataSetChanged()
     }
 
-    private fun checkTasksIsClosed(db: AppDatabase, currentUserToken: String) {
+    private fun checkTasksIsClosed(db: AppDatabase) {
         tasks.removeAll {
             if (isAllTaskItemsClosed(it)) {
                 PersistenceHelper.closeTask(db, it)
-//                db.sendQueryDao().insert(
-//                        SendQueryItemEntity(0,
-//                                BuildConfig.API_URL + "/api/v1/tasks/${it.id}/completed?token=" + currentUserToken,
-//                                "")
-//                )
                 return@removeAll true
             }
             return@removeAll false
@@ -90,7 +86,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         }, task.parentTask.id)?.setTargetFragment(fragment, 1)
     }
 
-    fun updateStates(currentUserToken: String?) {
+    fun updateStates() {
         launch(UI) {
             val db = (fragment.activity?.application as? MyApplication)?.database
             db ?: run {
@@ -112,12 +108,10 @@ class AddressListPresenter(val fragment: AddressListFragment) {
             }
 
             applySorting()
-            currentUserToken?.let {
-                withContext(CommonPool) { checkTasksIsClosed(db, currentUserToken) }
-            }
+            withContext(CommonPool) { checkTasksIsClosed(db) }
             if (tasks.size == 0) {
                 (fragment.context as? MainActivity)?.showTaskListScreen(false)
-            }else{
+            } else {
                 fragment.scrollListToSavedPosition()
             }
         }

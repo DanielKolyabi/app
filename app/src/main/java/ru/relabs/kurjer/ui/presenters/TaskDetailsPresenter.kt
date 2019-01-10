@@ -10,7 +10,6 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.MyApplication
 import ru.relabs.kurjer.application
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
@@ -26,22 +25,22 @@ class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
 
     fun onExaminedClicked(task: TaskModel) {
         launch(UI) {
-            val db = (fragment.activity?.application as? MyApplication)?.database
-            db?.let {
-                withContext(CommonPool) {
-                    val taskEntity = db.taskDao().getById(task.id)!!
-                    taskEntity.state = TaskModel.EXAMINED
-                    db.taskDao().update(taskEntity)
+            val db = application().database
 
-                    db.sendQueryDao().insert(
-                            SendQueryItemEntity(0,
-                                    BuildConfig.API_URL + "/api/v1/tasks/${taskEntity.id}/examined?token=" + (application().user as UserModel.Authorized).token,
-                                    ""
-                            )
-                    )
-                }
-                (fragment.context as MainActivity).showTaskListScreen(false, fragment.posInList)
+            withContext(CommonPool) {
+                val taskEntity = db.taskDao().getById(task.id) ?: return@withContext
+
+                taskEntity.state = TaskModel.EXAMINED
+                db.taskDao().update(taskEntity)
+
+                db.sendQueryDao().insert(
+                        SendQueryItemEntity(0,
+                                BuildConfig.API_URL + "/api/v1/tasks/${taskEntity.id}/examined?token=" + (application().user as UserModel.Authorized).token,
+                                ""
+                        )
+                )
             }
+            (fragment.context as MainActivity).showTaskListScreen(false, fragment.posInList)
         }
     }
 

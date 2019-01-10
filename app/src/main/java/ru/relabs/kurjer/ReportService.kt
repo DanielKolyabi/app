@@ -63,7 +63,7 @@ class ReportService : Service() {
 
         thread = launch {
             while (true) {
-                //Log.d("reporter", "Looper tick")
+                val isNetworkAvailable = NetworkHelper.isNetworkAvailable(applicationContext)
                 var isTaskSended = false
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
                     val sendQuery = getSendQuery(db)
@@ -119,7 +119,6 @@ class ReportService : Service() {
     }
 
     private suspend fun sendReportQuery(db: AppDatabase, item: ReportQueryItemEntity) {
-        Log.d("reporter", "Try to send report #${item.id}")
         NetworkHelper.sendReport(
                 item,
                 db.photosDao().getByTaskItemId(item.taskItemId)
@@ -131,7 +130,6 @@ class ReportService : Service() {
     }
 
     private fun sendSendQuery(item: SendQueryItemEntity) {
-        Log.d("reporter", "try to send ${item.url}")
         val urlConnection = URL(item.url)
         with(urlConnection.openConnection() as HttpURLConnection) {
             requestMethod = "POST"

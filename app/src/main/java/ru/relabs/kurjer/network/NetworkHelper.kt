@@ -12,6 +12,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper
+import ru.relabs.kurjer.logError
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.network.DeliveryServerAPI.api
 import ru.relabs.kurjer.network.models.PhotoReportModel
@@ -19,6 +20,7 @@ import ru.relabs.kurjer.network.models.TaskItemReportModel
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.TaskItemPhotoEntity
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -42,9 +44,13 @@ object NetworkHelper {
 
         var imgCount = 0
         photos.forEachIndexed { i, photo ->
-            photoParts.add(photoEntityToPart("img_$i", data, photo))
-            photosMap["img_$imgCount"] = PhotoReportModel("", photo.gps)
-            imgCount++
+            try {
+                photoParts.add(photoEntityToPart("img_$imgCount", data, photo))
+                photosMap["img_$imgCount"] = PhotoReportModel("", photo.gps)
+                imgCount++
+            } catch (e: Throwable){
+                e.logError()
+            }
         }
 
         val reportObject = TaskItemReportModel(
@@ -60,6 +66,9 @@ object NetworkHelper {
                 reportEnt.taskItemId,
                 UUID.fromString(photoEnt.UUID)
         )
+        if(!photoFile.exists()){
+            throw FileNotFoundException(photoFile.path)
+        }
         val extension = Uri.fromFile(photoFile).toString().split(".").last()
         val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
 
@@ -88,7 +97,6 @@ object NetworkHelper {
 
 
             val b = ByteArray(2048)
-            var length: Int
 
             var read = stream.read(b)
             var total = read

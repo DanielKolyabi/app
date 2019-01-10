@@ -32,4 +32,5 @@
     <string name="pile">Стопка</string>
     <string name="watch">Вахта</string>
     <string name="euro">Евро</string>
+    <string name="app_version_label">Версия: %d</string>
 </resources>

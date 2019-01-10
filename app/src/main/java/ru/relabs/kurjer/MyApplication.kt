@@ -10,8 +10,11 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.os.StrictMode
 import android.support.v4.content.ContextCompat
+import android.util.Log
 import com.google.firebase.iid.FirebaseInstanceId
 import com.yandex.mapkit.MapKitFactory
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI

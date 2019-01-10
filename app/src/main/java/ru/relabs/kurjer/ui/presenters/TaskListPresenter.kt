@@ -7,10 +7,7 @@ import kotlinx.coroutines.experimental.withContext
 import kotlinx.coroutines.experimental.withTimeout
 import org.joda.time.DateTime
 import retrofit2.HttpException
-import ru.relabs.kurjer.ErrorButtonsListener
-import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.activity
-import ru.relabs.kurjer.application
+import ru.relabs.kurjer.*
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI.api
@@ -18,6 +15,7 @@ import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.ErrorUtils
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
+import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import ru.relabs.kurjer.ui.fragments.TaskListFragment
 import ru.relabs.kurjer.ui.models.TaskListModel
 import java.util.*
@@ -152,10 +150,19 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                     }
 
                     if (newTasks != null) {
+                        val token = (application().user as? UserModel.Authorized)?.token ?: ""
+
                         val mergeResult = PersistenceHelper.merge(
                                 db,
                                 newTasks,
                                 {
+                                    db.sendQueryDao().insert(
+                                            SendQueryItemEntity(0,
+                                                    BuildConfig.API_URL + "/api/v1/tasks/${it.id}/received?token=" + token,
+                                                    ""
+                                            )
+                                    )
+
                                     try {
                                         NetworkHelper.loadTaskRasterizeMap(it, fragment.context?.contentResolver)
                                     } catch (e: Exception) {

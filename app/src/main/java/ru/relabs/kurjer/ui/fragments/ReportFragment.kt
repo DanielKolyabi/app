@@ -19,6 +19,7 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.include_hint_container.*
 import ru.relabs.kurjer.BuildConfig
+import ru.relabs.kurjer.CustomLog
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
@@ -163,7 +164,12 @@ class ReportFragment : Fragment() {
     }
 
     fun setTaskListVisible(visible: Boolean) {
-        tasks_list.setVisible(visible)
+        try {
+            tasks_list.setVisible(visible)
+        }catch (e: Throwable){
+            e.printStackTrace()
+            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
+        }
     }
 
     fun setTaskListActiveTask(taskNumber: Int, isActive: Boolean) {

@@ -48,7 +48,12 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 fillPhotosAdapterData(db)
                 fillDescriptionData(db)
                 withContext(UI) {
-                    fragment.loading.visibility = View.GONE
+                    try {
+                        fragment.loading.visibility = View.GONE
+                    }catch (e: Throwable){
+                        e.printStackTrace()
+                        CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
+                    }
                 }
             }
 
@@ -286,10 +291,10 @@ class ReportPresenter(private val fragment: ReportFragment) {
         photoMultiMode = multiPhoto
         val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID)
 
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile))
+        val intent: Intent? = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        intent?.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile))
 
-        if (intent.resolveActivity(fragment.context?.packageManager) != null) {
+        if (intent?.resolveActivity(fragment.context?.packageManager) != null) {
             fragment.startActivityForResult(intent, REQUEST_PHOTO)
         }
     }
@@ -304,7 +309,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
             }
             val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID)
             if (photoFile.exists()) {
-                saveNewPhoto(BitmapFactory.decodeFile(photoFile.absolutePath))
+                saveNewPhoto(photoFile.absolutePath)
                 return true
             }
 
@@ -323,6 +328,18 @@ class ReportPresenter(private val fragment: ReportFragment) {
             return true
         }
         return false
+    }
+
+    private fun saveNewPhoto(path: String): File? {
+        try {
+            val bmp = BitmapFactory.decodeFile(path)
+            return saveNewPhoto(bmp)
+        } catch (e: Throwable) {
+            (fragment.context as MainActivity).showError("Не удалось сохранить фотографию. Недостаточно памяти. Попробуйте сделать снимок еще раз. Если проблема повторится перезагрузите телефон.")
+            e.printStackTrace()
+        }
+
+        return null
     }
 
     private fun saveNewPhoto(bmp: Bitmap?): File? {
@@ -398,9 +415,15 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
     fun onCloseClicked() {
+        val description = try {
+            fragment.user_explanation_input.text.toString()
+        }catch(e: Exception) {
+            "can't get user explanation"
+        }
+
         (fragment.context as MainActivity).showError("Вы уверен что хотите закрыть адрес?", object : ErrorButtonsListener {
             override fun positiveListener() {
-                val status = closeTaskItem()
+                val status = closeTaskItem(description)
                 if (!status) {
                     (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
                 }
@@ -411,16 +434,15 @@ class ReportPresenter(private val fragment: ReportFragment) {
         return
     }
 
-    private fun closeTaskItem(): Boolean {
-        val app = fragment.activity?.application as? MyApplication
-        app ?: return false
+    private fun closeTaskItem(description: String): Boolean {
+        val app = application()
+
         launch(UI) {
             val db = app.database
             val userToken = (app.user as UserModel.Authorized).token
             val entrances = fragment.entrancesListAdapter.data
                     .filter { it is ReportEntrancesListModel.Entrance }
                     .map { it as ReportEntrancesListModel.Entrance }
-            val description = fragment.user_explanation_input.text.toString()
 
             withContext(CommonPool) {
                 val location = application().currentLocation
@@ -436,32 +458,32 @@ class ReportPresenter(private val fragment: ReportFragment) {
                     CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
                 }
 
-                db.taskItemDao().update(
-                        db.taskItemDao().getById(fragment.taskItems[currentTask].id)!!.apply {
-                            state = TaskItemModel.CLOSED
-                        }
-                )
-                db.taskDao().update(
-                        db.taskDao().getById(fragment.tasks[currentTask].id)!!.let {
-                            if (it.state and TaskModel.EXAMINED != 0) {
-                                it.state = TaskModel.STARTED
-                                val token = (app.user as? UserModel.Authorized)?.token
+                db.taskItemDao().getById(fragment.taskItems[currentTask].id)?.apply {
+                    state = TaskItemModel.CLOSED
+                }?.let {
+                    db.taskItemDao().update(it)
+                }
 
-                                db.sendQueryDao().insert(
-                                        SendQueryItemEntity(0,
-                                                BuildConfig.API_URL + "/api/v1/tasks/${it.id}/accepted?token=" + (token
-                                                        ?: ""),
-                                                ""
-                                        )
+                db.taskDao().getById(fragment.tasks[currentTask].id)?.let {
+                    if (it.state and TaskModel.EXAMINED != 0) {
+                        it.state = TaskModel.STARTED
+                        val token = (app.user as? UserModel.Authorized)?.token
+
+                        db.sendQueryDao().insert(
+                                SendQueryItemEntity(0,
+                                        BuildConfig.API_URL + "/api/v1/tasks/${it.id}/accepted?token=" + (token
+                                                ?: ""),
+                                        ""
                                 )
-                            }
-                            it
-                        }
-                )
+                        )
+                    }
+
+                    db.taskDao().update(it)
+                }
 
                 val reportItem = ReportQueryItemEntity(
                         0, fragment.taskItems[currentTask].id, fragment.tasks[currentTask].id, fragment.taskItems[currentTask].address.id, location,
-                        Date(), fragment.user_explanation_input.text.toString(),
+                        Date(), description,
                         fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.map {
                             Pair((it as ReportEntrancesListModel.Entrance).entranceNumber, it.selected)
                         },
@@ -478,7 +500,6 @@ class ReportPresenter(private val fragment: ReportFragment) {
             fragment.targetFragment?.onActivityResult(1, Activity.RESULT_OK, int)
 
             fragment.taskItems[currentTask].state = TaskItemModel.CLOSED
-            fillTasksAdapterData()
             val dateNow = Date()
             val openedTasks = fragment.taskItems.filterIndexed { i, it ->
                 val parent = fragment.tasks[i]
@@ -487,8 +508,9 @@ class ReportPresenter(private val fragment: ReportFragment) {
             if (openedTasks.isNotEmpty()) {
                 val openedTaskPos = fragment.taskItems.indexOf(openedTasks.first())
                 changeCurrentTask(openedTaskPos)
+                fillTasksAdapterData()
             } else {
-                (fragment.context as MainActivity).onBackPressed()
+                (fragment.context as? MainActivity)?.onBackPressed()
             }
         }
         return true

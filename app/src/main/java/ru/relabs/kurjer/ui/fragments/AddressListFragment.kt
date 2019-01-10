@@ -80,7 +80,6 @@ class AddressListFragment : Fragment(), SearchableFragment {
     private var taskIds: List<Int> = listOf()
     private var tasks: List<TaskModel> = listOf()
     val adapter = DelegateAdapter<AddressListModel>()
-    var currentUserToken: String? = null
 
     var listScrollPosition = 0
 
@@ -95,7 +94,7 @@ class AddressListFragment : Fragment(), SearchableFragment {
                     for (taskItem in task.items) {
                         if (taskItem.id == taskItemId) {
                             taskItem.state = TaskItemModel.CLOSED
-                            presenter.updateStates(currentUserToken)
+                            presenter.updateStates()
                             break@mainLoop
                         }
                     }
@@ -128,8 +127,6 @@ class AddressListFragment : Fragment(), SearchableFragment {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         hintHelper = HintHelper(hint_container, resources.getString(R.string.address_list_hint_text), false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
-
-        currentUserToken = (application().user as UserModel.Authorized).token
 
         adapter.apply {
             addDelegate(AddressListAddressDelegate(
@@ -171,7 +168,7 @@ class AddressListFragment : Fragment(), SearchableFragment {
                 adapter.data.add(AddressListModel.Loader)
                 adapter.notifyDataSetChanged()
 
-                presenter.updateStates(currentUserToken)
+                presenter.updateStates()
             }
         }
     }

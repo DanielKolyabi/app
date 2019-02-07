@@ -32,6 +32,7 @@ import ru.relabs.kurjer.ui.helpers.HintHelper
 import ru.relabs.kurjer.ui.helpers.TaskAddressSorter
 import ru.relabs.kurjer.ui.models.AddressListModel
 import ru.relabs.kurjer.ui.presenters.AddressListPresenter
+import java.util.*
 
 class AddressListFragment : Fragment(), SearchableFragment {
     override fun onSearchItems(filter: String): List<String> {
@@ -185,9 +186,10 @@ class AddressListFragment : Fragment(), SearchableFragment {
     private suspend fun loadTasksFromDatabase() {
         val db = application().database
         withContext(CommonPool) {
-            tasks = taskIds.map {
+            tasks = taskIds.mapNotNull {
                 db.taskDao().getById(it)?.toTaskModel(db)
-            }.filterNotNull()
+            }.filter{it.canShowedByDate(Date())}
+
             for (task in tasks) {
                 for (taskItem in task.items) {
                     for (entrance in taskItem.entrances) {

@@ -9,10 +9,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
-import ru.relabs.kurjer.CustomLog
-import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.MyApplication
-import ru.relabs.kurjer.activity
+import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
@@ -21,6 +18,7 @@ import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.fragments.AddressListFragment
 import ru.relabs.kurjer.ui.helpers.TaskAddressSorter
 import ru.relabs.kurjer.ui.models.AddressListModel
+import java.util.*
 
 
 /**
@@ -79,6 +77,14 @@ class AddressListPresenter(val fragment: AddressListFragment) {
     }
 
     fun onItemClicked(task: AddressListModel.TaskItem) {
+        if(!task.parentTask.canShowedByDate(Date())){
+            fragment.activity()?.showError("Задание больше недоступно.", object : ErrorButtonsListener{
+                override fun positiveListener() {
+                    fragment?.activity()?.showTaskListScreen()
+                }
+                override fun negativeListener() {}
+            })
+        }
         fragment.activity()?.showTasksReportScreen(fragment.adapter.data.filter {
             (it is AddressListModel.TaskItem) && it.taskItem.address.id == task.taskItem.address.id
         }.map {
@@ -132,6 +138,9 @@ class AddressListPresenter(val fragment: AddressListFragment) {
 
     fun onDataChanged(changedTask: TaskModel, changedItem: TaskItemModel) {
         val taskIdx = tasks.indexOf(changedTask)
+        if(taskIdx < 0){
+            return
+        }
         val taskItemIdx = tasks[taskIdx].items.indexOf(changedItem)
 
         val items = tasks[taskIdx].items.toMutableList()

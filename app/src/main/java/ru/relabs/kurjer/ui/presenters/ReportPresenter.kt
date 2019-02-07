@@ -50,7 +50,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 withContext(UI) {
                     try {
                         fragment.loading.visibility = View.GONE
-                    }catch (e: Throwable){
+                    } catch (e: Throwable) {
                         e.printStackTrace()
                         CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
                     }
@@ -63,10 +63,10 @@ class ReportPresenter(private val fragment: ReportFragment) {
             fragment.showHintText(fragment.taskItems[currentTask].notes)
         }
 
-        fragment.close_button.isEnabled = fragment.tasks[currentTask].isAvailableByDate(Date())
+        fragment.close_button?.isEnabled = fragment.tasks[currentTask].isAvailableByDate(Date())
 
-        fragment.close_button.isEnabled = fragment.close_button.isEnabled && fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
-        fragment.user_explanation_input.isEnabled = fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
+        fragment.close_button?.isEnabled = fragment.close_button.isEnabled && fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
+        fragment.user_explanation_input?.isEnabled = fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
 
         (fragment.context as? MainActivity)?.changeTitle(fragment.taskItems[currentTask].address.name)
     }
@@ -74,7 +74,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
     private fun fillDescriptionData(db: AppDatabase) {
         db.taskItemResultsDao().getByTaskItemId(fragment.taskItems[currentTask].id)?.let {
             launch(UI) {
-                fragment.user_explanation_input.setText(it.description)
+                fragment.user_explanation_input?.setText(it.description)
             }
         }
     }
@@ -153,14 +153,16 @@ class ReportPresenter(private val fragment: ReportFragment) {
                     }
 
                     val taskItemEntrances = getTaskItemEntranceData(taskItem, db)
-                    val cur = taskItemEntrances[data.entranceNumber - 1].selected
-                    if (cur and type != data.selected and type) {
-                        taskItemEntrances[data.entranceNumber - 1].selected = cur xor type
-                    }
-                    try {
-                        createOrUpdateTaskResult(taskItem.id, entrances = taskItemEntrances)
-                    } catch (e: Throwable) {
-                        CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
+                    if (taskItemEntrances.size <= data.entranceNumber - 1) {
+                        val cur = taskItemEntrances[data.entranceNumber - 1].selected
+                        if (cur and type != data.selected and type) {
+                            taskItemEntrances[data.entranceNumber - 1].selected = cur xor type
+                        }
+                        try {
+                            createOrUpdateTaskResult(taskItem.id, entrances = taskItemEntrances)
+                        } catch (e: Throwable) {
+                            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
+                        }
                     }
                 }
             }
@@ -174,6 +176,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
     fun onDescriptionChanged() {
+        fragment.user_explanation_input ?: return
         val description = fragment.user_explanation_input.text.toString()
 
         launch(CommonPool) {
@@ -294,8 +297,14 @@ class ReportPresenter(private val fragment: ReportFragment) {
         val intent: Intent? = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         intent?.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile))
 
-        if (intent?.resolveActivity(fragment.context?.packageManager) != null) {
-            fragment.startActivityForResult(intent, REQUEST_PHOTO)
+        val packageManager = fragment.context?.packageManager
+
+        packageManager?.let { packageManager ->
+            intent?.let { intent ->
+                if (intent.resolveActivity(packageManager) != null) {
+                    fragment.startActivityForResult(intent, REQUEST_PHOTO)
+                }
+            }
         }
     }
 
@@ -395,7 +404,9 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
     fun onRemovePhotoClicked(holder: RecyclerView.ViewHolder) {
         val position = holder.adapterPosition
-        if (position >= fragment.photosListAdapter.data.size) {
+        if (position >= fragment.photosListAdapter.data.size ||
+                position < 0) {
+
             (fragment.context as? MainActivity)?.showError("Не возможно удалить фото.")
             return
         }
@@ -414,24 +425,36 @@ class ReportPresenter(private val fragment: ReportFragment) {
         fragment.photosListAdapter.notifyItemRemoved(holder.adapterPosition)
     }
 
-    fun onCloseClicked() {
-        val description = try {
-            fragment.user_explanation_input.text.toString()
-        }catch(e: Exception) {
-            "can't get user explanation"
-        }
 
-        (fragment.context as MainActivity).showError("Вы уверен что хотите закрыть адрес?", object : ErrorButtonsListener {
-            override fun positiveListener() {
-                val status = closeTaskItem(description)
-                if (!status) {
-                    (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
+    fun onCloseClicked() {
+        if (!fragment.tasks[currentTask].canShowedByDate(Date())) {
+            fragment.activity()?.showError("Задание больше недоступно.", object : ErrorButtonsListener {
+                override fun positiveListener() {
+                    fragment?.activity()?.showTaskListScreen()
                 }
+
+                override fun negativeListener() {
+                }
+            })
+        } else {
+            val description = try {
+                fragment.user_explanation_input.text.toString()
+            } catch (e: Exception) {
+                "can't get user explanation"
             }
 
-            override fun negativeListener() {}
-        }, "Да", "Нет")
-        return
+            (fragment.context as MainActivity).showError("Вы уверен что хотите закрыть адрес?", object : ErrorButtonsListener {
+                override fun positiveListener() {
+                    val status = closeTaskItem(description)
+                    if (!status) {
+                        (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
+                    }
+                }
+
+                override fun negativeListener() {}
+            }, "Да", "Нет")
+            return
+        }
     }
 
     private fun closeTaskItem(description: String): Boolean {

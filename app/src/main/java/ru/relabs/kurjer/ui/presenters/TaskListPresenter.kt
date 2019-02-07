@@ -213,6 +213,6 @@ class TaskListPresenter(val fragment: TaskListFragment) {
 
     suspend fun loadTasksFromDatabase(db: AppDatabase): List<TaskListModel.Task> {
         val tasks = withContext(CommonPool) { db.taskDao().allOpened.map { it.toTaskModel(db) } }
-        return tasks.filter { it.items.isNotEmpty() }.map { TaskListModel.Task(it) }
+        return tasks.filter { it.items.isNotEmpty() && it.canShowedByDate(Date())  }.map { TaskListModel.Task(it) }
     }
 }

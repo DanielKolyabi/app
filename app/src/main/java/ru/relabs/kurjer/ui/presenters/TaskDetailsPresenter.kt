@@ -10,6 +10,7 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.MainActivity
+import ru.relabs.kurjer.activity
 import ru.relabs.kurjer.application
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
@@ -40,7 +41,7 @@ class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
                         )
                 )
             }
-            (fragment.context as MainActivity).showTaskListScreen(false, fragment.posInList)
+            fragment.activity()?.showTaskListScreen(false, fragment.posInList)
         }
     }
 

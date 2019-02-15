@@ -42,11 +42,34 @@ import kotlin.math.roundToInt
 class MainActivity : AppCompatActivity() {
     private var needRefreshShowed = false
     private var needForceRefresh = false
+    private var blockingNetworkDisabled = false
+
+    private fun showNetworkDisabledError(canSkip: Boolean = true) {
+        showError(
+                "Необходимо включить передачу данных",
+                object : ErrorButtonsListener {
+                    override fun positiveListener() {
+                        if (!NetworkHelper.isNetworkEnabled(this@MainActivity)) {
+                            showNetworkDisabledError(canSkip)
+                            return
+                        }
+                        blockingNetworkDisabled = false
+                    }
+                    override fun negativeListener() {
+                        blockingNetworkDisabled = true
+                    }
+                },
+                "Ок", if (canSkip) "Позже" else ""
+
+        )
+    }
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent ?: return
-
+            if (intent.getBooleanExtra("network_disabled", false)) {
+                showNetworkDisabledError(!blockingNetworkDisabled)
+            }
             if (intent.getBooleanExtra("tasks_changed", false)) {
                 if (needRefreshShowed) return
 
@@ -151,8 +174,14 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                override fun negativeListener() {}
-            }, "Скопировать", "Ок")
+                override fun negativeListener() {
+                    try {
+                        CustomLog.share(this@MainActivity)
+                    } catch (e: java.lang.Exception) {
+                        Toast.makeText(this@MainActivity, "Произошла ошибка", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }, "Скопировать", "Отправить crash.log", cancelable = true)
         }
 
         showLoginScreen()
@@ -394,7 +423,7 @@ class MainActivity : AppCompatActivity() {
         return fragment
     }
 
-    fun showError(errorMessage: String, listener: ErrorButtonsListener? = null, forcePositiveButtonName: String = "Ок", forceNegativeButtonName: String = "") {
+    fun showError(errorMessage: String, listener: ErrorButtonsListener? = null, forcePositiveButtonName: String = "Ок", forceNegativeButtonName: String = "", cancelable: Boolean = false) {
         try {
             val builder = AlertDialog.Builder(this)
                     .setMessage(errorMessage)
@@ -405,7 +434,7 @@ class MainActivity : AppCompatActivity() {
             if (forceNegativeButtonName.isNotBlank()) {
                 builder.setNegativeButton(forceNegativeButtonName) { _, _ -> listener?.negativeListener() }
             }
-            builder.setCancelable(false)
+            builder.setCancelable(cancelable)
             builder.show()
         } catch (e: Throwable) {
             CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))

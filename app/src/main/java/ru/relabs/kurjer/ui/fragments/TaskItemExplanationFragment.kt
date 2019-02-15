@@ -31,7 +31,7 @@ class TaskItemExplanationFragment : Fragment() {
             val noteTextViews = listOf(note1_text, note2_text, note3_text)
             item.notes.forEachIndexed { i, note ->
                 if(!note.isNullOrBlank()){
-                    noteTextViews[i].text = note
+                    noteTextViews[2-i].text = note
                 }
             }
         }

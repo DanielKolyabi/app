@@ -32,6 +32,9 @@ import ru.relabs.kurjer.ui.models.ReportPhotosListModel
 import ru.relabs.kurjer.ui.models.ReportTasksListModel
 import ru.relabs.kurjer.ui.presenters.ReportPresenter
 import java.util.*
+import android.view.ViewTreeObserver
+
+
 
 class ReportFragment : Fragment() {
     lateinit var tasks: MutableList<TaskModel>
@@ -88,10 +91,33 @@ class ReportFragment : Fragment() {
         presenter.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
+    fun updateHintHelperMaximumHeight() {
+//        hint_container.measure(View.MeasureSpec.makeMeasureSpec(hint_container.width, View.MeasureSpec.EXACTLY),
+//                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+//        entrances_list.measure(View.MeasureSpec.makeMeasureSpec(entrances_list.width, View.MeasureSpec.EXACTLY),
+//                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+
+        hintHelper.maxHeight = entrances_list.height + hint_container.height
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        hintHelper = HintHelper(hint_container, "", false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
+        hintHelper = HintHelper(
+                hint_container,
+                "",
+                false,
+                activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+        )
+
+        hint_container.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+
+            override fun onGlobalLayout() {
+                hint_container.viewTreeObserver.removeOnGlobalLayoutListener(this)
+
+                updateHintHelperMaximumHeight()
+            }
+        });
 
         tasksListAdapter.addDelegate(ReportTasksDelegate {
             presenter.changeCurrentTask(it)
@@ -158,7 +184,7 @@ class ReportFragment : Fragment() {
     }
 
     fun showHintText(notes: List<String>) {
-        hint_text.text = Html.fromHtml((1..3).map {
+        hint_text.text = Html.fromHtml((3 downTo 1).map {
             "<b>Пр. $it</b><br/>" + notes.getOrElse(it-1) { "" }
         }.joinToString("<br/>"))
     }

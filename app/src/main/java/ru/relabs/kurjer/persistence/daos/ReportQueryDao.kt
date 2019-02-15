@@ -18,6 +18,9 @@ interface ReportQueryDao {
     @Query("SELECT * FROM report_query WHERE task_id = :id")
     fun getByTaskId(id: Int): List<ReportQueryItemEntity>
 
+    @Query("SELECT * FROM report_query WHERE task_item_id = :id")
+    fun getByTaskItemId(id: Int): ReportQueryItemEntity?
+
     @Update
     fun update(address: ReportQueryItemEntity)
 

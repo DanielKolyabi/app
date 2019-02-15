@@ -5,6 +5,8 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.Uri
+import android.net.wifi.WifiManager
+import android.provider.Settings
 import android.util.Log
 import android.webkit.MimeTypeMap
 import okhttp3.MediaType
@@ -31,6 +33,24 @@ import java.util.*
  */
 
 object NetworkHelper {
+    private fun isWifiEnabled(context: Context?): Boolean {
+        context ?: return false
+        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+                ?: return false
+        return wifiManager.isWifiEnabled
+    }
+
+    private fun isMobileDataEnabled(context: Context?): Boolean {
+        context ?: return false
+
+        return Settings.Secure.getInt(context.contentResolver, "mobile_data", 0) == 1
+    }
+
+    fun isNetworkEnabled(context: Context?): Boolean{
+        return isWifiEnabled(context) || isMobileDataEnabled(context)
+    }
+
+
     fun isNetworkAvailable(context: Context?): Boolean {
         context ?: return false
         val status = (context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager)?.activeNetworkInfo?.isConnectedOrConnecting
@@ -48,7 +68,7 @@ object NetworkHelper {
                 photoParts.add(photoEntityToPart("img_$imgCount", data, photo))
                 photosMap["img_$imgCount"] = PhotoReportModel("", photo.gps)
                 imgCount++
-            } catch (e: Throwable){
+            } catch (e: Throwable) {
                 e.logError()
             }
         }
@@ -66,7 +86,7 @@ object NetworkHelper {
                 reportEnt.taskItemId,
                 UUID.fromString(photoEnt.UUID)
         )
-        if(!photoFile.exists()){
+        if (!photoFile.exists()) {
             throw FileNotFoundException(photoFile.path)
         }
         val extension = Uri.fromFile(photoFile).toString().split(".").last()

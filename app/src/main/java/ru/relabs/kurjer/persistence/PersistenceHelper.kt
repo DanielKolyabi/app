@@ -109,21 +109,29 @@ object PersistenceHelper {
             newTasks.filter { it.id !in savedTasksIDs }.forEach { task ->
                 //Add task
                 val newTaskId = db.taskDao().insert(task.toTaskEntity())
-                result.isNewTasksAdded = true
-                onNewTaskAppear(task)
                 Log.d("merge", "Add task ID: $newTaskId")
+                var openedTaskItems = 0
                 task.items.forEach { item ->
                     //Add address
                     if (db.addressDao().getById(item.address.id) == null) {
                         db.addressDao().insert(item.address.toAddressEntity())
                     }
                     //Add item
-                    val reportForThisTask = db.taskItemResultsDao().getByTaskItemId(item.id)
+                    val reportForThisTask = db.reportQueryDao().getByTaskItemId(item.id)
                     if (reportForThisTask != null) {
                         item.state = TaskItemModel.CLOSED
                     }
+                    if(item.state != TaskItemModel.CLOSED){
+                        openedTaskItems ++
+                    }
                     val newId = db.taskItemDao().insert(item.toTaskItemEntity(task.id))
                     Log.d("merge", "Add taskItem ID: $newId")
+                }
+                if(openedTaskItems <= 0){
+                    closeTaskById(db, newTaskId.toInt())
+                }else{
+                    result.isNewTasksAdded = true
+                    onNewTaskAppear(task)
                 }
             }
 
@@ -164,7 +172,7 @@ object PersistenceHelper {
                             db.addressDao().insert(it.address.toAddressEntity())
                         }
 
-                        val reportForThisTask = db.taskItemResultsDao().getByTaskItemId(it.id)
+                        val reportForThisTask = db.reportQueryDao().getByTaskItemId(it.id)
                         if (reportForThisTask != null) {
                             it.state = TaskItemModel.CLOSED
                         }

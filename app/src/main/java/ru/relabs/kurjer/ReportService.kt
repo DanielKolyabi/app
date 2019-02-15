@@ -60,10 +60,10 @@ class ReportService : Service() {
 
         val db = MyApplication.instance.database
         var lastTasksChecking = System.currentTimeMillis()
+        var lastNetworkEnabledChecking = System.currentTimeMillis()
 
         thread = launch {
             while (true) {
-                val isNetworkAvailable = NetworkHelper.isNetworkAvailable(applicationContext)
                 var isTaskSended = false
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
                     val sendQuery = getSendQuery(db)
@@ -106,6 +106,18 @@ class ReportService : Service() {
                     }
                 }
                 updateNotificationText(db)
+
+                if(System.currentTimeMillis() - lastNetworkEnabledChecking > 15*1000){
+                    lastNetworkEnabledChecking = System.currentTimeMillis()
+                    if(!NetworkHelper.isNetworkEnabled(applicationContext)){
+                        val int = Intent().apply {
+                            putExtra("network_disabled", true)
+                            action = "NOW"
+                        }
+                        sendBroadcast(int)
+                    }
+                }
+
                 delay(if (!isTaskSended) 10000 else 1000)
             }
         }

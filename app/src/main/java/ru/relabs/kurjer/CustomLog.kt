@@ -1,6 +1,10 @@
 package ru.relabs.kurjer
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.os.Environment
+import android.support.v4.content.FileProvider
 import android.util.Log
 import org.joda.time.DateTime
 import java.io.File
@@ -11,6 +15,8 @@ import java.io.StringWriter
 /**
  * Created by ProOrange on 02.10.2018.
  */
+const val CRASH_FILENAME = "crash.log"
+
 object CustomLog {
     fun getStacktraceAsString(e: Throwable): String {
         val stringBuffSync = StringWriter()
@@ -19,6 +25,24 @@ object CustomLog {
         val stacktrace = stringBuffSync.toString()
         printWriter.close()
         return stacktrace
+    }
+
+    fun share(context: Activity) {
+        val dir = File(Environment.getExternalStorageDirectory(),
+                "deliveryman")
+        val f = File(dir, CRASH_FILENAME)
+        if(!f.exists()){
+            throw Exception("crash.log not found")
+        }
+
+        val uri = FileProvider.getUriForFile(context, "com.relabs.kurjer.file_provider", f)
+        val intent = Intent().apply{
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, "crash.log например")
+            putExtra(Intent.EXTRA_STREAM, uri)
+            type = "text/*"
+        }
+        context.startActivity(intent)
     }
 
     fun writeToFile(currentStacktrace: String) {
@@ -31,10 +55,9 @@ object CustomLog {
                 dir.mkdirs()
             }
 
-            val filename = "crash.log"
 
             // Write the file into the folder
-            val reportFile = File(dir, filename)
+            val reportFile = File(dir, CRASH_FILENAME)
             val fileWriter = FileWriter(reportFile, true)
             fileWriter.append("\n${DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")}:\n")
             fileWriter.append(currentStacktrace)

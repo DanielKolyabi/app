@@ -9,9 +9,9 @@
         android:id="@+id/hint_icon"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:src="@drawable/ic_info"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -209,4 +209,14 @@
         app:layout_constraintTop_toTopOf="@+id/storage_label"
         tools:text="Москва, Южнобутовская ул., 68, под. 3 (в машину у подъезда).\nСветлана, 8-999-999-99-99" />
 
+    <TextView
+        android:id="@+id/need_photo_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:text="Необходимы фотографии"
+        android:textColor="@color/colorFuchsia"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="@id/storage_label"
+        app:layout_constraintTop_toBottomOf="@id/storage_text" />
 </android.support.constraint.ConstraintLayout>

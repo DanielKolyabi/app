@@ -1,7 +1,9 @@
 package ru.relabs.kurjer
 
 import android.app.Application
+import android.arch.persistence.db.SupportSQLiteDatabase
 import android.arch.persistence.room.Room
+import android.arch.persistence.room.migration.Migration
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -53,9 +55,15 @@ class MyApplication : Application() {
         StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().build())
         deviceUUID = getOrGenerateDeviceUUID()
 
+        val migration_26_27 = object: Migration(26,27){
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE task_items ADD COLUMN need_photo INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         database = Room
                 .databaseBuilder(applicationContext, ru.relabs.kurjer.persistence.AppDatabase::class.java, "deliveryman")
-                .fallbackToDestructiveMigration()
+                .addMigrations(migration_26_27)
                 .build()
     }
 

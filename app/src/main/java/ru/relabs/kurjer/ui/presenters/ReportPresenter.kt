@@ -437,6 +437,12 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 }
             })
         } else {
+            if(fragment.taskItems[currentTask].needPhoto
+                    && fragment.photosListAdapter.data.filter { it is ReportPhotosListModel.TaskItemPhoto }.isEmpty()){
+                (fragment?.context as? MainActivity)?.showError("Необходимо сделать фотографии")
+                return
+            }
+
             val description = try {
                 fragment.user_explanation_input.text.toString()
             } catch (e: Exception) {

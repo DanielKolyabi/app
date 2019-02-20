@@ -15,9 +15,11 @@ data class TaskItemResponseModel(
         var bypass: Int,
         var copies: Int,
         @SerializedName("task_id")
-        var taskId: Int
+        var taskId: Int,
+        @SerializedName("need_photo")
+        var needPhoto: Boolean
 ) {
     fun toTaskItemModel(): TaskItemModel {
-        return TaskItemModel(address.toAddressModel(), state, id, notes, entrances.map{ EntranceModel(it, false) }, subarea, bypass, copies)
+        return TaskItemModel(address.toAddressModel(), state, id, notes, entrances.map{ EntranceModel(it, false) }, subarea, bypass, copies, needPhoto)
     }
 }

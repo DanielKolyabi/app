@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.view.View
 import android.view.View.NOT_FOCUSABLE
 import kotlinx.android.synthetic.main.item_addr_list_task.view.*
+import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
@@ -20,6 +21,8 @@ class AddressListTaskItemHolder(
     override fun onBindViewHolder(item: AddressListModel) {
         if (item !is AddressListModel.TaskItem) return
         itemView.task_button.text = "${item.parentTask.name} №${item.parentTask.edition}, ${item.taskItem.copies}экз."
+
+
         if (item.taskItem.state == TaskItemModel.CLOSED) {
             //itemView.task_button.isEnabled = false
             itemView.map_icon.alpha = 0.4f
@@ -30,7 +33,17 @@ class AddressListTaskItemHolder(
             itemView.map_icon.alpha = 1f
             itemView.map_icon.isClickable = true
             itemView.task_button.setTextColor(Color.parseColor("#ff000000"))
+
+
+            if (item.taskItem.needPhoto){
+                itemView.task_button.setTextColor(itemView.resources.getColor(R.color.colorFuchsia))
+            }else{
+                itemView.task_button.setTextColor(Color.parseColor("#ff000000"))
+            }
         }
+
+
+
         itemView.task_button.setOnClickListener {
             onItemClicked(item)
         }

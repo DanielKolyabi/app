@@ -1,7 +1,9 @@
 package ru.relabs.kurjer.ui.holders
 
+import android.graphics.Color
 import android.view.View
 import kotlinx.android.synthetic.main.item_task_details_list_item.view.*
+import ru.relabs.kurjer.R
 import ru.relabs.kurjer.ui.models.DetailsListModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
@@ -20,6 +22,12 @@ class DetailsTableItemHolder(itemView: View, val onInfoClicked: (item: TaskItemM
 
             info_icon.setOnClickListener {
                 onInfoClicked(taskItem)
+            }
+
+            if(taskItem.needPhoto){
+                address_text.setTextColor(resources.getColor(R.color.colorFuchsia))
+            }else{
+                address_text.setTextColor(Color.parseColor("#808080"))
             }
         }
     }

@@ -32,12 +32,14 @@ data class TaskItemEntity(
         var bypass: Int,
         var copies: Int,
         @ColumnInfo(name = "task_id")
-        var taskId: Int
+        var taskId: Int,
+        @ColumnInfo(name = "need_photo")
+        var needPhoto: Boolean
 ){
         fun toTaskItemModel(db: AppDatabase): TaskItemModel{
                 return TaskItemModel(
                         db.addressDao().getById(addressId)!!.toAddressModel(),
-                        state, id, notes, entrances.map{ EntranceModel(it, false) }, subarea, bypass, copies
+                        state, id, notes, entrances.map{ EntranceModel(it, false) }, subarea, bypass, copies, needPhoto
                 )
         }
 }

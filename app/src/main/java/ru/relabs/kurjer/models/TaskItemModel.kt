@@ -17,29 +17,32 @@ data class TaskItemModel(
         var entrances: List<EntranceModel>,
         var subarea: Int,
         var bypass: Int,
-        var copies: Int
+        var copies: Int,
+        var needPhoto: Boolean
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
             parcel.readParcelable(AddressModel::class.java.classLoader),
             parcel.readInt(),
             parcel.readInt(),
             parcel.createStringArrayList(),
-            parcel.createIntArray().toList().map{
+            parcel.createIntArray().toList().map {
                 EntranceModel(it, false)
             },
             parcel.readInt(),
             parcel.readInt(),
-            parcel.readInt())
+            parcel.readInt(),
+            parcel.readInt() == 1)
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeParcelable(address, flags)
         parcel.writeInt(state)
         parcel.writeInt(id)
         parcel.writeStringList(notes)
-        parcel.writeIntArray(entrances.map{it.num}.toIntArray())
+        parcel.writeIntArray(entrances.map { it.num }.toIntArray())
         parcel.writeInt(subarea)
         parcel.writeInt(bypass)
         parcel.writeInt(copies)
+        parcel.writeInt(if (needPhoto) 1 else 0)
     }
 
     override fun describeContents(): Int {
@@ -48,7 +51,7 @@ data class TaskItemModel(
 
     fun toTaskItemEntity(parentTaskId: Int): TaskItemEntity {
         return TaskItemEntity(
-                address.id, state, id, notes, entrances.map{it.num}, subarea, bypass, copies, parentTaskId
+                address.id, state, id, notes, entrances.map { it.num }, subarea, bypass, copies, parentTaskId, needPhoto
         )
     }
 

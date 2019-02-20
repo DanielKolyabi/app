@@ -23,6 +23,12 @@ class DetailsTableInfoHolder(itemView: View) : BaseViewHolder<DetailsListModel>(
             pack_count_text.text = task.packs.toString()
             remain_text.text = task.remain.toString()
             storage_text.text = task.storageAddress
+
+            if(item.task.items.find { it.needPhoto } != null){
+                need_photo_label.visibility = View.VISIBLE
+            }else{
+                need_photo_label.visibility = View.GONE
+            }
         }
     }
 }

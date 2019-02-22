@@ -27,6 +27,9 @@ import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
+import android.net.NetworkInfo
+
+
 
 /**
  * Created by ProOrange on 05.09.2018.
@@ -40,14 +43,22 @@ object NetworkHelper {
         return wifiManager.isWifiEnabled
     }
 
+    private fun isWifiConnected(context: Context?): Boolean {
+        context ?: return false
+        val wifiManager = context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+                ?: return false
+        return wifiManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected
+    }
+
     private fun isMobileDataEnabled(context: Context?): Boolean {
         context ?: return false
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-        return Settings.Secure.getInt(context.contentResolver, "mobile_data", 0) == 1
+        return Settings.Secure.getInt(context.contentResolver, "mobile_data", 0) == 1 || cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).isConnectedOrConnecting
     }
 
     fun isNetworkEnabled(context: Context?): Boolean{
-        return isWifiEnabled(context) || isMobileDataEnabled(context)
+        return (isWifiEnabled(context) && isWifiConnected(context)) || isMobileDataEnabled(context)
     }
 
 

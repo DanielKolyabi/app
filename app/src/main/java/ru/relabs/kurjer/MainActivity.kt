@@ -43,12 +43,16 @@ class MainActivity : AppCompatActivity() {
     private var needRefreshShowed = false
     private var needForceRefresh = false
     private var blockingNetworkDisabled = false
+    private var networkErrorShowed = false
 
     private fun showNetworkDisabledError(canSkip: Boolean = true) {
+        if(networkErrorShowed){return}
+        networkErrorShowed = true
         showError(
                 "Необходимо включить передачу данных",
                 object : ErrorButtonsListener {
                     override fun positiveListener() {
+                        networkErrorShowed = false
                         if (!NetworkHelper.isNetworkEnabled(this@MainActivity)) {
                             showNetworkDisabledError(canSkip)
                             return
@@ -56,6 +60,7 @@ class MainActivity : AppCompatActivity() {
                         blockingNetworkDisabled = false
                     }
                     override fun negativeListener() {
+                        networkErrorShowed = false
                         blockingNetworkDisabled = true
                     }
                 },

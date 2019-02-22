@@ -38,7 +38,7 @@ object CustomLog {
         val uri = FileProvider.getUriForFile(context, "com.relabs.kurjer.file_provider", f)
         val intent = Intent().apply{
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, "crash.log например")
+            putExtra(Intent.EXTRA_TEXT, "crash.log")
             putExtra(Intent.EXTRA_STREAM, uri)
             type = "text/*"
         }
@@ -59,7 +59,7 @@ object CustomLog {
             // Write the file into the folder
             val reportFile = File(dir, CRASH_FILENAME)
             val fileWriter = FileWriter(reportFile, true)
-            fileWriter.append("\n${DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")}:\n")
+            fileWriter.append("\n${DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")} Ver.${BuildConfig.VERSION_NAME}:\n")
             fileWriter.append(currentStacktrace)
             fileWriter.flush()
             fileWriter.close()

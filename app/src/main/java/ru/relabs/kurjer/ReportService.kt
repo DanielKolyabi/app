@@ -107,7 +107,7 @@ class ReportService : Service() {
                 }
                 updateNotificationText(db)
 
-                if(System.currentTimeMillis() - lastNetworkEnabledChecking > 15*1000){
+                if(System.currentTimeMillis() - lastNetworkEnabledChecking > 10*60*1000){
                     lastNetworkEnabledChecking = System.currentTimeMillis()
                     if(!NetworkHelper.isNetworkEnabled(applicationContext)){
                         val int = Intent().apply {

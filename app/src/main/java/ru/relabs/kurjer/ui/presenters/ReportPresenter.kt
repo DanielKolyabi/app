@@ -74,7 +74,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
     private fun fillDescriptionData(db: AppDatabase) {
         db.taskItemResultsDao().getByTaskItemId(fragment.taskItems[currentTask].id)?.let {
             launch(UI) {
-                fragment.user_explanation_input?.setText(it.description)
+                fragment?.user_explanation_input?.setText(it.description)
             }
         }
     }
@@ -153,7 +153,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
                     }
 
                     val taskItemEntrances = getTaskItemEntranceData(taskItem, db)
-                    if (taskItemEntrances.size <= data.entranceNumber - 1) {
+                    if (taskItemEntrances.size > data.entranceNumber - 1) {
                         val cur = taskItemEntrances[data.entranceNumber - 1].selected
                         if (cur and type != data.selected and type) {
                             taskItemEntrances[data.entranceNumber - 1].selected = cur xor type
@@ -468,7 +468,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
         launch(UI) {
             val db = app.database
-            val userToken = (app.user as UserModel.Authorized).token
+            val userToken = (app.user as? UserModel.Authorized)?.token ?: ""
             val entrances = fragment.entrancesListAdapter.data
                     .filter { it is ReportEntrancesListModel.Entrance }
                     .map { it as ReportEntrancesListModel.Entrance }

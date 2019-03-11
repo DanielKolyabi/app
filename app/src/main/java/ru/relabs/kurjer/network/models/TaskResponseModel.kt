@@ -48,8 +48,13 @@ data class TaskResponseModel(
             0, 10, 11, 20 -> TaskModel.CREATED
             30 -> TaskModel.EXAMINED
             40 -> TaskModel.STARTED
-            12, 50, 60 -> TaskModel.COMPLETED
+            50, 60 -> TaskModel.COMPLETED
+            12 -> TaskModel.CANCELED
             else -> TaskModel.COMPLETED
+        }
+
+        if(newState == TaskModel.CANCELED){
+            return newState
         }
 
         if(newState > TaskModel.CREATED && deviceId != firstExaminedDeviceId){

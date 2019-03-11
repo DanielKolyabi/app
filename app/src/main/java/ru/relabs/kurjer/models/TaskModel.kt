@@ -27,7 +27,15 @@ data class TaskModel(
         //Temporary var, for some features in lists
         var selected: Boolean
 ) : Parcelable {
+    val plainState
+        get() = if(state and TaskModel.BY_OTHER_USER == 1){
+            state xor TaskModel.BY_OTHER_USER
+        }else{
+            state
+        }
+
     val displayName = "${name} №${edition}, ${copies}экз., (${brigade}бр/${area}уч)"
+
     constructor(parcel: Parcel) : this(
             parcel.readInt(),
             parcel.readString(),
@@ -100,6 +108,7 @@ data class TaskModel(
         val EXAMINED = 1
         val STARTED = 2
         val COMPLETED = 4
+        val CANCELED = 16
         val BY_OTHER_USER = 8
         val TASK_STATE_MASK = 7
     }

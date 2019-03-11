@@ -35,7 +35,7 @@ class LoginFragment : Fragment() {
     fun setRememberPasswordEnabled(enabled: Boolean) {
         presenter.setRememberPassword(enabled)
         val size = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48f, resources.displayMetrics).toInt()
-        remember_password_text.setCompoundDrawables(
+        remember_password_text?.setCompoundDrawables(
                 context?.getDrawable(
                         if (enabled)
                             R.drawable.checked_checkbox

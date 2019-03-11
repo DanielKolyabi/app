@@ -37,6 +37,13 @@ data class TaskEntity(
         var storageAddress: String,
         var iteration: Int
 ) {
+    val plainState
+        get() = if(state and TaskModel.BY_OTHER_USER == 1){
+            state xor TaskModel.BY_OTHER_USER
+        }else{
+            state
+        }
+
     fun toTaskModel(db: AppDatabase): TaskModel {
         return TaskModel(
                 id, name, edition, copies, packs, remain, area, state, startTime, endTime, brigade, brigadier, rastMapUrl, userId,

@@ -97,7 +97,7 @@ class ReportFragment : Fragment() {
 //        entrances_list.measure(View.MeasureSpec.makeMeasureSpec(entrances_list.width, View.MeasureSpec.EXACTLY),
 //                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
 
-        hintHelper.maxHeight = entrances_list.height + hint_container.height
+        hintHelper?.maxHeight = (entrances_list?.height ?: 0) + (hint_container?.height ?: 0)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -113,7 +113,7 @@ class ReportFragment : Fragment() {
         hint_container.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
 
             override fun onGlobalLayout() {
-                hint_container.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                hint_container?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
 
                 updateHintHelperMaximumHeight()
             }

@@ -183,6 +183,7 @@ class MainActivity : AppCompatActivity() {
                     try {
                         CustomLog.share(this@MainActivity)
                     } catch (e: java.lang.Exception) {
+                        CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
                         Toast.makeText(this@MainActivity, "Произошла ошибка", Toast.LENGTH_LONG).show()
                     }
                 }

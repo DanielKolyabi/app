@@ -125,19 +125,19 @@
         <AutoCompleteTextView
             android:id="@+id/search_input"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="52dp"
+            android:completionThreshold="1"
             android:imeOptions="actionDone"
             android:inputType="textAutoComplete"
             android:maxLines="1"
-            android:completionThreshold="1"
+            android:textColor="#fff"
+            android:textColorHint="#ccc"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/search_button"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:visibility="gone"
-            android:textColor="#fff"
-            android:textColorHint="#ccc"
-            tools:visibility="visible"/>
+            tools:visibility="visible" />
 
         <ImageView
             android:id="@+id/device_uuid"

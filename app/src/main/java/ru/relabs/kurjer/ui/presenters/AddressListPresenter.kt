@@ -53,6 +53,9 @@ class AddressListPresenter(val fragment: AddressListFragment) {
     }
 
     private fun checkTasksIsClosed(db: AppDatabase) {
+        if(tasks.isEmpty())
+            return
+
         tasks.removeAll {
             if (isAllTaskItemsClosed(it)) {
                 PersistenceHelper.closeTask(db, it)

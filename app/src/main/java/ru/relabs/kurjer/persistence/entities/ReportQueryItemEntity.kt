@@ -26,5 +26,7 @@ data class ReportQueryItemEntity(
         @ColumnInfo(name = "user_description")
         var userDescription: String,
         var entrances: List<Pair<Int, Int>>,
-        var token: String
+        var token: String,
+        @ColumnInfo(name = "battery_level")
+        var batteryLevel: Int
 )

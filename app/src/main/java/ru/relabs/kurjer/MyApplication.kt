@@ -60,10 +60,15 @@ class MyApplication : Application() {
                 database.execSQL("ALTER TABLE task_items ADD COLUMN need_photo INTEGER NOT NULL DEFAULT 0")
             }
         }
+        val migration_27_28 = object: Migration(27,28){
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE report_query ADD COLUMN battery_level INTEGER NOT NULL DEFAULT 0")
+            }
+        }
 
         database = Room
                 .databaseBuilder(applicationContext, ru.relabs.kurjer.persistence.AppDatabase::class.java, "deliveryman")
-                .addMigrations(migration_26_27)
+                .addMigrations(migration_26_27, migration_27_28)
                 .build()
     }
 

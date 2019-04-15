@@ -3,13 +3,17 @@ package ru.relabs.kurjer.ui.presenters
 import android.app.Activity
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.coroutines.experimental.CommonPool
@@ -31,6 +35,7 @@ import ru.relabs.kurjer.ui.models.ReportPhotosListModel
 import ru.relabs.kurjer.ui.models.ReportTasksListModel
 import java.io.File
 import java.util.*
+import kotlin.math.roundToInt
 
 
 const val REQUEST_PHOTO = 1
@@ -510,13 +515,16 @@ class ReportPresenter(private val fragment: ReportFragment) {
                     db.taskDao().update(it)
                 }
 
+                Log.d("BatteryLevel",  "${((getBatteryLevel(fragment.context) ?: 0f) * 100).roundToInt()}")
+
                 val reportItem = ReportQueryItemEntity(
                         0, fragment.taskItems[currentTask].id, fragment.tasks[currentTask].id, fragment.taskItems[currentTask].address.id, location,
                         Date(), description,
                         fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.map {
                             Pair((it as ReportEntrancesListModel.Entrance).entranceNumber, it.selected)
                         },
-                        userToken
+                        userToken,
+                        ((getBatteryLevel(fragment.context) ?: 0f) * 100).roundToInt()
                 )
 
                 db.reportQueryDao().insert(reportItem)
@@ -543,6 +551,18 @@ class ReportPresenter(private val fragment: ReportFragment) {
             }
         }
         return true
+    }
+
+    private fun getBatteryLevel(context: Context?): Float? {
+        val ifilter = IntentFilter("android.intent.action.BATTERY_CHANGED")
+        val battery = context?.registerReceiver(null as BroadcastReceiver?, ifilter)
+        if (battery == null) {
+            return null
+        } else {
+            val level = battery.getIntExtra("level", -1)
+            val scale = battery.getIntExtra("scale", -1)
+            return level.toFloat() / scale.toFloat()
+        }
     }
 
     fun onCouplingChanged(adapterPosition: Int) {

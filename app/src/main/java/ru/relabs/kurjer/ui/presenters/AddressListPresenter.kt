@@ -52,6 +52,16 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         fragment.adapter.notifyDataSetChanged()
     }
 
+    fun prepareTaskItemsForList(taskItems: List<AddressListModel.TaskItem>): List<AddressListModel> {
+        val sorted = if (sortingMethod == TaskAddressSorter.ALPHABETIC) {
+            TaskAddressSorter.sortTaskItemsAlphabetic(taskItems)
+        } else {
+            TaskAddressSorter.sortTaskItemsStandart(taskItems)
+        }
+
+        return TaskAddressSorter.getAddressesWithTasksList(sorted)
+    }
+
     private fun checkTasksIsClosed(db: AppDatabase) {
         if(tasks.isEmpty())
             return
@@ -63,16 +73,6 @@ class AddressListPresenter(val fragment: AddressListFragment) {
             }
             return@removeAll false
         }
-    }
-
-    fun prepareTaskItemsForList(taskItems: List<AddressListModel.TaskItem>): List<AddressListModel> {
-        val sorted = if (sortingMethod == TaskAddressSorter.ALPHABETIC) {
-            TaskAddressSorter.sortTaskItemsAlphabetic(taskItems)
-        } else {
-            TaskAddressSorter.sortTaskItemsStandart(taskItems)
-        }
-
-        return TaskAddressSorter.getAddressesWithTasksList(sorted)
     }
 
     private fun isAllTaskItemsClosed(task: TaskModel): Boolean {

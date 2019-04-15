@@ -21,10 +21,12 @@ data class TaskItemReportModel(
         @SerializedName("description")
         var userDescription: String,
         var entrances: List<Pair<Int, Int>>,
-        var photos: Map<String, PhotoReportModel>
+        var photos: Map<String, PhotoReportModel>,
+        @SerializedName("battery_level")
+        var batteryLevel: Int
 )
 
 data class PhotoReportModel(
-    val hash: String,
-    val gps: GPSCoordinatesModel
+        val hash: String,
+        val gps: GPSCoordinatesModel
 )

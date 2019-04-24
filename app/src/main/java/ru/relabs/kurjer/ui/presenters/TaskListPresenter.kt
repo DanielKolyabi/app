@@ -26,6 +26,9 @@ import java.util.concurrent.TimeUnit
  */
 class TaskListPresenter(val fragment: TaskListFragment) {
     fun onTaskSelected(pos: Int) {
+        if(pos < 0){
+            return
+        }
         val task = (fragment.adapter.data[pos] as? TaskListModel.Task)?.task ?: return
         if (!isTaskCanSelected(task)) {
             (fragment.context as? MainActivity)?.showError("Вы должны ознакомиться с заданием.")
@@ -85,6 +88,9 @@ class TaskListPresenter(val fragment: TaskListFragment) {
     }
 
     fun onTaskClicked(pos: Int) {
+        if(pos < 0){
+            return
+        }
         val task = (fragment.adapter.data[pos] as? TaskListModel.Task)?.task ?: return
         (fragment.context as MainActivity).showTaskDetailsScreen(task, pos)
     }

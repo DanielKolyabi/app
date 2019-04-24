@@ -142,6 +142,9 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
     fun onEntranceSelected(type: Int, holder: RecyclerView.ViewHolder) {
+        if(holder.adapterPosition < 0){
+            return
+        }
         val data = (fragment.entrancesListAdapter.data[holder.adapterPosition] as ReportEntrancesListModel.Entrance)
         data.selected = data.selected xor type
         val entrances = fragment.entrancesListAdapter.data

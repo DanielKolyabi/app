@@ -63,15 +63,19 @@ class AddressListPresenter(val fragment: AddressListFragment) {
     }
 
     private fun checkTasksIsClosed(db: AppDatabase) {
-        if(tasks.isEmpty())
+        if (tasks.isEmpty())
             return
 
-        tasks.removeAll {
-            if (isAllTaskItemsClosed(it)) {
-                PersistenceHelper.closeTask(db, it)
-                return@removeAll true
+        try {
+            tasks.removeAll {
+                if (isAllTaskItemsClosed(it)) {
+                    PersistenceHelper.closeTask(db, it)
+                    return@removeAll true
+                }
+                return@removeAll false
             }
-            return@removeAll false
+        } catch (e: Exception) {
+            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
         }
     }
 
@@ -80,11 +84,12 @@ class AddressListPresenter(val fragment: AddressListFragment) {
     }
 
     fun onItemClicked(task: AddressListModel.TaskItem) {
-        if(!task.parentTask.canShowedByDate(Date())){
-            fragment.activity()?.showError("Задание больше недоступно.", object : ErrorButtonsListener{
+        if (!task.parentTask.canShowedByDate(Date())) {
+            fragment.activity()?.showError("Задание больше недоступно.", object : ErrorButtonsListener {
                 override fun positiveListener() {
                     fragment?.activity()?.showTaskListScreen()
                 }
+
                 override fun negativeListener() {}
             })
         }
@@ -141,7 +146,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
 
     fun onDataChanged(changedTask: TaskModel, changedItem: TaskItemModel) {
         val taskIdx = tasks.indexOf(changedTask)
-        if(taskIdx < 0){
+        if (taskIdx < 0) {
             return
         }
         val taskItemIdx = tasks[taskIdx].items.indexOf(changedItem)

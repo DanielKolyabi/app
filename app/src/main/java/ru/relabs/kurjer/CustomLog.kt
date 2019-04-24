@@ -7,10 +7,7 @@ import android.os.Environment
 import android.support.v4.content.FileProvider
 import android.util.Log
 import org.joda.time.DateTime
-import java.io.File
-import java.io.FileWriter
-import java.io.PrintWriter
-import java.io.StringWriter
+import java.io.*
 
 /**
  * Created by ProOrange on 02.10.2018.
@@ -32,7 +29,7 @@ object CustomLog {
                 "deliveryman")
         val f = File(dir, CRASH_FILENAME)
         if(!f.exists()){
-            throw Exception("crash.log not found")
+            throw FileNotFoundException()
         }
 
         val uri = FileProvider.getUriForFile(context, "com.relabs.kurjer.file_provider", f)

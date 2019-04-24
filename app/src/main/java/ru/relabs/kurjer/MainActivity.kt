@@ -35,6 +35,7 @@ import ru.relabs.kurjer.ui.fragments.*
 import ru.relabs.kurjer.ui.helpers.setVisible
 import ru.relabs.kurjer.ui.models.AddressListModel
 import java.io.File
+import java.io.FileNotFoundException
 import java.net.URL
 import kotlin.math.roundToInt
 
@@ -77,8 +78,6 @@ class MainActivity : AppCompatActivity() {
             }
             if (intent.getBooleanExtra("tasks_changed", false)) {
                 if (needRefreshShowed) return
-
-                val current = supportFragmentManager?.findFragmentByTag("fragment")
 
                 needRefreshShowed = true
                 showTasksRefreshDialog(true)
@@ -182,6 +181,8 @@ class MainActivity : AppCompatActivity() {
                 override fun negativeListener() {
                     try {
                         CustomLog.share(this@MainActivity)
+                    } catch (e: FileNotFoundException){
+                        Toast.makeText(this@MainActivity, "crash.log отсутствует", Toast.LENGTH_LONG).show()
                     } catch (e: java.lang.Exception) {
                         CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
                         Toast.makeText(this@MainActivity, "Произошла ошибка", Toast.LENGTH_LONG).show()
@@ -246,7 +247,7 @@ class MainActivity : AppCompatActivity() {
         val adapter = SearchInputAdapter(this, R.layout.item_search, R.id.text, supportFragmentManager)
         search_input.setAdapter(adapter)
 
-        search_input.setOnEditorActionListener { v, actionId, event ->
+        search_input.setOnEditorActionListener { _, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH ||
                     actionId == EditorInfo.IME_ACTION_DONE ||
                     actionId == EditorInfo.IME_ACTION_NEXT ||
@@ -293,7 +294,7 @@ class MainActivity : AppCompatActivity() {
 
     fun installUpdate(url: URL) {
         launch {
-            var file: File? = null
+            var file: File?
             try {
                 progress_bar.isIndeterminate = false
                 file = NetworkHelper.loadUpdateFile(url) { current, total ->

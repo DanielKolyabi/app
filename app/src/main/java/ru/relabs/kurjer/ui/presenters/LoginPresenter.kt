@@ -11,12 +11,14 @@ import kotlinx.coroutines.experimental.withContext
 import org.joda.time.DateTime
 import retrofit2.HttpException
 import ru.relabs.kurjer.*
+import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI.api
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.ErrorUtils
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.fragments.LoginFragment
+import java.util.*
 
 /**
  * Created by ProOrange on 24.08.2018.
@@ -57,6 +59,7 @@ class LoginPresenter(val fragment: LoginFragment) {
                     fragment.activity()?.showError("Ошибка №${response.error.code}\n${response.error.message}")
                     return@launch
                 }
+                application().currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
                 application().user = UserModel.Authorized(response.user!!.login, response.token!!)
                 if (isPasswordRemembered) {
                     application().storeUserCredentials()

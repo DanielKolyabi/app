@@ -6,9 +6,7 @@ import android.arch.persistence.room.Room
 import android.arch.persistence.room.migration.Migration
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
+import android.location.*
 import android.os.Bundle
 import android.os.StrictMode
 import android.support.v4.content.ContextCompat
@@ -20,8 +18,13 @@ import org.joda.time.format.DateTimeFormat
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
+import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import java.util.*
+import android.content.Intent
+import android.content.BroadcastReceiver
+
+
 
 /**
  * Created by ProOrange on 30.08.2018.
@@ -31,7 +34,7 @@ class MyApplication : Application() {
     lateinit var database: AppDatabase
     var user: UserModel = UserModel.Unauthorized
     lateinit var deviceUUID: String
-    private var locationManager: LocationManager? = null
+    var locationManager: LocationManager? = null
     var currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
     val listener = object : LocationListener {
         override fun onLocationChanged(location: Location?) {

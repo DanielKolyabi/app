@@ -1,9 +1,12 @@
 package ru.relabs.kurjer
 
+import android.app.Activity
 import android.content.*
 import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
@@ -39,42 +42,72 @@ import java.io.FileNotFoundException
 import java.net.URL
 import kotlin.math.roundToInt
 
-
+const val REQUEST_LOCATION = 999
 class MainActivity : AppCompatActivity() {
     private var needRefreshShowed = false
     private var needForceRefresh = false
-    private var blockingNetworkDisabled = false
     private var networkErrorShowed = false
 
-    private fun showNetworkDisabledError(canSkip: Boolean = true) {
-        if(networkErrorShowed){return}
+    val gpsSwitchStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == LocationManager.PROVIDERS_CHANGED_ACTION) {
+                if (!NetworkHelper.isGPSEnabled(applicationContext)) {
+                    NetworkHelper.displayLocationSettingsRequest(applicationContext, this@MainActivity)
+                }
+            }
+        }
+    }
+
+    fun showNetworkDisabledError() {
+        if (networkErrorShowed) {
+            return
+        }
         networkErrorShowed = true
+
         showError(
-                "Необходимо включить передачу данных",
+                "Небходимо включить передачу данных",
                 object : ErrorButtonsListener {
                     override fun positiveListener() {
                         networkErrorShowed = false
                         if (!NetworkHelper.isNetworkEnabled(this@MainActivity)) {
-                            showNetworkDisabledError(canSkip)
+                            showNetworkDisabledError()
                             return
                         }
-                        blockingNetworkDisabled = false
                     }
+
                     override fun negativeListener() {
                         networkErrorShowed = false
-                        blockingNetworkDisabled = true
+                        try {
+                            startActivity(Intent(Settings.ACTION_WIRELESS_SETTINGS))
+                        }catch(e: Exception){
+                            CustomLog.writeToFile(getStacktraceAsString(e))
+                            showError("Не удалось открыть настройки", object: ErrorButtonsListener{
+                                override fun positiveListener() {
+                                    showNetworkDisabledError()
+                                }
+                            })
+                        }
                     }
                 },
-                "Ок", if (canSkip) "Позже" else ""
+                "Ок", "Настройки"
 
         )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == REQUEST_LOCATION){
+            if(resultCode == Activity.RESULT_OK){
+                application().enableLocationListening()
+            }
+        }
     }
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent ?: return
             if (intent.getBooleanExtra("network_disabled", false)) {
-                showNetworkDisabledError(!blockingNetworkDisabled)
+                showNetworkDisabledError()
             }
             if (intent.getBooleanExtra("tasks_changed", false)) {
                 if (needRefreshShowed) return
@@ -96,7 +129,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    private var intentFilter = IntentFilter("NOW")
 
     private fun showTasksRefreshDialog(cancelable: Boolean) {
         val negative = if (cancelable) "Позже" else ""
@@ -114,13 +146,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-
+        if (!NetworkHelper.isGPSEnabled(applicationContext)) {
+            NetworkHelper.displayLocationSettingsRequest(applicationContext, this)
+        }
+        if(!NetworkHelper.isNetworkEnabled(applicationContext)){
+            showNetworkDisabledError()
+        }
+        registerReceiver(gpsSwitchStateReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
         MyApplication.instance.enableLocationListening()
         super.onResume()
     }
 
     override fun onPause() {
-        //unregisterReceiver(broadcastReceiver)
+        unregisterReceiver(gpsSwitchStateReceiver)
         (application as? MyApplication)?.disableLocationListening()
         super.onPause()
 
@@ -181,10 +219,10 @@ class MainActivity : AppCompatActivity() {
                 override fun negativeListener() {
                     try {
                         CustomLog.share(this@MainActivity)
-                    } catch (e: FileNotFoundException){
+                    } catch (e: FileNotFoundException) {
                         Toast.makeText(this@MainActivity, "crash.log отсутствует", Toast.LENGTH_LONG).show()
                     } catch (e: java.lang.Exception) {
-                        CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
+                        CustomLog.writeToFile(getStacktraceAsString(e))
                         Toast.makeText(this@MainActivity, "Произошла ошибка", Toast.LENGTH_LONG).show()
                     }
                 }
@@ -229,7 +267,8 @@ class MainActivity : AppCompatActivity() {
             permissions.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
         }
 
-        registerReceiver(broadcastReceiver, intentFilter)
+        registerReceiver(broadcastReceiver, IntentFilter("NOW"))
+
         showPermissionsRequest(permissions.toTypedArray(), false)
         loading.setVisible(true)
         checkUpdates()
@@ -444,7 +483,7 @@ class MainActivity : AppCompatActivity() {
             builder.setCancelable(cancelable)
             builder.show()
         } catch (e: Throwable) {
-            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
+            CustomLog.writeToFile(getStacktraceAsString(e))
         }
     }
 
@@ -563,7 +602,7 @@ class MainActivity : AppCompatActivity() {
 
             setNavigationBackVisible(supportFragmentManager.backStackEntryCount > 1)
         } catch (e: Throwable) {
-            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
+            CustomLog.writeToFile(getStacktraceAsString(e))
             super.onBackPressed()
         }
     }
@@ -572,6 +611,6 @@ class MainActivity : AppCompatActivity() {
 }
 
 interface ErrorButtonsListener {
-    fun positiveListener()
-    fun negativeListener()
+    fun positiveListener() {}
+    fun negativeListener() {}
 }

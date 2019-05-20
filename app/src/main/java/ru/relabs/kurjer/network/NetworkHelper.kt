@@ -2,7 +2,11 @@ package ru.relabs.kurjer.network
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
+import android.location.LocationManager
+import android.location.LocationManager.GPS_PROVIDER
+import android.location.LocationManager.NETWORK_PROVIDER
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.net.wifi.WifiManager
@@ -28,7 +32,19 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
 import android.net.NetworkInfo
-
+import com.google.android.gms.location.LocationSettingsStatusCodes
+import android.content.IntentSender
+import android.support.v4.content.ContextCompat.startActivity
+import ru.relabs.kurjer.MainActivity
+import com.google.android.gms.location.LocationSettingsResult
+import io.fabric.sdk.android.services.settings.IconRequest.build
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.ResultCallback
+import ru.relabs.kurjer.REQUEST_LOCATION
+import ru.relabs.kurjer.application
 
 
 /**
@@ -61,6 +77,37 @@ object NetworkHelper {
         return (isWifiEnabled(context) && isWifiConnected(context)) || isMobileDataEnabled(context)
     }
 
+    fun isGPSEnabled(context: Context?): Boolean{
+        return application().locationManager?.isProviderEnabled(GPS_PROVIDER) ?: false
+    }
+
+    fun displayLocationSettingsRequest(context: Context, activity: MainActivity) {
+        val googleApiClient = GoogleApiClient.Builder(context)
+                .addApi(LocationServices.API).build()
+        googleApiClient.connect()
+
+        val locationRequest = LocationRequest.create()
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        locationRequest.interval = 30000
+        locationRequest.fastestInterval = 15000
+        locationRequest.smallestDisplacement = 10f
+
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        builder.setAlwaysShow(true)
+
+        val result = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build())
+        result.setResultCallback { result ->
+            val status = result.status
+            when (status.statusCode) {
+                LocationSettingsStatusCodes.SUCCESS -> Log.i("NetworkHelper", "All location settings are satisfied.")
+                LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
+                    Log.i("NetworkHelper", "Location settings are not satisfied. Show the user a dialog to upgrade location settings ")
+                    status.startResolutionForResult(activity, REQUEST_LOCATION)
+                }
+                LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> Log.i("NetworkHelper", "Location settings are inadequate, and cannot be fixed here. Dialog not created.")
+            }
+        }
+    }
 
     fun isNetworkAvailable(context: Context?): Boolean {
         context ?: return false

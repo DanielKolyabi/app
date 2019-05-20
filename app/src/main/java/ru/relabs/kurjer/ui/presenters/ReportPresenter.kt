@@ -27,6 +27,7 @@ import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
+import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.*
 import ru.relabs.kurjer.ui.fragments.ReportFragment
@@ -462,6 +463,10 @@ class ReportPresenter(private val fragment: ReportFragment) {
                     val status = closeTaskItem(description)
                     if (!status) {
                         (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
+                    }else{
+                        if(!NetworkHelper.isNetworkEnabled(fragment.context)) {
+                            (fragment.activity as? MainActivity)?.showNetworkDisabledError()
+                        }
                     }
                 }
 

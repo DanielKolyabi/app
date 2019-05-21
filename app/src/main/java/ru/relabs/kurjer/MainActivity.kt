@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity() {
                     override fun negativeListener() {
                         networkErrorShowed = false
                         try {
-                            startActivity(Intent(Settings.ACTION_WIRELESS_SETTINGS))
+                            startActivity(Intent(Settings.ACTION_SETTINGS))
                         }catch(e: Exception){
                             CustomLog.writeToFile(getStacktraceAsString(e))
                             showError("Не удалось открыть настройки", object: ErrorButtonsListener{

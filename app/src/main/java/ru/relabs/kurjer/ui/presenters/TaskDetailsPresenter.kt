@@ -8,10 +8,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
-import ru.relabs.kurjer.BuildConfig
-import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.activity
-import ru.relabs.kurjer.application
+import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
@@ -50,6 +47,7 @@ class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
         val image = PathHelper.getTaskRasterizeMapFile(task)
         if (!image.exists()) {
             Toast.makeText(fragment.context, "Файл карты не найден.", Toast.LENGTH_SHORT).show()
+            CustomLog.writeToFile("Для задания ${task.id} не удалось получить растровую карту. ${task.rastMapUrl}")
             return
         }
         val intent = Intent()

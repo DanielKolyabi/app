@@ -1,6 +1,7 @@
 package ru.relabs.kurjer
 
 import android.support.v4.app.Fragment
+import java.lang.Exception
 
 
 /**
@@ -20,4 +21,12 @@ fun Throwable.logError(){
 
     val stacktrace = CustomLog.getStacktraceAsString(this)
     CustomLog.writeToFile(stacktrace)
+}
+
+fun <T> tryOrLog(block: () -> T){
+    try{
+        block()
+    }catch (e: Exception){
+        e.logError()
+    }
 }

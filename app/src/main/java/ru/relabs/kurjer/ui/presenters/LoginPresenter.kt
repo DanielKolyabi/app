@@ -2,7 +2,6 @@ package ru.relabs.kurjer.ui.presenters
 
 import android.content.Context
 import android.util.Log
-import android.util.TypedValue
 import kotlinx.android.synthetic.main.fragment_login.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
@@ -66,7 +65,7 @@ class LoginPresenter(val fragment: LoginFragment) {
                 } else {
                     application().restoreUserCredentials()
                 }
-                application().sendPushToken(null)
+                application().sendDeviceInfo(null)
                 if (sharedPref.getString("last_login", "") != response.user.login) {
                     Log.d("login", "Clear local database. User changed. Last login ${sharedPref.getString("last_login", "")}. New login ${response.user.login}")
                     withContext(CommonPool) {

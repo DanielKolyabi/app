@@ -185,7 +185,7 @@ class ReportFragment : Fragment() {
 
     fun showHintText(notes: List<String>) {
         hint_text.text = Html.fromHtml((3 downTo 1).map {
-            "<b>Пр. $it</b><br/>" + notes.getOrElse(it-1) { "" }
+            notes.getOrElse(it-1) { "" }
         }.joinToString("<br/>"))
     }
 

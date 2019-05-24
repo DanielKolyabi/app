@@ -1,29 +1,27 @@
 package ru.relabs.kurjer
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.arch.persistence.db.SupportSQLiteDatabase
 import android.arch.persistence.room.Room
 import android.arch.persistence.room.migration.Migration
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.*
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.support.v4.content.ContextCompat
-import android.util.Log
+import android.telephony.TelephonyManager
 import com.google.firebase.iid.FirebaseInstanceId
 import com.yandex.mapkit.MapKitFactory
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
-import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import java.util.*
-import android.content.Intent
-import android.content.BroadcastReceiver
-
 
 
 /**
@@ -48,6 +46,24 @@ class MyApplication : Application() {
         override fun onProviderDisabled(provider: String?) {}
     }
 
+    @SuppressLint("HardwareIds")
+    fun getImei(): String {
+        val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        val imei = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                telephonyManager.getImei(0) ?: telephonyManager.getImei(1) ?: ""
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                telephonyManager.getDeviceId(0) ?: (telephonyManager.getDeviceId(1) ?: "")
+            } else {
+                telephonyManager.deviceId
+            }
+        } catch (e: SecurityException) {
+            ""
+        }
+
+        return imei
+    }
+
     override fun onCreate() {
         super.onCreate()
 
@@ -58,12 +74,12 @@ class MyApplication : Application() {
         StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().build())
         deviceUUID = getOrGenerateDeviceUUID()
 
-        val migration_26_27 = object: Migration(26,27){
+        val migration_26_27 = object : Migration(26, 27) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE task_items ADD COLUMN need_photo INTEGER NOT NULL DEFAULT 0")
             }
         }
-        val migration_27_28 = object: Migration(27,28){
+        val migration_27_28 = object : Migration(27, 28) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE report_query ADD COLUMN battery_level INTEGER NOT NULL DEFAULT 0")
             }
@@ -82,13 +98,13 @@ class MyApplication : Application() {
 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         //TODO: Watch for another methods of work with gps
-        locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 30*1000, 10f, listener)
-        locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30*1000, 10f, listener)
+        locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 30 * 1000, 10f, listener)
+        locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30 * 1000, 10f, listener)
 
         return true
     }
 
-    fun disableLocationListening(){
+    fun disableLocationListening() {
         locationManager?.removeUpdates(listener)
     }
 
@@ -142,25 +158,29 @@ class MyApplication : Application() {
 
     }
 
-    fun sendPushToken(pushToken: String?) {
+    fun sendDeviceInfo(pushToken: String?, shouldSendImei: Boolean = true) {
         if (user !is UserModel.Authorized) return
 
+        if (shouldSendImei) {
+            tryOrLog {
+                DeliveryServerAPI.api.sendDeviceImei((user as UserModel.Authorized).token, getImei())
+            }
+        }
+
         if (pushToken != null) {
-            try {
+            tryOrLog {
                 DeliveryServerAPI.api.sendPushToken((user as UserModel.Authorized).token, pushToken)
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         } else {
             val token = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE).getString("firebase_token", "notoken")
             if (token != "notoken") {
-                sendPushToken(token)
+                sendDeviceInfo(token)
                 return
             }
 
             FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener {
                 savePushToken(it.token)
-                sendPushToken(it.token)
+                sendDeviceInfo(it.token, false)
             }
         }
     }

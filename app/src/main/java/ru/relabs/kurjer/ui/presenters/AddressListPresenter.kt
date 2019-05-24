@@ -11,6 +11,7 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.PathHelper
+import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.persistence.AppDatabase
@@ -136,6 +137,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         val image = PathHelper.getTaskRasterizeMapFile(task)
         if (!image.exists()) {
             Toast.makeText(fragment.context, "Файл карты не найден.", Toast.LENGTH_SHORT).show()
+            CustomLog.writeToFile("Для задания ${task.id} не удалось получить растровую карту. ${task.rastMapUrl}")
             return
         }
         val intent = Intent()
@@ -156,5 +158,8 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         tasks[taskIdx].items = items
     }
 
+    fun onMapAddressClicked(it: AddressModel) {
+        fragment.targetAddress = it
+    }
 }
 

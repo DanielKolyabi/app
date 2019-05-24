@@ -88,6 +88,9 @@ object DeliveryServerAPI {
         @POST("api/v1/push_token")
         fun sendPushToken(@Query("token") token: String, @Query("push_token") pushToken: String): Deferred<StatusResponse>
 
+        @POST("api/v1/device_imei")
+        fun sendDeviceImei(@Query("token") token: String, @Query("device_imei") imei: String): Deferred<StatusResponse>
+
         @POST("api/v1/coords")
         fun sendGPS(@Query("token") token: String, @Query("lat") lat: Double, @Query("long") long: Double, @Query("time") time: String): Deferred<StatusResponse>
     }

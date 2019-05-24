@@ -18,7 +18,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         launch {
             (application as? MyApplication)?.let {
                 it.savePushToken(pushToken)
-                it.sendPushToken(pushToken)
+                it.sendDeviceInfo(pushToken)
             }
         }
     }

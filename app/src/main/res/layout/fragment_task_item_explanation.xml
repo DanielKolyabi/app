@@ -7,64 +7,36 @@
     tools:context=".ui.fragments.TaskItemExplanationFragment">
 
     <TextView
-        android:id="@+id/note1_label"
-        android:layout_width="wrap_content"
+        android:id="@+id/note1_text"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Пр. 3"
-        android:textColor="#000"
-        android:textSize="18sp"
-        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/note1_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="@id/note1_label"
-        app:layout_constraintTop_toBottomOf="@id/note1_label"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         tools:text="test test test test test\ntest test test test test ttest test test test test test" />
-
-    <TextView
-        android:id="@+id/note2_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Пр. 2"
-        android:textColor="#000"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@id/note1_text"
-        app:layout_constraintTop_toBottomOf="@id/note1_text" />
 
     <TextView
         android:id="@+id/note2_text"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="@id/note2_label"
-        app:layout_constraintTop_toBottomOf="@id/note2_label"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/note1_text"
         tools:text="test test test test test\ntest test test test test ttest test test test test test" />
 
     <TextView
-        android:id="@+id/note3_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Пр. 1"
-        android:textColor="#000"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@id/note2_text"
-        app:layout_constraintTop_toBottomOf="@id/note2_text" />
-
-    <TextView
         android:id="@+id/note3_text"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="@id/note3_label"
-        app:layout_constraintTop_toBottomOf="@id/note3_label"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/note2_text"
         tools:text="test test test test test\ntest test test test test ttest test test test test test" />
 
 </android.support.constraint.ConstraintLayout>

@@ -175,6 +175,7 @@ class MainActivity : AppCompatActivity() {
                 android.Manifest.permission.READ_EXTERNAL_STORAGE -> "Доступ к чтению файлов"
                 android.Manifest.permission.ACCESS_FINE_LOCATION -> "Доступ к получению местоположения"
                 android.Manifest.permission.REQUEST_INSTALL_PACKAGES -> "Разрешать устанавливать приложения"
+                android.Manifest.permission.READ_PHONE_STATE -> "Доступ к информации о телефоне"
                 else -> "Неизвестно"
             } + "\n"
         }
@@ -265,6 +266,9 @@ class MainActivity : AppCompatActivity() {
         }
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(android.Manifest.permission.READ_PHONE_STATE)
         }
 
         registerReceiver(broadcastReceiver, IntentFilter("NOW"))
@@ -452,10 +456,11 @@ class MainActivity : AppCompatActivity() {
         return fragment
     }
 
-    fun showYandexMap(address: AddressModel): YandexMapFragment {
-        val fragment = YandexMapFragment.newInstance(address)
+    fun showYandexMap(addresses: List<AddressModel>, onAddressClicked: (AddressModel) -> Unit): YandexMapFragment {
+        val fragment = YandexMapFragment.newInstance(addresses)
+        fragment.onAddressClicked = onAddressClicked
         navigateTo(fragment, true)
-        changeTitle(address.name)
+        changeTitle("Карта")
         return fragment
     }
 

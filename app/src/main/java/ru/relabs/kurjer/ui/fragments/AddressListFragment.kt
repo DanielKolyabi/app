@@ -20,9 +20,9 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.*
+import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.AddressListAddressDelegate
 import ru.relabs.kurjer.ui.delegates.AddressListLoaderDelegate
@@ -76,6 +76,7 @@ class AddressListFragment : Fragment(), SearchableFragment {
         list.smoothScrollToPosition(itemIndex)
     }
 
+    var targetAddress: AddressModel? = null
     val presenter = AddressListPresenter(this)
     private lateinit var hintHelper: HintHelper
     private var taskIds: List<Int> = listOf()
@@ -129,10 +130,20 @@ class AddressListFragment : Fragment(), SearchableFragment {
         super.onViewCreated(view, savedInstanceState)
         hintHelper = HintHelper(hint_container, resources.getString(R.string.address_list_hint_text), false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
 
+        map_button?.setOnClickListener {
+            activity()?.showYandexMap(adapter.data.mapNotNull {
+                (it as? AddressListModel.Address)?.taskItems?.firstOrNull()?.address
+            }) {
+                presenter.onMapAddressClicked(it)
+            }
+        }
+
         adapter.apply {
             addDelegate(AddressListAddressDelegate(
                     {
-                        this@AddressListFragment.activity()?.showYandexMap(it)
+                        this@AddressListFragment.activity()?.showYandexMap(listOf(it)) {
+                            presenter.onMapAddressClicked(it)
+                        }
                     },
                     tasks.size == 1
             ))
@@ -164,22 +175,44 @@ class AddressListFragment : Fragment(), SearchableFragment {
 
                 presenter.tasks.addAll(tasks)
                 presenter.applySorting()
+                scrollToAddressIfExists()
             } else {
                 adapter.data.clear()
                 adapter.data.add(AddressListModel.Loader)
                 adapter.notifyDataSetChanged()
-
                 presenter.updateStates()
             }
         }
     }
 
-    public fun scrollListToSavedPosition() {
-        try {
-            (list.layoutManager as LinearLayoutManager).scrollToPosition(listScrollPosition)
-        } catch (e: Throwable) {
-            e.printStackTrace()
-            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
+    fun scrollToAddressIfExists() {
+        targetAddress?.let {
+            scrollToAddress(it)
+        }
+        targetAddress = null
+    }
+
+    private fun scrollToAddress(address: AddressModel) {
+        val idx = adapter.data.indexOfFirst {
+            (it as? AddressListModel.TaskItem)?.taskItem?.address?.id == address.id
+        }
+        if (idx < 0) {
+            return
+        }
+
+        list?.smoothScrollToPosition(idx)
+    }
+
+    fun scrollListToSavedPosition() {
+        if (targetAddress != null) {
+            scrollToAddressIfExists()
+        } else {
+            try {
+                (list.layoutManager as LinearLayoutManager).scrollToPosition(listScrollPosition)
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
+            }
         }
     }
 
@@ -188,7 +221,7 @@ class AddressListFragment : Fragment(), SearchableFragment {
         withContext(CommonPool) {
             tasks = taskIds.mapNotNull {
                 db.taskDao().getById(it)?.toTaskModel(db)
-            }.filter{it.canShowedByDate(Date())}
+            }.filter { it.canShowedByDate(Date()) }
 
             for (task in tasks) {
                 for (taskItem in task.items) {

@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
  */
 class TaskListPresenter(val fragment: TaskListFragment) {
     fun onTaskSelected(pos: Int) {
-        if(pos < 0){
+        if (pos < 0) {
             return
         }
         val task = (fragment.adapter.data[pos] as? TaskListModel.Task)?.task ?: return
@@ -88,7 +88,7 @@ class TaskListPresenter(val fragment: TaskListFragment) {
     }
 
     fun onTaskClicked(pos: Int) {
-        if(pos < 0){
+        if (pos < 0) {
             return
         }
         val task = (fragment.adapter.data[pos] as? TaskListModel.Task)?.task ?: return
@@ -172,16 +172,14 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                                     try {
                                         NetworkHelper.loadTaskRasterizeMap(it, fragment.context?.contentResolver)
                                     } catch (e: Exception) {
-                                        e.printStackTrace()
+                                        e.logError()
                                     }
                                 },
                                 { oldTask, newTask ->
-                                    if (oldTask.rastMapUrl != newTask.rastMapUrl) {
-                                        try {
-                                            NetworkHelper.loadTaskRasterizeMap(newTask, fragment.context?.contentResolver)
-                                        } catch (e: Exception) {
-                                            e.printStackTrace()
-                                        }
+                                    try {
+                                        NetworkHelper.loadTaskRasterizeMap(newTask, fragment.context?.contentResolver)
+                                    } catch (e: Exception) {
+                                        e.logError()
                                     }
                                 }
                         )
@@ -219,6 +217,6 @@ class TaskListPresenter(val fragment: TaskListFragment) {
 
     suspend fun loadTasksFromDatabase(db: AppDatabase): List<TaskListModel.Task> {
         val tasks = withContext(CommonPool) { db.taskDao().allOpened.map { it.toTaskModel(db) } }
-        return tasks.filter { it.items.isNotEmpty() && it.canShowedByDate(Date())  }.map { TaskListModel.Task(it) }
+        return tasks.filter { it.items.isNotEmpty() && it.canShowedByDate(Date()) }.map { TaskListModel.Task(it) }
     }
 }

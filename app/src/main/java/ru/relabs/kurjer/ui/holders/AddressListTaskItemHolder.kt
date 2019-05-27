@@ -28,16 +28,22 @@ class AddressListTaskItemHolder(
             setDuration(duration.toLong())
             addUpdateListener { animator -> view?.setBackgroundColor(animator.animatedValue as Int) }
         }
-
     }
 
-    fun flashSelectedColor(){
+    private fun startFlashValueAnimator(view: View?, onAnimationEnd: (() -> Unit)? = null){
         val targetColor = itemView.resources.getColor(R.color.colorAccent)
         val colorFrom = ColorUtils.setAlphaComponent(targetColor, 0)
         val colorTo = targetColor
 
-        val colorAnimationTo = getValueAnimator(colorFrom, colorTo, itemView, 500)
-        val colorAnimationFrom = getValueAnimator(colorTo, colorFrom, itemView, 500)
+        val colorAnimationTo = getValueAnimator(colorFrom, colorTo, view, 500)
+        val colorAnimationFrom = getValueAnimator(colorTo, colorFrom, view, 500)
+        onAnimationEnd?.let{
+            colorAnimationFrom.addListener(object: AnimatorListenerAdapter(){
+                override fun onAnimationEnd(animation: Animator?) {
+                    it()
+                }
+            })
+        }
         colorAnimationTo.addListener(object: AnimatorListenerAdapter(){
             override fun onAnimationEnd(animation: Animator?) {
                 colorAnimationFrom.start()
@@ -45,6 +51,13 @@ class AddressListTaskItemHolder(
         })
 
         colorAnimationTo.start()
+    }
+
+    fun flashSelectedColor(){
+
+        startFlashValueAnimator(itemView){
+            startFlashValueAnimator(itemView)
+        }
     }
 
     override fun onBindViewHolder(item: AddressListModel) {

@@ -1,6 +1,13 @@
 package ru.relabs.kurjer.ui.fragments
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.support.v4.app.Fragment
 import android.support.v4.graphics.ColorUtils
 import android.view.LayoutInflater
@@ -12,6 +19,7 @@ import com.yandex.mapkit.geometry.Circle
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.user_location.UserLocationLayer
+import com.yandex.runtime.image.ImageProvider
 import kotlinx.android.synthetic.main.fragment_yandex_map.*
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.application
@@ -20,7 +28,7 @@ import ru.relabs.kurjer.models.AddressModel
 
 class YandexMapFragment : Fragment() {
     private lateinit var userLocationLayer: UserLocationLayer
-    private var addresses: List<AddressModel> = listOf()
+    private var addresses: List<AddressWithColor> = listOf()
 
 
     var onAddressClicked: ((AddressModel) -> Unit)? = null
@@ -29,6 +37,9 @@ class YandexMapFragment : Fragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             addresses = it.getParcelableArrayList("addresses") ?: listOf()
+            if(addresses.size < 2){
+                savedCameraPosition = null
+            }
         }
     }
 
@@ -67,54 +78,54 @@ class YandexMapFragment : Fragment() {
     }
 
 
-    private fun getCameraPosition(addresses: List<AddressModel>): CameraPosition {
+    private fun getCameraPosition(coloredAddresses: List<AddressWithColor>): CameraPosition {
         when {
-            addresses.isEmpty() -> {
+            coloredAddresses.isEmpty() -> {
                 return CameraPosition(
                         Point(application().currentLocation.lat, application().currentLocation.long),
                         14f, 0f, 0f
                 )
             }
-            addresses.size == 1 -> {
-                val address = addresses.first()
+            coloredAddresses.size == 1 -> {
+                val address = coloredAddresses.first().address
                 return CameraPosition(
                         Point(address.lat, address.long),
                         14f, 0f, 0f
                 )
             }
             else -> {
-                val filtered = addresses.filter { it.lat != 0.0 && it.long != 0.0 }
-                val minLat = filtered.minBy { it.lat }?.lat
-                val maxLat = filtered.maxBy { it.lat }?.lat
-                val minLong = filtered.minBy { it.long }?.long
-                val maxLong = filtered.maxBy { it.long }?.long
+                val filtered = coloredAddresses.filter { it.address.lat != 0.0 && it.address.long != 0.0 }
+                val minLat = filtered.minBy { it.address.lat }?.address?.lat
+                val maxLat = filtered.maxBy { it.address.lat }?.address?.lat
+                val minLong = filtered.minBy { it.address.long }?.address?.long
+                val maxLong = filtered.maxBy { it.address.long }?.address?.long
                 if (minLat == null || maxLat == null || minLong == null || maxLong == null) {
-                    return getCameraPosition(listOfNotNull(addresses.firstOrNull()))
+                    return getCameraPosition(listOfNotNull(coloredAddresses.firstOrNull()))
 
                 }
                 return mapview?.map?.cameraPosition(BoundingBox(Point(minLat, minLong), Point(maxLat, maxLong)))
-                        ?: getCameraPosition(listOfNotNull(addresses.firstOrNull()))
+                        ?: getCameraPosition(listOfNotNull(coloredAddresses.firstOrNull()))
             }
         }
     }
 
-    fun makeFocus(addresses: List<AddressModel>) {
-
-        mapview?.map?.move(getCameraPosition(addresses))
+    fun makeFocus(addresses: List<AddressWithColor>) {
+        mapview?.map?.move(savedCameraPosition ?: getCameraPosition(addresses))
     }
 
-    fun showAddresses(addresses: List<AddressModel>) {
+    fun showAddresses(addresses: List<AddressWithColor>) {
         addresses.forEach(::showAddress)
     }
 
-    private fun showAddress(address: AddressModel) {
+    private fun showAddress(coloredAddress: AddressWithColor) {
+        val address = coloredAddress.address
         if (address.lat != 0.0 && address.long != 0.0) {
             val ctx = context ?: return
             val point = Point(address.lat, address.long)
 
 
             mapview.map.mapObjects
-                    .addPlacemark(point)
+                    .addPlacemark(point, ColoredIconProvider(ctx, coloredAddress.color))
                     .addTapListener { _, _ ->
                         onAddressClicked?.invoke(address)
                         activity?.onBackPressed()
@@ -125,11 +136,17 @@ class YandexMapFragment : Fragment() {
                     Circle(point, 50f),
                     R.color.colorPrimary,
                     2f,
-                    ColorUtils.setAlphaComponent(resources.getColor(R.color.colorAccent), 125)
+                    ColorUtils.setAlphaComponent(coloredAddress.color, 125)
             )
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        if(addresses.size > 1){
+            savedCameraPosition = mapview?.map?.cameraPosition
+        }
+    }
 
     override fun onStop() {
         super.onStop()
@@ -146,12 +163,61 @@ class YandexMapFragment : Fragment() {
 
     companion object {
 
+        var savedCameraPosition: CameraPosition? = null
+
         @JvmStatic
-        fun newInstance(address: List<AddressModel>) =
+        fun newInstance(address: List<AddressWithColor>) =
                 YandexMapFragment().apply {
                     arguments = Bundle().apply {
                         putParcelableArrayList("addresses", ArrayList(address))
                     }
                 }
+    }
+
+    data class AddressWithColor(
+            val address: AddressModel,
+            val color: Int
+    ) : Parcelable {
+        constructor(parcel: Parcel) : this(
+                parcel.readParcelable(AddressModel::class.java.classLoader),
+                parcel.readInt()
+        )
+
+        override fun writeToParcel(parcel: Parcel, flags: Int) {
+            parcel.writeParcelable(address, flags)
+            parcel.writeInt(color)
+        }
+
+        override fun describeContents(): Int {
+            return 0
+        }
+
+        companion object CREATOR : Parcelable.Creator<AddressWithColor> {
+            override fun createFromParcel(parcel: Parcel): AddressWithColor {
+                return AddressWithColor(parcel)
+            }
+
+            override fun newArray(size: Int): Array<AddressWithColor?> {
+                return arrayOfNulls(size)
+            }
+        }
+    }
+}
+
+
+class ColoredIconProvider(val context: Context, val color: Int) : ImageProvider() {
+    override fun getId(): String {
+        return "colored:${color}"
+    }
+
+    override fun getImage(): Bitmap {
+        val drawable = context.resources.getDrawable(R.drawable.house_map_icon)
+        val filter = PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY)
+        drawable.colorFilter = filter
+        val bmp = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bmp
     }
 }

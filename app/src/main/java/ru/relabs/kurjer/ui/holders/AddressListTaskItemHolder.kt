@@ -1,14 +1,19 @@
 package ru.relabs.kurjer.ui.holders
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.graphics.Color
+import android.support.v4.graphics.ColorUtils
 import android.view.View
-import android.view.View.NOT_FOCUSABLE
 import kotlinx.android.synthetic.main.item_addr_list_task.view.*
-import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.models.AddressListModel
+import android.animation.ValueAnimator
+import android.animation.ArgbEvaluator
+import ru.relabs.kurjer.R
+
 
 /**
  * Created by ProOrange on 11.08.2018.
@@ -17,6 +22,30 @@ class AddressListTaskItemHolder(
         itemView: View,
         val onItemClicked: (item: AddressListModel.TaskItem) -> Unit,
         private val onItemMapClicked: (task: TaskModel) -> Unit) : BaseViewHolder<AddressListModel>(itemView) {
+
+    private fun getValueAnimator(from: Int, to: Int, view: View?, duration: Int = 250): ValueAnimator{
+        return ValueAnimator.ofObject(ArgbEvaluator(), from, to).apply{
+            setDuration(duration.toLong())
+            addUpdateListener { animator -> view?.setBackgroundColor(animator.animatedValue as Int) }
+        }
+
+    }
+
+    fun flashSelectedColor(){
+        val targetColor = itemView.resources.getColor(R.color.colorAccent)
+        val colorFrom = ColorUtils.setAlphaComponent(targetColor, 0)
+        val colorTo = targetColor
+
+        val colorAnimationTo = getValueAnimator(colorFrom, colorTo, itemView, 500)
+        val colorAnimationFrom = getValueAnimator(colorTo, colorFrom, itemView, 500)
+        colorAnimationTo.addListener(object: AnimatorListenerAdapter(){
+            override fun onAnimationEnd(animation: Animator?) {
+                colorAnimationFrom.start()
+            }
+        })
+
+        colorAnimationTo.start()
+    }
 
     override fun onBindViewHolder(item: AddressListModel) {
         if (item !is AddressListModel.TaskItem) return

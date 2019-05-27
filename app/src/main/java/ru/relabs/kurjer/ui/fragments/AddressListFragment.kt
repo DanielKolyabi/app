@@ -30,6 +30,7 @@ import ru.relabs.kurjer.ui.delegates.AddressListSortingDelegate
 import ru.relabs.kurjer.ui.delegates.AddressListTaskItemDelegate
 import ru.relabs.kurjer.ui.helpers.HintHelper
 import ru.relabs.kurjer.ui.helpers.TaskAddressSorter
+import ru.relabs.kurjer.ui.holders.AddressListTaskItemHolder
 import ru.relabs.kurjer.ui.models.AddressListModel
 import ru.relabs.kurjer.ui.presenters.AddressListPresenter
 import java.util.*
@@ -131,9 +132,7 @@ class AddressListFragment : Fragment(), SearchableFragment {
         hintHelper = HintHelper(hint_container, resources.getString(R.string.address_list_hint_text), false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
 
         map_button?.setOnClickListener {
-            activity()?.showYandexMap(adapter.data.mapNotNull {
-                (it as? AddressListModel.Address)?.taskItems?.firstOrNull()?.address
-            }) {
+            activity()?.showYandexMap(adapter.data.mapNotNull { (it as? AddressListModel.TaskItem)?.taskItem }) {
                 presenter.onMapAddressClicked(it)
             }
         }
@@ -141,7 +140,7 @@ class AddressListFragment : Fragment(), SearchableFragment {
         adapter.apply {
             addDelegate(AddressListAddressDelegate(
                     {
-                        this@AddressListFragment.activity()?.showYandexMap(listOf(it)) {
+                        this@AddressListFragment.activity()?.showYandexMap(it) {
                             presenter.onMapAddressClicked(it)
                         }
                     },
@@ -200,7 +199,13 @@ class AddressListFragment : Fragment(), SearchableFragment {
             return
         }
 
-        list?.smoothScrollToPosition(idx)
+
+        list?.scrollToPosition(idx)
+
+        list?.post {
+            val holder = list?.findViewHolderForAdapterPosition(idx) as? AddressListTaskItemHolder
+            holder?.flashSelectedColor()
+        }
     }
 
     fun scrollListToSavedPosition() {

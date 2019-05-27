@@ -40,9 +40,9 @@ class TaskListFragment : Fragment(), SearchableFragment {
 
     override fun onItemSelected(item: String, searchView: AutoCompleteTextView) {
         val itemIndex = adapter.data.indexOfFirst {
-            if(it is TaskListModel.Task) {
+            if (it is TaskListModel.Task) {
                 "${it.task.name} №${it.task.edition} ${it.task.area}уч".contains(item)
-            }else{
+            } else {
                 false
             }
         }
@@ -81,6 +81,7 @@ class TaskListFragment : Fragment(), SearchableFragment {
             showListLoading(true)
             presenter.loadTasks(true)
         }
+        YandexMapFragment.savedCameraPosition = null
 
         adapter.addDelegate(TaskListTaskDelegate(
                 { presenter.onTaskSelected(it) },
@@ -108,8 +109,8 @@ class TaskListFragment : Fragment(), SearchableFragment {
             return
         }
         try {
-            tasks_list.smoothScrollToPosition(targetListPos)
-        }catch (e: Throwable){
+            tasks_list?.smoothScrollToPosition(targetListPos)
+        } catch (e: Throwable) {
             e.printStackTrace()
             CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
         }

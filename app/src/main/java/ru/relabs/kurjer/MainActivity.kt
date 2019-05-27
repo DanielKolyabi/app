@@ -3,6 +3,7 @@ package ru.relabs.kurjer
 import android.app.Activity
 import android.content.*
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
@@ -43,6 +44,7 @@ import java.net.URL
 import kotlin.math.roundToInt
 
 const val REQUEST_LOCATION = 999
+
 class MainActivity : AppCompatActivity() {
     private var needRefreshShowed = false
     private var needForceRefresh = false
@@ -79,9 +81,9 @@ class MainActivity : AppCompatActivity() {
                         networkErrorShowed = false
                         try {
                             startActivity(Intent(Settings.ACTION_SETTINGS))
-                        }catch(e: Exception){
+                        } catch (e: Exception) {
                             CustomLog.writeToFile(getStacktraceAsString(e))
-                            showError("Не удалось открыть настройки", object: ErrorButtonsListener{
+                            showError("Не удалось открыть настройки", object : ErrorButtonsListener {
                                 override fun positiveListener() {
                                     showNetworkDisabledError()
                                 }
@@ -96,8 +98,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(requestCode == REQUEST_LOCATION){
-            if(resultCode == Activity.RESULT_OK){
+        if (requestCode == REQUEST_LOCATION) {
+            if (resultCode == Activity.RESULT_OK) {
                 application().enableLocationListening()
             }
         }
@@ -149,7 +151,7 @@ class MainActivity : AppCompatActivity() {
         if (!NetworkHelper.isGPSEnabled(applicationContext)) {
             NetworkHelper.displayLocationSettingsRequest(applicationContext, this)
         }
-        if(!NetworkHelper.isNetworkEnabled(applicationContext)){
+        if (!NetworkHelper.isNetworkEnabled(applicationContext)) {
             showNetworkDisabledError()
         }
         registerReceiver(gpsSwitchStateReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
@@ -456,7 +458,31 @@ class MainActivity : AppCompatActivity() {
         return fragment
     }
 
-    fun showYandexMap(addresses: List<AddressModel>, onAddressClicked: (AddressModel) -> Unit): YandexMapFragment {
+    fun showYandexMap(taskItems: List<TaskItemModel>, onAddressClicked: (AddressModel) -> Unit): YandexMapFragment {
+        val addresses = taskItems.groupBy { it.address.id }
+                .mapValues { entry ->
+                    entry.value.firstOrNull { it.needPhoto }
+                            ?: (entry.value.firstOrNull { it.state == TaskItemModel.CLOSED }
+                                    ?: entry.value.firstOrNull())
+                }
+                .mapNotNull { entry ->
+                    val value = entry.value
+                    if(value is TaskItemModel){
+                        val color = if(value.state == TaskItemModel.CLOSED){
+                            //Gray
+                            Color.GRAY
+                        }else if(value.needPhoto){
+                            //Red
+                            resources.getColor(R.color.colorAccent)
+                        }else{
+                            //Orange
+                            Color.argb(255, 255,165,0)
+                        }
+                        YandexMapFragment.AddressWithColor(value.address, color)
+                    }else{
+                        null
+                    }
+                }
         val fragment = YandexMapFragment.newInstance(addresses)
         fragment.onAddressClicked = onAddressClicked
         navigateTo(fragment, true)

@@ -2,20 +2,25 @@ package ru.relabs.kurjer.network
 
 import android.content.ContentResolver
 import android.content.Context
-import android.content.Intent
 import android.graphics.BitmapFactory
-import android.location.LocationManager
 import android.location.LocationManager.GPS_PROVIDER
-import android.location.LocationManager.NETWORK_PROVIDER
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.provider.Settings
 import android.util.Log
 import android.webkit.MimeTypeMap
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsStatusCodes
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import ru.relabs.kurjer.MainActivity
+import ru.relabs.kurjer.REQUEST_LOCATION
+import ru.relabs.kurjer.application
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.logError
@@ -31,20 +36,6 @@ import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
-import android.net.NetworkInfo
-import com.google.android.gms.location.LocationSettingsStatusCodes
-import android.content.IntentSender
-import android.support.v4.content.ContextCompat.startActivity
-import ru.relabs.kurjer.MainActivity
-import com.google.android.gms.location.LocationSettingsResult
-import io.fabric.sdk.android.services.settings.IconRequest.build
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.LocationSettingsRequest
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.common.api.ResultCallback
-import ru.relabs.kurjer.REQUEST_LOCATION
-import ru.relabs.kurjer.application
 
 
 /**
@@ -73,11 +64,11 @@ object NetworkHelper {
         return Settings.Secure.getInt(context.contentResolver, "mobile_data", 0) == 1 || cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).isConnectedOrConnecting
     }
 
-    fun isNetworkEnabled(context: Context?): Boolean{
+    fun isNetworkEnabled(context: Context?): Boolean {
         return (isWifiEnabled(context) && isWifiConnected(context)) || isMobileDataEnabled(context)
     }
 
-    fun isGPSEnabled(context: Context?): Boolean{
+    fun isGPSEnabled(context: Context?): Boolean {
         return application().locationManager?.isProviderEnabled(GPS_PROVIDER) ?: false
     }
 
@@ -127,7 +118,7 @@ object NetworkHelper {
                 photosMap["img_$imgCount"] = PhotoReportModel("", photo.gps)
                 imgCount++
             } catch (e: Throwable) {
-                e.logError()
+                e.fillInStackTrace().logError()
             }
         }
 

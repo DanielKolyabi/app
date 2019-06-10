@@ -76,22 +76,21 @@ class MainActivity : AppCompatActivity() {
                             return
                         }
                     }
-
-                    override fun negativeListener() {
-                        networkErrorShowed = false
-                        try {
-                            startActivity(Intent(Settings.ACTION_SETTINGS))
-                        } catch (e: Exception) {
-                            CustomLog.writeToFile(getStacktraceAsString(e))
-                            showError("Не удалось открыть настройки", object : ErrorButtonsListener {
-                                override fun positiveListener() {
-                                    showNetworkDisabledError()
-                                }
-                            })
-                        }
-                    }
+//                    override fun negativeListener() {
+//                        networkErrorShowed = false
+//                        try {
+//                            startActivity(Intent(Settings.ACTION_SETTINGS))
+//                        } catch (e: Exception) {
+//                            CustomLog.writeToFile(getStacktraceAsString(e))
+//                            showError("Не удалось открыть настройки", object : ErrorButtonsListener {
+//                                override fun positiveListener() {
+//                                    showNetworkDisabledError()
+//                                }
+//                            })
+//                        }
+//                    }
                 },
-                "Ок", "Настройки"
+                "Ок"
 
         )
     }

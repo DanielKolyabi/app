@@ -35,7 +35,7 @@ class ReportService : Service() {
         val pi = PendingIntent.getService(this, 0, Intent(this, ReportService::class.java).apply { putExtra("stopService", true) }, PendingIntent.FLAG_CANCEL_CURRENT)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(channelId, getString(R.string.app_name), NotificationManager.IMPORTANCE_DEFAULT)
+            val notificationChannel = NotificationChannel(channelId, getString(R.string.app_name), NotificationManager.IMPORTANCE_LOW)
             (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(notificationChannel)
         }
 
@@ -53,7 +53,7 @@ class ReportService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.extras?.getBoolean("stopService") == true) {
             stopSelf()
-            return Service.START_STICKY
+            return START_STICKY
         }
 
         startForeground(1, notification("Сервис отправки данных."))
@@ -104,8 +104,10 @@ class ReportService : Service() {
                         }
                         lastTasksChecking = System.currentTimeMillis()
                     }
+                    updateNotificationText(db = db)
+                }else{
+                    updateNotificationText(text = "Сеть недоступна")
                 }
-                updateNotificationText(db)
 
                 if(System.currentTimeMillis() - lastNetworkEnabledChecking > 10*60*1000){
                     lastNetworkEnabledChecking = System.currentTimeMillis()
@@ -118,16 +120,22 @@ class ReportService : Service() {
                     }
                 }
 
-                delay(if (!isTaskSended) 10000 else 1000)
+                delay(if (!isTaskSended) 1000 else 100)
             }
         }
 
-        return Service.START_STICKY
+        return START_STICKY
     }
 
-    private fun updateNotificationText(db: AppDatabase) {
-        val count = db.sendQueryDao().all.size + db.reportQueryDao().all.size
-        startForeground(1, notification("Сервис отправки данных. В очереди $count"))
+    private fun updateNotificationText(text: String? = null, db: AppDatabase? = null) {
+        when {
+            text != null -> startForeground(1, notification("Сервис отправки данных. $text"))
+            db != null -> {
+                val count = db.sendQueryDao().all.size + db.reportQueryDao().all.size
+                startForeground(1, notification("Сервис отправки данных. В очереди $count"))
+            }
+            else -> startForeground(1, notification("Сервис отправки данных."))
+        }
     }
 
     private suspend fun sendReportQuery(db: AppDatabase, item: ReportQueryItemEntity) {

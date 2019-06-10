@@ -37,7 +37,7 @@ class YandexMapFragment : Fragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             addresses = it.getParcelableArrayList("addresses") ?: listOf()
-            if(addresses.size < 2){
+            if (addresses.size < 2) {
                 savedCameraPosition = null
             }
         }
@@ -133,7 +133,7 @@ class YandexMapFragment : Fragment() {
                     }
 
             mapview.map.mapObjects.addCircle(
-                    Circle(point, 50f),
+                    Circle(point, 15f),
                     R.color.colorPrimary,
                     2f,
                     ColorUtils.setAlphaComponent(coloredAddress.color, 125)
@@ -143,7 +143,7 @@ class YandexMapFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        if(addresses.size > 1){
+        if (addresses.size > 1) {
             savedCameraPosition = mapview?.map?.cameraPosition
         }
     }

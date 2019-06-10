@@ -148,11 +148,11 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                             })
                             return@launch
                         }
-                        fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить в ручную.\nОшибка №${err.code}.")
+                        fragment.activity()?.showError("Задания не были обновлены. Возможна ошибка дат. Обратитесь к бригадиру.\nОшибка №${err.code}.")
                     } catch (e: Exception) {
                         e.printStackTrace()
                         newTasks = null
-                        fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить в ручную.")
+                        fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить позже.")
                     }
 
                     if (newTasks != null) {

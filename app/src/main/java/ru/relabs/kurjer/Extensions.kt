@@ -1,6 +1,7 @@
 package ru.relabs.kurjer
 
 import android.support.v4.app.Fragment
+import com.crashlytics.android.Crashlytics
 import java.lang.Exception
 
 
@@ -19,6 +20,7 @@ fun Fragment.activity(): MainActivity?{
 fun Throwable.logError(){
     this.printStackTrace()
 
+    Crashlytics.logException(this)
     val stacktrace = CustomLog.getStacktraceAsString(this)
     CustomLog.writeToFile(stacktrace)
 }

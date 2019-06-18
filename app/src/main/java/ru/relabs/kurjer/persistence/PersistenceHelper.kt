@@ -1,5 +1,7 @@
 package ru.relabs.kurjer.persistence
 
+import android.os.Environment
+import android.os.StatFs
 import android.util.Log
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.withContext
@@ -13,11 +15,18 @@ import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import java.util.*
 
+
 /**
  * Created by ProOrange on 05.09.2018.
  */
 
 object PersistenceHelper {
+
+    fun getFreeMemorySpace(): Long {
+        val stat = StatFs(Environment.getExternalStorageDirectory().path)
+        val bytesAvailable = stat.blockSizeLong * stat.availableBlocksLong
+        return bytesAvailable / (1024 * 1024)
+    }
 
     fun removeUnusedClosedTasks(db: AppDatabase) {
         //Remove all closed tasks, that haven't any report in query
@@ -79,7 +88,7 @@ object PersistenceHelper {
                 val savedTask = db.taskDao().getById(task.id)!!
                 if (task.state == TaskModel.CANCELED) {
                     return@withContext true
-                }else if (task.state == TaskModel.COMPLETED) {
+                } else if (task.state == TaskModel.COMPLETED) {
                     return@withContext true
                 } else if (
                         (savedTask.iteration < task.iteration)

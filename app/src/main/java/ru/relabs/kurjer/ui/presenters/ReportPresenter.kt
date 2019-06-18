@@ -311,6 +311,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
         packageManager?.let { packageManager ->
             intent?.let { intent ->
                 if (intent.resolveActivity(packageManager) != null) {
+                    CustomLog.writeToFile("Lifecycle: photo activity started")
                     fragment.startActivityForResult(intent, REQUEST_PHOTO)
                 }
             }
@@ -319,6 +320,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode == REQUEST_PHOTO) {
+            CustomLog.writeToFile("Lifecycle: photo activity received")
             if (resultCode != RESULT_OK) {
                 if (resultCode != RESULT_CANCELED) {
                     (fragment.context as MainActivity).showError("Не удалось сделать фото.")

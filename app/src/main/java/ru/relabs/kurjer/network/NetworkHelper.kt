@@ -18,12 +18,9 @@ import com.google.android.gms.location.LocationSettingsStatusCodes
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.REQUEST_LOCATION
-import ru.relabs.kurjer.application
+import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper
-import ru.relabs.kurjer.logError
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.network.DeliveryServerAPI.api
 import ru.relabs.kurjer.network.models.PhotoReportModel
@@ -60,8 +57,20 @@ object NetworkHelper {
     private fun isMobileDataEnabled(context: Context?): Boolean {
         context ?: return false
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val isNetworkConnecting = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).isConnectedOrConnecting
+        val isMobileDataEnabled = try {
+            val cmClass = Class.forName(cm.javaClass.name)
+            val method = cmClass.getDeclaredMethod("getMobileDataEnabled")
+            method.isAccessible = true
 
-        return Settings.Secure.getInt(context.contentResolver, "mobile_data", 0) == 1 || cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).isConnectedOrConnecting
+            val status = method.invoke(cm) as Boolean
+
+            status || isNetworkConnecting
+        } catch (e: java.lang.Exception) {
+            Settings.Global.getInt(context.contentResolver, "mobile_data", 0) == 1 ||
+                    Settings.Secure.getInt(context.contentResolver, "mobile_data", 0) == 1 || isNetworkConnecting
+        }
+        return isMobileDataEnabled
     }
 
     fun isNetworkEnabled(context: Context?): Boolean {

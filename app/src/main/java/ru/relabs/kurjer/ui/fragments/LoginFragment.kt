@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_login.*
 import ru.relabs.kurjer.BuildConfig
+import ru.relabs.kurjer.CustomLog
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.activity
 import ru.relabs.kurjer.network.NetworkHelper
@@ -43,8 +44,14 @@ class LoginFragment : Fragment() {
         )
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        CustomLog.writeToFile("Lifecycle: LoginFragment destroyed")
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        CustomLog.writeToFile("Lifecycle: LoginFragment created")
         setRememberPasswordEnabled(true)
         remember_password_text.setOnClickListener {
             presenter.onRememberPasswordClick()
@@ -58,7 +65,7 @@ class LoginFragment : Fragment() {
             presenter.onLoginClick(login_input.text.toString(), password_input.text.toString())
         }
 
-        app_version.text = resources.getString(R.string.app_version_label, BuildConfig.VERSION_CODE)
+        app_version.text = resources.getString(R.string.app_version_label, BuildConfig.VERSION_NAME)
 
         val myTextWatcher = object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {}

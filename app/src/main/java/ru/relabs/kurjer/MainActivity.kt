@@ -7,7 +7,6 @@ import android.graphics.Color
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
@@ -34,6 +33,7 @@ import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.UpdateInfo
+import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.adapters.SearchInputAdapter
 import ru.relabs.kurjer.ui.fragments.*
 import ru.relabs.kurjer.ui.helpers.setVisible
@@ -147,6 +147,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
+        CustomLog.writeToFile("Lifecycle: MainActivity resume")
         if (!NetworkHelper.isGPSEnabled(applicationContext)) {
             NetworkHelper.displayLocationSettingsRequest(applicationContext, this)
         }
@@ -158,7 +159,13 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
     }
 
+    override fun onDestroy() {
+        CustomLog.writeToFile("Lifecycle: MainActivity destroy")
+        super.onDestroy()
+    }
+
     override fun onPause() {
+        CustomLog.writeToFile("Lifecycle: MainActivity paused")
         unregisterReceiver(gpsSwitchStateReceiver)
         (application as? MyApplication)?.disableLocationListening()
         super.onPause()
@@ -194,6 +201,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        CustomLog.writeToFile("SystemInfo: Free Memory (${PersistenceHelper.getFreeMemorySpace()})")
+        CustomLog.writeToFile("Lifecycle: MainActivity created")
         Fabric.with(this, Crashlytics())
         window.requestFeature(Window.FEATURE_ACTION_BAR)
         setContentView(R.layout.activity_main)
@@ -272,7 +281,11 @@ class MainActivity : AppCompatActivity() {
             permissions.add(android.Manifest.permission.READ_PHONE_STATE)
         }
 
-        registerReceiver(broadcastReceiver, IntentFilter("NOW"))
+        try {
+            registerReceiver(broadcastReceiver, IntentFilter("NOW"))
+        } catch (e: java.lang.Exception) {
+            e.logError()
+        }
 
         showPermissionsRequest(permissions.toTypedArray(), false)
         loading.setVisible(true)
@@ -451,6 +464,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showLoginScreen(): LoginFragment {
+        try {
+            CustomLog.writeToFile("showLoginScreen stackTrace:\n" + Thread.currentThread().stackTrace.joinToString("\n"))
+        } catch (e: Exception) {
+            e.logError()
+        }
         val fragment = LoginFragment()
         navigateTo(fragment)
         changeTitle("Авторизация")
@@ -466,19 +484,19 @@ class MainActivity : AppCompatActivity() {
                 }
                 .mapNotNull { entry ->
                     val value = entry.value
-                    if(value is TaskItemModel){
-                        val color = if(value.state == TaskItemModel.CLOSED){
+                    if (value is TaskItemModel) {
+                        val color = if (value.state == TaskItemModel.CLOSED) {
                             //Gray
                             Color.GRAY
-                        }else if(value.needPhoto){
+                        } else if (value.needPhoto) {
                             //Red
                             resources.getColor(R.color.colorAccent)
-                        }else{
+                        } else {
                             //Orange
-                            Color.argb(255, 255,165,0)
+                            Color.argb(255, 255, 165, 0)
                         }
                         YandexMapFragment.AddressWithColor(value.address, color)
-                    }else{
+                    } else {
                         null
                     }
                 }

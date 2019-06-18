@@ -3,10 +3,12 @@ package ru.relabs.kurjer
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.IBinder
 import android.support.v4.app.NotificationCompat
-import android.util.Log
+import android.support.v4.app.NotificationManagerCompat
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
@@ -23,31 +25,52 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 
+const val channelId = "notification_channel"
+
 class ReportService : Service() {
     private var thread: Job? = null
+    private var currentIconBitmap: Bitmap? = null
+    private var lastState: ServiceState = ServiceState.IDLE
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
-    private fun notification(body: String): Notification {
-        val channelId = "notification_channel"
+    enum class ServiceState {
+        TRANSFER, IDLE, UNAVAILABLE
+    }
+
+    private fun notification(body: String, status: ServiceState, update: Boolean = false): Notification {
         val pi = PendingIntent.getService(this, 0, Intent(this, ReportService::class.java).apply { putExtra("stopService", true) }, PendingIntent.FLAG_CANCEL_CURRENT)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(channelId, getString(R.string.app_name), NotificationManager.IMPORTANCE_LOW)
+            val notificationChannel = NotificationChannel(channelId, getString(R.string.app_name), NotificationManager.IMPORTANCE_HIGH)
             (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(notificationChannel)
         }
 
-        return NotificationCompat.Builder(applicationContext)
+        val ic = when (status) {
+            ServiceState.TRANSFER -> R.drawable.ic_service_ok
+            ServiceState.IDLE -> R.drawable.ic_service_idle
+            ServiceState.UNAVAILABLE -> R.drawable.ic_service_error
+        }
+        if(lastState != status){
+
+            currentIconBitmap?.recycle()
+            currentIconBitmap = BitmapFactory.decodeResource(application.resources, ic)
+            lastState = status
+        }
+
+        val notification = NotificationCompat.Builder(applicationContext, channelId)
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(body)
-                .setSmallIcon(R.drawable.ic_arrow)
+                .setSmallIcon(ic)
+                .setLargeIcon(currentIconBitmap)
                 .setWhen(System.currentTimeMillis())
                 .addAction(R.drawable.ic_stop_black_24dp, "Отключить", pi)
                 .setChannelId(channelId)
                 .setOnlyAlertOnce(true)
-                .build()
+
+        return notification.build()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -56,13 +79,14 @@ class ReportService : Service() {
             return START_STICKY
         }
 
-        startForeground(1, notification("Сервис отправки данных."))
+        startForeground(1, notification("Сервис отправки данных.", ServiceState.IDLE))
 
         val db = MyApplication.instance.database
         var lastTasksChecking = System.currentTimeMillis()
         var lastNetworkEnabledChecking = System.currentTimeMillis()
+        var lastServiceLogTime = System.currentTimeMillis()
 
-        thread = launch {
+                thread = launch {
             while (true) {
                 var isTaskSended = false
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
@@ -104,14 +128,11 @@ class ReportService : Service() {
                         }
                         lastTasksChecking = System.currentTimeMillis()
                     }
-                    updateNotificationText(db = db)
-                }else{
-                    updateNotificationText(text = "Сеть недоступна")
                 }
 
-                if(System.currentTimeMillis() - lastNetworkEnabledChecking > 10*60*1000){
+                if (System.currentTimeMillis() - lastNetworkEnabledChecking > 10 * 60 * 1000) {
                     lastNetworkEnabledChecking = System.currentTimeMillis()
-                    if(!NetworkHelper.isNetworkEnabled(applicationContext)){
+                    if (!NetworkHelper.isNetworkEnabled(applicationContext)) {
                         val int = Intent().apply {
                             putExtra("network_disabled", true)
                             action = "NOW"
@@ -119,23 +140,37 @@ class ReportService : Service() {
                         sendBroadcast(int)
                     }
                 }
-
-                delay(if (!isTaskSended) 1000 else 100)
+                if (System.currentTimeMillis() - lastServiceLogTime > 30 * 1000) {
+                    lastServiceLogTime = System.currentTimeMillis()
+                    try {
+                        val count = db.sendQueryDao().all.size + db.reportQueryDao().all.size
+                        CustomLog.writeToFile("Service DD. Count($count). network available (${NetworkHelper.isNetworkAvailable(applicationContext)})")
+                    }catch (e: java.lang.Exception){
+                        e.logError()
+                    }
+                }
+                updateNotificationText(db)
+                delay(if (!isTaskSended) 5000 else 1000)
             }
         }
 
         return START_STICKY
     }
 
-    private fun updateNotificationText(text: String? = null, db: AppDatabase? = null) {
-        when {
-            text != null -> startForeground(1, notification("Сервис отправки данных. $text"))
-            db != null -> {
-                val count = db.sendQueryDao().all.size + db.reportQueryDao().all.size
-                startForeground(1, notification("Сервис отправки данных. В очереди $count"))
-            }
-            else -> startForeground(1, notification("Сервис отправки данных."))
+    private fun updateNotificationText(db: AppDatabase) {
+        val isNetworkAvailable = NetworkHelper.isNetworkAvailable(applicationContext)
+        val count = db.sendQueryDao().all.size + db.reportQueryDao().all.size
+        val state = if (!isNetworkAvailable) {
+            ServiceState.UNAVAILABLE
+        } else if (count > 0) {
+            ServiceState.TRANSFER
+        } else {
+            ServiceState.IDLE
         }
+
+        val text = "Сервис. В очереди: $count." + if (!isNetworkAvailable) " Сеть недоступна." else ""
+
+        NotificationManagerCompat.from(this).notify(1, notification(text, state))
     }
 
     private suspend fun sendReportQuery(db: AppDatabase, item: ReportQueryItemEntity) {

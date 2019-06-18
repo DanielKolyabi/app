@@ -61,7 +61,7 @@ object CustomLog {
             fileWriter.flush()
             fileWriter.close()
 
-            if (reportFile.length() > 1 * 1024 * 1024) {
+            if (reportFile.length() > 3 * 1024 * 1024) {
                 val writer = PrintWriter(reportFile)
                 writer.print("")
                 writer.close()

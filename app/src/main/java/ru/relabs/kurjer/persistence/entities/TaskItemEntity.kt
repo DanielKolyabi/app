@@ -35,11 +35,12 @@ data class TaskItemEntity(
         var taskId: Int,
         @ColumnInfo(name = "need_photo")
         var needPhoto: Boolean
-){
-        fun toTaskItemModel(db: AppDatabase): TaskItemModel{
-                return TaskItemModel(
-                        db.addressDao().getById(addressId)!!.toAddressModel(),
-                        state, id, notes, entrances.map{ EntranceModel(it, false) }, subarea, bypass, copies, needPhoto
-                )
-        }
+) {
+    fun toTaskItemModel(db: AppDatabase): TaskItemModel {
+        return TaskItemModel(
+                db.addressDao().getById(addressId)!!.toAddressModel(),
+                state, id, notes, entrances.map { EntranceModel(it, false) }, subarea, bypass, copies, needPhoto,
+                db.entranceDataDao().getAllForTaskItem(id).map { it.toEntranceDataModel() }
+        )
+    }
 }

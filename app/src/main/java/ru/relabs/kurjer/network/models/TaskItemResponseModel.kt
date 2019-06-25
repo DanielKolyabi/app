@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.network.models
 
 import com.google.gson.annotations.SerializedName
+import ru.relabs.kurjer.models.EntranceDataModel
 import ru.relabs.kurjer.models.EntranceModel
 import ru.relabs.kurjer.models.TaskItemModel
 
@@ -17,9 +18,11 @@ data class TaskItemResponseModel(
         @SerializedName("task_id")
         var taskId: Int,
         @SerializedName("need_photo")
-        var needPhoto: Boolean
+        var needPhoto: Boolean,
+        @SerializedName("entrances_data")
+        var entrancesData: List<EntranceDataModel>
 ) {
     fun toTaskItemModel(): TaskItemModel {
-        return TaskItemModel(address.toAddressModel(), state, id, notes, entrances.map{ EntranceModel(it, false) }, subarea, bypass, copies, needPhoto)
+        return TaskItemModel(address.toAddressModel(), state, id, notes, entrances.map{ EntranceModel(it, false) }, subarea, bypass, copies, needPhoto, entrancesData)
     }
 }

@@ -35,7 +35,9 @@ data class TaskEntity(
         var city: String,
         @ColumnInfo(name = "storage_address")
         var storageAddress: String,
-        var iteration: Int
+        var iteration: Int,
+        @ColumnInfo(name = "couple_type")
+        var coupleType: Int
 ) {
     val plainState
         get() = if(state and TaskModel.BY_OTHER_USER == 1){
@@ -47,7 +49,7 @@ data class TaskEntity(
     fun toTaskModel(db: AppDatabase): TaskModel {
         return TaskModel(
                 id, name, edition, copies, packs, remain, area, state, startTime, endTime, brigade, brigadier, rastMapUrl, userId,
-                db.taskItemDao().getAllForTask(id).map { it.toTaskItemModel(db) }, city, storageAddress, iteration, false
+                db.taskItemDao().getAllForTask(id).map { it.toTaskItemModel(db) }, city, storageAddress, iteration, false, coupleType
         )
     }
 }

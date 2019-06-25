@@ -74,11 +74,12 @@ class TaskListFragment : Fragment(), SearchableFragment {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         hintHelper = HintHelper(hint_container, this.resources.getString(R.string.task_list_hint_text), false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
+
         start.setOnClickListener {
             presenter.onStartClicked()
         }
         activity()?.findViewById<View>(R.id.refresh_button)?.setOnClickListener {
-            showListLoading(true)
+            showListLoading(true, true)
             presenter.loadTasks(true)
         }
         YandexMapFragment.savedCameraPosition = null
@@ -120,9 +121,13 @@ class TaskListFragment : Fragment(), SearchableFragment {
         start?.isEnabled = active
     }
 
-    fun showListLoading(isLoading: Boolean) {
+    fun showListLoading(isLoading: Boolean, clearList: Boolean = false) {
         if (isLoading) {
             if (adapter.data.isEmpty() || adapter.data.first() !is TaskListModel.Loader) {
+                if(clearList){
+                    adapter.data.clear()
+                }
+
                 adapter.data.add(0, TaskListModel.Loader)
                 adapter.notifyDataSetChanged()
             }

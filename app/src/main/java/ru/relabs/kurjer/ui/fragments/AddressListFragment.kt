@@ -15,10 +15,8 @@ import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
 import kotlinx.android.synthetic.main.fragment_address_list.*
 import kotlinx.android.synthetic.main.include_hint_container.*
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.*
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel

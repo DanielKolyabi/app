@@ -47,6 +47,12 @@ class ReportPresenter(private val fragment: ReportFragment) {
     var currentTask = 0
 
     fun changeCurrentTask(taskNumber: Int) {
+        fragment.setTaskListActiveTask(currentTask, false)
+        fragment.setTaskListActiveTask(taskNumber, true)
+        currentTask = taskNumber
+
+        fragment.showHintText(fragment.taskItems[currentTask].notes)
+
         val db = (fragment.activity?.application as? MyApplication)?.database
         db?.let {
             launch {
@@ -62,11 +68,6 @@ class ReportPresenter(private val fragment: ReportFragment) {
                     }
                 }
             }
-
-            fragment.setTaskListActiveTask(currentTask, false)
-            fragment.setTaskListActiveTask(taskNumber, true)
-            currentTask = taskNumber
-            fragment.showHintText(fragment.taskItems[currentTask].notes)
         }
 
         fragment.close_button?.isEnabled = fragment.tasks[currentTask].isAvailableByDate(Date())
@@ -95,18 +96,25 @@ class ReportPresenter(private val fragment: ReportFragment) {
         fragment.tasksListAdapter.notifyDataSetChanged()
     }
 
-    private fun getTaskItemEntranceData(taskItem: TaskItemModel, db: AppDatabase): List<ReportEntrancesListModel.Entrance> {
+    private fun getTaskItemEntranceData(taskItem: TaskItemModel, task: TaskModel, db: AppDatabase): List<ReportEntrancesListModel.Entrance> {
+        val tasksWithSameCouple = fragment.tasks.filter { it.coupleType == task.coupleType }
         val entrances = taskItem.entrances.map {
             it.coupleEnabled = it.coupleEnabled
-                    && fragment.taskItems.size > 1
+                    && tasksWithSameCouple.size > 1
                     && taskItem.state == TaskItemModel.CREATED
 
             ReportEntrancesListModel.Entrance(taskItem, it.num, 0, it.coupleEnabled)
         }
-        db.taskItemResultsDao().getByTaskItemId(taskItem.id)?.let {
-            val savedEntrances = db.entrancesDao().getByTaskItemResultId(it.id)
+
+        val savedResult = db.taskItemResultsDao().getByTaskItemId(taskItem.id)
+        if (savedResult != null) {
+            val savedEntrances = db.entrancesDao().getByTaskItemResultId(savedResult.id)
+
             entrances.forEach { ent ->
-                ent.selected = savedEntrances.first { it.entrance == ent.entranceNumber }.state
+                val saved = savedEntrances.firstOrNull { it.entrance == ent.entranceNumber }
+                if (saved != null) {
+                    ent.selected = saved.state
+                }
             }
         }
 
@@ -115,7 +123,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
     private fun fillEntrancesAdapterData(db: AppDatabase) {
 
-        val entrances = getTaskItemEntranceData(fragment.taskItems[currentTask], db)
+        val entrances = getTaskItemEntranceData(fragment.taskItems[currentTask], fragment.tasks[currentTask], db)
 
         launch(UI) {
             fragment.entrancesListAdapter.data.clear()
@@ -143,7 +151,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
     fun onEntranceSelected(type: Int, holder: RecyclerView.ViewHolder) {
-        if(holder.adapterPosition < 0){
+        if (holder.adapterPosition < 0) {
             return
         }
         val data = (fragment.entrancesListAdapter.data[holder.adapterPosition] as ReportEntrancesListModel.Entrance)
@@ -152,21 +160,35 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 .filter { it is ReportEntrancesListModel.Entrance }
                 .map { it as ReportEntrancesListModel.Entrance }
 
+        val isEuroEnabled = data.selected and 0x0001 != 0
+        val hasLookout = data.selected and 0x0010 != 0
+        val isStacked = data.selected and 0x0100 != 0
+
+        if (!isStacked) {
+            if ((type == 0x0001 && isEuroEnabled) || (type == 0x0010 && hasLookout)) {
+                data.selected = data.selected xor 0x0100
+            }
+        } else {
+            if (!isEuroEnabled && !hasLookout && (type == 0x0001 || type == 0x0010)) {
+                data.selected = data.selected xor 0x0100
+            }
+        }
+
         launch(CommonPool) {
             val db = MyApplication.instance.database
 
             if (data.coupleEnabled) {
-                for (taskItem in fragment.taskItems) {
+                for ((idx, taskItem) in fragment.taskItems.withIndex()) {
                     if (taskItem == fragment.taskItems[currentTask] || taskItem.state == TaskItemModel.CLOSED) {
                         continue
                     }
+                    if (fragment.tasks[idx].coupleType != fragment.tasks[currentTask].coupleType) {
+                        continue
+                    }
 
-                    val taskItemEntrances = getTaskItemEntranceData(taskItem, db)
+                    val taskItemEntrances = getTaskItemEntranceData(taskItem, fragment.tasks[idx], db)
                     if (taskItemEntrances.size > data.entranceNumber - 1) {
-                        val cur = taskItemEntrances[data.entranceNumber - 1].selected
-                        if (cur and type != data.selected and type) {
-                            taskItemEntrances[data.entranceNumber - 1].selected = cur xor type
-                        }
+                        taskItemEntrances[data.entranceNumber - 1].selected = data.selected
                         try {
                             createOrUpdateTaskResult(taskItem.id, entrances = taskItemEntrances)
                         } catch (e: Throwable) {
@@ -447,35 +469,71 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 override fun negativeListener() {
                 }
             })
-        } else {
-            if(fragment.taskItems[currentTask].needPhoto
-                    && fragment.photosListAdapter.data.filter { it is ReportPhotosListModel.TaskItemPhoto }.isEmpty()){
-                (fragment?.context as? MainActivity)?.showError("Необходимо сделать фотографии")
-                return
-            }
-
-            val description = try {
-                fragment.user_explanation_input.text.toString()
-            } catch (e: Exception) {
-                "can't get user explanation"
-            }
-
-            (fragment.context as MainActivity).showError("Вы уверен что хотите закрыть адрес?", object : ErrorButtonsListener {
-                override fun positiveListener() {
-                    val status = closeTaskItem(description)
-                    if (!status) {
-                        (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
-                    }else{
-                        if(!NetworkHelper.isNetworkEnabled(fragment.context)) {
-                            (fragment.activity as? MainActivity)?.showNetworkDisabledError()
-                        }
-                    }
-                }
-
-                override fun negativeListener() {}
-            }, "Да", "Нет")
             return
         }
+
+        if (fragment.taskItems[currentTask].needPhoto
+                && fragment.photosListAdapter.data.filter { it is ReportPhotosListModel.TaskItemPhoto }.isEmpty()) {
+            (fragment?.context as? MainActivity)?.showError("Необходимо сделать фотографии")
+            return
+        }
+
+        if (!isAllEntranceWithDefaults()) {
+            (fragment.context as MainActivity).showError("Все кнопки в доме нажаты правильно?", object : ErrorButtonsListener {
+                override fun positiveListener() {
+                    closeClicked()
+                }
+            }, "Да", "Нет")
+        } else {
+            closeClicked()
+        }
+    }
+
+    private fun isAllEntranceWithDefaults(): Boolean {
+
+        fragment.taskItems[currentTask].entrancesData.forEach { default ->
+            fragment.entrancesListAdapter.data
+                    .filter { it is ReportEntrancesListModel.Entrance }
+                    .map { it as ReportEntrancesListModel.Entrance }
+                    .forEach { data ->
+                        if (default.isEuroBoxes && (data.selected and 0x0001) == 0) {
+                            return false
+                        }
+                        if (default.hasLookout && (data.selected and 0x0010) == 0) {
+                            return false
+                        }
+                        if (default.isStacked && (data.selected and 0x0100) == 0) {
+                            return false
+                        }
+                        if (default.isRefused && (data.selected and 0x1000) == 0) {
+                            return false
+                        }
+                    }
+        }
+        return true
+    }
+
+    fun closeClicked() {
+        val description = try {
+            fragment.user_explanation_input.text.toString()
+        } catch (e: Exception) {
+            "can't get user explanation"
+        }
+
+        (fragment.context as MainActivity).showError("Вы уверены что хотите закрыть адрес?", object : ErrorButtonsListener {
+            override fun positiveListener() {
+                val status = closeTaskItem(description)
+                if (!status) {
+                    (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
+                } else {
+                    fragment.activity()?.restartTaskClosingTimer()
+                    if (!NetworkHelper.isNetworkEnabled(fragment.context)) {
+                        (fragment.activity as? MainActivity)?.showNetworkDisabledError()
+                    }
+                }
+            }
+        }, "Да", "Нет")
+        return
     }
 
     private fun closeTaskItem(description: String): Boolean {
@@ -525,7 +583,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
                     db.taskDao().update(it)
                 }
 
-                Log.d("BatteryLevel",  "${((getBatteryLevel(fragment.context) ?: 0f) * 100).roundToInt()}")
+                Log.d("BatteryLevel", "${((getBatteryLevel(fragment.context)
+                        ?: 0f) * 100).roundToInt()}")
 
                 val reportItem = ReportQueryItemEntity(
                         0, fragment.taskItems[currentTask].id, fragment.tasks[currentTask].id, fragment.taskItems[currentTask].address.id, location,
@@ -579,10 +638,12 @@ class ReportPresenter(private val fragment: ReportFragment) {
         val entrance = fragment.entrancesListAdapter.data[adapterPosition] as ReportEntrancesListModel.Entrance
         val currentCoupleState = fragment.taskItems[currentTask].entrances[adapterPosition].coupleEnabled
 
-        entrance.coupleEnabled = !currentCoupleState && fragment.taskItems.size > 1
+        val taskItemsWithSameCoupleType = fragment.taskItems.filterIndexed { idx, _ -> fragment.tasks[idx].coupleType == fragment.tasks[currentTask].coupleType }
+        entrance.coupleEnabled = !currentCoupleState && taskItemsWithSameCoupleType.size > 1
 
-        for (taskItem in fragment.taskItems) {
-            taskItem.entrances[adapterPosition].coupleEnabled = entrance.coupleEnabled && entrance.taskItem.state == TaskItemModel.CREATED
+        for ((idx, taskItem) in fragment.taskItems.withIndex()) {
+            if (fragment.tasks[idx].coupleType == fragment.tasks[currentTask].coupleType)
+                taskItem.entrances[adapterPosition].coupleEnabled = entrance.coupleEnabled && entrance.taskItem.state == TaskItemModel.CREATED
         }
 
         fragment.entrancesListAdapter.notifyItemChanged(adapterPosition)

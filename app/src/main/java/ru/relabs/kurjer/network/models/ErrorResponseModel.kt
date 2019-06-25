@@ -13,7 +13,7 @@ abstract class ResponseWithErrorModel {
 
 data class ResponseErrorModel(
         val code: Int,
-        val message: String
+        var message: String
 )
 
 data class ErrorModel(

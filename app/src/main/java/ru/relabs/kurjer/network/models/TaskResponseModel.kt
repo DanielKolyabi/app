@@ -33,12 +33,14 @@ data class TaskResponseModel(
         val iteration: Int,
         val items: List<TaskItemResponseModel>,
         @SerializedName("first_examined_device_id")
-        val firstExaminedDeviceId: String?
+        val firstExaminedDeviceId: String?,
+        @SerializedName("couple_type")
+        val coupleType: Int
 ) {
     fun toTaskModel(deviceId: String): TaskModel {
         return TaskModel(
                 id, name, edition, copies, packs, remain, area, fromSiriusState(deviceId), startTime, endTime, brigade, brigadier, rastMapUrl, userId,
-                items.map{it.toTaskItemModel()}, city, storageAddress ?: "", iteration, false
+                items.map{it.toTaskItemModel()}, city, storageAddress ?: "", iteration, false, coupleType
 
         )
     }

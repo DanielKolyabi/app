@@ -22,6 +22,8 @@ import java.util.*
 /**
  * Created by ProOrange on 24.08.2018.
  */
+const val INVALID_TOKEN_ERROR_CODE = 4
+
 class LoginPresenter(val fragment: LoginFragment) {
 
     private var isPasswordRemembered = false
@@ -55,6 +57,9 @@ class LoginPresenter(val fragment: LoginFragment) {
                     api.loginByToken(pwd, application().deviceUUID, time).await()
 
                 if (response.error != null) {
+                    if(response.error.code == INVALID_TOKEN_ERROR_CODE){
+                        response.error.message = "Введите пароль"
+                    }
                     fragment.activity()?.showError("Ошибка №${response.error.code}\n${response.error.message}")
                     return@launch
                 }

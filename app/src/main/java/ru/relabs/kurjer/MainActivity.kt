@@ -23,9 +23,9 @@ import com.crashlytics.android.Crashlytics
 import io.fabric.sdk.android.Fabric
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.channels.Channel
 import ru.relabs.kurjer.CustomLog.getStacktraceAsString
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
@@ -49,6 +49,10 @@ class MainActivity : AppCompatActivity() {
     private var needRefreshShowed = false
     private var needForceRefresh = false
     private var networkErrorShowed = false
+    private var serviceCheckingJob: Job? = null
+    private val errorsChannel = Channel<() -> Unit>(Channel.UNLIMITED)
+    private var errorsChannelHandlerJob: Job? = null
+    private var timeLimitJob: Job? = null
 
     val gpsSwitchStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -146,8 +150,31 @@ class MainActivity : AppCompatActivity() {
         }, "Ок", negative)
     }
 
+    fun startTaskClosingTimer() {
+        if(timeLimitJob != null){
+            return
+        }
+        timeLimitJob = launch(DefaultDispatcher) {
+            delay(10*1000)
+            if(application().database.taskDao().allOpened.isEmpty()){
+                return@launch
+            }
+            withContext(UI) {
+                showError("ВРЕМЯ! ОТЧЁТ!", forcePositiveButtonName = "Понятно", cancelable = true)
+            }
+            timeLimitJob = null
+        }
+    }
+    fun restartTaskClosingTimer() {
+        timeLimitJob?.cancel()
+        timeLimitJob = null
+        startTaskClosingTimer()
+    }
+
+
     override fun onResume() {
         CustomLog.writeToFile("Lifecycle: MainActivity resume")
+        logFragmentBackstack()
         if (!NetworkHelper.isGPSEnabled(applicationContext)) {
             NetworkHelper.displayLocationSettingsRequest(applicationContext, this)
         }
@@ -156,6 +183,31 @@ class MainActivity : AppCompatActivity() {
         }
         registerReceiver(gpsSwitchStateReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
         MyApplication.instance.enableLocationListening()
+
+        serviceCheckingJob?.cancel()
+        serviceCheckingJob = launch(DefaultDispatcher) {
+            while (true) {
+                if (!ReportService.isRunning) {
+                    startService(Intent(this@MainActivity, ReportService::class.java))
+                }
+                delay(15000)
+            }
+        }
+        errorsChannelHandlerJob?.cancel()
+        errorsChannelHandlerJob = launch(DefaultDispatcher) {
+            for (error in errorsChannel) {
+                try {
+                    launch(UI) {
+                        error.invoke()
+                    }
+                } catch (e: java.lang.Exception) {
+                    e.fillInStackTrace()
+                    e.logError()
+                }
+            }
+        }
+        isRunning = true
+
         super.onResume()
     }
 
@@ -165,6 +217,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
+        serviceCheckingJob?.cancel()
+        errorsChannelHandlerJob?.cancel()
+        isRunning = false
         CustomLog.writeToFile("Lifecycle: MainActivity paused")
         unregisterReceiver(gpsSwitchStateReceiver)
         (application as? MyApplication)?.disableLocationListening()
@@ -199,10 +254,18 @@ class MainActivity : AppCompatActivity() {
         }, "Ок", if (canDenied) "Отмена" else "")
     }
 
+    private fun logFragmentBackstack() = with(supportFragmentManager) {
+        CustomLog.writeToFile("FragmentStack: " + (0..backStackEntryCount - 1).joinToString("\n") {
+            "$it: " + getBackStackEntryAt(it).name
+        })
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CustomLog.writeToFile("SystemInfo: Free Memory (${PersistenceHelper.getFreeMemorySpace()})")
         CustomLog.writeToFile("Lifecycle: MainActivity created")
+        logFragmentBackstack()
+
         Fabric.with(this, Crashlytics())
         window.requestFeature(Window.FEATURE_ACTION_BAR)
         setContentView(R.layout.activity_main)
@@ -411,6 +474,7 @@ class MainActivity : AppCompatActivity() {
                 override fun positiveListener() {
                     try {
                         Log.d("updates", "Try install from ${updateInfo.url}")
+                        loading.setVisible(true)
                         installUpdate(URL(updateInfo.url))
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -439,6 +503,7 @@ class MainActivity : AppCompatActivity() {
         launch(UI) {
             try {
                 val updateInfo = DeliveryServerAPI.api.getUpdateInfo().await()
+                application().lastRequiredAppVersion = updateInfo?.last_required?.version ?: 0
                 if (updateInfo.last_required.version <= BuildConfig.VERSION_CODE
                         && updateInfo.last_optional.version <= BuildConfig.VERSION_CODE) {
                     loading.setVisible(false)
@@ -517,7 +582,13 @@ class MainActivity : AppCompatActivity() {
         return fragment
     }
 
-    fun showError(errorMessage: String, listener: ErrorButtonsListener? = null, forcePositiveButtonName: String = "Ок", forceNegativeButtonName: String = "", cancelable: Boolean = false) {
+    private fun showErrorInternal(
+            errorMessage: String,
+            listener: ErrorButtonsListener? = null,
+            forcePositiveButtonName: String = "Ок",
+            forceNegativeButtonName: String = "",
+            cancelable: Boolean = false
+    ) {
         try {
             val builder = AlertDialog.Builder(this)
                     .setMessage(errorMessage)
@@ -533,6 +604,22 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Throwable) {
             CustomLog.writeToFile(getStacktraceAsString(e))
         }
+    }
+
+    fun showError(
+            errorMessage: String,
+            listener: ErrorButtonsListener? = null,
+            forcePositiveButtonName: String = "Ок",
+            forceNegativeButtonName: String = "",
+            cancelable: Boolean = false
+    ) {
+        if (!isRunning) {
+            errorsChannel.offer {
+                showErrorInternal(errorMessage, listener, forcePositiveButtonName, forceNegativeButtonName, cancelable)
+            }
+            return
+        }
+        showErrorInternal(errorMessage, listener, forcePositiveButtonName, forceNegativeButtonName, cancelable)
     }
 
     fun showTaskDetailsScreen(task: TaskModel, posInList: Int) {
@@ -574,7 +661,7 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction().apply {
                 replace(R.id.fragment_container, fragment, "fragment")
                 if (isAddToBackStack) {
-                    addToBackStack(null)
+                    addToBackStack(fragment.javaClass.name)
                 }
             }.commit()
 
@@ -655,7 +742,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
+    companion object {
+        var isRunning: Boolean = false
+    }
 }
 
 interface ErrorButtonsListener {

@@ -25,7 +25,8 @@ data class TaskModel(
         var storageAddress: String,
         var iteration: Int,
         //Temporary var, for some features in lists
-        var selected: Boolean
+        var selected: Boolean,
+        var coupleType: Int
 ) : Parcelable {
     val plainState
         get() = if(state and TaskModel.BY_OTHER_USER == 1){
@@ -57,7 +58,8 @@ data class TaskModel(
             parcel.readString(),
             parcel.readString(),
             parcel.readInt(),
-            parcel.readByte() != 0.toByte())
+            parcel.readByte() != 0.toByte(),
+            parcel.readInt())
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(id)
@@ -79,6 +81,7 @@ data class TaskModel(
         parcel.writeString(storageAddress)
         parcel.writeInt(iteration)
         parcel.writeByte(if (selected) 1 else 0)
+        parcel.writeInt(coupleType)
     }
 
     override fun describeContents(): Int {
@@ -88,7 +91,7 @@ data class TaskModel(
     fun toTaskEntity(): TaskEntity {
         return TaskEntity(
                 id, name, edition, copies, packs, remain, area, state, startTime, endTime, brigade, brigadier, rastMapUrl, userId,
-                city, storageAddress, iteration
+                city, storageAddress, iteration, coupleType
         )
     }
 

@@ -46,6 +46,7 @@ object PersistenceHelper {
                 }
                 db.taskItemResultsDao().delete(taskItemResult)
             }
+            db.entranceDataDao().deleteAllForTaskItem(taskItem.id)
             db.taskItemDao().delete(taskItem)
         }
         //Remove task
@@ -132,9 +133,7 @@ object PersistenceHelper {
                 var openedTaskItems = 0
                 task.items.forEach { item ->
                     //Add address
-                    if (db.addressDao().getById(item.address.id) == null) {
-                        db.addressDao().insert(item.address.toAddressEntity())
-                    }
+                    db.addressDao().insert(item.address.toAddressEntity())
                     //Add item
                     val reportForThisTask = db.reportQueryDao().getByTaskItemId(item.id)
                     if (reportForThisTask != null) {
@@ -144,6 +143,7 @@ object PersistenceHelper {
                         openedTaskItems++
                     }
                     val newId = db.taskItemDao().insert(item.toTaskItemEntity(task.id))
+                    db.entranceDataDao().insertAll(item.entrancesData.map { enData -> enData.toEntity(item.id) })
                     Log.d("merge", "Add taskItem ID: $newId")
                 }
                 if (openedTaskItems <= 0) {
@@ -191,16 +191,14 @@ object PersistenceHelper {
                     })
 
                     task.items.forEach {
-                        if (db.addressDao().getById(it.address.id) == null) {
-                            db.addressDao().insert(it.address.toAddressEntity())
-                        }
+                        db.addressDao().insert(it.address.toAddressEntity())
 
                         val reportForThisTask = db.reportQueryDao().getByTaskItemId(it.id)
                         if (reportForThisTask != null) {
                             it.state = TaskItemModel.CLOSED
                         }
-
                         db.taskItemDao().insert(it.toTaskItemEntity(task.id))
+                        db.entranceDataDao().insertAll(it.entrancesData.map { enData -> enData.toEntity(it.id) })
                     }
                     result.isTasksChanged = true
                 }

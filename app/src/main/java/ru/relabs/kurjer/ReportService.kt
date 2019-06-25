@@ -1,6 +1,9 @@
 package ru.relabs.kurjer
 
-import android.app.*
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -41,7 +44,6 @@ class ReportService : Service() {
     }
 
     private fun notification(body: String, status: ServiceState, update: Boolean = false): Notification {
-        val pi = PendingIntent.getService(this, 0, Intent(this, ReportService::class.java).apply { putExtra("stopService", true) }, PendingIntent.FLAG_CANCEL_CURRENT)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannel = NotificationChannel(channelId, getString(R.string.app_name), NotificationManager.IMPORTANCE_HIGH)
@@ -53,7 +55,7 @@ class ReportService : Service() {
             ServiceState.IDLE -> R.drawable.ic_service_idle
             ServiceState.UNAVAILABLE -> R.drawable.ic_service_error
         }
-        if(lastState != status){
+        if (lastState != status) {
 
             currentIconBitmap?.recycle()
             currentIconBitmap = BitmapFactory.decodeResource(application.resources, ic)
@@ -66,7 +68,6 @@ class ReportService : Service() {
                 .setSmallIcon(ic)
                 .setLargeIcon(currentIconBitmap)
                 .setWhen(System.currentTimeMillis())
-                .addAction(R.drawable.ic_stop_black_24dp, "Отключить", pi)
                 .setChannelId(channelId)
                 .setOnlyAlertOnce(true)
 
@@ -80,18 +81,28 @@ class ReportService : Service() {
         }
 
         startForeground(1, notification("Сервис отправки данных.", ServiceState.IDLE))
+        isRunning = true
 
-        val db = MyApplication.instance.database
         var lastTasksChecking = System.currentTimeMillis()
         var lastNetworkEnabledChecking = System.currentTimeMillis()
         var lastServiceLogTime = System.currentTimeMillis()
 
-                thread = launch {
+        thread = launch {
             while (true) {
+                val db = MyApplication.instance.database
+
                 var isTaskSended = false
+
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
                     val sendQuery = getSendQuery(db)
                     val reportQuery = getReportQuery(db)
+
+                    if (sendQuery == null && reportQuery == null && !MainActivity.isRunning) {
+                        stopForeground(true)
+                        stopSelf()
+                        break
+                    }
+
                     if (reportQuery != null) {
                         try {
                             sendReportQuery(db, reportQuery)
@@ -145,7 +156,7 @@ class ReportService : Service() {
                     try {
                         val count = db.sendQueryDao().all.size + db.reportQueryDao().all.size
                         CustomLog.writeToFile("Service DD. Count($count). network available (${NetworkHelper.isNetworkAvailable(applicationContext)})")
-                    }catch (e: java.lang.Exception){
+                    } catch (e: java.lang.Exception) {
                         e.logError()
                     }
                 }
@@ -206,6 +217,11 @@ class ReportService : Service() {
     override fun onDestroy() {
         thread?.cancel()
         stopForeground(true)
+        isRunning = false
         super.onDestroy()
+    }
+
+    companion object {
+        var isRunning: Boolean = false
     }
 }

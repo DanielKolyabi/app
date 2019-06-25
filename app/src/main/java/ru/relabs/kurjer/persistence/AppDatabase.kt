@@ -11,7 +11,7 @@ import ru.relabs.kurjer.persistence.entities.*
  */
 @Database(entities = [AddressEntity::class, TaskEntity::class, TaskItemEntity::class,
     TaskItemPhotoEntity::class, TaskItemResultEntity::class, TaskItemResultEntranceEntity::class,
-    SendQueryItemEntity::class, ReportQueryItemEntity::class], version = 28)
+    SendQueryItemEntity::class, ReportQueryItemEntity::class, EntranceDataEntity::class], version = 30)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun taskItemDao(): TaskItemEntityDao
@@ -22,5 +22,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun entrancesDao(): TaskItemResultEntranceEntityDao
     abstract fun sendQueryDao(): SendQueryDao
     abstract fun reportQueryDao(): ReportQueryDao
+    abstract fun entranceDataDao(): EntranceDataEntityDao
 
 }

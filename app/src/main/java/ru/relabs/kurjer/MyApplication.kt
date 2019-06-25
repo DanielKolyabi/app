@@ -34,6 +34,9 @@ class MyApplication : Application() {
     lateinit var deviceUUID: String
     var locationManager: LocationManager? = null
     var currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
+
+    var lastRequiredAppVersion = 0
+
     val listener = object : LocationListener {
         override fun onLocationChanged(location: Location?) {
             location?.let {
@@ -84,10 +87,33 @@ class MyApplication : Application() {
                 database.execSQL("ALTER TABLE report_query ADD COLUMN battery_level INTEGER NOT NULL DEFAULT 0")
             }
         }
+        val migration_28_29 = object : Migration(28, 29) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE entrances_data(
+                        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        task_item_id INTEGER NOT NULL,
+                        number INTEGER NOT NULL,
+                        apartments_count INTEGER NOT NULL,
+                        is_euro_boxes INTEGER NOT NULL,
+                        has_lookout INTEGER NOT NULL,
+                        is_stacked INTEGER NOT NULL,
+                        is_refused INTEGER NOT NULL,
+                        FOREIGN KEY(task_item_id) REFERENCES task_items(id) ON DELETE CASCADE
+                    )
+                """.trimIndent())
+            }
+        }
+        val migration_29_30 = object : Migration(29, 30) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE tasks ADD COLUMN couple_type INTEGER NOT NULL DEFAULT 1")
+            }
+        }
 
         database = Room
                 .databaseBuilder(applicationContext, ru.relabs.kurjer.persistence.AppDatabase::class.java, "deliveryman")
-                .addMigrations(migration_26_27, migration_27_28)
+                .addMigrations(migration_26_27, migration_27_28, migration_28_29,
+                         migration_29_30)
                 .build()
     }
 

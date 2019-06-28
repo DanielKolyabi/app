@@ -20,7 +20,6 @@ class ReportEntranceHolder(
         itemView.entrance_title.text = "${item.entranceNumber}п-${apartmentsCount}"
         with(itemView) {
             setSelectButtonActive(euro_select, (item.selected and 0x0001) > 0, entranceData?.isEuroBoxes == true)
-            euro_select.text = if ((item.selected and 0x0001) > 0) "Евро" else "Щелев"
             euro_select.setOnClickListener {
                 onSelectClicked(0x0001, this@ReportEntranceHolder)
             }

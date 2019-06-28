@@ -13,6 +13,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
 import android.support.v7.widget.RecyclerView
+import android.text.Html
 import android.util.Log
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_report.*
@@ -478,15 +479,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
             return
         }
 
-        if (!isAllEntranceWithDefaults()) {
-            (fragment.context as MainActivity).showError("Все кнопки в доме нажаты правильно?", object : ErrorButtonsListener {
-                override fun positiveListener() {
-                    closeClicked()
-                }
-            }, "Да", "Нет")
-        } else {
-            closeClicked()
-        }
+        closeClicked()
     }
 
     private fun isAllEntranceWithDefaults(): Boolean {
@@ -520,7 +513,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
             "can't get user explanation"
         }
 
-        (fragment.context as MainActivity).showError("Вы уверены что хотите закрыть адрес?", object : ErrorButtonsListener {
+        (fragment.context as MainActivity).showError("КНОПКИ НАЖАЛ?\nОТЧЁТ ОТПРАВЛЯЮ?\n(tugmachalari bosildi? " +
+                "hisobot yuboringmi?)", object : ErrorButtonsListener {
             override fun positiveListener() {
                 val status = closeTaskItem(description)
                 if (!status) {
@@ -532,7 +526,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
                     }
                 }
             }
-        }, "Да", "Нет")
+        }, "Да", "Нет", style = R.style.RedAlertDialog)
         return
     }
 

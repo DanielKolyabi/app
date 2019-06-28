@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         timeLimitJob = launch(DefaultDispatcher) {
-            delay(10*1000)
+            delay(30*60*1000)
             if(application().database.taskDao().allOpened.isEmpty()){
                 return@launch
             }
@@ -587,10 +587,11 @@ class MainActivity : AppCompatActivity() {
             listener: ErrorButtonsListener? = null,
             forcePositiveButtonName: String = "Ок",
             forceNegativeButtonName: String = "",
-            cancelable: Boolean = false
+            cancelable: Boolean = false,
+            style: Int? = null
     ) {
         try {
-            val builder = AlertDialog.Builder(this)
+            val builder = (if(style == null) AlertDialog.Builder(this) else AlertDialog.Builder(this, style))
                     .setMessage(errorMessage)
 
             if (forcePositiveButtonName.isNotBlank()) {
@@ -611,15 +612,16 @@ class MainActivity : AppCompatActivity() {
             listener: ErrorButtonsListener? = null,
             forcePositiveButtonName: String = "Ок",
             forceNegativeButtonName: String = "",
-            cancelable: Boolean = false
+            cancelable: Boolean = false,
+            style: Int? = null
     ) {
         if (!isRunning) {
             errorsChannel.offer {
-                showErrorInternal(errorMessage, listener, forcePositiveButtonName, forceNegativeButtonName, cancelable)
+                showErrorInternal(errorMessage, listener, forcePositiveButtonName, forceNegativeButtonName, cancelable, style)
             }
             return
         }
-        showErrorInternal(errorMessage, listener, forcePositiveButtonName, forceNegativeButtonName, cancelable)
+        showErrorInternal(errorMessage, listener, forcePositiveButtonName, forceNegativeButtonName, cancelable, style)
     }
 
     fun showTaskDetailsScreen(task: TaskModel, posInList: Int) {

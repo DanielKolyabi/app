@@ -4,4 +4,5 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#EC3796</color>
     <color name="colorFuchsia">#EC3796</color>
+    <color name="red_alert_dialog_text">#BB0000</color>
 </resources>

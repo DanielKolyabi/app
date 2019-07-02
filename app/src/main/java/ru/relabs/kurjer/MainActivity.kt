@@ -303,7 +303,9 @@ class MainActivity : AppCompatActivity() {
             }, "Скопировать", "Отправить crash.log", cancelable = true)
         }
 
-        showLoginScreen()
+        if(supportFragmentManager.backStackEntryCount == 0){
+            showLoginScreen()
+        }
         Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler())
         supportFragmentManager.addOnBackStackChangedListener {
             val current = supportFragmentManager.findFragmentByTag("fragment")

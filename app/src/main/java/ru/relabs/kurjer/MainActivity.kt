@@ -30,6 +30,7 @@ import ru.relabs.kurjer.CustomLog.getStacktraceAsString
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.UpdateInfo
@@ -305,6 +306,8 @@ class MainActivity : AppCompatActivity() {
 
         if(supportFragmentManager.backStackEntryCount == 0){
             showLoginScreen()
+        }else{
+            restoreApplicationUser()
         }
         Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler())
         supportFragmentManager.addOnBackStackChangedListener {
@@ -394,6 +397,17 @@ class MainActivity : AppCompatActivity() {
                 return@setOnEditorActionListener true
             }
             return@setOnEditorActionListener false
+        }
+    }
+
+    private fun restoreApplicationUser() {
+        val sharedPref = application().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+        val token = sharedPref.getString("token", "")
+        val login = sharedPref.getString("login", "")
+        if(token.isBlank() || login.isBlank()){
+            showLoginScreen()
+        }else{
+            application().user = UserModel.Authorized(login, token)
         }
     }
 

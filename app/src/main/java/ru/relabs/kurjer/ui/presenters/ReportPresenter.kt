@@ -331,11 +331,16 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
         val packageManager = fragment.context?.packageManager
 
-        packageManager?.let { packageManager ->
+        CustomLog.writeToFile("RequestPhoto")
+        packageManager?.let { packageManager
+            CustomLog.writeToFile("PackageManager found")
             intent?.let { intent ->
+                CustomLog.writeToFile("Intent found")
                 if (intent.resolveActivity(packageManager) != null) {
                     CustomLog.writeToFile("Lifecycle: photo activity started")
                     fragment.startActivityForResult(intent, REQUEST_PHOTO)
+                }else{
+                    CustomLog.writeToFile("Can't resolve intent")
                 }
             }
         }

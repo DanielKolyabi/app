@@ -37,6 +37,7 @@ import android.view.ViewTreeObserver
 
 
 class ReportFragment : Fragment() {
+
     lateinit var tasks: MutableList<TaskModel>
     lateinit var taskItems: MutableList<TaskItemModel>
     private var selectedTaskItemId: Int = 0
@@ -75,6 +76,12 @@ class ReportFragment : Fragment() {
         activity?.registerReceiver(broadcastReceiver, intentFilter)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("photoUUID", presenter.photoUUID.toString())
+        outState.putInt("selected_task_id", selectedTaskItemId)
+    }
+
     override fun onDestroy() {
         activity?.unregisterReceiver(broadcastReceiver)
         super.onDestroy()
@@ -83,6 +90,12 @@ class ReportFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
+        savedInstanceState?.getString("photoUUID")?.let{
+            presenter.photoUUID = UUID.fromString(it)
+        }
+        savedInstanceState?.getInt("selected_task_id")?.let{
+            selectedTaskItemId = it
+        }
         return inflater.inflate(R.layout.fragment_report, container, false)
     }
 

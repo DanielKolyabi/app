@@ -78,7 +78,9 @@ class ReportFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putString("photoUUID", presenter.photoUUID.toString())
+        presenter.photoUUID?.let{
+            outState.putString("photoUUID", it.toString())
+        }
         outState.putInt("selected_task_id", selectedTaskItemId)
     }
 

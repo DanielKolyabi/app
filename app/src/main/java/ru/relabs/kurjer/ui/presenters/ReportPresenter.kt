@@ -43,7 +43,7 @@ import kotlin.math.roundToInt
 const val REQUEST_PHOTO = 1
 
 class ReportPresenter(private val fragment: ReportFragment) {
-    lateinit var photoUUID: UUID
+    var photoUUID: UUID? = null
     var photoMultiMode: Boolean = false
     var currentTask = 0
 
@@ -324,7 +324,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
     private fun requestPhoto(multiPhoto: Boolean = true) {
         photoUUID = UUID.randomUUID()
         photoMultiMode = multiPhoto
-        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID)
+
+        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID ?: UUID.randomUUID())
 
         val intent: Intent? = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         intent?.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile))
@@ -355,7 +356,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 }
                 return false
             }
-            val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID)
+            val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID ?: UUID.randomUUID())
             if (photoFile.exists()) {
                 saveNewPhoto(photoFile.absolutePath)
                 return true
@@ -391,7 +392,7 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
     private fun saveNewPhoto(bmp: Bitmap?): File? {
-        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID)
+        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID ?: UUID.randomUUID())
         if (bmp != null) {
             val photo: Bitmap
             try {

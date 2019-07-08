@@ -76,6 +76,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
         fragment.close_button?.isEnabled = fragment.close_button.isEnabled && fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
         fragment.user_explanation_input?.isEnabled = fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
 
+        CustomLog.writeToFile("TaskItem changed: ${fragment.taskItems[currentTask].id}")
+
         (fragment.context as? MainActivity)?.changeTitle(fragment.taskItems[currentTask].address.name)
     }
 
@@ -485,6 +487,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
             return
         }
 
+        CustomLog.writeToFile("${fragment.taskItems[currentTask].id} close clicked")
+
         closeClicked()
     }
 
@@ -586,6 +590,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 Log.d("BatteryLevel", "${((getBatteryLevel(fragment.context)
                         ?: 0f) * 100).roundToInt()}")
 
+                CustomLog.writeToFile("Create report for ${fragment.taskItems[currentTask].id}")
+
                 val reportItem = ReportQueryItemEntity(
                         0, fragment.taskItems[currentTask].id, fragment.tasks[currentTask].id, fragment.taskItems[currentTask].address.id, location,
                         Date(), description,
@@ -604,6 +610,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 putExtra("changed_task", fragment.tasks[currentTask])
             }
             fragment.targetFragment?.onActivityResult(1, Activity.RESULT_OK, int)
+
+            CustomLog.writeToFile("${fragment.taskItems[currentTask].id} now closed")
 
             fragment.taskItems[currentTask].state = TaskItemModel.CLOSED
             val dateNow = Date()

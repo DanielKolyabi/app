@@ -266,8 +266,6 @@ class MainActivity : AppCompatActivity() {
         CustomLog.writeToFile("SystemInfo: Free Memory (${PersistenceHelper.getFreeMemorySpace()})")
         CustomLog.writeToFile("Lifecycle: MainActivity created")
         logFragmentBackstack()
-
-        Fabric.with(this, Crashlytics())
         window.requestFeature(Window.FEATURE_ACTION_BAR)
         setContentView(R.layout.activity_main)
         supportActionBar?.hide()

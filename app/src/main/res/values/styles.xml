@@ -12,4 +12,8 @@
         <item name="android:textColor">@color/colorAccent</item>
         <item name="android:textColorPrimary">@color/red_alert_dialog_text</item>
     </style>
+
+    <style name="ColoredButton" parent="Widget.AppCompat.Button">
+        <item name="colorButtonNormal">@color/colorFuchsia</item>
+    </style>
 </resources>

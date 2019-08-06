@@ -5,8 +5,13 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.LocationManager
+import android.media.MediaPlayer
+import android.media.RingtoneManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
@@ -19,8 +24,6 @@ import android.view.Window
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
-import com.crashlytics.android.Crashlytics
-import io.fabric.sdk.android.Fabric
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.coroutines.experimental.*
@@ -45,6 +48,7 @@ import java.net.URL
 import kotlin.math.roundToInt
 
 const val REQUEST_LOCATION = 999
+const val REQUEST_CODE_ALERT_NOTIFICATION = 998
 
 class MainActivity : AppCompatActivity() {
     private var needRefreshShowed = false
@@ -54,6 +58,8 @@ class MainActivity : AppCompatActivity() {
     private val errorsChannel = Channel<() -> Unit>(Channel.UNLIMITED)
     private var errorsChannelHandlerJob: Job? = null
     private var timeLimitJob: Job? = null
+    private var ringNotification: Uri? = null
+    private var notificationMediaPlayer: MediaPlayer? = null
 
     val gpsSwitchStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -106,6 +112,12 @@ class MainActivity : AppCompatActivity() {
             if (resultCode == Activity.RESULT_OK) {
                 application().enableLocationListening()
             }
+        }else if(requestCode == REQUEST_CODE_ALERT_NOTIFICATION){
+            if(resultCode == Activity.RESULT_OK){
+                disableNotification()
+            }else{
+                startTaskClosingTimer()
+            }
         }
     }
 
@@ -151,21 +163,50 @@ class MainActivity : AppCompatActivity() {
         }, "Ок", negative)
     }
 
+    fun enableNotification(){
+        val v = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        v?.let {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                v.vibrate(VibrationEffect.createWaveform(longArrayOf(1000L, 250L), 0))
+            } else {
+                v.vibrate(longArrayOf(1000L, 250L), 0)
+            }
+        }
+        notificationMediaPlayer?.isLooping = true
+        notificationMediaPlayer?.start()
+    }
+
+    fun disableNotification(){
+        (getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator)?.cancel()
+        notificationMediaPlayer?.stop()
+    }
+
     fun startTaskClosingTimer() {
-        if(timeLimitJob != null){
+        if (timeLimitJob != null) {
             return
         }
         timeLimitJob = launch(DefaultDispatcher) {
-            delay(30*60*1000)
-            if(application().database.taskDao().allOpened.isEmpty()){
+            delay(15 * 1000) //TODO: Change to 15 min
+            timeLimitJob = null
+
+            if (application().database.taskDao().allOpened.isEmpty()) {
                 return@launch
             }
-            withContext(UI) {
-                showError("ВРЕМЯ! ОТЧЁТ!", forcePositiveButtonName = "Понятно", cancelable = true)
+
+            enableNotification()
+
+            launch(CommonPool) {
+                delay(30 * 1000)
+                disableNotification()
             }
-            timeLimitJob = null
+
+            startActivityForResult(Intent(applicationContext, AlertNotificationActivity::class.java), REQUEST_CODE_ALERT_NOTIFICATION)
         }
     }
+
+
+
+
     fun restartTaskClosingTimer() {
         timeLimitJob?.cancel()
         timeLimitJob = null
@@ -268,6 +309,9 @@ class MainActivity : AppCompatActivity() {
         logFragmentBackstack()
         window.requestFeature(Window.FEATURE_ACTION_BAR)
         setContentView(R.layout.activity_main)
+
+        notificationMediaPlayer = MediaPlayer.create(applicationContext, R.raw.notification_sound)
+
         supportActionBar?.hide()
         back_button.setOnClickListener {
             onBackPressed()
@@ -302,9 +346,9 @@ class MainActivity : AppCompatActivity() {
             }, "Скопировать", "Отправить crash.log", cancelable = true)
         }
 
-        if(supportFragmentManager.backStackEntryCount == 0){
+        if (supportFragmentManager.backStackEntryCount == 0) {
             showLoginScreen()
-        }else{
+        } else {
             restoreApplicationUser()
         }
         Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler())
@@ -402,9 +446,9 @@ class MainActivity : AppCompatActivity() {
         val sharedPref = application().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
         val token = sharedPref.getString("token", "")
         val login = sharedPref.getString("login", "")
-        if(token.isBlank() || login.isBlank()){
+        if (token.isBlank() || login.isBlank()) {
             showLoginScreen()
-        }else{
+        } else {
             application().user = UserModel.Authorized(login, token)
         }
     }
@@ -605,7 +649,7 @@ class MainActivity : AppCompatActivity() {
             style: Int? = null
     ) {
         try {
-            val builder = (if(style == null) AlertDialog.Builder(this) else AlertDialog.Builder(this, style))
+            val builder = (if (style == null) AlertDialog.Builder(this) else AlertDialog.Builder(this, style))
                     .setMessage(errorMessage)
 
             if (forcePositiveButtonName.isNotBlank()) {

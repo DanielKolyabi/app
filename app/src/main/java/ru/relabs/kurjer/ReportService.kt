@@ -109,6 +109,7 @@ class ReportService : Service() {
                             isTaskSended = true
                             PersistenceHelper.removeReport(db, reportQuery)
                         } catch (e: Exception) {
+                            CustomLog.writeToFile("ReportQuery taskId: ${reportQuery.taskId}. taskItemId: ${reportQuery.taskItemId}. token: ${reportQuery.token}")
                             e.logError()
                         }
                     } else if (sendQuery != null) {
@@ -117,6 +118,7 @@ class ReportService : Service() {
                             isTaskSended = true
                             db.sendQueryDao().delete(sendQuery)
                         } catch (e: Exception) {
+                            CustomLog.writeToFile("SendQuery URL: ${sendQuery.url}. Data: ${sendQuery.post_data}. Id: ${sendQuery.id}")
                             e.logError()
                         }
                     } else if (System.currentTimeMillis() - lastTasksChecking > 25 * 60 * 1000) {

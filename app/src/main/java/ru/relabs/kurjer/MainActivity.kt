@@ -186,7 +186,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         timeLimitJob = launch(DefaultDispatcher) {
-            delay(15 * 1000) //TODO: Change to 15 min
+            delay(15 * 60 * 1000) //TODO: Change to 15 min
             timeLimitJob = null
 
             if (application().database.taskDao().allOpened.isEmpty()) {

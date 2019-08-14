@@ -190,21 +190,44 @@ object PersistenceHelper {
                         state = state xor examinedByOtherUser
                     })
 
-                    task.items.forEach {
-                        db.addressDao().insert(it.address.toAddressEntity())
+                    val currentTasks = db.taskItemDao().getAllForTask(task.id).toMutableList()
 
-                        val reportForThisTask = db.reportQueryDao().getByTaskItemId(it.id)
+                    //Add new tasks and update old tasks
+                    task.items.forEach { newTaskItem ->
+                        currentTasks.removeAll { oldTaskItem -> oldTaskItem.id == newTaskItem.id}
+
+                        db.addressDao().insert(newTaskItem.address.toAddressEntity())
+
+                        val reportForThisTask = db.reportQueryDao().getByTaskItemId(newTaskItem.id)
                         if (reportForThisTask != null) {
-                            it.state = TaskItemModel.CLOSED
+                            newTaskItem.state = TaskItemModel.CLOSED
                         }
-                        db.taskItemDao().insert(it.toTaskItemEntity(task.id))
-                        db.entranceDataDao().insertAll(it.entrancesData.map { enData -> enData.toEntity(it.id) })
+                        db.taskItemDao().insert(newTaskItem.toTaskItemEntity(task.id))
+                        db.entranceDataDao().insertAll(newTaskItem.entrancesData.map { enData -> enData.toEntity(newTaskItem.id) })
+                    }
+
+                    //Remove old taskItems
+                    currentTasks.forEach {
+                        removeTaskItem(db, it.id)
                     }
                     result.isTasksChanged = true
                 }
             }
         }
         return result
+    }
+
+    private fun removeTaskItem(db: AppDatabase, taskItemId: Int) {
+        if(db.reportQueryDao().getByTaskItemId(taskItemId) == null){
+            db.photosDao().deleteByTaskItemId(taskItemId)
+        }
+        val result = db.taskItemResultsDao().getByTaskItemId(taskItemId)
+        if(result != null){
+            db.entrancesDao().getByTaskItemResultId(result.id)
+            db.taskItemResultsDao().delete(result)
+        }
+        db.entranceDataDao().deleteAllForTaskItem(taskItemId)
+        db.taskItemDao().deleteById(taskItemId)
     }
 }
 

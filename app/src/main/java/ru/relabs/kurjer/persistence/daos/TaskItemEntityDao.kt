@@ -33,4 +33,6 @@ interface TaskItemEntityDao {
     @Delete
     fun delete(item: TaskItemEntity)
 
+    @Query("DELETE FROM task_items WHERE id = :id")
+    fun deleteById(id: Int)
 }

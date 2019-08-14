@@ -20,10 +20,10 @@ data class TaskItemPhotoEntity(
         var UUID: String,
         var gps: GPSCoordinatesModel,
         @ColumnInfo(name = "task_item_id")
-        var taskId: Int
+        var taskItemId: Int
 ){
     fun toTaskItemPhotoModel(db: AppDatabase): TaskItemPhotoModel? {
-        val taskItemModel = db.taskItemDao().getById(taskId)?.toTaskItemModel(db)
+        val taskItemModel = db.taskItemDao().getById(taskItemId)?.toTaskItemModel(db)
         taskItemModel ?: return null
         return TaskItemPhotoModel(id, UUID, taskItemModel, gps)
     }

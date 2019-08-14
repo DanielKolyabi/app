@@ -124,6 +124,9 @@ class MainActivity : AppCompatActivity() {
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent ?: return
+            if(intent.getBooleanExtra("force_finish", false)){
+                finish()
+            }
             if (intent.getBooleanExtra("network_disabled", false)) {
                 showNetworkDisabledError()
             }
@@ -186,7 +189,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         timeLimitJob = launch(DefaultDispatcher) {
-            delay(15 * 60 * 1000) //TODO: Change to 15 min
+            delay(30 * 60 * 1000)
             timeLimitJob = null
 
             if (application().database.taskDao().allOpened.isEmpty()) {
@@ -792,13 +795,13 @@ class MainActivity : AppCompatActivity() {
             if (supportFragmentManager.backStackEntryCount > 0) {
                 supportFragmentManager.popBackStack()
             } else {
-                super.onBackPressed()
+                moveTaskToBack(true)
             }
 
             setNavigationBackVisible(supportFragmentManager.backStackEntryCount > 1)
         } catch (e: Throwable) {
             CustomLog.writeToFile(getStacktraceAsString(e))
-            super.onBackPressed()
+            moveTaskToBack(true)
         }
     }
 

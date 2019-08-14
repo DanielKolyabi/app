@@ -12,6 +12,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.os.StrictMode
 import android.support.v4.content.ContextCompat
 import android.telephony.TelephonyManager
@@ -74,6 +75,7 @@ class MyApplication : Application() {
 
         Fabric.with(this, Crashlytics())
 
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         instance = this
 
         MapKitFactory.setApiKey(BuildConfig.YA_KEY)
@@ -121,15 +123,23 @@ class MyApplication : Application() {
                 .build()
     }
 
-    fun enableLocationListening(): Boolean {
+    fun requestLocation(){
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+
+        locationManager?.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, listener, Looper.getMainLooper())
+        locationManager?.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, Looper.getMainLooper())
+
+    }
+
+    fun enableLocationListening(time: Long = 30*1000, distance: Float = 10f): Boolean {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return false
         }
 
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        //TODO: Watch for another methods of work with gps
-        locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 30 * 1000, 10f, listener)
-        locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30 * 1000, 10f, listener)
+        locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, time, distance, listener)
+        locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, time, distance, listener)
 
         return true
     }

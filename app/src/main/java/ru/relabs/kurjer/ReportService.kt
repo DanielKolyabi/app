@@ -28,12 +28,16 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 
-const val channelId = "notification_channel"
+const val CHANNEL_ID = "notification_channel"
+const val CLOSE_SERVICE_TIMEOUT = 80 * 60 * 1000
 
 class ReportService : Service() {
     private var thread: Job? = null
     private var currentIconBitmap: Bitmap? = null
     private var lastState: ServiceState = ServiceState.IDLE
+    private var lastActivityResumeTime = 0L
+    private var lastActivityRunningState = false
+    private var lastGPSPending = System.currentTimeMillis()
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -46,7 +50,7 @@ class ReportService : Service() {
     private fun notification(body: String, status: ServiceState, update: Boolean = false): Notification {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(channelId, getString(R.string.app_name), NotificationManager.IMPORTANCE_HIGH)
+            val notificationChannel = NotificationChannel(CHANNEL_ID, getString(R.string.app_name), NotificationManager.IMPORTANCE_HIGH)
             (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(notificationChannel)
         }
 
@@ -62,24 +66,32 @@ class ReportService : Service() {
             lastState = status
         }
 
-        val notification = NotificationCompat.Builder(applicationContext, channelId)
+        val millisToClose = CLOSE_SERVICE_TIMEOUT - (System.currentTimeMillis() - lastActivityResumeTime)
+        val closeNotifyText = if (status == ServiceState.IDLE && !lastActivityRunningState && millisToClose > 0) {
+            val secondsToClose = millisToClose/1000
+            val timeWithUnit = if(secondsToClose < 60){
+                secondsToClose to "сек"
+            }else{
+                (secondsToClose/60).toInt() to "мин"
+            }
+            " Закрытие через ${timeWithUnit.first} ${timeWithUnit.second}."
+        } else {
+            ""
+        }
+
+        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
                 .setContentTitle(getString(R.string.app_name))
-                .setContentText(body)
+                .setContentText(body + closeNotifyText)
                 .setSmallIcon(ic)
                 .setLargeIcon(currentIconBitmap)
                 .setWhen(System.currentTimeMillis())
-                .setChannelId(channelId)
+                .setChannelId(CHANNEL_ID)
                 .setOnlyAlertOnce(true)
 
         return notification.build()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.extras?.getBoolean("stopService") == true) {
-            stopSelf()
-            return START_STICKY
-        }
-
         startForeground(1, notification("Сервис отправки данных.", ServiceState.IDLE))
         isRunning = true
 
@@ -96,12 +108,6 @@ class ReportService : Service() {
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
                     val sendQuery = getSendQuery(db)
                     val reportQuery = getReportQuery(db)
-
-                    if (sendQuery == null && reportQuery == null && !MainActivity.isRunning) {
-                        stopForeground(true)
-                        stopSelf()
-                        break
-                    }
 
                     if (reportQuery != null) {
                         try {
@@ -163,11 +169,39 @@ class ReportService : Service() {
                     }
                 }
                 updateNotificationText(db)
+
+                pendingGPS()
+                updateActivityState()
                 delay(if (!isTaskSended) 5000 else 1000)
             }
         }
 
         return START_STICKY
+    }
+
+    private fun pendingGPS() {
+        if(System.currentTimeMillis() - lastGPSPending > 3*60*1000){
+            MyApplication.instance.requestLocation()
+            lastGPSPending = System.currentTimeMillis()
+        }
+    }
+
+    private fun updateActivityState() {
+        if (!lastActivityRunningState && MainActivity.isRunning) {
+            lastActivityResumeTime = System.currentTimeMillis()
+        }
+
+        if (!MainActivity.isRunning && (System.currentTimeMillis() - lastActivityResumeTime) > CLOSE_SERVICE_TIMEOUT) {
+            val int = Intent().apply {
+                putExtra("force_finish", true)
+                action = "NOW"
+            }
+            sendBroadcast(int)
+
+            stopForeground(true)
+            stopSelf()
+        }
+        lastActivityRunningState = MainActivity.isRunning
     }
 
     private fun updateNotificationText(db: AppDatabase) {

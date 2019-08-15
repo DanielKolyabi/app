@@ -81,15 +81,10 @@ class ReportService : Service() {
         } else {
             ""
         }
-        val t = timelimitNotificationStartTime
-        val timelimit = if (t == null) {
-            ""
-        } else {
-            " Notify in ${((TIMELIMIT_NOTIFICATION_TIMEOUT - (System.currentTimeMillis() - t)) / 1000)} sec"
-        }
+
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
                 .setContentTitle(getString(R.string.app_name))
-                .setContentText(body + closeNotifyText + timelimit)
+                .setContentText(body + closeNotifyText)
                 .setSmallIcon(ic)
                 .setLargeIcon(currentIconBitmap)
                 .setWhen(System.currentTimeMillis())

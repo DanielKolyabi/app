@@ -9,6 +9,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
+import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
@@ -30,6 +31,7 @@ import java.net.URL
 
 const val CHANNEL_ID = "notification_channel"
 const val CLOSE_SERVICE_TIMEOUT = 80 * 60 * 1000
+const val TIMELIMIT_NOTIFICATION_TIMEOUT = 30 * 60 * 1000
 
 class ReportService : Service() {
     private var thread: Job? = null
@@ -38,6 +40,7 @@ class ReportService : Service() {
     private var lastActivityResumeTime = 0L
     private var lastActivityRunningState = false
     private var lastGPSPending = System.currentTimeMillis()
+    private var timelimitNotificationStartTime: Long? = null
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -68,20 +71,25 @@ class ReportService : Service() {
 
         val millisToClose = CLOSE_SERVICE_TIMEOUT - (System.currentTimeMillis() - lastActivityResumeTime)
         val closeNotifyText = if (status == ServiceState.IDLE && !lastActivityRunningState && millisToClose > 0) {
-            val secondsToClose = millisToClose/1000
-            val timeWithUnit = if(secondsToClose < 60){
+            val secondsToClose = millisToClose / 1000
+            val timeWithUnit = if (secondsToClose < 60) {
                 secondsToClose to "сек"
-            }else{
-                (secondsToClose/60).toInt() to "мин"
+            } else {
+                (secondsToClose / 60).toInt() to "мин"
             }
             " Закрытие через ${timeWithUnit.first} ${timeWithUnit.second}."
         } else {
             ""
         }
-
+        val t = timelimitNotificationStartTime
+        val timelimit = if (t == null) {
+            ""
+        } else {
+            " Notify in ${((TIMELIMIT_NOTIFICATION_TIMEOUT - (System.currentTimeMillis() - t)) / 1000)} sec"
+        }
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
                 .setContentTitle(getString(R.string.app_name))
-                .setContentText(body + closeNotifyText)
+                .setContentText(body + closeNotifyText + timelimit)
                 .setSmallIcon(ic)
                 .setLargeIcon(currentIconBitmap)
                 .setWhen(System.currentTimeMillis())
@@ -92,6 +100,9 @@ class ReportService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.getBooleanExtra("start_closing_timer", false) == true) {
+            startTaskClosingTimer()
+        }
         startForeground(1, notification("Сервис отправки данных.", ServiceState.IDLE))
         isRunning = true
 
@@ -170,6 +181,7 @@ class ReportService : Service() {
                 }
                 updateNotificationText(db)
 
+                checkTimelimitJob()
                 pendingGPS()
                 updateActivityState()
                 delay(if (!isTaskSended) 5000 else 1000)
@@ -180,7 +192,7 @@ class ReportService : Service() {
     }
 
     private fun pendingGPS() {
-        if(System.currentTimeMillis() - lastGPSPending > 3*60*1000){
+        if (System.currentTimeMillis() - lastGPSPending > 3 * 60 * 1000) {
             MyApplication.instance.requestLocation()
             lastGPSPending = System.currentTimeMillis()
         }
@@ -202,6 +214,21 @@ class ReportService : Service() {
             stopSelf()
         }
         lastActivityRunningState = MainActivity.isRunning
+    }
+
+
+    private fun checkTimelimitJob() {
+        val startTime = timelimitNotificationStartTime
+        startTime ?: return
+
+        if (System.currentTimeMillis() > startTime + TIMELIMIT_NOTIFICATION_TIMEOUT) {
+            startActivity(Intent(applicationContext, AlertNotificationActivity::class.java), Bundle())
+            timelimitNotificationStartTime = null
+        }
+    }
+
+    fun startTaskClosingTimer() {
+        timelimitNotificationStartTime = System.currentTimeMillis()
     }
 
     private fun updateNotificationText(db: AppDatabase) {

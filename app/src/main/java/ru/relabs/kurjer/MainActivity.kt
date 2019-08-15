@@ -5,13 +5,8 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.LocationManager
-import android.media.MediaPlayer
-import android.media.RingtoneManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
@@ -57,9 +52,6 @@ class MainActivity : AppCompatActivity() {
     private var serviceCheckingJob: Job? = null
     private val errorsChannel = Channel<() -> Unit>(Channel.UNLIMITED)
     private var errorsChannelHandlerJob: Job? = null
-    private var timeLimitJob: Job? = null
-    private var ringNotification: Uri? = null
-    private var notificationMediaPlayer: MediaPlayer? = null
 
     val gpsSwitchStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -87,19 +79,6 @@ class MainActivity : AppCompatActivity() {
                             return
                         }
                     }
-//                    override fun negativeListener() {
-//                        networkErrorShowed = false
-//                        try {
-//                            startActivity(Intent(Settings.ACTION_SETTINGS))
-//                        } catch (e: Exception) {
-//                            CustomLog.writeToFile(getStacktraceAsString(e))
-//                            showError("Не удалось открыть настройки", object : ErrorButtonsListener {
-//                                override fun positiveListener() {
-//                                    showNetworkDisabledError()
-//                                }
-//                            })
-//                        }
-//                    }
                 },
                 "Ок"
 
@@ -112,19 +91,13 @@ class MainActivity : AppCompatActivity() {
             if (resultCode == Activity.RESULT_OK) {
                 application().enableLocationListening()
             }
-        }else if(requestCode == REQUEST_CODE_ALERT_NOTIFICATION){
-            if(resultCode == Activity.RESULT_OK){
-                disableNotification()
-            }else{
-                startTaskClosingTimer()
-            }
         }
     }
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent ?: return
-            if(intent.getBooleanExtra("force_finish", false)){
+            if (intent.getBooleanExtra("force_finish", false)) {
                 finish()
             }
             if (intent.getBooleanExtra("network_disabled", false)) {
@@ -166,54 +139,8 @@ class MainActivity : AppCompatActivity() {
         }, "Ок", negative)
     }
 
-    fun enableNotification(){
-        val v = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-        v?.let {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                v.vibrate(VibrationEffect.createWaveform(longArrayOf(1000L, 250L), 0))
-            } else {
-                v.vibrate(longArrayOf(1000L, 250L), 0)
-            }
-        }
-        notificationMediaPlayer?.isLooping = true
-        notificationMediaPlayer?.start()
-    }
-
-    fun disableNotification(){
-        (getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator)?.cancel()
-        notificationMediaPlayer?.stop()
-    }
-
-    fun startTaskClosingTimer() {
-        if (timeLimitJob != null) {
-            return
-        }
-        timeLimitJob = launch(DefaultDispatcher) {
-            delay(30 * 60 * 1000)
-            timeLimitJob = null
-
-            if (application().database.taskDao().allOpened.isEmpty()) {
-                return@launch
-            }
-
-            enableNotification()
-
-            launch(CommonPool) {
-                delay(30 * 1000)
-                disableNotification()
-            }
-
-            startActivityForResult(Intent(applicationContext, AlertNotificationActivity::class.java), REQUEST_CODE_ALERT_NOTIFICATION)
-        }
-    }
-
-
-
-
     fun restartTaskClosingTimer() {
-        timeLimitJob?.cancel()
-        timeLimitJob = null
-        startTaskClosingTimer()
+        startService(Intent(this, ReportService::class.java).apply { putExtra("start_closing_timer", true) })
     }
 
 
@@ -312,8 +239,6 @@ class MainActivity : AppCompatActivity() {
         logFragmentBackstack()
         window.requestFeature(Window.FEATURE_ACTION_BAR)
         setContentView(R.layout.activity_main)
-
-        notificationMediaPlayer = MediaPlayer.create(applicationContext, R.raw.notification_sound)
 
         supportActionBar?.hide()
         back_button.setOnClickListener {

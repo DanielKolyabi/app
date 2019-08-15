@@ -7,16 +7,16 @@ import android.arch.persistence.room.Room
 import android.arch.persistence.room.migration.Migration
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
 import android.os.Build
-import android.os.Bundle
-import android.os.Looper
 import android.os.StrictMode
 import android.support.v4.content.ContextCompat
 import android.telephony.TelephonyManager
 import com.crashlytics.android.Crashlytics
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
+import com.google.android.gms.location.LocationResult
 import com.google.firebase.iid.FirebaseInstanceId
 import com.yandex.mapkit.MapKitFactory
 import io.fabric.sdk.android.Fabric
@@ -35,21 +35,18 @@ class MyApplication : Application() {
     lateinit var database: AppDatabase
     var user: UserModel = UserModel.Unauthorized
     lateinit var deviceUUID: String
-    var locationManager: LocationManager? = null
+    var locationManager: FusedLocationProviderClient? = null
     var currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
 
     var lastRequiredAppVersion = 0
 
-    val listener = object : LocationListener {
-        override fun onLocationChanged(location: Location?) {
+    val listener = object : LocationCallback() {
+
+        override fun onLocationResult(location: LocationResult?) {
             location?.let {
-                currentLocation = GPSCoordinatesModel(it.latitude, it.longitude, Date(it.time))
+                currentLocation = GPSCoordinatesModel(it.lastLocation.latitude, it.lastLocation.longitude, Date(it.lastLocation.time))
             }
         }
-
-        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-        override fun onProviderEnabled(provider: String?) {}
-        override fun onProviderDisabled(provider: String?) {}
     }
 
     @SuppressLint("HardwareIds")
@@ -75,7 +72,7 @@ class MyApplication : Application() {
 
         Fabric.with(this, Crashlytics())
 
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager = FusedLocationProviderClient(applicationContext)
         instance = this
 
         MapKitFactory.setApiKey(BuildConfig.YA_KEY)
@@ -119,33 +116,41 @@ class MyApplication : Application() {
         database = Room
                 .databaseBuilder(applicationContext, ru.relabs.kurjer.persistence.AppDatabase::class.java, "deliveryman")
                 .addMigrations(migration_26_27, migration_27_28, migration_28_29,
-                         migration_29_30)
+                        migration_29_30)
                 .build()
     }
 
-    fun requestLocation(){
+    fun requestLocation() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return
         }
 
-        locationManager?.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, listener, Looper.getMainLooper())
-        locationManager?.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, Looper.getMainLooper())
 
+        locationManager?.lastLocation?.addOnSuccessListener { location ->
+            location?.let {
+                currentLocation = GPSCoordinatesModel(it.latitude, it.longitude, Date(it.time))
+            }
+        }
     }
 
-    fun enableLocationListening(time: Long = 30*1000, distance: Float = 10f): Boolean {
+    fun enableLocationListening(time: Long = 30 * 1000, distance: Float = 10f): Boolean {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return false
         }
 
-        locationManager?.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, time, distance, listener)
-        locationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, time, distance, listener)
+        val req = LocationRequest().apply {
+            fastestInterval = time
+            smallestDisplacement = distance
+            priority = PRIORITY_BALANCED_POWER_ACCURACY
+        }
+
+        locationManager?.requestLocationUpdates(req, listener, mainLooper)
 
         return true
     }
 
     fun disableLocationListening() {
-        locationManager?.removeUpdates(listener)
+//        locationManager?.removeLocationUpdates(listener)
     }
 
     fun storeUserCredentials() {

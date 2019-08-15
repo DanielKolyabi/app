@@ -187,7 +187,7 @@ class ReportService : Service() {
     }
 
     private fun pendingGPS() {
-        if (System.currentTimeMillis() - lastGPSPending > 3 * 60 * 1000) {
+        if (System.currentTimeMillis() - lastGPSPending > 1 * 60 * 1000) {
             MyApplication.instance.requestLocation()
             lastGPSPending = System.currentTimeMillis()
         }

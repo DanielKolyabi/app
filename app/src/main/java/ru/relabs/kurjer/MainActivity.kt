@@ -194,7 +194,7 @@ class MainActivity : AppCompatActivity() {
         isRunning = false
         CustomLog.writeToFile("Lifecycle: MainActivity paused")
         unregisterReceiver(gpsSwitchStateReceiver)
-        (application as? MyApplication)?.disableLocationListening()
+        //(application as? MyApplication)?.disableLocationListening()
         super.onPause()
 
     }

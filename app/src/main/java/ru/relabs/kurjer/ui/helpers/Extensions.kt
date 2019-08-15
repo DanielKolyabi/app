@@ -15,3 +15,7 @@ fun View.setVisible(visible: Boolean) {
 fun Date.formated(): String {
     return DateTime(this).toString("dd.MM.yyyy")
 }
+
+fun Date.formatedWithSecs(): String {
+    return DateTime(this).toString("dd.MM.yyyy HH:mm:ss")
+}

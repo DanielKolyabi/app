@@ -18,6 +18,9 @@ import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import ru.relabs.kurjer.ui.fragments.TaskListFragment
 import ru.relabs.kurjer.ui.models.TaskListModel
+import ru.relabs.kurjer.utils.activity
+import ru.relabs.kurjer.utils.application
+import ru.relabs.kurjer.utils.logError
 import java.util.*
 import java.util.concurrent.TimeUnit
 

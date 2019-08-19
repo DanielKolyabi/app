@@ -6,7 +6,7 @@ import android.util.Log
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.BuildConfig
-import ru.relabs.kurjer.application
+import ru.relabs.kurjer.utils.application
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel

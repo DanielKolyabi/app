@@ -24,7 +24,6 @@ import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.channels.Channel
-import ru.relabs.kurjer.CustomLog.getStacktraceAsString
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
@@ -37,6 +36,8 @@ import ru.relabs.kurjer.ui.adapters.SearchInputAdapter
 import ru.relabs.kurjer.ui.fragments.*
 import ru.relabs.kurjer.ui.helpers.setVisible
 import ru.relabs.kurjer.ui.models.AddressListModel
+import ru.relabs.kurjer.utils.*
+import ru.relabs.kurjer.utils.CustomLog.getStacktraceAsString
 import java.io.File
 import java.io.FileNotFoundException
 import java.net.URL
@@ -147,6 +148,9 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         CustomLog.writeToFile("Lifecycle: MainActivity resume")
         logFragmentBackstack()
+        if (XiaomiUtilities.isMIUI && !XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_SHOW_WHEN_LOCKED)) {
+            showXiaomiPermissionRequirement()
+        }
         if (!NetworkHelper.isGPSEnabled(applicationContext)) {
             NetworkHelper.displayLocationSettingsRequest(applicationContext, this)
         }
@@ -183,6 +187,25 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
     }
 
+    private fun showXiaomiPermissionRequirement() {
+        showError("Необходимо дать доступ к \"Экран блокировки\".", object : ErrorButtonsListener {
+            override fun positiveListener() {
+                val intent = XiaomiUtilities.getPermissionManagerIntent(applicationContext)
+                try {
+                    startActivity(intent)
+                } catch (x: java.lang.Exception) {
+                    try {
+                        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        intent.data = Uri.parse("package:" + applicationContext.packageName)
+                        startActivity(intent)
+                    } catch (xx: java.lang.Exception) {
+                        xx.logError()
+                    }
+                }
+            }
+        })
+    }
+
     override fun onDestroy() {
         CustomLog.writeToFile("Lifecycle: MainActivity destroy")
         super.onDestroy()
@@ -211,6 +234,8 @@ class MainActivity : AppCompatActivity() {
                 android.Manifest.permission.ACCESS_FINE_LOCATION -> "Доступ к получению местоположения"
                 android.Manifest.permission.REQUEST_INSTALL_PACKAGES -> "Разрешать устанавливать приложения"
                 android.Manifest.permission.READ_PHONE_STATE -> "Доступ к информации о телефоне"
+                android.Manifest.permission.WAKE_LOCK -> "Доступ к выводу устройства из сна"
+                android.Manifest.permission.DISABLE_KEYGUARD -> "Доступ к запуску с экрана блокировки"
                 else -> "Неизвестно"
             } + "\n"
         }
@@ -317,6 +342,12 @@ class MainActivity : AppCompatActivity() {
         }
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(android.Manifest.permission.READ_PHONE_STATE)
+        }
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(android.Manifest.permission.WAKE_LOCK)
+        }
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(android.Manifest.permission.DISABLE_KEYGUARD)
         }
 
         try {

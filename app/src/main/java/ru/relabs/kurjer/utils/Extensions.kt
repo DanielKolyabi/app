@@ -1,7 +1,9 @@
-package ru.relabs.kurjer
+package ru.relabs.kurjer.utils
 
 import android.support.v4.app.Fragment
 import com.crashlytics.android.Crashlytics
+import ru.relabs.kurjer.MainActivity
+import ru.relabs.kurjer.MyApplication
 import java.lang.Exception
 
 
@@ -10,7 +12,7 @@ import java.lang.Exception
  */
 
 
-fun application(): MyApplication{
+fun application(): MyApplication {
     return MyApplication.instance
 }
 fun Fragment.activity(): MainActivity?{

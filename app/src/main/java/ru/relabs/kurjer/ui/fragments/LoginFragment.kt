@@ -14,6 +14,9 @@ import ru.relabs.kurjer.*
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.ui.helpers.setVisible
 import ru.relabs.kurjer.ui.presenters.LoginPresenter
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.activity
+import ru.relabs.kurjer.utils.application
 
 class LoginFragment : Fragment() {
 

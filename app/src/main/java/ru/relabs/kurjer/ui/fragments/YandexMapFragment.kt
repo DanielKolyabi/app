@@ -22,7 +22,7 @@ import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.android.synthetic.main.fragment_yandex_map.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.application
+import ru.relabs.kurjer.utils.application
 import ru.relabs.kurjer.models.AddressModel
 
 

@@ -12,9 +12,9 @@ import android.widget.AutoCompleteTextView
 import kotlinx.android.synthetic.main.fragment_task_list.*
 import kotlinx.android.synthetic.main.include_hint_container.*
 import ru.relabs.kurjer.BuildConfig
-import ru.relabs.kurjer.CustomLog
+import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.activity
+import ru.relabs.kurjer.utils.activity
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.TaskListLoaderDelegate
 import ru.relabs.kurjer.ui.delegates.TaskListTaskDelegate

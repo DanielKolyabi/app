@@ -1,4 +1,6 @@
-package ru.relabs.kurjer
+package ru.relabs.kurjer.utils
+
+import ru.relabs.kurjer.utils.logError
 
 
 /**

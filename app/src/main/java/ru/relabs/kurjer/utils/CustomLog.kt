@@ -1,12 +1,12 @@
-package ru.relabs.kurjer
+package ru.relabs.kurjer.utils
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Environment
 import android.support.v4.content.FileProvider
 import android.util.Log
 import org.joda.time.DateTime
+import ru.relabs.kurjer.BuildConfig
 import java.io.*
 
 /**

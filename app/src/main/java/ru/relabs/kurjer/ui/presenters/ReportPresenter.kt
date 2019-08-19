@@ -13,7 +13,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
 import android.support.v7.widget.RecyclerView
-import android.text.Html
 import android.util.Log
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_report.*
@@ -35,6 +34,9 @@ import ru.relabs.kurjer.ui.fragments.ReportFragment
 import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
 import ru.relabs.kurjer.ui.models.ReportPhotosListModel
 import ru.relabs.kurjer.ui.models.ReportTasksListModel
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.activity
+import ru.relabs.kurjer.utils.application
 import java.io.File
 import java.util.*
 import kotlin.math.roundToInt

@@ -23,9 +23,11 @@ class AlertNotificationActivity: AppCompatActivity() {
     private var notificationMediaPlayer: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
         window.requestFeature(Window.FEATURE_ACTION_BAR)
         setContentView(R.layout.alert_activity)
+
+        super.onCreate(savedInstanceState)
+
         enableNotification()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {

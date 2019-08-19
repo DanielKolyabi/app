@@ -28,6 +28,7 @@ import ru.relabs.kurjer.network.models.PhotoReportModel
 import ru.relabs.kurjer.network.models.TaskItemReportModel
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.TaskItemPhotoEntity
+import ru.relabs.kurjer.utils.logError
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream

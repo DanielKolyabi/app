@@ -31,6 +31,9 @@ import ru.relabs.kurjer.ui.helpers.TaskAddressSorter
 import ru.relabs.kurjer.ui.holders.AddressListTaskItemHolder
 import ru.relabs.kurjer.ui.models.AddressListModel
 import ru.relabs.kurjer.ui.presenters.AddressListPresenter
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.activity
+import ru.relabs.kurjer.utils.application
 import java.util.*
 
 class AddressListFragment : Fragment(), SearchableFragment {

@@ -24,6 +24,8 @@ import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.logError
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
@@ -217,7 +219,12 @@ class ReportService : Service() {
         startTime ?: return
 
         if (System.currentTimeMillis() > startTime + TIMELIMIT_NOTIFICATION_TIMEOUT) {
-            startActivity(Intent(applicationContext, AlertNotificationActivity::class.java), Bundle())
+            val intent = Intent(applicationContext, AlertNotificationActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.addFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            intent.addFlags(Intent.FLAG_FROM_BACKGROUND)
+            startActivity(intent, Bundle())
             timelimitNotificationStartTime = null
         }
     }

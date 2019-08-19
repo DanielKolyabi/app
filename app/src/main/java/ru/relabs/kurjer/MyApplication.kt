@@ -24,6 +24,7 @@ import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.persistence.AppDatabase
+import ru.relabs.kurjer.utils.tryOrLog
 import java.util.*
 
 

@@ -1,4 +1,4 @@
-package ru.relabs.kurjer
+package ru.relabs.kurjer.utils
 
 import android.content.Intent
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -6,6 +6,7 @@ import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import org.joda.time.DateTime
+import ru.relabs.kurjer.MyApplication
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
 

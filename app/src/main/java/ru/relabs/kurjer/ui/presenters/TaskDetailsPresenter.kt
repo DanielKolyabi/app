@@ -15,6 +15,9 @@ import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import ru.relabs.kurjer.ui.fragments.TaskDetailsFragment
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.activity
+import ru.relabs.kurjer.utils.application
 
 class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
     fun onInfoClicked(item: TaskItemModel) {

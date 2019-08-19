@@ -17,6 +17,8 @@ import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.ErrorUtils
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.fragments.LoginFragment
+import ru.relabs.kurjer.utils.activity
+import ru.relabs.kurjer.utils.application
 import java.util.*
 
 /**

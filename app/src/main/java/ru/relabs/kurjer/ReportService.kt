@@ -33,7 +33,7 @@ import java.net.URL
 
 const val CHANNEL_ID = "notification_channel"
 const val CLOSE_SERVICE_TIMEOUT = 80 * 60 * 1000
-const val TIMELIMIT_NOTIFICATION_TIMEOUT = 30 * 60 * 1000
+const val TIMELIMIT_NOTIFICATION_TIMEOUT = 5 * 60 * 1000
 
 class ReportService : Service() {
     private var thread: Job? = null
@@ -99,7 +99,9 @@ class ReportService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.getBooleanExtra("start_closing_timer", false) == true) {
             startTaskClosingTimer()
+            return START_STICKY
         }
+
         startForeground(1, notification("Сервис отправки данных.", ServiceState.IDLE))
         isRunning = true
 
@@ -107,6 +109,7 @@ class ReportService : Service() {
         var lastNetworkEnabledChecking = System.currentTimeMillis()
         var lastServiceLogTime = System.currentTimeMillis()
 
+        thread?.cancel()
         thread = launch {
             while (true) {
                 val db = MyApplication.instance.database
@@ -207,8 +210,8 @@ class ReportService : Service() {
             }
             sendBroadcast(int)
 
-            stopForeground(true)
             stopSelf()
+            stopForeground(true)
         }
         lastActivityRunningState = MainActivity.isRunning
     }

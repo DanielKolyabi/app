@@ -13,9 +13,8 @@ import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.android.UI
 import org.joda.time.DateTime
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
@@ -33,7 +32,7 @@ import java.net.URL
 
 const val CHANNEL_ID = "notification_channel"
 const val CLOSE_SERVICE_TIMEOUT = 80 * 60 * 1000
-const val TIMELIMIT_NOTIFICATION_TIMEOUT = 5 * 60 * 1000
+const val TIMELIMIT_NOTIFICATION_TIMEOUT = 30 * 60 * 1000
 
 class ReportService : Service() {
     private var thread: Job? = null
@@ -222,13 +221,20 @@ class ReportService : Service() {
         startTime ?: return
 
         if (System.currentTimeMillis() > startTime + TIMELIMIT_NOTIFICATION_TIMEOUT) {
-            val intent = Intent(applicationContext, AlertNotificationActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.addFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            intent.addFlags(Intent.FLAG_FROM_BACKGROUND)
-            startActivity(intent, Bundle())
-            timelimitNotificationStartTime = null
+            launch(CommonPool) {
+                timelimitNotificationStartTime = null
+                if (MyApplication.instance.database.taskDao().allOpened.isEmpty()) {
+                    return@launch
+                }
+                withContext(UI) {
+                    val intent = Intent(applicationContext, AlertNotificationActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    intent.addFlags(Intent.FLAG_FROM_BACKGROUND)
+                    startActivity(intent, Bundle())
+                }
+            }
         }
     }
 

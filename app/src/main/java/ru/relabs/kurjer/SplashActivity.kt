@@ -18,7 +18,7 @@ class SplashActivity : AppCompatActivity() {
         startService(Intent(this, ReportService::class.java))
 
         AsyncTask.execute {
-            Thread.sleep(2000)
+            Thread.sleep(500)
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             finish()

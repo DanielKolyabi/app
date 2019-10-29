@@ -78,8 +78,6 @@ class ReportPresenter(private val fragment: ReportFragment) {
         fragment.close_button?.isEnabled = fragment.close_button.isEnabled && fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
         fragment.user_explanation_input?.isEnabled = fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
 
-        CustomLog.writeToFile("TaskItem changed: ${fragment.taskItems[currentTask].id}")
-
         (fragment.context as? MainActivity)?.changeTitle(fragment.taskItems[currentTask].address.name)
     }
 
@@ -336,16 +334,10 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
         val packageManager = fragment.context?.packageManager
 
-        CustomLog.writeToFile("RequestPhoto")
         packageManager?.let { packageManager
-            CustomLog.writeToFile("PackageManager found")
             intent?.let { intent ->
-                CustomLog.writeToFile("Intent found")
                 if (intent.resolveActivity(packageManager) != null) {
-                    CustomLog.writeToFile("Lifecycle: photo activity started")
                     fragment.startActivityForResult(intent, REQUEST_PHOTO)
-                }else{
-                    CustomLog.writeToFile("Can't resolve intent")
                 }
             }
         }
@@ -353,7 +345,6 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode == REQUEST_PHOTO) {
-            CustomLog.writeToFile("Lifecycle: photo activity received")
             if (resultCode != RESULT_OK) {
                 if (resultCode != RESULT_CANCELED) {
                     (fragment.context as MainActivity).showError("Не удалось сделать фото.")
@@ -489,8 +480,6 @@ class ReportPresenter(private val fragment: ReportFragment) {
             return
         }
 
-        CustomLog.writeToFile("${fragment.taskItems[currentTask].id} close clicked")
-
         closeClicked()
     }
 
@@ -588,11 +577,6 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
                     db.taskDao().update(it)
                 }
-
-                Log.d("BatteryLevel", "${((getBatteryLevel(fragment.context)
-                        ?: 0f) * 100).roundToInt()}")
-
-                CustomLog.writeToFile("Create report for ${fragment.taskItems[currentTask].id}")
 
                 val reportItem = ReportQueryItemEntity(
                         0, fragment.taskItems[currentTask].id, fragment.tasks[currentTask].id, fragment.taskItems[currentTask].address.id, location,

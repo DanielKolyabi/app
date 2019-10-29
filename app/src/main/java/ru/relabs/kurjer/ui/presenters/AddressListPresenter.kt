@@ -107,8 +107,6 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         launch(UI) {
             val db = (fragment.activity?.application as? MyApplication)?.database
             db ?: run {
-                Log.d("address_list", "database is null")
-                CustomLog.writeToFile("Database is null. address_list updateStates")
                 return@launch
             }
 

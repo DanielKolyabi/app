@@ -146,8 +146,6 @@ class MainActivity : AppCompatActivity() {
 
 
     override fun onResume() {
-        CustomLog.writeToFile("Lifecycle: MainActivity resume")
-        logFragmentBackstack()
         if (XiaomiUtilities.isMIUI && !XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_SHOW_WHEN_LOCKED)) {
             showXiaomiPermissionRequirement()
         }
@@ -207,7 +205,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        CustomLog.writeToFile("Lifecycle: MainActivity destroy")
         super.onDestroy()
     }
 
@@ -215,7 +212,6 @@ class MainActivity : AppCompatActivity() {
         serviceCheckingJob?.cancel()
         errorsChannelHandlerJob?.cancel()
         isRunning = false
-        CustomLog.writeToFile("Lifecycle: MainActivity paused")
         unregisterReceiver(gpsSwitchStateReceiver)
         //(application as? MyApplication)?.disableLocationListening()
         super.onPause()
@@ -251,17 +247,8 @@ class MainActivity : AppCompatActivity() {
         }, "Ок", if (canDenied) "Отмена" else "")
     }
 
-    private fun logFragmentBackstack() = with(supportFragmentManager) {
-        CustomLog.writeToFile("FragmentStack: " + (0..backStackEntryCount - 1).joinToString("\n") {
-            "$it: " + getBackStackEntryAt(it).name
-        })
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        CustomLog.writeToFile("SystemInfo: Free Memory (${PersistenceHelper.getFreeMemorySpace()})")
-        CustomLog.writeToFile("Lifecycle: MainActivity created")
-        logFragmentBackstack()
         window.requestFeature(Window.FEATURE_ACTION_BAR)
         setContentView(R.layout.activity_main)
 
@@ -546,11 +533,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showLoginScreen(): LoginFragment {
-        try {
-            CustomLog.writeToFile("showLoginScreen stackTrace:\n" + Thread.currentThread().stackTrace.joinToString("\n"))
-        } catch (e: Exception) {
-            e.logError()
-        }
         val fragment = LoginFragment()
         navigateTo(fragment)
         changeTitle("Авторизация")
@@ -649,7 +631,6 @@ class MainActivity : AppCompatActivity() {
     fun showTaskItemExplanation(item: TaskItemModel) {
         navigateTo(TaskItemExplanationFragment.newInstance(item), true)
         changeTitle("Пояснения к заданию")
-
     }
 
     fun showTasksReportScreen(tasks: List<AddressListModel.TaskItem>, selectedTaskId: Int): ReportFragment {

@@ -12,7 +12,6 @@ import java.io.FileOutputStream
  */
 object ImageUtils {
     fun resizeBitmap(b: Bitmap, width: Float, height: Float): Bitmap {
-        Log.d("Resizer", "Target: $width x $height; Original: ${b.width} x ${b.height}")
         var newWidth = width
         var newHeight = height
         if (b.width > width) {

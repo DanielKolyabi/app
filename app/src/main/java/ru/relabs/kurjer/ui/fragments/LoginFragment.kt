@@ -46,12 +46,10 @@ class LoginFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        CustomLog.writeToFile("Lifecycle: LoginFragment destroyed")
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        CustomLog.writeToFile("Lifecycle: LoginFragment created")
         setRememberPasswordEnabled(true)
         remember_password_text.setOnClickListener {
             presenter.onRememberPasswordClick()

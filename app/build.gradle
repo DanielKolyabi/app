@@ -20,11 +20,11 @@ android {
             storePassword '1qazxsw2'
         }
     }
-    compileSdkVersion 27
+    compileSdkVersion 28
     defaultConfig {
         applicationId "abix.kurjer"
         minSdkVersion 21
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 69
         versionName "69"
 

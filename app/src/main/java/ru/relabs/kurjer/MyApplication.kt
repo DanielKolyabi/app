@@ -15,7 +15,6 @@ import com.crashlytics.android.Crashlytics
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.location.LocationResult
 import com.google.firebase.iid.FirebaseInstanceId
@@ -135,13 +134,13 @@ class MyApplication : Application() {
         }
     }
 
-    fun enableLocationListening(time: Long = 15 * 1000, distance: Float = 10f): Boolean {
+    fun enableLocationListening(time: Long = 60 * 1000, distance: Float = 10f): Boolean {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return false
         }
 
         val req = LocationRequest().apply {
-            fastestInterval = time/2
+            fastestInterval = 10 * 1000
             interval = time
 
             priority = PRIORITY_HIGH_ACCURACY

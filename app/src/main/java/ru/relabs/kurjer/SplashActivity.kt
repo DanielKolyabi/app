@@ -5,11 +5,13 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.Window
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withContext
 
 class SplashActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         window.requestFeature(Window.FEATURE_ACTION_BAR)
         setContentView(R.layout.activity_splash)
@@ -18,14 +20,16 @@ class SplashActivity : AppCompatActivity() {
         startService(Intent(this, ReportService::class.java))
 
         AsyncTask.execute {
-            Thread.sleep(500)
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            finish()
+            launch {
+                MyApplication.instance.pauseRepository.loadPauseTime()
+                Thread.sleep(500)
+                withContext(UI) {
+                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    finish()
+                }
+            }
         }
     }
-
-
 
 
     override fun onBackPressed() {

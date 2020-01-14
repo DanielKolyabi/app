@@ -717,6 +717,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        val interceptor = supportFragmentManager?.findFragmentByTag("fragment") as? IBackPressedInterceptor
+        if(interceptor != null && interceptor.interceptBackPressed()){
+            return
+        }
+
         try {
             if (search_input.visibility == View.VISIBLE) {
                 search_input.setVisible(false)
@@ -740,6 +745,10 @@ class MainActivity : AppCompatActivity() {
             CustomLog.writeToFile(getStacktraceAsString(e))
             moveTaskToBack(true)
         }
+    }
+
+    interface IBackPressedInterceptor {
+        fun interceptBackPressed(): Boolean
     }
 
     companion object {

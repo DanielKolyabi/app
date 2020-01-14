@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.ui.fragments
 
 
+import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -12,17 +13,22 @@ import android.support.v7.widget.RecyclerView
 import android.text.Editable
 import android.text.Html
 import android.text.TextWatcher
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.ArrayAdapter
+import android.widget.Toast
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.include_hint_container.*
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.launch
 import ru.relabs.kurjer.BuildConfig
-import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.MainActivity
+import ru.relabs.kurjer.MyApplication
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.repository.PauseType
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.*
 import ru.relabs.kurjer.ui.helpers.HintHelper
@@ -31,36 +37,42 @@ import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
 import ru.relabs.kurjer.ui.models.ReportPhotosListModel
 import ru.relabs.kurjer.ui.models.ReportTasksListModel
 import ru.relabs.kurjer.ui.presenters.ReportPresenter
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.CustomLog.getStacktraceAsString
+import java.io.FileNotFoundException
 import java.util.*
-import android.view.ViewTreeObserver
 
 
-
-class ReportFragment : Fragment() {
+class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
 
     lateinit var tasks: MutableList<TaskModel>
     lateinit var taskItems: MutableList<TaskItemModel>
     private var selectedTaskItemId: Int = 0
     private lateinit var hintHelper: HintHelper
+    private var gpsLoaderJob: Job? = null
 
     val tasksListAdapter = DelegateAdapter<ReportTasksListModel>()
     val entrancesListAdapter = DelegateAdapter<ReportEntrancesListModel>()
     val photosListAdapter = DelegateAdapter<ReportPhotosListModel>()
 
-    private val presenter = ReportPresenter(this)
+    private val presenter = ReportPresenter(
+            this,
+            MyApplication.instance.radiusRepository,
+            MyApplication.instance.locationProvider
+    )
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent ?: return
             val taskItemId = intent.getIntExtra("task_item_closed", 0)
             if (taskItemId != 0) {
-               for(taskItem in taskItems){
-                   if(taskItem.id == taskItemId){
-                       taskItem.state = TaskItemModel.CLOSED
-                       presenter.changeCurrentTask(presenter.currentTask)
-                       break
-                   }
-               }
+                for (taskItem in taskItems) {
+                    if (taskItem.id == taskItemId) {
+                        taskItem.state = TaskItemModel.CLOSED
+                        presenter.changeCurrentTask(presenter.currentTask)
+                        break
+                    }
+                }
             }
         }
     }
@@ -78,7 +90,7 @@ class ReportFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        presenter.photoUUID?.let{
+        presenter.photoUUID?.let {
             outState.putString("photoUUID", it.toString())
         }
         outState.putInt("selected_task_id", selectedTaskItemId)
@@ -92,10 +104,10 @@ class ReportFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
 
-        savedInstanceState?.getString("photoUUID")?.let{
+        savedInstanceState?.getString("photoUUID")?.let {
             presenter.photoUUID = UUID.fromString(it)
         }
-        savedInstanceState?.getInt("selected_task_id")?.let{
+        savedInstanceState?.getInt("selected_task_id")?.let {
             selectedTaskItemId = it
         }
         return inflater.inflate(R.layout.fragment_report, container, false)
@@ -187,6 +199,11 @@ class ReportFragment : Fragment() {
         photos_list.adapter = photosListAdapter
         photos_list.addOnItemTouchListener(listClickInterceptor)
 
+        updatePauseButtonEnabled()
+        pause_button.setOnClickListener {
+            showPauseDialog()
+        }
+
         presenter.fillTasksAdapterData()
         var currentTask = 0
         tasks.forEachIndexed { index, taskModel ->
@@ -196,25 +213,54 @@ class ReportFragment : Fragment() {
             }
         }
         presenter.changeCurrentTask(currentTask)
+        hideGPSLoader()
+    }
+
+    fun updatePauseButtonEnabled() {
+        pause_button?.isEnabled = MyApplication.instance.pauseRepository.isAnyPauseAvailable()
+    }
+
+    private fun showPauseDialog() {
+        var dialog: AlertDialog? = null
+
+        val adapter = ArrayAdapter<String>(requireContext(), android.R.layout.select_dialog_singlechoice).apply {
+            if (MyApplication.instance.pauseRepository.isPauseAvailable(PauseType.Lunch)) {
+                add("Обед")
+            }
+            if (MyApplication.instance.pauseRepository.isPauseAvailable(PauseType.Load)) {
+                add("Дозагрузка")
+            }
+            add("Отмена")
+        }
+
+        dialog = AlertDialog.Builder(requireContext())
+                .setAdapter(adapter) { _, id ->
+                    val text = adapter.getItem(id)
+                    when (text) {
+                        "Обед" -> presenter.startPause(PauseType.Lunch)
+                        "Дозагрузка" -> presenter.startPause(PauseType.Load)
+                        "Отмена" -> dialog?.dismiss()
+                    }
+                }.show()
     }
 
     fun showHintText(notes: List<String>) {
         hint_text.text = Html.fromHtml((3 downTo 1).map {
-            notes.getOrElse(it-1) { "" }
+            notes.getOrElse(it - 1) { "" }
         }.joinToString("<br/>"))
     }
 
     fun setTaskListVisible(visible: Boolean) {
         try {
             tasks_list.setVisible(visible)
-        }catch (e: Throwable){
+        } catch (e: Throwable) {
             e.printStackTrace()
             CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
         }
     }
 
     fun setTaskListActiveTask(taskNumber: Int, isActive: Boolean) {
-        if(tasksListAdapter.data.size <= taskNumber) return
+        if (tasksListAdapter.data.size <= taskNumber) return
         (tasksListAdapter.data[taskNumber] as? ReportTasksListModel.TaskButton)?.active = isActive
         tasksListAdapter.notifyItemChanged(taskNumber)
     }
@@ -223,6 +269,85 @@ class ReportFragment : Fragment() {
         if (!presenter.onActivityResult(requestCode, resultCode, data)) {
             super.onActivityResult(requestCode, resultCode, data)
         }
+    }
+
+    fun showPauseError() {
+        if (!isVisible) {
+            return
+        }
+        AlertDialog.Builder(requireContext())
+                .setTitle("Ошибка")
+                .setMessage("Пауза недоступна")
+                .setPositiveButton("Ок") { _, _ -> }
+                .show()
+    }
+
+    fun showPauseWarning() {
+        AlertDialog.Builder(requireContext())
+                .setTitle("Пауза")
+                .setMessage("Пауза будет прервана")
+                .setPositiveButton("Ок") { _, _ -> presenter.onCloseClicked(false) }
+                .setNegativeButton("Отмена") { _, _ -> }
+                .show()
+    }
+
+    fun showPreCloseDialog(message: String, action: (() -> Unit)? = null) {
+        AlertDialog.Builder(requireContext())
+                .setTitle("Ошибка")
+                .setMessage(message)
+                .setPositiveButton("Ок") { _, _ ->
+                    action?.invoke()
+                }
+                .show()
+    }
+
+    fun showSendCrashReportDialog() {
+        AlertDialog.Builder(requireContext())
+                .setTitle("Crash Log")
+                .setMessage("Отправка crash.log")
+                .setPositiveButton("Отправить") { _, _ ->
+                    try {
+                        CustomLog.share(requireActivity())
+                    } catch (e: FileNotFoundException) {
+                        Toast.makeText(requireContext(), "crash.log отсутствует", Toast.LENGTH_LONG).show()
+                    } catch (e: java.lang.Exception) {
+                        CustomLog.writeToFile(getStacktraceAsString(e))
+                        Toast.makeText(requireContext(), "Произошла ошибка", Toast.LENGTH_LONG).show()
+                    }
+                }
+                .setNegativeButton("Отмена") { _, _ -> }
+                .show()
+    }
+
+    fun showGPSLoader() {
+        gps_loading.visibility = View.VISIBLE
+        pb_gps_loading.max = 40
+        pb_gps_loading.progress = 0
+        pb_gps_loading.isIndeterminate = false
+        gpsLoaderJob?.cancel()
+        gpsLoaderJob = launch(UI) {
+            var i = 0
+            while (i < 41) {
+                delay(1000)
+                i++
+                if (!isActive) {
+                    return@launch
+                }
+                pb_gps_loading.progress = i
+            }
+        }
+    }
+
+    fun hideGPSLoader() {
+        gpsLoaderJob?.cancel()
+        gps_loading.visibility = View.GONE
+    }
+
+    override fun interceptBackPressed(): Boolean {
+        if (gps_loading?.visibility == View.VISIBLE) {
+            return true
+        }
+        return false
     }
 
     companion object {

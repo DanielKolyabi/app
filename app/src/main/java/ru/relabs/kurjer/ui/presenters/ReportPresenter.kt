@@ -13,13 +13,10 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_report.*
-import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper.getTaskItemPhotoFile
@@ -30,13 +27,14 @@ import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.*
+import ru.relabs.kurjer.repository.LocationProvider
+import ru.relabs.kurjer.repository.PauseType
+import ru.relabs.kurjer.repository.RadiusRepository
 import ru.relabs.kurjer.ui.fragments.ReportFragment
 import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
 import ru.relabs.kurjer.ui.models.ReportPhotosListModel
 import ru.relabs.kurjer.ui.models.ReportTasksListModel
-import ru.relabs.kurjer.utils.CustomLog
-import ru.relabs.kurjer.utils.activity
-import ru.relabs.kurjer.utils.application
+import ru.relabs.kurjer.utils.*
 import java.io.File
 import java.util.*
 import kotlin.math.roundToInt
@@ -44,7 +42,11 @@ import kotlin.math.roundToInt
 
 const val REQUEST_PHOTO = 1
 
-class ReportPresenter(private val fragment: ReportFragment) {
+class ReportPresenter(
+        private val fragment: ReportFragment,
+        private val radiusRepository: RadiusRepository,
+        private val locationProvider: LocationProvider
+) {
     var photoUUID: UUID? = null
     var photoMultiMode: Boolean = false
     var currentTask = 0
@@ -85,6 +87,24 @@ class ReportPresenter(private val fragment: ReportFragment) {
         db.taskItemResultsDao().getByTaskItemId(fragment.taskItems[currentTask].id)?.let {
             launch(UI) {
                 fragment?.user_explanation_input?.setText(it.description)
+            }
+        }
+    }
+
+    fun startPause(type: PauseType) {
+        launch(CommonPool) {
+            tryOrLogAsync {
+                if (!MyApplication.instance.pauseRepository.isPauseAvailableRemote(type)) {
+                    withContext(UI) {
+                        fragment?.showPauseError()
+                    }
+                    return@tryOrLogAsync
+                }
+
+                MyApplication.instance.pauseRepository.startPause(type)
+                withContext(UI) {
+                    fragment.updatePauseButtonEnabled()
+                }
             }
         }
     }
@@ -334,7 +354,8 @@ class ReportPresenter(private val fragment: ReportFragment) {
 
         val packageManager = fragment.context?.packageManager
 
-        packageManager?.let { packageManager
+        packageManager?.let {
+            packageManager
             intent?.let { intent ->
                 if (intent.resolveActivity(packageManager) != null) {
                     fragment.startActivityForResult(intent, REQUEST_PHOTO)
@@ -461,7 +482,15 @@ class ReportPresenter(private val fragment: ReportFragment) {
     }
 
 
-    fun onCloseClicked() {
+    fun onCloseClicked(checkPause: Boolean = true) {
+        if (MyApplication.instance.pauseRepository.isPaused) {
+            if (checkPause) {
+                fragment.showPauseWarning()
+                return
+            } else {
+                MyApplication.instance.pauseRepository.stopPause()
+            }
+        }
         if (!fragment.tasks[currentTask].canShowedByDate(Date())) {
             fragment.activity()?.showError("Задание больше недоступно.", object : ErrorButtonsListener {
                 override fun positiveListener() {
@@ -480,7 +509,30 @@ class ReportPresenter(private val fragment: ReportFragment) {
             return
         }
 
-        closeClicked()
+        val radius = radiusRepository.radius
+        val currentPosition = application().currentLocation
+        val housePosition = GPSCoordinatesModel(fragment.taskItems[currentTask].address.lat, fragment.taskItems[currentTask].address.long, Date())
+        val distance = calculateDistance(currentPosition, housePosition)
+
+        if (radiusRepository.isRadiusRequired) {
+            if (currentPosition.isEmpty) {
+                fragment.showPreCloseDialog(message = "Не определились координаты отправь крэш лог! \nKoordinatalari aniqlanmadi, xato jurnalini yuborish!") {
+                    fragment.showSendCrashReportDialog()
+                }
+            } else if (distance > radius) {
+                fragment.showPreCloseDialog(message = "Ты не у дома! Подойди и попробуй еще \nSiz uyning yonida emassiz! Yaqinlashing va qaytadan urining")
+            } else {
+                closeClicked()
+            }
+        } else {
+            if (currentPosition.isEmpty) {
+                fragment.showPreCloseDialog(message = "Не определились координаты. \nKoordinatalar yo'q") { closeClicked() }
+            } else if (distance > radius) {
+                fragment.showPreCloseDialog(message = "Ты не у дома. \nSiz uyda emassiz") { closeClicked() }
+            } else {
+                closeClicked()
+            }
+        }
     }
 
     private fun isAllEntranceWithDefaults(): Boolean {
@@ -514,6 +566,34 @@ class ReportPresenter(private val fragment: ReportFragment) {
             "can't get user explanation"
         }
 
+        val currentPosition = application().currentLocation
+        if (currentPosition.time.time - Date().time > 3 * 60 * 1000 || currentPosition.isEmpty) {
+            launch(UI) {
+                val delayJob = async { delay(40 * 1000) }
+                val gpsJob = async { requestGPSCoordinates() }
+                listOf(delayJob, gpsJob).awaitFirst()
+                showCloseDialog(description)
+            }
+        } else {
+            showCloseDialog(description)
+        }
+    }
+
+    private suspend fun requestGPSCoordinates() {
+        fragment.showGPSLoader()
+        listOf(async(UI) {
+            locationProvider.updatesChannel(true).apply {
+                withTimeoutOrNull(40 * 1000) {
+                    val loc = receive()
+                    MyApplication.instance.currentLocation = GPSCoordinatesModel(loc.latitude, loc.longitude, Date(loc.time))
+                }
+                cancel()
+            }
+        }).awaitAll()
+        fragment.hideGPSLoader()
+    }
+
+    private fun showCloseDialog(description: String) {
         (fragment.context as MainActivity).showError("КНОПКИ НАЖАЛ?\nОТЧЁТ ОТПРАВЛЯЮ?\n(tugmachalari bosildi? " +
                 "hisobot yuboringmi?)", object : ErrorButtonsListener {
             override fun positiveListener() {
@@ -528,7 +608,6 @@ class ReportPresenter(private val fragment: ReportFragment) {
                 }
             }
         }, "Да", "Нет", style = R.style.RedAlertDialog)
-        return
     }
 
     private fun closeTaskItem(description: String): Boolean {

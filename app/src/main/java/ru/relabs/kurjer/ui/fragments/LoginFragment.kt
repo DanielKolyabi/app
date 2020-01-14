@@ -10,17 +10,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_login.*
-import ru.relabs.kurjer.*
+import ru.relabs.kurjer.BuildConfig
+import ru.relabs.kurjer.ErrorButtonsListener
+import ru.relabs.kurjer.MyApplication
+import ru.relabs.kurjer.R
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.ui.helpers.setVisible
 import ru.relabs.kurjer.ui.presenters.LoginPresenter
-import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.activity
 import ru.relabs.kurjer.utils.application
 
 class LoginFragment : Fragment() {
 
-    val presenter = LoginPresenter(this)
+    val presenter = LoginPresenter(
+            this,
+            MyApplication.instance.radiusRepository
+    )
 
     var shouldResetRememberOnInput = false
 
@@ -56,15 +61,15 @@ class LoginFragment : Fragment() {
         }
         login_button?.isEnabled = true
         login_button.setOnClickListener {
-            if(application().lastRequiredAppVersion > BuildConfig.VERSION_CODE){
-                activity()?.showError("Необходимо обновить приложение.", object: ErrorButtonsListener{
+            if (application().lastRequiredAppVersion > BuildConfig.VERSION_CODE) {
+                activity()?.showError("Необходимо обновить приложение.", object : ErrorButtonsListener {
                     override fun positiveListener() {
                         activity()?.checkUpdates()
                     }
                 }, "Обновить")
                 return@setOnClickListener
             }
-            if(!NetworkHelper.isNetworkEnabled(context)){
+            if (!NetworkHelper.isNetworkEnabled(context)) {
                 activity()?.showNetworkDisabledError()
                 return@setOnClickListener
             }
@@ -80,7 +85,7 @@ class LoginFragment : Fragment() {
                 if (!shouldResetRememberOnInput) {
                     return
                 }
-                if(s?.length == 0){
+                if (s?.length == 0) {
                     shouldResetRememberOnInput = false
                 }
                 setRememberPasswordEnabled(false)

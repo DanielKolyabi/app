@@ -34,4 +34,5 @@
     <string name="euro">Евро</string>
     <string name="app_version_label">Версия: %s</string>
     <string name="show_task_on_map">Показать на карте</string>
+    <string name="pause">Пауза</string>
 </resources>

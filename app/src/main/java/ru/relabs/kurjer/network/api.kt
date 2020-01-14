@@ -93,6 +93,23 @@ object DeliveryServerAPI {
 
         @POST("api/v1/coords")
         fun sendGPS(@Query("token") token: String, @Query("lat") lat: Double, @Query("long") long: Double, @Query("time") time: String): Deferred<StatusResponse>
+
+        @GET("api/v1/pause/time")
+        fun getPauseTimes(): Deferred<PauseTimeResponse>
+
+        @GET("api/v1/pause/check")
+        fun isPauseAllowed(@Query("token") token: String, @Query("type") pauseType: Int): Deferred<StatusResponse>
+
+        @POST("api/v1/pause/start")
+        fun startPause(@Query("token") token: String, @Query("type") type: Int, @Query("time") time: Int): Deferred<StatusResponse>
+
+        @POST("api/v1/pause/stop")
+        fun stopPause(@Query("token") token: String, @Query("type") type: Int, @Query("time") time: Int): Deferred<StatusResponse>
+
+        @GET("api/v1/radius")
+        fun getRadius(@Query("token") token: String): Deferred<RadiusResponse>
+
+
     }
 
     val api = retrofit.create(IDeliveryServerAPI::class.java)

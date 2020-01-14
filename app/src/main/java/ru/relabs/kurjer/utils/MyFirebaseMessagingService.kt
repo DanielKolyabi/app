@@ -9,6 +9,7 @@ import org.joda.time.DateTime
 import ru.relabs.kurjer.MyApplication
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
+import ru.relabs.kurjer.repository.PauseType
 
 /**
  * Created by ProOrange on 11.08.2018.
@@ -60,6 +61,42 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     action = "NOW"
                 }
                 sendBroadcast(int)
+            }
+        }
+        if(data.containsKey("pause_start")){
+            run {
+                val startTime = data["start_time"]?.toLongOrNull() ?: return
+                val pauseTypeInt = data["pause_type"]?.toIntOrNull() ?: return
+                val userId = data["user_id"]?.toIntOrNull() ?: return
+                if (userId.toString() != (MyApplication.instance.user as? UserModel.Authorized)?.login) {
+                    return@run
+                }
+
+                val pauseType = when (pauseTypeInt) {
+                    0 -> PauseType.Lunch
+                    1 -> PauseType.Load
+                    else -> return@run
+                }
+
+                MyApplication.instance.pauseRepository.putPauseStartTime(pauseType, startTime, true)
+            }
+        }
+        if(data.containsKey("pause_stop")){
+            run{
+                val stopTime = data["stop_time"]?.toLongOrNull() ?: return
+                val pauseTypeInt = data["pause_type"]?.toIntOrNull() ?: return
+                val userId = data["user_id"]?.toIntOrNull() ?: return
+                if (userId.toString() != (MyApplication.instance.user as? UserModel.Authorized)?.login) {
+                    return@run
+                }
+
+                val pauseType = when (pauseTypeInt) {
+                    0 -> PauseType.Lunch
+                    1 -> PauseType.Load
+                    else -> return@run
+                }
+
+                MyApplication.instance.pauseRepository.stopPause(pauseType, stopTime)
             }
         }
     }

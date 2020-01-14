@@ -9,13 +9,16 @@ import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import org.joda.time.DateTime
 import retrofit2.HttpException
-import ru.relabs.kurjer.*
+import ru.relabs.kurjer.BuildConfig
+import ru.relabs.kurjer.ErrorButtonsListener
+import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI.api
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.ErrorUtils
 import ru.relabs.kurjer.persistence.PersistenceHelper
+import ru.relabs.kurjer.repository.RadiusRepository
 import ru.relabs.kurjer.ui.fragments.LoginFragment
 import ru.relabs.kurjer.utils.activity
 import ru.relabs.kurjer.utils.application
@@ -26,7 +29,10 @@ import java.util.*
  */
 const val INVALID_TOKEN_ERROR_CODE = 4
 
-class LoginPresenter(val fragment: LoginFragment) {
+class LoginPresenter(
+        val fragment: LoginFragment,
+        val radiusRepository: RadiusRepository
+) {
 
     private var isPasswordRemembered = false
     private var authByToken = false
@@ -59,12 +65,13 @@ class LoginPresenter(val fragment: LoginFragment) {
                     api.loginByToken(pwd, application().deviceUUID, time).await()
 
                 if (response.error != null) {
-                    if(response.error.code == INVALID_TOKEN_ERROR_CODE){
+                    if (response.error.code == INVALID_TOKEN_ERROR_CODE) {
                         response.error.message = "Введите пароль"
                     }
                     fragment.activity()?.showError("Ошибка №${response.error.code}\n${response.error.message}")
                     return@launch
                 }
+
                 application().currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
                 application().user = UserModel.Authorized(response.user!!.login, response.token!!)
                 if (isPasswordRemembered) {
@@ -72,7 +79,6 @@ class LoginPresenter(val fragment: LoginFragment) {
                 } else {
                     application().restoreUserCredentials()
                 }
-                application().sendDeviceInfo(null)
                 if (sharedPref.getString("last_login", "") != response.user.login) {
                     Log.d("login", "Clear local database. User changed. Last login ${sharedPref.getString("last_login", "")}. New login ${response.user.login}")
                     withContext(CommonPool) {
@@ -80,7 +86,12 @@ class LoginPresenter(val fragment: LoginFragment) {
                             PersistenceHelper.closeTaskById(db, it.id)
                         }
                     }
+                    radiusRepository.resetData()
                 }
+
+                application().sendDeviceInfo(null)
+                radiusRepository.loadRadiusRemote()
+
                 sharedPref.edit().putString("last_login", response.user.login).apply()
                 (fragment.activity as? MainActivity)?.showTaskListScreen(!authByToken)
 

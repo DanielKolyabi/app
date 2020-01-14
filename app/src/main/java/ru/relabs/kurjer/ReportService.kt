@@ -23,7 +23,7 @@ import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
-import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.repository.PauseType
 import ru.relabs.kurjer.utils.logError
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
@@ -42,6 +42,9 @@ class ReportService : Service() {
     private var lastActivityRunningState = false
     private var lastGPSPending = System.currentTimeMillis()
     private var timelimitNotificationStartTime: Long? = null
+    private var timeUntilEnd: Long? = null
+    private var pausedUntil: Long? = null
+    private var pauseType: PauseType? = null
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -100,6 +103,8 @@ class ReportService : Service() {
             startTaskClosingTimer()
             return START_STICKY
         }
+
+        instance = this
 
         startForeground(1, notification("Сервис отправки данных.", ServiceState.IDLE))
         isRunning = true
@@ -217,7 +222,7 @@ class ReportService : Service() {
         val startTime = timelimitNotificationStartTime
         startTime ?: return
 
-        if (System.currentTimeMillis() > startTime + TIMELIMIT_NOTIFICATION_TIMEOUT) {
+        if (System.currentTimeMillis() > startTime + MyApplication.instance.pauseRepository.taskCloseTime*1000) {
             launch(CommonPool) {
                 timelimitNotificationStartTime = null
                 if (MyApplication.instance.database.taskDao().allOpened.isEmpty()) {
@@ -237,6 +242,12 @@ class ReportService : Service() {
 
     fun startTaskClosingTimer() {
         timelimitNotificationStartTime = System.currentTimeMillis()
+        timeUntilEnd?.let { untilEnd ->
+            timelimitNotificationStartTime?.let { startTime ->
+                timelimitNotificationStartTime = startTime + untilEnd
+            }
+            timeUntilEnd = null
+        }
     }
 
     private fun updateNotificationText(db: AppDatabase) {
@@ -281,6 +292,16 @@ class ReportService : Service() {
         }
     }
 
+    fun pauseTimer(pauseType: PauseType, endTime: Long) {
+        val startTime = timelimitNotificationStartTime
+        startTime ?: return
+
+        timeUntilEnd = startTime + MyApplication.instance.pauseRepository.taskCloseTime - System.currentTimeMillis()
+        timelimitNotificationStartTime = null
+        pausedUntil = endTime
+        this.pauseType = pauseType
+    }
+
     private fun getSendQuery(db: AppDatabase): SendQueryItemEntity? {
         return db.sendQueryDao().all.firstOrNull()
     }
@@ -294,5 +315,6 @@ class ReportService : Service() {
 
     companion object {
         var isRunning: Boolean = false
+        var instance: ReportService? = null
     }
 }

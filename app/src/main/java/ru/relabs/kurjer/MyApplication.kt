@@ -24,7 +24,13 @@ import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.persistence.AppDatabase
-import ru.relabs.kurjer.utils.tryOrLog
+import ru.relabs.kurjer.repository.LocationProvider
+import ru.relabs.kurjer.repository.PauseRepository
+import ru.relabs.kurjer.repository.RadiusRepository
+import ru.relabs.kurjer.repository.getLocationProvider
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.instanceIdAsync
+import ru.relabs.kurjer.utils.tryOrLogAsync
 import java.util.*
 
 
@@ -33,17 +39,21 @@ import java.util.*
  */
 
 class MyApplication : Application() {
+    lateinit var pauseRepository: PauseRepository
+    lateinit var radiusRepository: RadiusRepository
     lateinit var database: AppDatabase
     var user: UserModel = UserModel.Unauthorized
     lateinit var deviceUUID: String
     var locationManager: FusedLocationProviderClient? = null
     var currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
+    lateinit var locationProvider: LocationProvider
 
     var lastRequiredAppVersion = 0
 
     val listener = object : LocationCallback() {
 
         override fun onLocationResult(location: LocationResult?) {
+            CustomLog.writeToFile("LOCATION: Got coordinates. IsNull? ${location == null}")
             location?.let {
                 currentLocation = GPSCoordinatesModel(it.lastLocation.latitude, it.lastLocation.longitude, Date(it.lastLocation.time))
             }
@@ -119,6 +129,17 @@ class MyApplication : Application() {
                 .addMigrations(migration_26_27, migration_27_28, migration_28_29,
                         migration_29_30)
                 .build()
+
+        pauseRepository = PauseRepository(
+                DeliveryServerAPI.api,
+                getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE),
+                database
+        )
+        radiusRepository = RadiusRepository(
+                DeliveryServerAPI.api,
+                getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+        ) { (user as? UserModel.Authorized)?.token }
+        locationProvider = getLocationProvider(this)
     }
 
     fun requestLocation() {
@@ -126,9 +147,10 @@ class MyApplication : Application() {
             return
         }
 
-
+        CustomLog.writeToFile("LOCATION: Request Location")
         locationManager?.lastLocation?.addOnSuccessListener { location ->
             location?.let {
+                CustomLog.writeToFile("LOCATION: Got requested location")
                 currentLocation = GPSCoordinatesModel(it.latitude, it.longitude, Date(it.time))
             }
         }
@@ -138,6 +160,8 @@ class MyApplication : Application() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return false
         }
+
+        CustomLog.writeToFile("LOCATION: Start listening")
 
         val req = LocationRequest().apply {
             fastestInterval = 10 * 1000
@@ -149,10 +173,6 @@ class MyApplication : Application() {
         locationManager?.requestLocationUpdates(req, listener, mainLooper)
 
         return true
-    }
-
-    fun disableLocationListening() {
-//        locationManager?.removeLocationUpdates(listener)
     }
 
     fun storeUserCredentials() {
@@ -205,18 +225,18 @@ class MyApplication : Application() {
 
     }
 
-    fun sendDeviceInfo(pushToken: String?, shouldSendImei: Boolean = true) {
+    suspend fun sendDeviceInfo(pushToken: String?, shouldSendImei: Boolean = true) {
         if (user !is UserModel.Authorized) return
 
         if (shouldSendImei) {
-            tryOrLog {
-                DeliveryServerAPI.api.sendDeviceImei((user as UserModel.Authorized).token, getImei())
+            tryOrLogAsync {
+                DeliveryServerAPI.api.sendDeviceImei((user as UserModel.Authorized).token, getImei()).await()
             }
         }
 
         if (pushToken != null) {
-            tryOrLog {
-                DeliveryServerAPI.api.sendPushToken((user as UserModel.Authorized).token, pushToken)
+            tryOrLogAsync {
+                DeliveryServerAPI.api.sendPushToken((user as UserModel.Authorized).token, pushToken).await()
             }
         } else {
             val token = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE).getString("firebase_token", "notoken")
@@ -225,9 +245,10 @@ class MyApplication : Application() {
                 return
             }
 
-            FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener {
-                savePushToken(it.token)
-                sendDeviceInfo(it.token, false)
+            tryOrLogAsync {
+                val token = FirebaseInstanceId.getInstance().instanceIdAsync().token
+                savePushToken(token)
+                sendDeviceInfo(token, false)
             }
         }
     }

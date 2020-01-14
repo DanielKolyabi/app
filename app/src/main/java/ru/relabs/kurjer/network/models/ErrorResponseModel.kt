@@ -13,7 +13,8 @@ abstract class ResponseWithErrorModel {
 
 data class ResponseErrorModel(
         val code: Int,
-        var message: String
+        var message: String,
+        var data: Map<String, Any>
 )
 
 data class ErrorModel(
@@ -29,6 +30,6 @@ object ErrorUtils{
             e.printStackTrace()
         }
 
-        return ResponseErrorModel(-1, "Не известная ошибка.")
+        return ResponseErrorModel(-1, "Не известная ошибка.", emptyMap())
     }
 }

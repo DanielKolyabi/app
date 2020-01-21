@@ -222,7 +222,7 @@ class ReportService : Service() {
         val startTime = timelimitNotificationStartTime
         startTime ?: return
 
-        if (System.currentTimeMillis() > startTime + MyApplication.instance.pauseRepository.taskCloseTime*1000) {
+        if (System.currentTimeMillis() > startTime + TIMELIMIT_NOTIFICATION_TIMEOUT) {
             launch(CommonPool) {
                 timelimitNotificationStartTime = null
                 if (MyApplication.instance.database.taskDao().allOpened.isEmpty()) {
@@ -296,7 +296,7 @@ class ReportService : Service() {
         val startTime = timelimitNotificationStartTime
         startTime ?: return
 
-        timeUntilEnd = startTime + MyApplication.instance.pauseRepository.taskCloseTime - System.currentTimeMillis()
+        timeUntilEnd = startTime + TIMELIMIT_NOTIFICATION_TIMEOUT - System.currentTimeMillis()
         timelimitNotificationStartTime = null
         pausedUntil = endTime
         this.pauseType = pauseType

@@ -18,6 +18,7 @@ import ru.relabs.kurjer.network.DeliveryServerAPI.api
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.ErrorUtils
 import ru.relabs.kurjer.persistence.PersistenceHelper
+import ru.relabs.kurjer.repository.PauseRepository
 import ru.relabs.kurjer.repository.RadiusRepository
 import ru.relabs.kurjer.ui.fragments.LoginFragment
 import ru.relabs.kurjer.utils.activity
@@ -31,7 +32,8 @@ const val INVALID_TOKEN_ERROR_CODE = 4
 
 class LoginPresenter(
         val fragment: LoginFragment,
-        val radiusRepository: RadiusRepository
+        val radiusRepository: RadiusRepository,
+        val pauseRepository: PauseRepository
 ) {
 
     private var isPasswordRemembered = false
@@ -87,10 +89,12 @@ class LoginPresenter(
                         }
                     }
                     radiusRepository.resetData()
+                    pauseRepository.resetData()
                 }
 
                 application().sendDeviceInfo(null)
                 radiusRepository.loadRadiusRemote()
+                pauseRepository.loadLastPausesRemote()
 
                 sharedPref.edit().putString("last_login", response.user.login).apply()
                 (fragment.activity as? MainActivity)?.showTaskListScreen(!authByToken)

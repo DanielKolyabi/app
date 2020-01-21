@@ -27,11 +27,11 @@ enum class PauseType {
 class PauseRepository(
         private val api: DeliveryServerAPI.IDeliveryServerAPI,
         private val sharedPreferences: SharedPreferences,
-        private val db: AppDatabase
+        private val db: AppDatabase,
+        private val tokenProvider: () -> String?
 ) {
     private var lunchTime: Int = 20 * 60
     private var loadTime: Int = 20 * 60
-    var taskCloseTime: Int = 30 * 60
     private var currentPauseType: PauseType? = null
     private var pauseEndJob: Job? = null
 
@@ -40,29 +40,45 @@ class PauseRepository(
     init {
         lunchTime = sharedPreferences.getInt(LUNCH_KEY, lunchTime)
         loadTime = sharedPreferences.getInt(LOAD_KEY, loadTime)
-        taskCloseTime = sharedPreferences.getInt(TASK_CLOSE_KEY, taskCloseTime)
+
+        fun startPauseEndJob(delay: Long) {
+            pauseEndJob = launch(CommonPool) {
+                delay(delay * 1000)
+                isPaused = false
+            }
+        }
+
+        val currentTime = currentTimestamp()
+        if (getPauseStartTime(PauseType.Load) + getPauseLength(PauseType.Load) > currentTime) {
+            val delta = currentTime - getPauseStartTime(PauseType.Load) + getPauseLength(PauseType.Load)
+            startPauseEndJob(delta)
+            isPaused = true
+        } else if (getPauseStartTime(PauseType.Lunch) + getPauseLength(PauseType.Lunch) > currentTime) {
+            val delta = currentTime - getPauseStartTime(PauseType.Lunch) + getPauseLength(PauseType.Lunch)
+            startPauseEndJob(delta)
+            isPaused = true
+        }
     }
 
     suspend fun loadPauseTime() = withContext(DefaultDispatcher) {
         tryOrLogAsync {
             val response = api.getPauseTimes().await()
             sharedPreferences.edit()
-                    .putInt(LUNCH_KEY, response.lunch)
-                    .putInt(LOAD_KEY, response.loading)
-                    .putInt(TASK_CLOSE_KEY, response.control)
+                    .putInt(LUNCH_KEY, response.lunch.toInt())
+                    .putInt(LOAD_KEY, response.loading.toInt())
                     .apply()
         }
     }
 
     fun getPauseStartTime(type: PauseType): Long {
-        return sharedPreferences.getLong(when(type){
+        return sharedPreferences.getLong(when (type) {
             PauseType.Lunch -> LUNCH_LAST_TIME_KEY
             PauseType.Load -> LOAD_LAST_TIME_KEY
         }, 0)
     }
 
     fun getPauseLength(type: PauseType): Int {
-        return when(type){
+        return when (type) {
             PauseType.Lunch -> lunchTime
             PauseType.Load -> loadTime
         }
@@ -98,9 +114,9 @@ class PauseRepository(
 
         return try {
             api.isPauseAllowed((application().user as UserModel.Authorized).token, pauseType).await().status
-        } catch (e: HttpException){
+        } catch (e: HttpException) {
             val remotePauseTime = ErrorUtils.getError(e).data["last_pause"] as? Long
-            remotePauseTime?.let{
+            remotePauseTime?.let {
                 putPauseStartTime(type, remotePauseTime, true)
             }
             true
@@ -120,7 +136,7 @@ class PauseRepository(
         }, 0)
 
         val lastPauseTime = Calendar.getInstance().apply {
-            timeInMillis = lastPauseTimeStamp*1000
+            timeInMillis = lastPauseTimeStamp * 1000
         }
 
         val time = Calendar.getInstance(TimeZone.getTimeZone("GMT+3:00"))
@@ -155,7 +171,7 @@ class PauseRepository(
             PauseType.Load -> 1
         }
         val pauseTime = time ?: currentTime
-        val pauseEndTime = pauseTime + when(type){
+        val pauseEndTime = pauseTime + when (type) {
             PauseType.Lunch -> lunchTime
             PauseType.Load -> loadTime
         }
@@ -205,17 +221,36 @@ class PauseRepository(
     }
 
     private fun getActivePauseType(): PauseType? {
-        currentPauseType?.let{
+        currentPauseType?.let {
             return currentPauseType
         }
 
         val currentTime = currentTimestamp()
         listOf(PauseType.Lunch, PauseType.Load).forEach {
-            if(getPauseStartTime(it) + getPauseLength(it) > currentTime){
+            if (getPauseStartTime(it) + getPauseLength(it) > currentTime) {
                 return it
             }
         }
         return null
+    }
+
+    suspend fun loadLastPausesRemote() = withContext(DefaultDispatcher){
+        val token = tokenProvider() ?: return@withContext
+        tryOrLogAsync {
+            val response = api.getLastPauseTimes(token).await()
+            putPauseStartTime(PauseType.Load, response.loading.toLong(), true)
+            putPauseStartTime(PauseType.Lunch, response.lunch.toLong(), true)
+        }
+    }
+
+    fun resetData() {
+        sharedPreferences.edit()
+                .remove(LUNCH_LAST_TIME_KEY)
+                .remove(LOAD_LAST_TIME_KEY)
+                .apply()
+        currentPauseType = null
+        pauseEndJob?.cancel()
+        isPaused = false
     }
 
     companion object {

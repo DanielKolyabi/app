@@ -134,7 +134,7 @@ class MyApplication : Application() {
                 DeliveryServerAPI.api,
                 getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE),
                 database
-        )
+        ) { (user as? UserModel.Authorized)?.token }
         radiusRepository = RadiusRepository(
                 DeliveryServerAPI.api,
                 getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)

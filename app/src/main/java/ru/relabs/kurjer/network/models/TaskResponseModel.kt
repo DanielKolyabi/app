@@ -49,8 +49,8 @@ data class TaskResponseModel(
         val newState = when (state) {
             0, 10, 11, 20 -> TaskModel.CREATED
             30 -> TaskModel.EXAMINED
-            40 -> TaskModel.STARTED
-            50, 60 -> TaskModel.COMPLETED
+            40, 41, 42 -> TaskModel.STARTED
+            50, 51, 60, 61 -> TaskModel.COMPLETED
             12 -> TaskModel.CANCELED
             else -> TaskModel.COMPLETED
         }

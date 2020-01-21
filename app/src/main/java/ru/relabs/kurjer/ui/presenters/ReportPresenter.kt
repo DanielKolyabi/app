@@ -92,6 +92,10 @@ class ReportPresenter(
     }
 
     fun startPause(type: PauseType) {
+        if (!MyApplication.instance.pauseRepository.isPauseAvailable(type)) {
+            fragment?.showPauseError()
+            return
+        }
         launch(CommonPool) {
             tryOrLogAsync {
                 if (!MyApplication.instance.pauseRepository.isPauseAvailableRemote(type)) {
@@ -483,54 +487,54 @@ class ReportPresenter(
 
 
     fun onCloseClicked(checkPause: Boolean = true) {
-        if (MyApplication.instance.pauseRepository.isPaused) {
-            if (checkPause) {
-                fragment.showPauseWarning()
-                return
-            } else {
-                MyApplication.instance.pauseRepository.stopPause()
+        launch(UI) {
+            if (MyApplication.instance.pauseRepository.isPaused) {
+                if (checkPause) {
+                    fragment.showPauseWarning()
+                    return@launch
+                } else {
+                    withContext(CommonPool) {
+                        MyApplication.instance.pauseRepository.stopPause()
+                    }
+                }
             }
-        }
-        if (!fragment.tasks[currentTask].canShowedByDate(Date())) {
-            fragment.activity()?.showError("Задание больше недоступно.", object : ErrorButtonsListener {
-                override fun positiveListener() {
-                    fragment?.activity()?.showTaskListScreen()
-                }
+            if (!fragment.tasks[currentTask].canShowedByDate(Date())) {
+                fragment.activity()?.showError("Задание больше недоступно.", object : ErrorButtonsListener {
+                    override fun positiveListener() {
+                        fragment?.activity()?.showTaskListScreen()
+                    }
 
-                override fun negativeListener() {
-                }
-            })
-            return
-        }
-
-        if (fragment.taskItems[currentTask].needPhoto
-                && fragment.photosListAdapter.data.filter { it is ReportPhotosListModel.TaskItemPhoto }.isEmpty()) {
-            (fragment?.context as? MainActivity)?.showError("Необходимо сделать фотографии")
-            return
-        }
-
-        val radius = radiusRepository.radius
-        val currentPosition = application().currentLocation
-        val housePosition = GPSCoordinatesModel(fragment.taskItems[currentTask].address.lat, fragment.taskItems[currentTask].address.long, Date())
-        val distance = calculateDistance(currentPosition, housePosition)
-
-        if (radiusRepository.isRadiusRequired) {
-            if (currentPosition.isEmpty) {
-                fragment.showPreCloseDialog(message = "Не определились координаты отправь крэш лог! \nKoordinatalari aniqlanmadi, xato jurnalini yuborish!") {
-                    fragment.showSendCrashReportDialog()
-                }
-            } else if (distance > radius) {
-                fragment.showPreCloseDialog(message = "Ты не у дома! Подойди и попробуй еще \nSiz uyning yonida emassiz! Yaqinlashing va qaytadan urining")
-            } else {
-                closeClicked()
+                    override fun negativeListener() {
+                    }
+                })
+                return@launch
             }
-        } else {
-            if (currentPosition.isEmpty) {
-                fragment.showPreCloseDialog(message = "Не определились координаты. \nKoordinatalar yo'q") { closeClicked() }
-            } else if (distance > radius) {
-                fragment.showPreCloseDialog(message = "Ты не у дома. \nSiz uyda emassiz") { closeClicked() }
+
+            if (fragment.taskItems[currentTask].needPhoto
+                    && fragment.photosListAdapter.data.filter { it is ReportPhotosListModel.TaskItemPhoto }.isEmpty()) {
+                (fragment?.context as? MainActivity)?.showError("Необходимо сделать фотографии")
+                return@launch
+            }
+
+            val radius = radiusRepository.radius
+            val currentPosition = application().currentLocation
+            val housePosition = GPSCoordinatesModel(fragment.taskItems[currentTask].address.lat, fragment.taskItems[currentTask].address.long, Date())
+            val distance = calculateDistance(currentPosition, housePosition)
+
+            if (radiusRepository.isRadiusRequired) {
+                when {
+                    currentPosition.isEmpty -> fragment.showPreCloseDialog(message = "Не определились координаты отправь крэш лог! \nKoordinatalari aniqlanmadi, xato jurnalini yuborish!") {
+                        fragment.showSendCrashReportDialog()
+                    }
+                    distance > radius -> fragment.showPreCloseDialog(message = "Ты не у дома! Подойди и попробуй еще \nSiz uyning yonida emassiz! Yaqinlashing va qaytadan urining")
+                    else -> closeClicked()
+                }
             } else {
-                closeClicked()
+                when {
+                    currentPosition.isEmpty -> fragment.showPreCloseDialog(message = "Не определились координаты. \nKoordinatalar yo'q") { closeClicked() }
+                    distance > radius -> fragment.showPreCloseDialog(message = "Ты не у дома. \nSiz uyda emassiz") { closeClicked(true) }
+                    else -> closeClicked()
+                }
             }
         }
     }
@@ -559,7 +563,7 @@ class ReportPresenter(
         return true
     }
 
-    fun closeClicked() {
+    fun closeClicked(isOutOfRange: Boolean = false) {
         val description = try {
             fragment.user_explanation_input.text.toString()
         } catch (e: Exception) {
@@ -570,12 +574,12 @@ class ReportPresenter(
         if (currentPosition.time.time - Date().time > 3 * 60 * 1000 || currentPosition.isEmpty) {
             launch(UI) {
                 val delayJob = async { delay(40 * 1000) }
-                val gpsJob = async { requestGPSCoordinates() }
+                val gpsJob = async(UI) { requestGPSCoordinates() }
                 listOf(delayJob, gpsJob).awaitFirst()
-                showCloseDialog(description)
+                showCloseDialog(description, isOutOfRange)
             }
         } else {
-            showCloseDialog(description)
+            showCloseDialog(description, isOutOfRange)
         }
     }
 
@@ -593,11 +597,11 @@ class ReportPresenter(
         fragment.hideGPSLoader()
     }
 
-    private fun showCloseDialog(description: String) {
+    private fun showCloseDialog(description: String, isOutOfRange: Boolean) {
         (fragment.context as MainActivity).showError("КНОПКИ НАЖАЛ?\nОТЧЁТ ОТПРАВЛЯЮ?\n(tugmachalari bosildi? " +
                 "hisobot yuboringmi?)", object : ErrorButtonsListener {
             override fun positiveListener() {
-                val status = closeTaskItem(description)
+                val status = closeTaskItem(description, isOutOfRange)
                 if (!status) {
                     (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
                 } else {
@@ -610,7 +614,7 @@ class ReportPresenter(
         }, "Да", "Нет", style = R.style.RedAlertDialog)
     }
 
-    private fun closeTaskItem(description: String): Boolean {
+    private fun closeTaskItem(description: String, isOutOfRange: Boolean): Boolean {
         val app = application()
 
         launch(UI) {
@@ -620,9 +624,8 @@ class ReportPresenter(
                     .filter { it is ReportEntrancesListModel.Entrance }
                     .map { it as ReportEntrancesListModel.Entrance }
 
+            val location = application().currentLocation
             withContext(CommonPool) {
-                val location = application().currentLocation
-
                 try {
                     createOrUpdateTaskResult(
                             fragment.taskItems[currentTask].id,
@@ -634,10 +637,12 @@ class ReportPresenter(
                     CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
                 }
 
-                db.taskItemDao().getById(fragment.taskItems[currentTask].id)?.apply {
-                    state = TaskItemModel.CLOSED
-                }?.let {
-                    db.taskItemDao().update(it)
+                if(!isOutOfRange && location.lat != 0.0 && location.long != 0.0){
+                    db.taskItemDao().getById(fragment.taskItems[currentTask].id)?.apply {
+                        state = TaskItemModel.CLOSED
+                    }?.let {
+                        db.taskItemDao().update(it)
+                    }
                 }
 
                 db.taskDao().getById(fragment.tasks[currentTask].id)?.let {
@@ -678,7 +683,9 @@ class ReportPresenter(
 
             CustomLog.writeToFile("${fragment.taskItems[currentTask].id} now closed")
 
-            fragment.taskItems[currentTask].state = TaskItemModel.CLOSED
+            if(!isOutOfRange && location.lat != 0.0 && location.long != 0.0) {
+                fragment.taskItems[currentTask].state = TaskItemModel.CLOSED
+            }
             val dateNow = Date()
             val openedTasks = fragment.taskItems.filterIndexed { i, it ->
                 val parent = fragment.tasks[i]

@@ -97,6 +97,9 @@ object DeliveryServerAPI {
         @GET("api/v1/pause/time")
         fun getPauseTimes(): Deferred<PauseTimeResponse>
 
+        @GET("api/v1/pause/last")
+        fun getLastPauseTimes(@Query("token") token: String): Deferred<PauseTimeResponse>
+
         @GET("api/v1/pause/check")
         fun isPauseAllowed(@Query("token") token: String, @Query("type") pauseType: Int): Deferred<StatusResponse>
 

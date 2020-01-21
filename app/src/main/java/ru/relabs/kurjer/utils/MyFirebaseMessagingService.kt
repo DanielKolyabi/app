@@ -3,8 +3,10 @@ package ru.relabs.kurjer.utils
 import android.content.Intent
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withContext
 import org.joda.time.DateTime
 import ru.relabs.kurjer.MyApplication
 import ru.relabs.kurjer.models.UserModel
@@ -31,7 +33,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
 
-    fun processMessageData(data: Map<String, String>) {
+    suspend fun processMessageData(data: Map<String, String>) {
         if (data.containsKey("request_gps")) {
             (application as? MyApplication)?.user as? UserModel.Authorized ?: return
             launch {
@@ -64,18 +66,18 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             }
         }
         if(data.containsKey("pause_start")){
-            run {
-                val startTime = data["start_time"]?.toLongOrNull() ?: return
-                val pauseTypeInt = data["pause_type"]?.toIntOrNull() ?: return
-                val userId = data["user_id"]?.toIntOrNull() ?: return
+            withContext(CommonPool) {
+                val startTime = data["start_time"]?.toLongOrNull() ?: return@withContext
+                val pauseTypeInt = data["pause_type"]?.toIntOrNull() ?: return@withContext
+                val userId = data["user_id"]?.toIntOrNull() ?: return@withContext
                 if (userId.toString() != (MyApplication.instance.user as? UserModel.Authorized)?.login) {
-                    return@run
+                    return@withContext
                 }
 
                 val pauseType = when (pauseTypeInt) {
                     0 -> PauseType.Lunch
                     1 -> PauseType.Load
-                    else -> return@run
+                    else -> return@withContext
                 }
 
                 MyApplication.instance.pauseRepository.putPauseStartTime(pauseType, startTime, true)

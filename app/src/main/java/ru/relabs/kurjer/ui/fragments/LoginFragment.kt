@@ -24,7 +24,8 @@ class LoginFragment : Fragment() {
 
     val presenter = LoginPresenter(
             this,
-            MyApplication.instance.radiusRepository
+            MyApplication.instance.radiusRepository,
+            MyApplication.instance.pauseRepository
     )
 
     var shouldResetRememberOnInput = false

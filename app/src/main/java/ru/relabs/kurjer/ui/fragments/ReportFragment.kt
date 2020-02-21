@@ -2,6 +2,7 @@ package ru.relabs.kurjer.ui.fragments
 
 
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -31,6 +32,7 @@ import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.repository.PauseType
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.*
+import ru.relabs.kurjer.ui.dialogs.GPSRequestTimeDialog
 import ru.relabs.kurjer.ui.helpers.HintHelper
 import ru.relabs.kurjer.ui.helpers.setVisible
 import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
@@ -50,6 +52,7 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
     private var selectedTaskItemId: Int = 0
     private lateinit var hintHelper: HintHelper
     private var gpsLoaderJob: Job? = null
+    private var loadingDialog: Dialog? = null
 
     val tasksListAdapter = DelegateAdapter<ReportTasksListModel>()
     val entrancesListAdapter = DelegateAdapter<ReportEntrancesListModel>()
@@ -287,8 +290,16 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
                 .setTitle("Пауза")
                 .setMessage("Пауза будет прервана")
                 .setPositiveButton("Ок") { _, _ -> presenter.onCloseClicked(false) }
-                .setNegativeButton("Отмена") { _, _ -> }
                 .show()
+    }
+
+    fun showGPSLoadingDialog(){
+        loadingDialog?.dismiss()
+        loadingDialog = GPSRequestTimeDialog(requireContext()).apply { show() }
+    }
+
+    fun hideGPSLoadingDialog(){
+        loadingDialog?.dismiss()
     }
 
     fun showPreCloseDialog(message: String, action: (() -> Unit)? = null) {

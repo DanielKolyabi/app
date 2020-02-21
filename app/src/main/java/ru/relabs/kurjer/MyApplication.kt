@@ -45,9 +45,7 @@ class MyApplication : Application() {
     var user: UserModel = UserModel.Unauthorized
     lateinit var deviceUUID: String
     var locationManager: FusedLocationProviderClient? = null
-    var currentLocation: GPSCoordinatesModel// = GPSCoordinatesModel(0.0, 0.0, Date(0))
-        get() = GPSCoordinatesModel(0.0, 0.0, Date(0)) //55.8154339, 37.5856166
-        set(value) = Unit
+    var currentLocation: GPSCoordinatesModel = GPSCoordinatesModel(0.0, 0.0, Date(0))
     lateinit var locationProvider: LocationProvider
 
     var lastRequiredAppVersion = 0

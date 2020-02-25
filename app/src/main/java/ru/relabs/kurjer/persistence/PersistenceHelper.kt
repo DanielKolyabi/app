@@ -6,13 +6,13 @@ import android.util.Log
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.withContext
 import ru.relabs.kurjer.BuildConfig
-import ru.relabs.kurjer.utils.application
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
+import ru.relabs.kurjer.utils.application
 import java.util.*
 
 
@@ -64,13 +64,15 @@ object PersistenceHelper {
 
     fun removeReport(db: AppDatabase, report: ReportQueryItemEntity) {
         db.reportQueryDao().delete(report)
-        db.photosDao().getByTaskItemId(report.taskItemId).forEach {
-            //Delete photo
-            val file = PathHelper.getTaskItemPhotoFileByID(report.taskItemId, UUID.fromString(it.UUID))
-            file.delete()
-            db.photosDao().delete(it)
+        if (report.removeAfterSend) {
+            db.photosDao().getByTaskItemId(report.taskItemId).forEach {
+                //Delete photo
+                val file = PathHelper.getTaskItemPhotoFileByID(report.taskItemId, UUID.fromString(it.UUID))
+                file.delete()
+                db.photosDao().delete(it)
+            }
+            PathHelper.getTaskItemPhotoFolderById(report.taskItemId).delete()
         }
-        PathHelper.getTaskItemPhotoFolderById(report.taskItemId).delete()
     }
 
     suspend fun isMergeNeeded(
@@ -194,7 +196,7 @@ object PersistenceHelper {
 
                     //Add new tasks and update old tasks
                     task.items.forEach { newTaskItem ->
-                        currentTasks.removeAll { oldTaskItem -> oldTaskItem.id == newTaskItem.id}
+                        currentTasks.removeAll { oldTaskItem -> oldTaskItem.id == newTaskItem.id }
 
                         db.addressDao().insert(newTaskItem.address.toAddressEntity())
 
@@ -218,11 +220,11 @@ object PersistenceHelper {
     }
 
     private fun removeTaskItem(db: AppDatabase, taskItemId: Int) {
-        if(db.reportQueryDao().getByTaskItemId(taskItemId) == null){
+        if (db.reportQueryDao().getByTaskItemId(taskItemId) == null) {
             db.photosDao().deleteByTaskItemId(taskItemId)
         }
         val result = db.taskItemResultsDao().getByTaskItemId(taskItemId)
-        if(result != null){
+        if (result != null) {
             db.entrancesDao().getByTaskItemResultId(result.id)
             db.taskItemResultsDao().delete(result)
         }

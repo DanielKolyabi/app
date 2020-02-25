@@ -45,7 +45,9 @@ class MyApplication : Application() {
     var user: UserModel = UserModel.Unauthorized
     lateinit var deviceUUID: String
     var locationManager: FusedLocationProviderClient? = null
-    var currentLocation: GPSCoordinatesModel = GPSCoordinatesModel(0.0, 0.0, Date(0))
+    var currentLocation: GPSCoordinatesModel // = GPSCoordinatesModel(0.0, 0.0, Date(0))
+        get() = GPSCoordinatesModel(55.880293, 37.496174, Date())
+        set(value) = Unit
     lateinit var locationProvider: LocationProvider
 
     var lastRequiredAppVersion = 0
@@ -123,11 +125,16 @@ class MyApplication : Application() {
                 database.execSQL("ALTER TABLE tasks ADD COLUMN couple_type INTEGER NOT NULL DEFAULT 1")
             }
         }
+        val migration_30_31 = object : Migration(30, 31) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE report_query ADD COLUMN remove_after_send INTEGER NOT NULL DEFAULT 0")
+            }
+        }
 
         database = Room
                 .databaseBuilder(applicationContext, ru.relabs.kurjer.persistence.AppDatabase::class.java, "deliveryman")
                 .addMigrations(migration_26_27, migration_27_28, migration_28_29,
-                        migration_29_30)
+                        migration_29_30, migration_30_31)
                 .build()
 
         pauseRepository = PauseRepository(

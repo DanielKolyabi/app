@@ -528,20 +528,20 @@ class ReportPresenter(
                     }else{
                         fragment.showPreCloseDialog(message = "Не определились координаты отправь крэш лог! \nKoordinatalari aniqlanmadi, xato jurnalini yuborish!") {
                             fragment.showSendCrashReportDialog()
-                            closeTaskItem(description, true)
+                            closeTaskItem(description, false)
                         }
                     }
                 }
                 distance > radius -> fragment.showPreCloseDialog(message = "Ты не у дома! Подойди и попробуй еще \nSiz uyning yonida emassiz! Yaqinlashing va qaytadan urining") {
-                    closeTaskItem(description, true)
+                    closeTaskItem(description, false)
                 }
                 else -> closeClicked()
             }
         } else {
             when {
-                currentPosition.isEmpty -> fragment.showPreCloseDialog(message = "Не определились координаты. \nKoordinatalar yo'q") { closeClicked() }
+                currentPosition.isEmpty -> fragment.showPreCloseDialog(message = "Не определились координаты. \nKoordinatalar yo'q") { closeClicked(true) }
                 distance > radius -> fragment.showPreCloseDialog(message = "Ты не у дома. \nSiz uyda emassiz") { closeClicked(true) }
-                else -> closeClicked()
+                else -> closeClicked(true)
             }
         }
     }
@@ -568,7 +568,7 @@ class ReportPresenter(
         fragment?.hideGPSLoadingDialog()
     }
 
-    fun closeClicked(isOutOfRange: Boolean = false) {
+    private fun closeClicked(forceRemove: Boolean? = null) {
         val description = getDescription()
 
         val currentPosition = application().currentLocation
@@ -578,10 +578,10 @@ class ReportPresenter(
                 val currentPosition = application().currentLocation
                 val distance = getGPSDistance(currentPosition)
                 val radius = radiusRepository.radius
-                showCloseDialog(description, distance > radius)
+                showCloseDialog(description, forceRemove ?: (distance < radius))
             }
         } else {
-            showCloseDialog(description, isOutOfRange)
+            showCloseDialog(description, true)
         }
     }
 
@@ -595,11 +595,11 @@ class ReportPresenter(
         }
     }
 
-    private fun showCloseDialog(description: String, isOutOfRange: Boolean) {
+    private fun showCloseDialog(description: String, withRemove: Boolean) {
         (fragment.context as MainActivity).showError("КНОПКИ НАЖАЛ?\nОТЧЁТ ОТПРАВЛЯЮ?\n(tugmachalari bosildi? " +
                 "hisobot yuboringmi?)", object : ErrorButtonsListener {
             override fun positiveListener() {
-                val status = closeTaskItem(description, isOutOfRange)
+                val status = closeTaskItem(description, withRemove)
                 if (!status) {
                     (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
                 } else {
@@ -612,7 +612,7 @@ class ReportPresenter(
         }, "Да", "Нет", style = R.style.RedAlertDialog)
     }
 
-    private fun closeTaskItem(description: String, isOutOfRange: Boolean): Boolean {
+    private fun closeTaskItem(description: String, withRemove: Boolean): Boolean {
         val app = application()
         if (MyApplication.instance.pauseRepository.isPaused) {
             launch(CommonPool) {
@@ -639,7 +639,7 @@ class ReportPresenter(
                     CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
                 }
 
-                if (!isOutOfRange && location.lat != 0.0 && location.long != 0.0) {
+                if (withRemove && location.lat != 0.0 && location.long != 0.0) {
                     db.taskItemDao().getById(fragment.taskItems[currentTask].id)?.apply {
                         state = TaskItemModel.CLOSED
                     }?.let {
@@ -671,7 +671,8 @@ class ReportPresenter(
                             Pair((it as ReportEntrancesListModel.Entrance).entranceNumber, it.selected)
                         },
                         userToken,
-                        ((getBatteryLevel(fragment.context) ?: 0f) * 100).roundToInt()
+                        ((getBatteryLevel(fragment.context) ?: 0f) * 100).roundToInt(),
+                        withRemove
                 )
 
                 db.reportQueryDao().insert(reportItem)
@@ -685,7 +686,7 @@ class ReportPresenter(
 
             CustomLog.writeToFile("${fragment.taskItems[currentTask].id} now closed")
 
-            if (!isOutOfRange && location.lat != 0.0 && location.long != 0.0) {
+            if (withRemove && location.lat != 0.0 && location.long != 0.0) {
                 fragment.taskItems[currentTask].state = TaskItemModel.CLOSED
             }
             val dateNow = Date()

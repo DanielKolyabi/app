@@ -28,5 +28,7 @@ data class ReportQueryItemEntity(
         var entrances: List<Pair<Int, Int>>,
         var token: String,
         @ColumnInfo(name = "battery_level")
-        var batteryLevel: Int
+        var batteryLevel: Int,
+        @ColumnInfo(name = "remove_after_send")
+        var removeAfterSend: Boolean
 )

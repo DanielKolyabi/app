@@ -86,7 +86,9 @@ class ReportPresenter(
     private fun fillDescriptionData(db: AppDatabase) {
         db.taskItemResultsDao().getByTaskItemId(fragment.taskItems[currentTask].id)?.let {
             launch(UI) {
-                fragment?.user_explanation_input?.setText(it.description)
+                tryOrLog {
+                    fragment?.user_explanation_input?.setText(it.description)
+                }
             }
         }
     }
@@ -522,10 +524,10 @@ class ReportPresenter(
         if (radiusRepository.isRadiusRequired) {
             when {
                 currentPosition.isEmpty -> {
-                    if(withTryReload){
+                    if (withTryReload) {
                         reloadGPSCoordinates()
                         closeClickedCheck(false)
-                    }else{
+                    } else {
                         fragment.showPreCloseDialog(message = "Не определились координаты отправь крэш лог! \nKoordinatalari aniqlanmadi, xato jurnalini yuborish!") {
                             fragment.showSendCrashReportDialog()
                             closeTaskItem(description, false)

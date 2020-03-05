@@ -80,7 +80,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     else -> return@withContext
                 }
 
-                MyApplication.instance.pauseRepository.putPauseStartTime(pauseType, startTime, true)
+                MyApplication.instance.pauseRepository.putPauseStartTime(pauseType, startTime)
+                MyApplication.instance.pauseRepository.updatePauseState(pauseType)
             }
         }
         if(data.containsKey("pause_stop")){
@@ -98,7 +99,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     else -> return@run
                 }
 
-                MyApplication.instance.pauseRepository.stopPause(pauseType, stopTime)
+                MyApplication.instance.pauseRepository.putPauseEndTime(pauseType, stopTime)
+                MyApplication.instance.pauseRepository.updatePauseState(pauseType)
             }
         }
     }

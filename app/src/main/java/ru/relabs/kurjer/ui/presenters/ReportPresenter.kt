@@ -107,7 +107,7 @@ class ReportPresenter(
                     return@tryOrLogAsync
                 }
 
-                MyApplication.instance.pauseRepository.startPause(type)
+                MyApplication.instance.pauseRepository.startPause(type, withNotify = true)
                 withContext(UI) {
                     fragment.updatePauseButtonEnabled()
                 }
@@ -618,7 +618,7 @@ class ReportPresenter(
         val app = application()
         if (MyApplication.instance.pauseRepository.isPaused) {
             launch(CommonPool) {
-                MyApplication.instance.pauseRepository.stopPause()
+                MyApplication.instance.pauseRepository.stopPause(withNotify = true, withUpdate = true)
             }
         }
         launch(UI) {

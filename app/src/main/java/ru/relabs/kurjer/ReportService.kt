@@ -23,18 +23,20 @@ import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
-import ru.relabs.kurjer.repository.PauseType
 import ru.relabs.kurjer.utils.logError
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.TimeUnit
 
 
 const val CHANNEL_ID = "notification_channel"
 const val CLOSE_SERVICE_TIMEOUT = 80 * 60 * 1000
-const val TIMELIMIT_NOTIFICATION_TIMEOUT = 30 * 60 * 1000
+const val TIMELIMIT_NOTIFICATION_TIMEOUT = 20 * 1000
 
 class ReportService : Service() {
+    private var timeUntilRun: Int = 0
+    private var pauseDisableJob: Job? = null
     private var thread: Job? = null
     private var currentIconBitmap: Bitmap? = null
     private var lastState: ServiceState = ServiceState.IDLE
@@ -42,9 +44,6 @@ class ReportService : Service() {
     private var lastActivityRunningState = false
     private var lastGPSPending = System.currentTimeMillis()
     private var timelimitNotificationStartTime: Long? = null
-    private var timeUntilEnd: Long? = null
-    private var pausedUntil: Long? = null
-    private var pauseType: PauseType? = null
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -241,13 +240,9 @@ class ReportService : Service() {
     }
 
     fun startTaskClosingTimer() {
-        timelimitNotificationStartTime = System.currentTimeMillis()
-        timeUntilEnd?.let { untilEnd ->
-            timelimitNotificationStartTime?.let { startTime ->
-                timelimitNotificationStartTime = startTime + untilEnd
-            }
-            timeUntilEnd = null
-        }
+        pauseDisableJob?.cancel()
+        timelimitNotificationStartTime = System.currentTimeMillis() - timeUntilRun
+        timeUntilRun = 0
     }
 
     private fun updateNotificationText(db: AppDatabase) {
@@ -292,14 +287,16 @@ class ReportService : Service() {
         }
     }
 
-    fun pauseTimer(pauseType: PauseType, endTime: Long) {
-        val startTime = timelimitNotificationStartTime
-        startTime ?: return
-
-        timeUntilEnd = startTime + TIMELIMIT_NOTIFICATION_TIMEOUT - System.currentTimeMillis()
+    fun pauseTimer(startTime: Long, endTime: Long) {
+        val timeLimitStart = timelimitNotificationStartTime ?: return
         timelimitNotificationStartTime = null
-        pausedUntil = endTime
-        this.pauseType = pauseType
+        timeUntilRun = (timeLimitStart + TIMELIMIT_NOTIFICATION_TIMEOUT - System.currentTimeMillis()).toInt()
+        pauseDisableJob?.cancel()
+        pauseDisableJob = launch {
+            delay(endTime - startTime, TimeUnit.SECONDS)
+            if (!isActive) return@launch
+            startTaskClosingTimer()
+        }
     }
 
     private fun getSendQuery(db: AppDatabase): SendQueryItemEntity? {

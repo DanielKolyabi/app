@@ -21,7 +21,7 @@ class SplashActivity : AppCompatActivity() {
 
         AsyncTask.execute {
             launch {
-                MyApplication.instance.pauseRepository.loadPauseTime()
+                MyApplication.instance.pauseRepository.loadPauseDurations()
                 Thread.sleep(500)
                 withContext(UI) {
                     startActivity(Intent(this@SplashActivity, MainActivity::class.java))

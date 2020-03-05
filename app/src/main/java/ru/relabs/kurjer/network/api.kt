@@ -95,7 +95,7 @@ object DeliveryServerAPI {
         fun sendGPS(@Query("token") token: String, @Query("lat") lat: Double, @Query("long") long: Double, @Query("time") time: String): Deferred<StatusResponse>
 
         @GET("api/v1/pause/time")
-        fun getPauseTimes(): Deferred<PauseTimeResponse>
+        fun getPauseDurations(): Deferred<PauseDurationsResponse>
 
         @GET("api/v1/pause/last")
         fun getLastPauseTimes(@Query("token") token: String): Deferred<PauseTimeResponse>

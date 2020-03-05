@@ -220,7 +220,7 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
     }
 
     fun updatePauseButtonEnabled() {
-        pause_button?.isEnabled = MyApplication.instance.pauseRepository.isAnyPauseAvailable()
+        pause_button?.isEnabled = !MyApplication.instance.pauseRepository.isPaused
     }
 
     private fun showPauseDialog() {

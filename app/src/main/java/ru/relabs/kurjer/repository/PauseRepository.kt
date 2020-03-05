@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.repository
 
 import android.content.SharedPreferences
+import android.util.Log
 import kotlinx.coroutines.experimental.*
 import retrofit2.HttpException
 import ru.relabs.kurjer.BuildConfig
@@ -10,6 +11,7 @@ import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.network.models.ErrorUtils
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
+import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.application
 import ru.relabs.kurjer.utils.currentTimestamp
 import ru.relabs.kurjer.utils.tryOrLogAsync
@@ -30,80 +32,67 @@ class PauseRepository(
         private val db: AppDatabase,
         private val tokenProvider: () -> String?
 ) {
-    private var lunchTime: Int = 20 * 60
-    private var loadTime: Int = 20 * 60
+    private var lunchDuration: Int = 20 * 60
+    private var loadDuration: Int = 20 * 60
     private var currentPauseType: PauseType? = null
     private var pauseEndJob: Job? = null
 
     var isPaused: Boolean = false
 
     init {
-        lunchTime = sharedPreferences.getInt(LUNCH_KEY, lunchTime)
-        loadTime = sharedPreferences.getInt(LOAD_KEY, loadTime)
-
-        fun startPauseEndJob(delay: Long) {
-            pauseEndJob = launch(CommonPool) {
-                delay(delay * 1000)
-                isPaused = false
-            }
-        }
-
-        val currentTime = currentTimestamp()
-        if (getPauseStartTime(PauseType.Load) + getPauseLength(PauseType.Load) > currentTime) {
-            val delta = currentTime - getPauseStartTime(PauseType.Load) + getPauseLength(PauseType.Load)
-            startPauseEndJob(delta)
-            isPaused = true
-        } else if (getPauseStartTime(PauseType.Lunch) + getPauseLength(PauseType.Lunch) > currentTime) {
-            val delta = currentTime - getPauseStartTime(PauseType.Lunch) + getPauseLength(PauseType.Lunch)
-            startPauseEndJob(delta)
-            isPaused = true
-        }
+        lunchDuration = sharedPreferences.getInt(LUNCH_KEY, lunchDuration)
+        loadDuration = sharedPreferences.getInt(LOAD_KEY, loadDuration)
     }
 
-    suspend fun loadPauseTime() = withContext(DefaultDispatcher) {
+    suspend fun loadPauseDurations() = withContext(DefaultDispatcher) {
         tryOrLogAsync {
-            val response = api.getPauseTimes().await()
+            val response = api.getPauseDurations().await()
             sharedPreferences.edit()
                     .putInt(LUNCH_KEY, response.lunch.toInt())
                     .putInt(LOAD_KEY, response.loading.toInt())
                     .apply()
+            lunchDuration = response.lunch.toInt()
+            loadDuration = response.loading.toInt()
         }
     }
 
     fun getPauseStartTime(type: PauseType): Long {
         return sharedPreferences.getLong(when (type) {
-            PauseType.Lunch -> LUNCH_LAST_TIME_KEY
-            PauseType.Load -> LOAD_LAST_TIME_KEY
+            PauseType.Lunch -> LUNCH_LAST_START_TIME_KEY
+            PauseType.Load -> LOAD_LAST_START_TIME_KEY
+        }, 0)
+    }
+
+    fun getPauseEndTime(type: PauseType): Long {
+        return sharedPreferences.getLong(when (type) {
+            PauseType.Lunch -> LUNCH_LAST_END_TIME_KEY
+            PauseType.Load -> LOAD_LAST_END_TIME_KEY
         }, 0)
     }
 
     fun getPauseLength(type: PauseType): Int {
         return when (type) {
-            PauseType.Lunch -> lunchTime
-            PauseType.Load -> loadTime
+            PauseType.Lunch -> lunchDuration
+            PauseType.Load -> loadDuration
         }
     }
 
-    fun putPauseStartTime(type: PauseType, time: Long, startIfNeed: Boolean = false) {
+    fun putPauseStartTime(type: PauseType, time: Long) {
         sharedPreferences.edit()
                 .putLong(when (type) {
-                    PauseType.Lunch -> LUNCH_LAST_TIME_KEY
-                    PauseType.Load -> LOAD_LAST_TIME_KEY
+                    PauseType.Lunch -> LUNCH_LAST_START_TIME_KEY
+                    PauseType.Load -> LOAD_LAST_START_TIME_KEY
                 }, time)
                 .apply()
+    }
 
-        if (startIfNeed) {
-            val currentTime = currentTimestamp()
-
-            val shouldStartPause = when (type) {
-                PauseType.Lunch -> currentTime - time < lunchTime
-                PauseType.Load -> currentTime - time < loadTime
-            }
-
-            if (shouldStartPause) {
-                startPause(type, time)
-            }
-        }
+    fun putPauseEndTime(type: PauseType, time: Long) {
+        sharedPreferences.edit()
+                .putLong(when (type) {
+                    PauseType.Lunch -> LUNCH_LAST_END_TIME_KEY
+                    PauseType.Load -> LOAD_LAST_END_TIME_KEY
+                }, time)
+                .apply()
     }
 
     suspend fun isPauseAvailableRemote(type: PauseType): Boolean {
@@ -117,7 +106,7 @@ class PauseRepository(
         } catch (e: HttpException) {
             val remotePauseTime = ErrorUtils.getError(e).data["last_pause"] as? Long
             remotePauseTime?.let {
-                putPauseStartTime(type, remotePauseTime, true)
+                putPauseStartTime(type, remotePauseTime)
             }
             true
         } catch (e: Exception) {
@@ -125,14 +114,10 @@ class PauseRepository(
         }
     }
 
-    fun isAnyPauseAvailable(): Boolean {
-        return !isPaused && (isPauseAvailable(PauseType.Load) || isPauseAvailable(PauseType.Lunch))
-    }
-
     fun isPauseAvailable(type: PauseType): Boolean {
         val lastPauseTimeStamp = sharedPreferences.getLong(when (type) {
-            PauseType.Lunch -> LUNCH_LAST_TIME_KEY
-            PauseType.Load -> LOAD_LAST_TIME_KEY
+            PauseType.Lunch -> LUNCH_LAST_START_TIME_KEY
+            PauseType.Load -> LOAD_LAST_START_TIME_KEY
         }, 0)
 
         val lastPauseTime = Calendar.getInstance().apply {
@@ -147,7 +132,7 @@ class PauseRepository(
                     && lastPauseTime.get(Calendar.DATE) == time.get(Calendar.DATE)) {
                 return false
             }
-            PauseType.Load -> if (currentTimestamp() - lastPauseTimeStamp < 2 * 60 * 60 + loadTime) {
+            PauseType.Load -> if (currentTimestamp() - lastPauseTimeStamp < 2 * 60 * 60 + loadDuration) {
                 return false
             }
         }
@@ -155,14 +140,12 @@ class PauseRepository(
         return true
     }
 
-    fun startPause(type: PauseType, time: Long? = null) {
+    fun startPause(type: PauseType, time: Long? = null, withNotify: Boolean = true) {
+        CustomLog.writeToFile("Start pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
+        Log.d("PauseRepository", "Start pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
         if (isPaused) {
             return
         }
-
-        isPaused = true
-
-        currentPauseType = type
 
         val currentTime = currentTimestamp()
 
@@ -172,29 +155,35 @@ class PauseRepository(
         }
         val pauseTime = time ?: currentTime
         val pauseEndTime = pauseTime + when (type) {
-            PauseType.Lunch -> lunchTime
-            PauseType.Load -> loadTime
+            PauseType.Lunch -> lunchDuration
+            PauseType.Load -> loadDuration
         }
 
         pauseEndJob?.cancel()
         pauseEndJob = launch(CommonPool) {
-            delay(pauseEndTime - currentTime, TimeUnit.SECONDS)
-            isPaused = false
-            currentPauseType = null
+            delay(pauseEndTime - currentTime + 10, TimeUnit.SECONDS)
+            updatePauseState()
         }
 
-        ReportService.instance?.pauseTimer(type, pauseEndTime)
+        isPaused = true
+        currentPauseType = type
+
+        ReportService.instance?.pauseTimer(pauseTime, pauseEndTime)
         putPauseStartTime(type, pauseTime)
-        db.sendQueryDao().insert(
-                SendQueryItemEntity(
-                        0,
-                        BuildConfig.API_URL + "/api/v1/pause/start?token=" + (application().user as UserModel.Authorized).token,
-                        "type=$pauseType&time=${pauseTime}"
-                )
-        )
+        if (withNotify) {
+            db.sendQueryDao().insert(
+                    SendQueryItemEntity(
+                            0,
+                            BuildConfig.API_URL + "/api/v1/pause/start?token=" + (application().user as UserModel.Authorized).token,
+                            "type=$pauseType&time=${pauseTime}"
+                    )
+            )
+        }
     }
 
-    fun stopPause(type: PauseType? = null, time: Long? = null) {
+    fun stopPause(type: PauseType? = null, time: Long? = null, withNotify: Boolean, withUpdate: Boolean) {
+        CustomLog.writeToFile("Stop pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
+        Log.d("PauseRepository", "Stop pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
         if (!isPaused) {
             return
         }
@@ -207,17 +196,57 @@ class PauseRepository(
             PauseType.Load -> 1
         }
 
+        val pauseTime = time ?: currentTimestamp()
+        if (withNotify) {
+            db.sendQueryDao().insert(
+                    SendQueryItemEntity(
+                            0,
+                            BuildConfig.API_URL + "/api/v1/pause/stop?token=" + (application().user as UserModel.Authorized).token,
+                            "type=$pauseType&time=${pauseTime}"
+                    )
+            )
+        }
         isPaused = false
         currentPauseType = null
+        putPauseEndTime(type, pauseTime)
+        if(withUpdate){
+            updatePauseState()
+        }
+    }
 
-        val pauseTime = time ?: currentTimestamp()
-        db.sendQueryDao().insert(
-                SendQueryItemEntity(
-                        0,
-                        BuildConfig.API_URL + "/api/v1/pause/stop?token=" + (application().user as UserModel.Authorized).token,
-                        "type=$pauseType&time=${pauseTime}"
-                )
-        )
+    fun updatePauseState() {
+        updatePauseState(PauseType.Lunch)
+        updatePauseState(PauseType.Load)
+    }
+
+    fun updatePauseState(type: PauseType) {
+        val currentTime = currentTimestamp()
+        val lastPauseStartTime = getPauseStartTime(type)
+        val lastPauseEndTime = getPauseEndTime(type)
+        val duration = when (type) {
+            PauseType.Lunch -> lunchDuration
+            PauseType.Load -> loadDuration
+        }
+        Log.d("PauseRepository", "type: $type, lastStart: $lastPauseStartTime, lastEnd: $lastPauseEndTime, dur: $duration")
+        //Pause already ended from BE
+        if (lastPauseEndTime > lastPauseStartTime) {
+            if (isPaused && currentPauseType == type) {
+                stopPause(type, withNotify = false, withUpdate = false)
+            }
+            return
+        }
+
+        //Pause ended from device time
+        if (currentTime - lastPauseStartTime > duration) {
+            if (isPaused && currentPauseType == type) {
+                stopPause(type, withNotify = true, withUpdate = false)
+            }
+            return
+        }
+
+        if (!isPaused) {
+            startPause(type, lastPauseStartTime, withNotify = false)
+        }
     }
 
     private fun getActivePauseType(): PauseType? {
@@ -234,19 +263,24 @@ class PauseRepository(
         return null
     }
 
-    suspend fun loadLastPausesRemote() = withContext(DefaultDispatcher){
+    suspend fun loadLastPausesRemote() = withContext(DefaultDispatcher) {
         val token = tokenProvider() ?: return@withContext
         tryOrLogAsync {
             val response = api.getLastPauseTimes(token).await()
-            putPauseStartTime(PauseType.Load, response.loading.toLong(), true)
-            putPauseStartTime(PauseType.Lunch, response.lunch.toLong(), true)
+            putPauseStartTime(PauseType.Load, response.start.loading)
+            putPauseStartTime(PauseType.Lunch, response.start.lunch)
+            putPauseEndTime(PauseType.Load, response.end.loading)
+            putPauseEndTime(PauseType.Lunch, response.end.lunch)
+            updatePauseState()
         }
     }
 
     fun resetData() {
         sharedPreferences.edit()
-                .remove(LUNCH_LAST_TIME_KEY)
-                .remove(LOAD_LAST_TIME_KEY)
+                .remove(LUNCH_LAST_START_TIME_KEY)
+                .remove(LOAD_LAST_START_TIME_KEY)
+                .remove(LUNCH_LAST_END_TIME_KEY)
+                .remove(LOAD_LAST_END_TIME_KEY)
                 .apply()
         currentPauseType = null
         pauseEndJob?.cancel()
@@ -256,9 +290,10 @@ class PauseRepository(
     companion object {
         const val LUNCH_KEY = "lunch_pause"
         const val LOAD_KEY = "load_pause"
-        const val TASK_CLOSE_KEY = "task_close_pause"
 
-        const val LUNCH_LAST_TIME_KEY = "lunch_last_time"
-        const val LOAD_LAST_TIME_KEY = "load_last_time"
+        const val LUNCH_LAST_START_TIME_KEY = "lunch_last_start_time"
+        const val LOAD_LAST_START_TIME_KEY = "load_last_start_time"
+        const val LUNCH_LAST_END_TIME_KEY = "lunch_last_end_time"
+        const val LOAD_LAST_END_TIME_KEY = "load_last_end_time"
     }
 }

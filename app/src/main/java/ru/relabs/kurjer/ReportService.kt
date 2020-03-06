@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
 
 const val CHANNEL_ID = "notification_channel"
 const val CLOSE_SERVICE_TIMEOUT = 80 * 60 * 1000
-const val TIMELIMIT_NOTIFICATION_TIMEOUT = 20 * 1000
+const val TIMELIMIT_NOTIFICATION_TIMEOUT = 30 * 60 * 1000
 
 class ReportService : Service() {
     private var timeUntilRun: Int = 0

@@ -12,6 +12,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
+import android.support.v4.content.FileProvider
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_report.*
@@ -355,8 +356,13 @@ class ReportPresenter(
 
         val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID ?: UUID.randomUUID())
 
+        val photoUri = FileProvider.getUriForFile(
+                fragment.requireContext(),
+                "com.relabs.kurjer.file_provider",
+                photoFile
+        )
         val intent: Intent? = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        intent?.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile))
+        intent?.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
 
         val packageManager = fragment.context?.packageManager
 

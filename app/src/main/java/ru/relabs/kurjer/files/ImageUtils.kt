@@ -27,9 +27,6 @@ object ImageUtils {
     }
 
     fun saveImage(b: Bitmap, f: File, contentResolver: ContentResolver? = null) {
-        contentResolver?.let{
-            MediaStore.Images.Media.insertImage(contentResolver, b, null, null)
-        }
 
         val fos = FileOutputStream(f)
         b.compress(Bitmap.CompressFormat.JPEG, 75, fos)

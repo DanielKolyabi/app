@@ -19,7 +19,8 @@ import com.google.android.gms.location.LocationSettingsStatusCodes
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import ru.relabs.kurjer.*
+import ru.relabs.kurjer.MainActivity
+import ru.relabs.kurjer.REQUEST_LOCATION
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskModel
@@ -75,12 +76,18 @@ object NetworkHelper {
         return isMobileDataEnabled
     }
 
+    fun isAirplaneModeEnabled(context: Context?): Boolean {
+        context ?: return false
+        return Settings.Global.getInt(context.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) != 0
+    }
+
     fun isNetworkEnabled(context: Context?): Boolean {
-        return (isWifiEnabled(context) && isWifiConnected(context)) || isMobileDataEnabled(context)
+        return ((isWifiEnabled(context) && isWifiConnected(context)) || isMobileDataEnabled(context)) && !isAirplaneModeEnabled(context)
     }
 
     fun isGPSEnabled(context: Context?): Boolean {
-        return (context?.getSystemService(Context.LOCATION_SERVICE) as? LocationManager)?.isProviderEnabled(GPS_PROVIDER) ?: false
+        return ((context?.getSystemService(Context.LOCATION_SERVICE) as? LocationManager)?.isProviderEnabled(GPS_PROVIDER)
+                ?: false) && !isAirplaneModeEnabled(context)
     }
 
     fun displayLocationSettingsRequest(context: Context, activity: MainActivity) {

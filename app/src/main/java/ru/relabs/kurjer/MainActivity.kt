@@ -31,7 +31,6 @@ import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.network.models.UpdateInfo
-import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.adapters.SearchInputAdapter
 import ru.relabs.kurjer.ui.fragments.*
 import ru.relabs.kurjer.ui.helpers.setVisible
@@ -146,7 +145,10 @@ class MainActivity : AppCompatActivity() {
 
 
     override fun onResume() {
-        if (XiaomiUtilities.isMIUI && !XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_SHOW_WHEN_LOCKED)) {
+        if (XiaomiUtilities.isMIUI
+                && (!XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_SHOW_WHEN_LOCKED)
+                        || !XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_BACKGROUND_START_ACTIVITY))
+        ) {
             showXiaomiPermissionRequirement()
         }
         if (!NetworkHelper.isGPSEnabled(applicationContext)) {
@@ -186,7 +188,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showXiaomiPermissionRequirement() {
-        showError("Необходимо дать доступ к \"Экран блокировки\".", object : ErrorButtonsListener {
+        showError("Необходимо дать доступ к \"Экран блокировки\" и \"Отображать всплывающие окна, когда запущено в фоновом режиме\".", object : ErrorButtonsListener {
             override fun positiveListener() {
                 val intent = XiaomiUtilities.getPermissionManagerIntent(applicationContext)
                 try {
@@ -718,7 +720,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         val interceptor = supportFragmentManager?.findFragmentByTag("fragment") as? IBackPressedInterceptor
-        if(interceptor != null && interceptor.interceptBackPressed()){
+        if (interceptor != null && interceptor.interceptBackPressed()) {
             return
         }
 

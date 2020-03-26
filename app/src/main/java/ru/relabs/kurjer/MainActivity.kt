@@ -147,7 +147,8 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         if (XiaomiUtilities.isMIUI
                 && (!XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_SHOW_WHEN_LOCKED)
-                        || !XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_BACKGROUND_START_ACTIVITY))
+                        || !XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_BACKGROUND_START_ACTIVITY)
+                        || !XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_POPUPS))
         ) {
             showXiaomiPermissionRequirement()
         }
@@ -188,7 +189,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showXiaomiPermissionRequirement() {
-        showError("Необходимо дать доступ к \"Экран блокировки\" и \"Отображать всплывающие окна, когда запущено в фоновом режиме\".", object : ErrorButtonsListener {
+        showError("Необходимо дать доступ к \"Экран блокировки\", \"Всплывающие окна\" и \"Отображать всплывающие окна, когда запущено в фоновом режиме\".", object : ErrorButtonsListener {
             override fun positiveListener() {
                 val intent = XiaomiUtilities.getPermissionManagerIntent(applicationContext)
                 try {

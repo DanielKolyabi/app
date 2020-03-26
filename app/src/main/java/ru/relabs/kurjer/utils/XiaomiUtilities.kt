@@ -20,6 +20,7 @@ object XiaomiUtilities {
     val OP_ACCESS_XIAOMI_ACCOUNT = 10015
     val OP_AUTO_START = 10008
     val OP_BACKGROUND_START_ACTIVITY = 10021
+    val OP_POPUPS = 24
     val OP_BLUETOOTH_CHANGE = 10002
     val OP_BOOT_COMPLETED = 10007
     val OP_DATA_CONNECT_CHANGE = 10003
@@ -55,19 +56,6 @@ object XiaomiUtilities {
     val isMIUI: Boolean
         get() = !TextUtils.isEmpty(getSystemProperty("ro.miui.ui.version.name"))
 
-    val miuiMajorVersion: Int
-        get() {
-            val prop = getSystemProperty("ro.miui.ui.version.name")
-            if (prop != null) {
-                try {
-                    return Integer.parseInt(prop.replace("V", ""))
-                } catch (ignore: NumberFormatException) {
-                }
-
-            }
-            return -1
-        }
-
     fun getPermissionManagerIntent(appContext: Context): Intent {
         val intent = Intent("miui.intent.action.APP_PERM_EDITOR")
         intent.putExtra("extra_package_uid", android.os.Process.myUid())
@@ -83,7 +71,7 @@ object XiaomiUtilities {
             val result = m.invoke(mgr, permission, android.os.Process.myUid(), appContext.packageName) as Int
             return result == AppOpsManager.MODE_ALLOWED
         } catch (x: Exception) {
-            x.logError()
+            //x.logError()
         }
 
         return true

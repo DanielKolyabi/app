@@ -72,6 +72,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
         try {
             tasks.removeAll {
                 if (isAllTaskItemsClosed(it)) {
+                    ReportService.instance?.stopTimer()
                     PersistenceHelper.closeTask(db, it)
                     return@removeAll true
                 }

@@ -287,6 +287,10 @@ class ReportService : Service() {
         }
     }
 
+    fun stopTimer(){
+        timelimitNotificationStartTime = null
+    }
+
     fun pauseTimer(startTime: Long, endTime: Long) {
         val timeLimitStart = timelimitNotificationStartTime ?: return
         timelimitNotificationStartTime = null

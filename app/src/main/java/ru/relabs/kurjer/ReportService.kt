@@ -239,9 +239,9 @@ class ReportService : Service() {
         }
     }
 
-    fun startTaskClosingTimer() {
+    fun startTaskClosingTimer(fromPause: Boolean = false) {
         pauseDisableJob?.cancel()
-        timelimitNotificationStartTime = System.currentTimeMillis() - ((TIMELIMIT_NOTIFICATION_TIMEOUT - timeUntilRun).takeIf { timeUntilRun != 0 }
+        timelimitNotificationStartTime = System.currentTimeMillis() - ((TIMELIMIT_NOTIFICATION_TIMEOUT - timeUntilRun).takeIf { timeUntilRun != 0 && fromPause }
                 ?: 0)
         timeUntilRun = 0
     }
@@ -300,7 +300,7 @@ class ReportService : Service() {
         pauseDisableJob = launch {
             delay(endTime - startTime, TimeUnit.SECONDS)
             if (!isActive) return@launch
-            startTaskClosingTimer()
+            startTaskClosingTimer(true)
         }
     }
 

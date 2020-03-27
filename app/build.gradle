@@ -25,8 +25,8 @@ android {
         applicationId "abix.kurjer"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 82
-        versionName "82"
+        versionCode 83
+        versionName "83"
 
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

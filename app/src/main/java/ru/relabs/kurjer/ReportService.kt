@@ -241,7 +241,8 @@ class ReportService : Service() {
 
     fun startTaskClosingTimer() {
         pauseDisableJob?.cancel()
-        timelimitNotificationStartTime = System.currentTimeMillis() - (TIMELIMIT_NOTIFICATION_TIMEOUT - timeUntilRun)
+        timelimitNotificationStartTime = System.currentTimeMillis() - ((TIMELIMIT_NOTIFICATION_TIMEOUT - timeUntilRun).takeIf { timeUntilRun != 0 }
+                ?: 0)
         timeUntilRun = 0
     }
 
@@ -287,7 +288,7 @@ class ReportService : Service() {
         }
     }
 
-    fun stopTimer(){
+    fun stopTimer() {
         timelimitNotificationStartTime = null
     }
 

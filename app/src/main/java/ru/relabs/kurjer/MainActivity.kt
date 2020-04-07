@@ -6,10 +6,13 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.LocationManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.FileProvider
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -44,8 +47,10 @@ import kotlin.math.roundToInt
 
 const val REQUEST_LOCATION = 999
 const val REQUEST_CODE_ALERT_NOTIFICATION = 998
+const val REQUEST_CODE_INSTALL_PACKAGE = 997
 
 class MainActivity : AppCompatActivity() {
+    private var installURL: URL? = null
     private var needRefreshShowed = false
     private var needForceRefresh = false
     private var networkErrorShowed = false
@@ -81,7 +86,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 },
                 "Ок"
-
         )
     }
 
@@ -90,6 +94,16 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == REQUEST_LOCATION) {
             if (resultCode == Activity.RESULT_OK) {
                 application().enableLocationListening()
+            }
+        } else if (requestCode == REQUEST_CODE_INSTALL_PACKAGE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (resultCode == Activity.RESULT_OK && packageManager.canRequestPackageInstalls()) {
+                installURL?.let { installUpdate(it) }
+            } else {
+                startActivityForResult(
+                        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(
+                                Uri.parse(String.format("package:%s", packageName))
+                        ), REQUEST_CODE_INSTALL_PACKAGE
+                )
             }
         }
     }
@@ -419,6 +433,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun checkInstallUpdate() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!packageManager.canRequestPackageInstalls()) {
+                startActivityForResult(
+                        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(
+                                Uri.parse(String.format("package:%s", packageName))
+                        ), REQUEST_CODE_INSTALL_PACKAGE
+                )
+            } else {
+                installURL?.let { installUpdate(it) }
+            }
+        }
+    }
+
     fun installUpdate(url: URL) {
         launch {
             var file: File?
@@ -444,8 +472,16 @@ class MainActivity : AppCompatActivity() {
 
             launch(UI) {
                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive")
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        setDataAndType(
+                                FileProvider.getUriForFile(this@MainActivity, "com.relabs.kurjer.file_provider", file),
+                                "application/vnd.android.package-archive"
+                        )
+                    } else {
+                        setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive")
+                    }
                 }
                 progress_bar.isIndeterminate = true
                 loader_progress_text.setVisible(false)
@@ -482,7 +518,8 @@ class MainActivity : AppCompatActivity() {
                     try {
                         Log.d("updates", "Try install from ${updateInfo.url}")
                         loading.setVisible(true)
-                        installUpdate(URL(updateInfo.url))
+                        installURL = URL(updateInfo.url)
+                        checkInstallUpdate()
                     } catch (e: Exception) {
                         e.printStackTrace()
                         loading.setVisible(false)

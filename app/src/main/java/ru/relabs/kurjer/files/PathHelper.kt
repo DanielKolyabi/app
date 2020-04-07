@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.files
 
+import android.os.Environment
 import ru.relabs.kurjer.MyApplication
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
@@ -12,6 +13,7 @@ import java.util.*
 
 object PathHelper {
     private val dataRootDir = MyApplication.instance.applicationContext.filesDir
+    private val updatesPath = Environment.getExternalStorageDirectory().path + File.separator + "deliveryman" + File.separator
     private val photoDir = File(dataRootDir, "photos").apply {
         mkdirs()
     }
@@ -42,6 +44,6 @@ object PathHelper {
     }
 
     fun getUpdateFile(): File {
-        return File(dataRootDir, "update.apk")
+        return File(updatesPath, "update.apk")
     }
 }

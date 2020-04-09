@@ -30,5 +30,11 @@ data class ReportQueryItemEntity(
         @ColumnInfo(name = "battery_level")
         var batteryLevel: Int,
         @ColumnInfo(name = "remove_after_send")
-        var removeAfterSend: Boolean
+        var removeAfterSend: Boolean,
+        @ColumnInfo(name = "close_distance")
+        var closeDistance: Int,
+        @ColumnInfo(name = "allowed_distance")
+        var allowedDistance: Int,
+        @ColumnInfo(name = "radius_required")
+        var radiusRequired: Boolean
 )

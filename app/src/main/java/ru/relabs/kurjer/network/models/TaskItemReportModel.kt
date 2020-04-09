@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.network.models
 
+import android.arch.persistence.room.ColumnInfo
 import com.google.gson.annotations.SerializedName
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import java.util.*
@@ -23,7 +24,13 @@ data class TaskItemReportModel(
         var entrances: List<Pair<Int, Int>>,
         var photos: Map<String, PhotoReportModel>,
         @SerializedName("battery_level")
-        var batteryLevel: Int
+        var batteryLevel: Int,
+        @SerializedName("close_distance")
+        var closeDistance: Int,
+        @SerializedName("allowed_distance")
+        var allowedDistance: Int,
+        @SerializedName("radius_required")
+        var radiusRequired: Boolean
 )
 
 data class PhotoReportModel(

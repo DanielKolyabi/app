@@ -128,11 +128,18 @@ class MyApplication : Application() {
                 database.execSQL("ALTER TABLE report_query ADD COLUMN remove_after_send INTEGER NOT NULL DEFAULT 0")
             }
         }
+        val migration_31_32 = object : Migration(31, 32) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE report_query ADD COLUMN close_distance INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE report_query ADD COLUMN allowed_distance INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE report_query ADD COLUMN radius_required INTEGER NOT NULL DEFAULT 0")
+            }
+        }
 
         database = Room
-                .databaseBuilder(applicationContext, ru.relabs.kurjer.persistence.AppDatabase::class.java, "deliveryman")
+                .databaseBuilder(applicationContext, AppDatabase::class.java, "deliveryman")
                 .addMigrations(migration_26_27, migration_27_28, migration_28_29,
-                        migration_29_30, migration_30_31)
+                        migration_29_30, migration_30_31, migration_31_32)
                 .build()
 
         pauseRepository = PauseRepository(

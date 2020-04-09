@@ -9,4 +9,7 @@ data class GPSCoordinatesModel(
 ) {
     val isEmpty: Boolean
         get() = lat == 0.0 || long == 0.0
+
+    val isOld: Boolean
+        get() = time.time - Date().time > 3 * 60 * 1000
 }

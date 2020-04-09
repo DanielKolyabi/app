@@ -529,27 +529,48 @@ class ReportPresenter(
         val description = getDescription()
         if (radiusRepository.isRadiusRequired) {
             when {
-                currentPosition.isEmpty -> {
+                currentPosition.isEmpty || currentPosition.isOld -> {
                     if (withTryReload) {
+                        CustomLog.writeToFile("Reload coordinates")
                         reloadGPSCoordinates()
                         closeClickedCheck(false)
                     } else {
+                        CustomLog.writeToFile("Show coordinates not found")
                         fragment.showPreCloseDialog(message = "Не определились координаты отправь крэш лог! \nKoordinatalari aniqlanmadi, xato jurnalini yuborish!") {
                             fragment.showSendCrashReportDialog()
-                            closeTaskItem(description, false)
+                            closeTaskItem(description, false, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
                         }
                     }
                 }
-                distance > radius -> fragment.showPreCloseDialog(message = "Ты не у дома! Подойди и попробуй еще \nSiz uyning yonida emassiz! Yaqinlashing va qaytadan urining") {
-                    closeTaskItem(description, false)
+                distance > radius -> {
+                    CustomLog.writeToFile("Show coordinates you are far from house")
+                    fragment.showPreCloseDialog(message = "Ты не у дома! Подойди и попробуй еще \nSiz uyning yonida emassiz! Yaqinlashing va qaytadan urining") {
+                        closeTaskItem(description, false, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
+                    }
                 }
-                else -> closeClicked()
+                else -> {
+                    CustomLog.writeToFile("Close house")
+                    closeClicked(description, null, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
+                }
             }
         } else {
             when {
-                currentPosition.isEmpty -> fragment.showPreCloseDialog(message = "Не определились координаты. \nKoordinatalar yo'q") { closeClicked(true) }
-                distance > radius -> fragment.showPreCloseDialog(message = "Ты не у дома. \nSiz uyda emassiz") { closeClicked(true) }
-                else -> closeClicked(true)
+                currentPosition.isEmpty || currentPosition.isOld -> {
+                    CustomLog.writeToFile("Show coordinates not found")
+                    fragment.showPreCloseDialog(message = "Не определились координаты. \nKoordinatalar yo'q") {
+                        closeClicked(description, true, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
+                    }
+                }
+                distance > radius -> {
+                    CustomLog.writeToFile("Show coordinates you are far from house")
+                    fragment.showPreCloseDialog(message = "Ты не у дома. \nSiz uyda emassiz") {
+                        closeClicked(description, true, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
+                    }
+                }
+                else -> {
+                    CustomLog.writeToFile("Close house")
+                    closeClicked(description, true, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
+                }
             }
         }
     }
@@ -576,20 +597,16 @@ class ReportPresenter(
         fragment?.hideGPSLoadingDialog()
     }
 
-    private fun closeClicked(forceRemove: Boolean? = null) {
-        val description = getDescription()
-
-        val currentPosition = application().currentLocation
-        if (currentPosition.time.time - Date().time > 3 * 60 * 1000 || currentPosition.isEmpty) {
-            launch(UI) {
-                reloadGPSCoordinates()
-                val currentPosition = application().currentLocation
-                val distance = getGPSDistance(currentPosition)
-                val radius = radiusRepository.radius
-                showCloseDialog(description, forceRemove ?: (distance < radius))
-            }
-        } else {
-            showCloseDialog(description, true)
+    private fun closeClicked(
+            description: String,
+            forceRemove: Boolean? = null,
+            location: GPSCoordinatesModel,
+            distance: Float,
+            allowedDistance: Int,
+            radiusRequired: Boolean
+    ) {
+        launch(UI) {
+            showCloseDialog(description, forceRemove ?: (distance < allowedDistance), location, distance, allowedDistance, radiusRequired)
         }
     }
 
@@ -603,11 +620,18 @@ class ReportPresenter(
         }
     }
 
-    private fun showCloseDialog(description: String, withRemove: Boolean) {
+    private fun showCloseDialog(
+            description: String,
+            withRemove: Boolean,
+            location: GPSCoordinatesModel,
+            distance: Float,
+            allowedDistance: Int,
+            radiusRequired: Boolean
+    ) {
         (fragment.context as MainActivity).showError("КНОПКИ НАЖАЛ?\nОТЧЁТ ОТПРАВЛЯЮ?\n(tugmachalari bosildi? " +
                 "hisobot yuboringmi?)", object : ErrorButtonsListener {
             override fun positiveListener() {
-                val status = closeTaskItem(description, withRemove)
+                val status = closeTaskItem(description, withRemove, location, distance, allowedDistance, radiusRequired)
                 if (!status) {
                     (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
                 } else {
@@ -620,7 +644,14 @@ class ReportPresenter(
         }, "Да", "Нет", style = R.style.RedAlertDialog)
     }
 
-    private fun closeTaskItem(description: String, withRemove: Boolean): Boolean {
+    private fun closeTaskItem(
+            description: String,
+            withRemove: Boolean,
+            location: GPSCoordinatesModel,
+            distance: Float,
+            allowedDistance: Int,
+            radiusRequired: Boolean
+    ): Boolean {
         val app = application()
         if (MyApplication.instance.pauseRepository.isPaused) {
             launch(CommonPool) {
@@ -634,7 +665,6 @@ class ReportPresenter(
                     .filter { it is ReportEntrancesListModel.Entrance }
                     .map { it as ReportEntrancesListModel.Entrance }
 
-            val location = application().currentLocation
             withContext(CommonPool) {
                 try {
                     createOrUpdateTaskResult(
@@ -661,11 +691,7 @@ class ReportPresenter(
                         val token = (app.user as? UserModel.Authorized)?.token
 
                         db.sendQueryDao().insert(
-                                SendQueryItemEntity(0,
-                                        BuildConfig.API_URL + "/api/v1/tasks/${it.id}/accepted?token=" + (token
-                                                ?: ""),
-                                        ""
-                                )
+                                SendQueryItemEntity(0, BuildConfig.API_URL + "/api/v1/tasks/${it.id}/accepted?token=" + (token ?: ""), "")
                         )
                     }
 
@@ -680,7 +706,10 @@ class ReportPresenter(
                         },
                         userToken,
                         ((getBatteryLevel(fragment.context) ?: 0f) * 100).roundToInt(),
-                        withRemove
+                        withRemove,
+                        distance.toInt(),
+                        allowedDistance,
+                        radiusRequired
                 )
 
                 db.reportQueryDao().insert(reportItem)

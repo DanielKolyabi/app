@@ -1,8 +1,7 @@
 package ru.relabs.kurjer.repository
 
 import android.content.SharedPreferences
-import kotlinx.coroutines.experimental.DefaultDispatcher
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.experimental.*
 import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.utils.tryOrLogAsync
 
@@ -16,6 +15,7 @@ class RadiusRepository(
 ) {
     var isRadiusRequired: Boolean = true
     var radius: Int = 50
+    private var updateJob: Job? = null
 
     init {
         sharedPreferences.apply {
@@ -31,6 +31,16 @@ class RadiusRepository(
                 .apply()
         isRadiusRequired = false
         radius = 50
+    }
+
+    suspend fun startRemoteUpdating() {
+        updateJob?.cancel()
+        updateJob = launch(DefaultDispatcher) {
+            while (isActive) {
+                loadRadiusRemote()
+                delay(30 * 1000)
+            }
+        }
     }
 
     suspend fun loadRadiusRemote() = withContext(DefaultDispatcher) {

@@ -93,7 +93,7 @@ class LoginPresenter(
                 }
 
                 application().sendDeviceInfo(null)
-                radiusRepository.loadRadiusRemote()
+                radiusRepository.startRemoteUpdating()
                 pauseRepository.loadLastPausesRemote()
 
                 sharedPref.edit().putString("last_login", response.user.login).apply()

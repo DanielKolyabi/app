@@ -16,7 +16,9 @@ data class EntranceDataModel(
         @SerializedName("is_stacked")
         val isStacked: Boolean,
         @SerializedName("is_refused")
-        val isRefused: Boolean
+        val isRefused: Boolean,
+        @SerializedName("photo_required")
+        var photoRequired: Boolean
 ) : Parcelable {
     val state: Int
         get() {
@@ -29,12 +31,13 @@ data class EntranceDataModel(
         }
 
     fun toEntity(taskItemId: Int): EntranceDataEntity {
-        return EntranceDataEntity(0, taskItemId, number, apartmentsCount, isEuroBoxes, hasLookout, isStacked, isRefused)
+        return EntranceDataEntity(0, taskItemId, number, apartmentsCount, isEuroBoxes, hasLookout, isStacked, isRefused, photoRequired)
     }
 
     constructor(parcel: Parcel) : this(
             parcel.readInt(),
             parcel.readInt(),
+            parcel.readByte() != 0.toByte(),
             parcel.readByte() != 0.toByte(),
             parcel.readByte() != 0.toByte(),
             parcel.readByte() != 0.toByte(),
@@ -47,6 +50,7 @@ data class EntranceDataModel(
         parcel.writeByte(if (hasLookout) 1 else 0)
         parcel.writeByte(if (isStacked) 1 else 0)
         parcel.writeByte(if (isRefused) 1 else 0)
+        parcel.writeByte(if (photoRequired) 1 else 0)
     }
 
     override fun describeContents(): Int {

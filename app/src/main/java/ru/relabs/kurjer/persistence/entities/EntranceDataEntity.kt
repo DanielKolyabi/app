@@ -31,9 +31,11 @@ data class EntranceDataEntity(
         @ColumnInfo(name = "is_stacked")
         var isStacked: Boolean,
         @ColumnInfo(name = "is_refused")
-        var isRefused: Boolean
+        var isRefused: Boolean,
+        @ColumnInfo(name = "photo_required")
+        var photoRequired: Boolean
 ) {
     fun toEntranceDataModel(): EntranceDataModel {
-        return EntranceDataModel(number, apartmentsCount, isEuroBoxes, hasLookout, isStacked, isRefused)
+        return EntranceDataModel(number, apartmentsCount, isEuroBoxes, hasLookout, isStacked, isRefused, photoRequired)
     }
 }

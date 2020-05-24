@@ -37,6 +37,13 @@ class ReportEntranceHolder(
             rejection_select.setOnClickListener {
                 onSelectClicked(0x1000, this@ReportEntranceHolder)
             }
+
+            iv_photo.setBackgroundColor(if(entranceData?.photoRequired == true){
+                resources.getColor(R.color.colorFuchsia)
+            }else{
+                Color.TRANSPARENT
+            })
+
             iv_photo.setOnClickListener {
                 onPhotoClicked(item.entranceNumber)
             }

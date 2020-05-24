@@ -149,11 +149,17 @@ class MyApplication : Application() {
                 database.execSQL("ALTER TABLE task_item_photos ADD COLUMN entrance_number INTEGER NOT NULL DEFAULT -1")
             }
         }
+        val migration_33_34 = object : Migration(33, 34) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE entrances_data ADD COLUMN photo_required INTEGER NOT NULL DEFAULT 0")
+            }
+        }
 
         database = Room
                 .databaseBuilder(applicationContext, AppDatabase::class.java, "deliveryman")
                 .addMigrations(migration_26_27, migration_27_28, migration_28_29,
-                        migration_29_30, migration_30_31, migration_31_32, migration_32_33)
+                        migration_29_30, migration_30_31, migration_31_32, migration_32_33,
+                        migration_33_34)
                 .build()
 
         pauseRepository = PauseRepository(

@@ -506,8 +506,19 @@ class ReportPresenter(
             return@launch
         }
 
-        if (fragment.taskItems[currentTask].needPhoto
-                && fragment.photosListAdapter.data.filter { it is ReportPhotosListModel.TaskItemPhoto }.isEmpty()) {
+        val noAddressPhotos = fragment.taskItems[currentTask].needPhoto &&
+                fragment.photosListAdapter.data
+                        .filter { it is ReportPhotosListModel.TaskItemPhoto && it.taskItem.entranceNumber == -1 }
+                        .isEmpty()
+        val noEntrancesPhotos = fragment.taskItems[currentTask].entrancesData
+                .filter { it.photoRequired }
+                .map { requiredEntrance ->
+                    fragment.photosListAdapter.data
+                            .any { it is ReportPhotosListModel.TaskItemPhoto && it.taskItem.entranceNumber == requiredEntrance.number }
+                    //^ Has photo for required entrance
+                }
+                .any { !it }
+        if (noAddressPhotos || noEntrancesPhotos) {
             (fragment?.context as? MainActivity)?.showError("Необходимо сделать фотографии")
             return@launch
         }

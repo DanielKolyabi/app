@@ -7,6 +7,7 @@ import android.arch.persistence.room.Room
 import android.arch.persistence.room.migration.Migration
 import android.content.Context
 import android.content.pm.PackageManager
+import android.media.MediaDrm
 import android.os.Build
 import android.os.StrictMode
 import android.support.v4.content.ContextCompat
@@ -61,15 +62,23 @@ class MyApplication : Application() {
     }
 
     @SuppressLint("HardwareIds")
-    fun getImei(): String {
+    fun getDeviceUniqueId(): String {
         val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
         val imei = try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                telephonyManager.getImei(0) ?: telephonyManager.getImei(1) ?: ""
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                telephonyManager.getDeviceId(0) ?: (telephonyManager.getDeviceId(1) ?: "")
-            } else {
-                telephonyManager.deviceId
+            when {
+                Build.VERSION.SDK_INT >= 29 -> {
+                    val WIDEVINE_UUID = UUID(-0x121074568629b532L, -0x5c37d8232ae2de13L)
+                    val id = MediaDrm(WIDEVINE_UUID).getPropertyByteArray(MediaDrm.PROPERTY_DEVICE_UNIQUE_ID)
+                    Base64.getEncoder().encodeToString(id)
+                }
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ->
+                    telephonyManager.getImei(0) ?: telephonyManager.getImei(1) ?: ""
+
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ->
+                    telephonyManager.getDeviceId(0) ?: (telephonyManager.getDeviceId(1) ?: "")
+
+                else ->
+                    telephonyManager.deviceId
             }
         } catch (e: SecurityException) {
             ""
@@ -135,11 +144,16 @@ class MyApplication : Application() {
                 database.execSQL("ALTER TABLE report_query ADD COLUMN radius_required INTEGER NOT NULL DEFAULT 0")
             }
         }
+        val migration_32_33 = object : Migration(32, 33) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE task_item_photos ADD COLUMN entrance_number INTEGER NOT NULL DEFAULT -1")
+            }
+        }
 
         database = Room
                 .databaseBuilder(applicationContext, AppDatabase::class.java, "deliveryman")
                 .addMigrations(migration_26_27, migration_27_28, migration_28_29,
-                        migration_29_30, migration_30_31, migration_31_32)
+                        migration_29_30, migration_30_31, migration_31_32, migration_32_33)
                 .build()
 
         pauseRepository = PauseRepository(
@@ -242,7 +256,7 @@ class MyApplication : Application() {
 
         if (shouldSendImei) {
             tryOrLogAsync {
-                DeliveryServerAPI.api.sendDeviceImei((user as UserModel.Authorized).token, getImei()).await()
+                DeliveryServerAPI.api.sendDeviceImei((user as UserModel.Authorized).token, getDeviceUniqueId()).await()
             }
         }
 

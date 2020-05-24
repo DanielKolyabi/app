@@ -11,7 +11,8 @@ data class TaskItemPhotoModel(
         val id: Int,
         val uuid: String,
         val taskItem: TaskItemModel,
-        val gps: GPSCoordinatesModel
+        val gps: GPSCoordinatesModel,
+        val entranceNumber: Int
 ) {
 
     fun getPhotoURI(): Uri = Uri.fromFile(PathHelper.getTaskItemPhotoFile(taskItem, UUID.fromString(uuid)))

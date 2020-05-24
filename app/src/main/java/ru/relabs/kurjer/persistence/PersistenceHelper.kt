@@ -149,6 +149,7 @@ object PersistenceHelper {
                     Log.d("merge", "Add taskItem ID: $newId")
                 }
                 if (openedTaskItems <= 0) {
+                    result.isTasksChanged = true
                     closeTaskById(db, newTaskId.toInt())
                 } else {
                     result.isNewTasksAdded = true
@@ -172,9 +173,11 @@ object PersistenceHelper {
                                 )
                         )
                     } else {
+                        result.isTasksChanged = true
                         closeTask(db, savedTask.toTaskModel(db))
                     }
                 } else if (task.plainState == TaskModel.COMPLETED) {
+                    result.isTasksChanged = true
                     closeTask(db, savedTask.toTaskModel(db))
                     return@forEach
                 } else if (

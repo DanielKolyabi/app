@@ -11,7 +11,8 @@ import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
 
 class ReportEntrancesDelegate(
         private val onSelectClicked: (type: Int, holder: RecyclerView.ViewHolder) -> Unit,
-        private val onCoupleClicked: (entrancePosition: Int) -> Unit
+        private val onCoupleClicked: (entrancePosition: Int) -> Unit,
+        private val onPhotoClicked: (entranceNumber: Int) -> Unit
 ) : IAdapterDelegate<ReportEntrancesListModel> {
     override fun isForViewType(data: List<ReportEntrancesListModel>, position: Int): Boolean {
         return data[position] is ReportEntrancesListModel.Entrance
@@ -25,7 +26,8 @@ class ReportEntrancesDelegate(
         return ReportEntranceHolder(
                 LayoutInflater.from(parent.context).inflate(R.layout.item_report_entrance, parent, false),
                 onSelectClicked,
-                onCoupleClicked
+                onCoupleClicked,
+                onPhotoClicked
         )
     }
 }

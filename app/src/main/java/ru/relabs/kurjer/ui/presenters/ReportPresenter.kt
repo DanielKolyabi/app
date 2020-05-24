@@ -48,6 +48,7 @@ class ReportPresenter(
         private val radiusRepository: RadiusRepository,
         private val locationProvider: LocationProvider
 ) {
+    var requestEntrance: Int? = null
     var photoUUID: UUID? = null
     var photoMultiMode: Boolean = false
     var currentTask = 0
@@ -170,11 +171,8 @@ class ReportPresenter(
 
         launch(UI) {
             fragment.photosListAdapter.data.add(ReportPhotosListModel.BlankPhoto)
-            fragment.photosListAdapter.data.add(ReportPhotosListModel.BlankMultiPhoto)
             taskPhotos.forEach {
-                fragment.photosListAdapter.data.add(
-                        ReportPhotosListModel.TaskItemPhoto(it, it.getPhotoURI())
-                )
+                fragment.photosListAdapter.data.add(ReportPhotosListModel.TaskItemPhoto(it, it.getPhotoURI()))
             }
             fragment.photosListAdapter.notifyDataSetChanged()
         }
@@ -326,18 +324,10 @@ class ReportPresenter(
         savedEntrances.forEach { db.entrancesDao().update(it) }
     }
 
-    fun onBlankPhotoClicked() {
-        requestPhoto(false)
-    }
-
-    fun onBlankMultiPhotoClicked() {
-        requestPhoto()
-    }
-
     fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (permissions[0] == android.Manifest.permission.WRITE_EXTERNAL_STORAGE) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                fragment.activity()?.showError("Необходимо разрешить приложению получать ваше местоположение.", object : ErrorButtonsListener {
+                fragment.activity()?.showError("Необходимо разрешить приложению записывать данные на карту.", object : ErrorButtonsListener {
                     override fun positiveListener() {
                         fragment.requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
                     }
@@ -345,12 +335,12 @@ class ReportPresenter(
                     override fun negativeListener() {}
                 }, "Ок", "Отмена")
             } else {
-                requestPhoto()
+                requestPhoto(true, -1)
             }
         }
     }
 
-    private fun requestPhoto(multiPhoto: Boolean = true) {
+    fun requestPhoto(multiPhoto: Boolean = true, entranceNumber: Int) {
         photoUUID = UUID.randomUUID()
         photoMultiMode = multiPhoto
 
@@ -371,6 +361,7 @@ class ReportPresenter(
             intent?.let { intent ->
                 if (intent.resolveActivity(packageManager) != null) {
                     fragment.startActivityForResult(intent, REQUEST_PHOTO)
+                    requestEntrance = entranceNumber
                 }
             }
         }
@@ -386,7 +377,8 @@ class ReportPresenter(
             }
             val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID ?: UUID.randomUUID())
             if (photoFile.exists()) {
-                saveNewPhoto(photoFile.absolutePath)
+                saveNewPhoto(photoFile.absolutePath, requestEntrance ?: -1)
+                requestEntrance = null
                 return true
             }
 
@@ -395,7 +387,8 @@ class ReportPresenter(
                 return false
             }
 
-            val photo = saveNewPhoto(data.extras!!.get("data") as Bitmap)
+            val photo = saveNewPhoto(data.extras!!.get("data") as Bitmap, requestEntrance ?: -1)
+            requestEntrance = null
 
             if (photo == null) {
                 (fragment.context as MainActivity).showError("Не удалось сделать фото.")
@@ -407,10 +400,10 @@ class ReportPresenter(
         return false
     }
 
-    private fun saveNewPhoto(path: String): File? {
+    private fun saveNewPhoto(path: String, entranceNumber: Int): File? {
         try {
             val bmp = BitmapFactory.decodeFile(path)
-            return saveNewPhoto(bmp)
+            return saveNewPhoto(bmp, entranceNumber)
         } catch (e: Throwable) {
             (fragment.context as MainActivity).showError("Не удалось сохранить фотографию. Недостаточно памяти. Попробуйте сделать снимок еще раз. Если проблема повторится перезагрузите телефон.")
             e.printStackTrace()
@@ -419,7 +412,7 @@ class ReportPresenter(
         return null
     }
 
-    private fun saveNewPhoto(bmp: Bitmap?): File? {
+    private fun saveNewPhoto(bmp: Bitmap?, entranceNumber: Int): File? {
         val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID ?: UUID.randomUUID())
         if (bmp != null) {
             val photo: Bitmap
@@ -446,7 +439,7 @@ class ReportPresenter(
             val db = MyApplication.instance.database
             var currentGPS = application().currentLocation
 
-            val photoEntity = TaskItemPhotoEntity(0, photoUUID.toString(), currentGPS, fragment.taskItems[currentTask].id)
+            val photoEntity = TaskItemPhotoEntity(0, photoUUID.toString(), currentGPS, fragment.taskItems[currentTask].id, entranceNumber)
             val photoModel = withContext(CommonPool) {
                 val id = db.photosDao().insert(photoEntity)
                 db.photosDao().getById(id.toInt()).toTaskItemPhotoModel(db)
@@ -463,7 +456,7 @@ class ReportPresenter(
             fragment.photosListAdapter.notifyItemRangeChanged(fragment.photosListAdapter.data.size - 1, 2)
 
             if (photoMultiMode) {
-                requestPhoto()
+                requestPhoto(true, entranceNumber)
             }
         }
 

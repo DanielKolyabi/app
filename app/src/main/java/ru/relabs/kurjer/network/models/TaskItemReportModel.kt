@@ -35,5 +35,6 @@ data class TaskItemReportModel(
 
 data class PhotoReportModel(
         val hash: String,
-        val gps: GPSCoordinatesModel
+        val gps: GPSCoordinatesModel,
+        val entranceNumber: Int
 )

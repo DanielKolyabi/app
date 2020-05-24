@@ -10,8 +10,10 @@ import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
 
 class ReportEntranceHolder(
-        itemView: View, private val onSelectClicked: (type: Int, holder: RecyclerView.ViewHolder) -> Unit,
-        private val onCoupleClicked: (entrancePosition: Int) -> Unit
+        itemView: View,
+        private val onSelectClicked: (type: Int, holder: RecyclerView.ViewHolder) -> Unit,
+        private val onCoupleClicked: (entrancePosition: Int) -> Unit,
+        private val onPhotoClicked: (entranceNumber: Int) -> Unit
 ) : BaseViewHolder<ReportEntrancesListModel>(itemView) {
     override fun onBindViewHolder(item: ReportEntrancesListModel) {
         if (item !is ReportEntrancesListModel.Entrance) return
@@ -34,6 +36,9 @@ class ReportEntranceHolder(
             setSelectButtonActive(rejection_select, (item.selected and 0x1000) > 0, entranceData?.isRefused == true)
             rejection_select.setOnClickListener {
                 onSelectClicked(0x1000, this@ReportEntranceHolder)
+            }
+            iv_photo.setOnClickListener {
+                onPhotoClicked(item.entranceNumber)
             }
         }
 

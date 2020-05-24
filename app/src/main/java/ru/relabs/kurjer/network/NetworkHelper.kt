@@ -133,7 +133,7 @@ object NetworkHelper {
         photos.forEachIndexed { i, photo ->
             try {
                 photoParts.add(photoEntityToPart("img_$imgCount", data, photo))
-                photosMap["img_$imgCount"] = PhotoReportModel("", photo.gps)
+                photosMap["img_$imgCount"] = PhotoReportModel("", photo.gps, photo.entranceNumber)
                 imgCount++
             } catch (e: Throwable) {
                 e.fillInStackTrace().logError()

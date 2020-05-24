@@ -153,20 +153,26 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
             presenter.changeCurrentTask(it)
         })
         entrancesListAdapter.addDelegate(
-                ReportEntrancesDelegate({ type, holder ->
-                    presenter.onEntranceSelected(type, holder)
-                }, { adapterPosition ->
-                    presenter.onCouplingChanged(adapterPosition)
-                })
+                ReportEntrancesDelegate(
+                        { type, holder ->
+                            presenter.onEntranceSelected(type, holder)
+                        },
+                        { adapterPosition ->
+                            presenter.onCouplingChanged(adapterPosition)
+                        },
+                        { entranceNumber ->
+                            presenter.requestPhoto(true, entranceNumber)
+                        }
+                )
         )
         photosListAdapter.addDelegate(ReportPhotoDelegate { holder ->
             presenter.onRemovePhotoClicked(holder)
         })
         photosListAdapter.addDelegate(ReportBlankPhotoDelegate { holder ->
-            presenter.onBlankPhotoClicked()
+            presenter.requestPhoto(false, -1)
         })
         photosListAdapter.addDelegate(ReportBlankMultiPhotoDelegate { holder ->
-            presenter.onBlankMultiPhotoClicked()
+            presenter.requestPhoto(true, -1)
         })
 
         val listClickInterceptor = object : RecyclerView.OnItemTouchListener {
@@ -293,12 +299,12 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
                 .show()
     }
 
-    fun showGPSLoadingDialog(){
+    fun showGPSLoadingDialog() {
         loadingDialog?.dismiss()
         loadingDialog = GPSRequestTimeDialog(requireContext()).apply { show() }
     }
 
-    fun hideGPSLoadingDialog(){
+    fun hideGPSLoadingDialog() {
         loadingDialog?.dismiss()
     }
 

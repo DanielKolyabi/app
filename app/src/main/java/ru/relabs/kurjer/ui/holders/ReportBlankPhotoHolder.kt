@@ -2,6 +2,8 @@ package ru.relabs.kurjer.ui.holders
 
 import android.support.v7.widget.RecyclerView
 import android.view.View
+import kotlinx.android.synthetic.main.item_report_photo_blank.view.*
+import ru.relabs.kurjer.R
 import ru.relabs.kurjer.ui.models.ReportPhotosListModel
 import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 
@@ -14,5 +16,9 @@ class ReportBlankPhotoHolder(itemView: View, private val onPhotoClicked: (holder
         itemView.setOnClickListener {
             onPhotoClicked(this)
         }
+        itemView.blank_photo.setImageResource(when(item.required){
+            true -> R.drawable.ic_house_photo_req
+            else -> R.drawable.ic_house_photo
+        })
     }
 }

@@ -38,15 +38,14 @@ class ReportEntranceHolder(
                 onSelectClicked(0x1000, this@ReportEntranceHolder)
             }
 
-            iv_photo.setBackgroundColor(if(entranceData?.photoRequired == true){
-                resources.getColor(R.color.colorFuchsia)
-            }else{
-                Color.TRANSPARENT
-            })
-
             iv_photo.setOnClickListener {
                 onPhotoClicked(item.entranceNumber)
             }
+
+            iv_photo.setImageResource(when(entranceData?.photoRequired){
+                true -> R.drawable.ic_entrance_photo_req
+                else -> R.drawable.ic_entrance_photo
+            })
         }
 
         itemView.entrance_title.setOnClickListener {

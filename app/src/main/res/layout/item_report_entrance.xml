@@ -90,6 +90,7 @@
         android:background="?android:selectableItemBackground"
         android:clickable="true"
         android:focusable="true"
+        android:padding="8dp"
         android:src="@drawable/ic_entrance_photo"
         app:layout_constraintBottom_toBottomOf="@+id/rejection_select"
         app:layout_constraintEnd_toEndOf="parent"

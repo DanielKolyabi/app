@@ -81,6 +81,8 @@ class ReportPresenter(
 
         fragment.close_button?.isEnabled = fragment.close_button.isEnabled && fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
         fragment.user_explanation_input?.isEnabled = fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
+
+        (fragment.context as? MainActivity)?.changeTitle(fragment.taskItems[currentTask].address.name)
     }
 
     private fun fillDescriptionData(db: AppDatabase) {

@@ -54,7 +54,6 @@ class MyApplication : Application() {
     val listener = object : LocationCallback() {
 
         override fun onLocationResult(location: LocationResult?) {
-            CustomLog.writeToFile("LOCATION: Got coordinates. IsNull? ${location == null}")
             location?.let {
                 currentLocation = GPSCoordinatesModel(it.lastLocation.latitude, it.lastLocation.longitude, Date(it.lastLocation.time))
             }
@@ -179,10 +178,8 @@ class MyApplication : Application() {
             return
         }
 
-        CustomLog.writeToFile("LOCATION: Request Location")
         locationManager?.lastLocation?.addOnSuccessListener { location ->
             location?.let {
-                CustomLog.writeToFile("LOCATION: Got requested location")
                 currentLocation = GPSCoordinatesModel(it.latitude, it.longitude, Date(it.time))
             }
         }
@@ -192,8 +189,6 @@ class MyApplication : Application() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return false
         }
-
-        CustomLog.writeToFile("LOCATION: Start listening")
 
         val req = LocationRequest().apply {
             fastestInterval = 10 * 1000

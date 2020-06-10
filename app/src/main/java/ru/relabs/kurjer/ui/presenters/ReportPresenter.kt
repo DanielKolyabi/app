@@ -77,12 +77,18 @@ class ReportPresenter(
             }
         }
 
+        val taskItem = fragment.taskItems[currentTask]
+
         fragment.close_button?.isEnabled = fragment.tasks[currentTask].isAvailableByDate(Date())
 
-        fragment.close_button?.isEnabled = fragment.close_button.isEnabled && fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
-        fragment.user_explanation_input?.isEnabled = fragment.taskItems[currentTask].state != TaskItemModel.CLOSED
+        fragment.close_button?.isEnabled = fragment.close_button.isEnabled && taskItem.state != TaskItemModel.CLOSED
+        fragment.user_explanation_input?.isEnabled = taskItem.state != TaskItemModel.CLOSED
 
-        (fragment.context as? MainActivity)?.changeTitle(fragment.taskItems[currentTask].address.name)
+        (fragment.context as? MainActivity)?.changeTitle(taskItem.address.name)
+        CustomLog.writeToFile(
+                "TID: ${taskItem.id}: " +
+                        taskItem.entrancesData.joinToString { "#${it.number} photoReq: ${it.photoRequired}; " }
+        )
     }
 
     private fun fillDescriptionData(db: AppDatabase) {

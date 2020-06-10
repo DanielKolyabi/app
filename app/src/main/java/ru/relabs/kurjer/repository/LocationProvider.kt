@@ -42,7 +42,6 @@ class PlayServicesLocationProvider(private val client: FusedLocationProviderClie
         val request = LocationRequest.create()
         val callback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
-                CustomLog.writeToFile("Location update received: ${locationResult.lastLocation}")
                 if (!channel.isClosedForSend) {
                     val lastLocation = locationResult.lastLocation
                     if (lastLocation != null) {
@@ -83,7 +82,6 @@ class NativeLocationProvider(private val client: LocationManager) : LocationProv
         }
         val callback: LocationListener = object : LocationListener {
             override fun onLocationChanged(locationResult: Location?) {
-                CustomLog.writeToFile("Location update received: $locationResult")
                 locationResult ?: return
                 if (!channel.isClosedForSend) {
                     channel.offer(locationResult)

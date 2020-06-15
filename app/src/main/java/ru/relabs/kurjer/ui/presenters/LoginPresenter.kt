@@ -97,7 +97,7 @@ class LoginPresenter(
                 pauseRepository.loadLastPausesRemote()
 
                 sharedPref.edit().putString("last_login", response.user.login).apply()
-                (fragment.activity as? MainActivity)?.showTaskListScreen(!authByToken)
+                (fragment.activity as? MainActivity)?.showTaskListScreen(!authByToken, 0, true)
 
             } catch (e: HttpException) {
                 e.printStackTrace()

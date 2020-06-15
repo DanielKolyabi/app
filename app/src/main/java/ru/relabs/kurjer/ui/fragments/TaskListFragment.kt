@@ -2,6 +2,7 @@ package ru.relabs.kurjer.ui.fragments
 
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -56,12 +57,14 @@ class TaskListFragment : Fragment(), SearchableFragment {
     private lateinit var hintHelper: HintHelper
     val adapter = DelegateAdapter<TaskListModel>()
     private var shouldUpdate: Boolean = false
+    private var showUpdateDialog: Boolean = false
     private var targetListPos = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         arguments?.let {
             shouldUpdate = it.getBoolean("shouldUpdate", false)
+            showUpdateDialog = it.getBoolean("showUpdateDialog", false)
             targetListPos = it.getInt("pos_in_list", 0)
         }
     }
@@ -102,6 +105,14 @@ class TaskListFragment : Fragment(), SearchableFragment {
             showListLoading(true)
             presenter.loadTasks(shouldLoadFromNetwork)
         }
+        if(showUpdateDialog){
+            showUpdateDialog = false
+            val int = Intent().apply {
+                putExtra("tasks_changed", true)
+                action = "NOW"
+            }
+            activity?.sendBroadcast(int)
+        }
         presenter.updateStartButton()
     }
 
@@ -124,7 +135,7 @@ class TaskListFragment : Fragment(), SearchableFragment {
     fun showListLoading(isLoading: Boolean, clearList: Boolean = false) {
         if (isLoading) {
             if (adapter.data.isEmpty() || adapter.data.first() !is TaskListModel.Loader) {
-                if(clearList){
+                if (clearList) {
                     adapter.data.clear()
                 }
 
@@ -136,11 +147,12 @@ class TaskListFragment : Fragment(), SearchableFragment {
 
     companion object {
         @JvmStatic
-        fun newInstance(shouldUpdate: Boolean, posInList: Int = 0) =
+        fun newInstance(shouldUpdate: Boolean, posInList: Int = 0, showUpdateDialog: Boolean = false) =
                 TaskListFragment().apply {
                     arguments = Bundle().apply {
                         putBoolean("shouldUpdate", shouldUpdate)
                         putInt("pos_in_list", posInList)
+                        putBoolean("showUpdateDialog", showUpdateDialog)
                     }
                 }
     }

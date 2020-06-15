@@ -16,7 +16,7 @@ android {
         config {
             keyAlias 'kurjer'
             keyPassword '1qazxsw2'
-            storeFile file('H:/BackupsWindowsReinstall/work/DeliveryManProject/android_deliveryman_client/2017abix.dat')
+            storeFile file('2017abix.dat')
             storePassword '1qazxsw2'
         }
     }

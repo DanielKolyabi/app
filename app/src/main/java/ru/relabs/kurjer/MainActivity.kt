@@ -565,8 +565,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun showTaskListScreen(shouldUpdate: Boolean = false, posInList: Int = 0): TaskListFragment {
-        val fragment = TaskListFragment.newInstance(shouldUpdate, posInList)
+    fun showTaskListScreen(
+            shouldUpdate: Boolean = false,
+            posInList: Int = 0,
+            showUpdateDialog: Boolean = false
+    ): TaskListFragment {
+        val fragment = TaskListFragment.newInstance(shouldUpdate, posInList, showUpdateDialog)
         navigateTo(fragment)
         changeTitle("Список заданий")
         return fragment

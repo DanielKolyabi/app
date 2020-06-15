@@ -139,7 +139,7 @@ class ReportService : Service() {
                         } catch (e: Exception) {
                             e.logError()
                         }
-                    } else if (System.currentTimeMillis() - lastTasksChecking > 25 * 60 * 1000) {
+                    } else if (System.currentTimeMillis() - lastTasksChecking > 10 * 60 * 1000) {
                         val app = MyApplication.instance
                         if (app.user is UserModel.Authorized) {
                             val user = app.user as UserModel.Authorized
@@ -171,14 +171,7 @@ class ReportService : Service() {
                         sendBroadcast(int)
                     }
                 }
-                if (System.currentTimeMillis() - lastServiceLogTime > 30 * 1000) {
-                    lastServiceLogTime = System.currentTimeMillis()
-                    try {
-                        val count = db.sendQueryDao().all.size + db.reportQueryDao().all.size
-                    } catch (e: java.lang.Exception) {
-                        e.logError()
-                    }
-                }
+
                 updateNotificationText(db)
 
                 checkTimelimitJob()

@@ -80,6 +80,7 @@ class MyApplication : Application() {
                     telephonyManager.deviceId
             }
         } catch (e: SecurityException) {
+            CustomLog.writeToFile("IMEI: Stack \n" + CustomLog.getStacktraceAsString(e))
             ""
         }
 

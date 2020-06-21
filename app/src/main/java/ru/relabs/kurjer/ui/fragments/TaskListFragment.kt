@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.include_hint_container.*
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.ReportService
 import ru.relabs.kurjer.utils.activity
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.TaskListLoaderDelegate
@@ -57,14 +58,14 @@ class TaskListFragment : Fragment(), SearchableFragment {
     private lateinit var hintHelper: HintHelper
     val adapter = DelegateAdapter<TaskListModel>()
     private var shouldUpdate: Boolean = false
-    private var showUpdateDialog: Boolean = false
+    private var shouldCheckTasks: Boolean = false
     private var targetListPos = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         arguments?.let {
             shouldUpdate = it.getBoolean("shouldUpdate", false)
-            showUpdateDialog = it.getBoolean("showUpdateDialog", false)
+            shouldCheckTasks = it.getBoolean("shouldCheckTasks", false)
             targetListPos = it.getInt("pos_in_list", 0)
         }
     }
@@ -105,13 +106,11 @@ class TaskListFragment : Fragment(), SearchableFragment {
             showListLoading(true)
             presenter.loadTasks(shouldLoadFromNetwork)
         }
-        if(showUpdateDialog){
-            showUpdateDialog = false
-            val int = Intent().apply {
-                putExtra("tasks_changed", true)
-                action = "NOW"
+        if (shouldCheckTasks) {
+            shouldCheckTasks = false
+            context?.apply {
+                startService(Intent(this, ReportService::class.java).apply { putExtra("force_check_updates", true) })
             }
-            activity?.sendBroadcast(int)
         }
         presenter.updateStartButton()
     }
@@ -147,12 +146,12 @@ class TaskListFragment : Fragment(), SearchableFragment {
 
     companion object {
         @JvmStatic
-        fun newInstance(shouldUpdate: Boolean, posInList: Int = 0, showUpdateDialog: Boolean = false) =
+        fun newInstance(shouldUpdate: Boolean, posInList: Int = 0, shouldCheckTasks: Boolean = false) =
                 TaskListFragment().apply {
                     arguments = Bundle().apply {
                         putBoolean("shouldUpdate", shouldUpdate)
                         putInt("pos_in_list", posInList)
-                        putBoolean("showUpdateDialog", showUpdateDialog)
+                        putBoolean("shouldCheckTasks", shouldCheckTasks)
                     }
                 }
     }

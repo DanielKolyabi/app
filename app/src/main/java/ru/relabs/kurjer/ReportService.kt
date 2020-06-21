@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit
 const val CHANNEL_ID = "notification_channel"
 const val CLOSE_SERVICE_TIMEOUT = 80 * 60 * 1000
 const val TIMELIMIT_NOTIFICATION_TIMEOUT = 30 * 60 * 1000
+const val TASK_CHECK_DELAY = 10 * 60 * 1000
 
 class ReportService : Service() {
     private var timeUntilRun: Int = 0
@@ -109,8 +110,10 @@ class ReportService : Service() {
         isRunning = true
 
         var lastTasksChecking = System.currentTimeMillis()
+        if(intent?.getBooleanExtra("force_check_updates", false) == true){
+            lastTasksChecking -= TASK_CHECK_DELAY
+        }
         var lastNetworkEnabledChecking = System.currentTimeMillis()
-        var lastServiceLogTime = System.currentTimeMillis()
 
         thread?.cancel()
         thread = launch {
@@ -139,7 +142,7 @@ class ReportService : Service() {
                         } catch (e: Exception) {
                             e.logError()
                         }
-                    } else if (System.currentTimeMillis() - lastTasksChecking > 10 * 60 * 1000) {
+                    } else if (System.currentTimeMillis() - lastTasksChecking > TASK_CHECK_DELAY) {
                         val app = MyApplication.instance
                         if (app.user is UserModel.Authorized) {
                             val user = app.user as UserModel.Authorized

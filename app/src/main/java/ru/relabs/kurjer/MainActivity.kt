@@ -444,6 +444,8 @@ class MainActivity : AppCompatActivity() {
             } else {
                 installURL?.let { installUpdate(it) }
             }
+        } else {
+            installURL?.let { installUpdate(it) }
         }
     }
 

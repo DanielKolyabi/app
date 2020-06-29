@@ -63,8 +63,8 @@ class ReportPresenter(
         val db = (fragment.activity?.application as? MyApplication)?.database
         db?.let {
             launch {
-                fillEntrancesAdapterData(db)
                 fillPhotosAdapterData(db)
+                fillEntrancesAdapterData(db)
                 fillDescriptionData(db)
                 withContext(UI) {
                     try {
@@ -135,12 +135,21 @@ class ReportPresenter(
 
     private fun getTaskItemEntranceData(taskItem: TaskItemModel, task: TaskModel, db: AppDatabase): List<ReportEntrancesListModel.Entrance> {
         val tasksWithSameCouple = fragment.tasks.filter { it.coupleType == task.coupleType }
+        val taskPhotos = db.photosDao().getByTaskItemId(fragment.taskItems[currentTask].id).map {
+            it.toTaskItemPhotoModel(db)
+        }.filterNotNull()
+
         val entrances = taskItem.entrances.map {
             it.coupleEnabled = it.coupleEnabled
                     && tasksWithSameCouple.size > 1
                     && taskItem.state == TaskItemModel.CREATED
 
-            ReportEntrancesListModel.Entrance(taskItem, it.num, 0, it.coupleEnabled)
+            val hasPhoto = taskPhotos.any { photoModel ->
+                photoModel.taskItem.id == taskItem.id &&
+                        photoModel.entranceNumber == it.num
+            }
+
+            ReportEntrancesListModel.Entrance(taskItem, it.num, 0, it.coupleEnabled, hasPhoto)
         }
 
         val savedResult = db.taskItemResultsDao().getByTaskItemId(taskItem.id)
@@ -158,7 +167,7 @@ class ReportPresenter(
         return entrances
     }
 
-    private fun fillEntrancesAdapterData(db: AppDatabase) {
+    private suspend fun fillEntrancesAdapterData(db: AppDatabase) = withContext(CommonPool) {
 
         val entrances = getTaskItemEntranceData(fragment.taskItems[currentTask], fragment.tasks[currentTask], db)
 
@@ -169,14 +178,14 @@ class ReportPresenter(
         }
     }
 
-    fun fillPhotosAdapterData(db: AppDatabase) {
+    suspend fun fillPhotosAdapterData(db: AppDatabase) = withContext(CommonPool) {
         fragment.photosListAdapter.data.clear()
         val taskPhotos = db.photosDao().getByTaskItemId(fragment.taskItems[currentTask].id).map {
             it.toTaskItemPhotoModel(db)
         }.filterNotNull()
 
         launch(UI) {
-            fragment.photosListAdapter.data.add(ReportPhotosListModel.BlankPhoto(fragment.taskItems[currentTask].needPhoto))
+            fragment.photosListAdapter.data.add(ReportPhotosListModel.BlankPhoto(fragment.taskItems[currentTask].needPhoto, taskPhotos.any { it.entranceNumber == -1 }))
             taskPhotos.forEach {
                 fragment.photosListAdapter.data.add(ReportPhotosListModel.TaskItemPhoto(it, it.getPhotoURI()))
             }
@@ -350,7 +359,8 @@ class ReportPresenter(
         photoUUID = UUID.randomUUID()
         photoMultiMode = multiPhoto
 
-        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID ?: UUID.randomUUID())
+        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID
+                ?: UUID.randomUUID())
 
         val photoUri = FileProvider.getUriForFile(
                 fragment.requireContext(),
@@ -381,7 +391,8 @@ class ReportPresenter(
                 }
                 return false
             }
-            val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID ?: UUID.randomUUID())
+            val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID
+                    ?: UUID.randomUUID())
             if (photoFile.exists()) {
                 saveNewPhoto(photoFile.absolutePath, requestEntrance ?: -1)
                 requestEntrance = null
@@ -419,7 +430,8 @@ class ReportPresenter(
     }
 
     private fun saveNewPhoto(bmp: Bitmap?, entranceNumber: Int): File? {
-        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID ?: UUID.randomUUID())
+        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID
+                ?: UUID.randomUUID())
         if (bmp != null) {
             val photo: Bitmap
             try {
@@ -451,15 +463,8 @@ class ReportPresenter(
                 db.photosDao().getById(id.toInt()).toTaskItemPhotoModel(db)
             }
 
-            photoModel?.let {
-                fragment.photosListAdapter.data.add(
-                        ReportPhotosListModel.TaskItemPhoto(
-                                it,
-                                Uri.fromFile(photoFile)
-                        )
-                )
-            }
-            fragment.photosListAdapter.notifyItemRangeChanged(fragment.photosListAdapter.data.size - 1, 2)
+            fillPhotosAdapterData(db)
+            fillEntrancesAdapterData(db)
 
             if (photoMultiMode) {
                 requestPhoto(true, entranceNumber)
@@ -486,10 +491,9 @@ class ReportPresenter(
             val db = MyApplication.instance.database
             val photoEntity = db.photosDao().getById(taskItemPhotoId)
             db.photosDao().delete(photoEntity)
+            fillEntrancesAdapterData(db)
+            fillPhotosAdapterData(db)
         }
-
-        fragment.photosListAdapter.data.removeAt(holder.adapterPosition)
-        fragment.photosListAdapter.notifyItemRemoved(holder.adapterPosition)
     }
 
 
@@ -525,6 +529,11 @@ class ReportPresenter(
                 }
                 .any { !it }
         if (noAddressPhotos || noEntrancesPhotos) {
+            val psdebug = fragment.photosListAdapter.data
+                    .filter { it is ReportPhotosListModel.TaskItemPhoto }
+                    .map { (it as ReportPhotosListModel.TaskItemPhoto).taskItem.entranceNumber }
+                    .joinToString(", ")
+            CustomLog.writeToFile("No photos for $currentTask. noAddressPhotos: $noAddressPhotos, noEntrancesPhotos: $noEntrancesPhotos, has photos for: $psdebug")
             (fragment?.context as? MainActivity)?.showError("Необходимо сделать фотографии")
             return@launch
         }
@@ -616,7 +625,8 @@ class ReportPresenter(
             radiusRequired: Boolean
     ) {
         launch(UI) {
-            showCloseDialog(description, forceRemove ?: (distance < allowedDistance), location, distance, allowedDistance, radiusRequired)
+            showCloseDialog(description, forceRemove
+                    ?: (distance < allowedDistance), location, distance, allowedDistance, radiusRequired)
         }
     }
 
@@ -701,7 +711,8 @@ class ReportPresenter(
                         val token = (app.user as? UserModel.Authorized)?.token
 
                         db.sendQueryDao().insert(
-                                SendQueryItemEntity(0, BuildConfig.API_URL + "/api/v1/tasks/${it.id}/accepted?token=" + (token ?: ""), "")
+                                SendQueryItemEntity(0, BuildConfig.API_URL + "/api/v1/tasks/${it.id}/accepted?token=" + (token
+                                        ?: ""), "")
                         )
                     }
 

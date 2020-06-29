@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
@@ -23,12 +22,26 @@
         android:id="@+id/remove"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_marginEnd="2dp"
         android:layout_marginTop="2dp"
+        android:layout_marginEnd="2dp"
+        android:clickable="true"
         android:elevation="2dp"
         android:focusable="true"
-        android:clickable="true"
         app:layout_constraintEnd_toEndOf="@+id/photo"
         app:layout_constraintTop_toTopOf="@+id/photo"
         app:srcCompat="@drawable/ic_cancel_black_24dp" />
+
+    <TextView
+        android:id="@+id/entrance_badge"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="3dp"
+        android:layout_marginBottom="2dp"
+        android:background="@drawable/bg_circle_gray"
+        android:gravity="center"
+        android:textColor="#9F000000"
+        app:layout_constraintBottom_toBottomOf="@id/photo"
+        app:layout_constraintEnd_toEndOf="@id/photo"
+        tools:text="П" />
+
 </android.support.constraint.ConstraintLayout>

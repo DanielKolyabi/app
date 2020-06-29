@@ -42,10 +42,15 @@ class ReportEntranceHolder(
                 onPhotoClicked(item.entranceNumber)
             }
 
-            iv_photo.setImageResource(when(entranceData?.photoRequired){
-                true -> R.drawable.ic_entrance_photo_req
-                else -> R.drawable.ic_entrance_photo
-            })
+            val photoImgRes = if(item.hasPhoto){
+                R.drawable.ic_entrance_photo_done
+            }else{
+                when(entranceData?.photoRequired){
+                    true -> R.drawable.ic_entrance_photo_req
+                    else -> R.drawable.ic_entrance_photo
+                }
+            }
+            iv_photo.setImageResource(photoImgRes)
         }
 
         itemView.entrance_title.setOnClickListener {

@@ -11,6 +11,7 @@ sealed class ReportEntrancesListModel {
             val taskItem: TaskItemModel,
             val entranceNumber: Int,
             var selected: Int,
-            var coupleEnabled: Boolean
+            var coupleEnabled: Boolean,
+            val hasPhoto: Boolean
     ) : ReportEntrancesListModel()
 }

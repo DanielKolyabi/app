@@ -13,12 +13,16 @@ import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 
 class ReportPhotoHolder(itemView: View, private val onRemoveClicked: (holder: RecyclerView.ViewHolder) -> Unit) : BaseViewHolder<ReportPhotosListModel>(itemView) {
     override fun onBindViewHolder(item: ReportPhotosListModel) {
-        if(item !is ReportPhotosListModel.TaskItemPhoto) return
+        if (item !is ReportPhotosListModel.TaskItemPhoto) return
         Glide.with(itemView)
                 .load(item.photoURI)
                 .into(itemView.photo)
         itemView.remove.setOnClickListener {
             onRemoveClicked(this)
+        }
+        itemView.entrance_badge.text = when (item.taskItem.entranceNumber) {
+            -1 -> "Д"
+            else -> item.taskItem.entranceNumber.toString()
         }
     }
 }

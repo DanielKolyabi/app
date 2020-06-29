@@ -12,13 +12,18 @@ import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
  */
 class ReportBlankPhotoHolder(itemView: View, private val onPhotoClicked: (holder: RecyclerView.ViewHolder) -> Unit) : BaseViewHolder<ReportPhotosListModel>(itemView) {
     override fun onBindViewHolder(item: ReportPhotosListModel) {
-        if(item !is ReportPhotosListModel.BlankPhoto) return
+        if (item !is ReportPhotosListModel.BlankPhoto) return
         itemView.setOnClickListener {
             onPhotoClicked(this)
         }
-        itemView.blank_photo.setImageResource(when(item.required){
-            true -> R.drawable.ic_house_photo_req
-            else -> R.drawable.ic_house_photo
-        })
+        val photoImgRes = if (item.hasPhoto) {
+            R.drawable.ic_house_photo_done
+        } else {
+            when (item.required) {
+                true -> R.drawable.ic_house_photo_req
+                else -> R.drawable.ic_house_photo
+            }
+        }
+        itemView.blank_photo.setImageResource(photoImgRes)
     }
 }

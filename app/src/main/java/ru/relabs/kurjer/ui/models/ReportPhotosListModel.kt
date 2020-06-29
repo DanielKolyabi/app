@@ -8,7 +8,7 @@ import ru.relabs.kurjer.models.TaskItemPhotoModel
  */
 
 sealed class ReportPhotosListModel{
-    data class BlankPhoto(val required: Boolean): ReportPhotosListModel()
+    data class BlankPhoto(val required: Boolean, val hasPhoto: Boolean): ReportPhotosListModel()
     object BlankMultiPhoto: ReportPhotosListModel()
     data class TaskItemPhoto(val taskItem: TaskItemPhotoModel, val photoURI: Uri): ReportPhotosListModel()
 }

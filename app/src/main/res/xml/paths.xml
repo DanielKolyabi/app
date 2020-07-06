@@ -5,4 +5,7 @@
     <files-path
         name="photos"
         path="photos/" />
+    <files-path
+        name="maps"
+        path="maps/" />
 </paths>

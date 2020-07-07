@@ -3,6 +3,7 @@ package ru.relabs.kurjer.ui.presenters
 import android.content.Intent
 import android.net.Uri
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.FileProvider
 import android.widget.Toast
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
@@ -46,16 +47,19 @@ class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
     }
 
     fun onMapClicked(task: TaskModel) {
-        fragment.context ?: return
+        val ctx = fragment.context ?: return
         val image = PathHelper.getTaskRasterizeMapFile(task)
         if (!image.exists()) {
-            Toast.makeText(fragment.context, "Файл карты не найден.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, "Файл карты не найден.", Toast.LENGTH_SHORT).show()
             CustomLog.writeToFile("Для задания ${task.id} не удалось получить растровую карту. ${task.rastMapUrl}")
             return
         }
+
         val intent = Intent()
         intent.action = Intent.ACTION_VIEW
-        intent.setDataAndType(Uri.fromFile(image), "image/*")
-        ContextCompat.startActivity(fragment.context!!, intent, null)
+        val uri = FileProvider.getUriForFile(ctx, "com.relabs.kurjer.file_provider", image)
+        intent.setDataAndType(uri, "image/*")
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        ContextCompat.startActivity(ctx, intent, null)
     }
 }

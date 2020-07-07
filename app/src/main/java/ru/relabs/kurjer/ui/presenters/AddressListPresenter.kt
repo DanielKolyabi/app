@@ -2,6 +2,7 @@ package ru.relabs.kurjer.ui.presenters
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.support.v4.content.ContextCompat.startActivity
 import android.support.v4.content.FileProvider
 import android.util.Log
@@ -142,7 +143,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
             CustomLog.writeToFile("Для задания ${task.id} не удалось получить растровую карту. ${task.rastMapUrl}")
             return
         }
-
+        
         val intent = Intent()
         intent.action = Intent.ACTION_VIEW
         val uri = FileProvider.getUriForFile(ctx, "com.relabs.kurjer.file_provider", image)

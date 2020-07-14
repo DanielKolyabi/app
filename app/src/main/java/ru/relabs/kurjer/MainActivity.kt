@@ -22,11 +22,13 @@ import android.view.Window
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import com.instacart.library.truetime.TrueTime
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.channels.Channel
+import org.joda.time.DateTime
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
@@ -166,12 +168,19 @@ class MainActivity : AppCompatActivity() {
         ) {
             showXiaomiPermissionRequirement()
         }
+
         if (!NetworkHelper.isGPSEnabled(applicationContext)) {
             NetworkHelper.displayLocationSettingsRequest(applicationContext, this)
         }
+
         if (!NetworkHelper.isNetworkEnabled(applicationContext)) {
             showNetworkDisabledError()
         }
+
+        if (!isDeviceTimeValid()) {
+            showWrongTimeError()
+        }
+
         registerReceiver(gpsSwitchStateReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
         MyApplication.instance.enableLocationListening()
 
@@ -200,6 +209,19 @@ class MainActivity : AppCompatActivity() {
         isRunning = true
 
         super.onResume()
+    }
+
+    private fun showWrongTimeError() {
+        showError("Неверные настройки времени.", object : ErrorButtonsListener {
+            override fun positiveListener() {
+                val intent = Intent(Settings.ACTION_DATE_SETTINGS)
+                try {
+                    startActivity(intent)
+                } catch (x: java.lang.Exception) {
+                    x.logError()
+                }
+            }
+        }, forcePositiveButtonName = "Настройки")
     }
 
     private fun showXiaomiPermissionRequirement() {
@@ -430,6 +452,14 @@ class MainActivity : AppCompatActivity() {
             showPermissionsRequest(deniedPermission.toTypedArray(), true)
         } else {
             supportFragmentManager.findFragmentByTag("fragment")?.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+    fun isDeviceTimeValid(): Boolean {
+        try {
+            return TrueTime.now().time - DateTime.now().millis < 10 * 60 * 1000
+        } catch (e: java.lang.Exception) {
+            return true
         }
     }
 

@@ -88,6 +88,7 @@ dependencies {
         transitive = true;
     }
 
+    implementation 'com.github.instacart.truetime-android:library:3.4'
     testImplementation 'junit:junit:4.12'
     implementation 'joda-time:joda-time:2.10.1'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

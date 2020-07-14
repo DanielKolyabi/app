@@ -19,8 +19,10 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.location.LocationResult
 import com.google.firebase.iid.FirebaseInstanceId
+import com.instacart.library.truetime.TrueTime
 import com.yandex.mapkit.MapKitFactory
 import io.fabric.sdk.android.Fabric
+import kotlinx.coroutines.experimental.launch
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
@@ -90,6 +92,9 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        launch{
+            TrueTime.build().withSharedPreferencesCache(this@MyApplication).initialize()
+        }
         Fabric.with(this, Crashlytics())
 
         locationManager = FusedLocationProviderClient(applicationContext)

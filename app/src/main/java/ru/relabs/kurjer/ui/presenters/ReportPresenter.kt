@@ -697,7 +697,7 @@ class ReportPresenter(
                     CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
                 }
 
-                if (withRemove && location.lat != 0.0 && location.long != 0.0) {
+                if (withRemove) {
                     db.taskItemDao().getById(fragment.taskItems[currentTask].id)?.apply {
                         state = TaskItemModel.CLOSED
                     }?.let {
@@ -744,7 +744,7 @@ class ReportPresenter(
 
             CustomLog.writeToFile("${fragment.taskItems[currentTask].id} now closed")
 
-            if (withRemove && location.lat != 0.0 && location.long != 0.0) {
+            if (withRemove) {
                 fragment.taskItems[currentTask].state = TaskItemModel.CLOSED
             }
             val dateNow = Date()

@@ -66,6 +66,8 @@ object CustomLog {
                 writer.print("")
                 writer.close()
             }
+
+            Log.d("CustomLog", currentStacktrace)
         } catch (e: Exception) {
             Log.e("ExceptionHandler", e.message)
         }

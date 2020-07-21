@@ -106,6 +106,7 @@ class MyApplication : Application() {
             while (!initTrueTime()) {
                 delay(500)
             }
+            CustomLog.writeToFile("True Time initialized")
         }
         Fabric.with(this, Crashlytics())
 

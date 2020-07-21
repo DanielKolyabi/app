@@ -45,6 +45,7 @@ import ru.relabs.kurjer.utils.CustomLog.getStacktraceAsString
 import java.io.File
 import java.io.FileNotFoundException
 import java.net.URL
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 const val REQUEST_LOCATION = 999
@@ -457,8 +458,10 @@ class MainActivity : AppCompatActivity() {
 
     fun isDeviceTimeValid(): Boolean {
         try {
-            return TrueTime.now().time - DateTime.now().millis < 10 * 60 * 1000
+            CustomLog.writeToFile("Time millis delta: ${TrueTime.now().time - DateTime.now().millis}")
+            return abs(TrueTime.now().time - DateTime.now().millis) < 10 * 60 * 1000
         } catch (e: java.lang.Exception) {
+            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
             return true
         }
     }

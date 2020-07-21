@@ -20,14 +20,13 @@ import android.widget.Toast
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.include_hint_container.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.NonCancellable.isActive
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.MyApplication
+import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.repository.PauseType
+import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.*
 import ru.relabs.kurjer.ui.dialogs.GPSRequestTimeDialog
@@ -58,8 +57,8 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
 
     private val presenter = ReportPresenter(
             this,
-            MyApplication.instance.radiusRepository,
-            MyApplication.instance.locationProvider
+            DeliveryApp.appContext.radiusRepository,
+            DeliveryApp.appContext.locationProvider
     )
 
     private val broadcastReceiver = object : BroadcastReceiver() {
@@ -224,17 +223,17 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
     }
 
     fun updatePauseButtonEnabled() {
-        pause_button?.isEnabled = !MyApplication.instance.pauseRepository.isPaused
+        pause_button?.isEnabled = !DeliveryApp.appContext.pauseRepository.isPaused
     }
 
     private fun showPauseDialog() {
         var dialog: AlertDialog? = null
 
         val adapter = ArrayAdapter<String>(requireContext(), android.R.layout.select_dialog_singlechoice).apply {
-            if (MyApplication.instance.pauseRepository.isPauseAvailable(PauseType.Lunch)) {
+            if (DeliveryApp.appContext.pauseRepository.isPauseAvailable(PauseType.Lunch)) {
                 add("Обед")
             }
-            if (MyApplication.instance.pauseRepository.isPauseAvailable(PauseType.Load)) {
+            if (DeliveryApp.appContext.pauseRepository.isPauseAvailable(PauseType.Load)) {
                 add("Дозагрузка")
             }
             add("Отмена")

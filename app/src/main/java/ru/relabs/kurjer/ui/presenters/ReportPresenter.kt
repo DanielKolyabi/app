@@ -10,11 +10,10 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.provider.MediaStore
+import android.view.View
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
-import android.view.View
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.coroutines.*
 import ru.relabs.kurjer.*
@@ -27,9 +26,9 @@ import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.*
-import ru.relabs.kurjer.repository.LocationProvider
-import ru.relabs.kurjer.repository.PauseType
-import ru.relabs.kurjer.repository.RadiusRepository
+import ru.relabs.kurjer.domain.providers.LocationProvider
+import ru.relabs.kurjer.domain.repositories.PauseType
+import ru.relabs.kurjer.domain.repositories.RadiusRepository
 import ru.relabs.kurjer.ui.fragments.ReportFragment
 import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
 import ru.relabs.kurjer.ui.models.ReportPhotosListModel
@@ -43,9 +42,9 @@ import kotlin.math.roundToInt
 const val REQUEST_PHOTO = 1
 
 class ReportPresenter(
-        private val fragment: ReportFragment,
-        private val radiusRepository: RadiusRepository,
-        private val locationProvider: LocationProvider
+    private val fragment: ReportFragment,
+    private val radiusRepository: RadiusRepository,
+    private val locationProvider: LocationProvider
 ) {
     var requestEntrance: Int? = null
     var photoUUID: UUID? = null
@@ -59,7 +58,7 @@ class ReportPresenter(
 
         fragment.showHintText(fragment.taskItems[currentTask].notes)
 
-        val db = (fragment.activity?.application as? MyApplication)?.database
+        val db = (fragment.activity?.application as? DeliveryApp)?.database
         db?.let {
             GlobalScope.launch {
                 fillPhotosAdapterData(db)
@@ -85,8 +84,8 @@ class ReportPresenter(
 
         (fragment.context as? MainActivity)?.changeTitle(taskItem.address.name)
         CustomLog.writeToFile(
-                "TID: ${taskItem.id}: " +
-                        taskItem.entrancesData.joinToString { "#${it.number} photoReq: ${it.photoRequired}; " }
+            "TID: ${taskItem.id}: " +
+                    taskItem.entrancesData.joinToString { "#${it.number} photoReq: ${it.photoRequired}; " }
         )
     }
 
@@ -101,20 +100,20 @@ class ReportPresenter(
     }
 
     fun startPause(type: PauseType) {
-        if (!MyApplication.instance.pauseRepository.isPauseAvailable(type)) {
+        if (!DeliveryApp.appContext.pauseRepository.isPauseAvailable(type)) {
             fragment?.showPauseError()
             return
         }
         GlobalScope.launch(Dispatchers.Default) {
             tryOrLogAsync {
-                if (!MyApplication.instance.pauseRepository.isPauseAvailableRemote(type)) {
+                if (!DeliveryApp.appContext.pauseRepository.isPauseAvailableRemote(type)) {
                     withContext(Dispatchers.Main) {
                         fragment?.showPauseError()
                     }
                     return@tryOrLogAsync
                 }
 
-                MyApplication.instance.pauseRepository.startPause(type, withNotify = true)
+                DeliveryApp.appContext.pauseRepository.startPause(type, withNotify = true)
             }
             withContext(Dispatchers.Main) {
                 fragment.updatePauseButtonEnabled()
@@ -132,7 +131,11 @@ class ReportPresenter(
         fragment.tasksListAdapter.notifyDataSetChanged()
     }
 
-    private fun getTaskItemEntranceData(taskItem: TaskItemModel, task: TaskModel, db: AppDatabase): List<ReportEntrancesListModel.Entrance> {
+    private fun getTaskItemEntranceData(
+        taskItem: TaskItemModel,
+        task: TaskModel,
+        db: AppDatabase
+    ): List<ReportEntrancesListModel.Entrance> {
         val tasksWithSameCouple = fragment.tasks.filter { it.coupleType == task.coupleType }
         val taskPhotos = db.photosDao().getByTaskItemId(fragment.taskItems[currentTask].id).map {
             it.toTaskItemPhotoModel(db)
@@ -184,7 +187,11 @@ class ReportPresenter(
         }.filterNotNull()
 
         GlobalScope.launch(Dispatchers.Main) {
-            fragment.photosListAdapter.data.add(ReportPhotosListModel.BlankPhoto(fragment.taskItems[currentTask].needPhoto, taskPhotos.any { it.entranceNumber == -1 }))
+            fragment.photosListAdapter.data.add(
+                ReportPhotosListModel.BlankPhoto(
+                    fragment.taskItems[currentTask].needPhoto,
+                    taskPhotos.any { it.entranceNumber == -1 })
+            )
             taskPhotos.forEach {
                 fragment.photosListAdapter.data.add(ReportPhotosListModel.TaskItemPhoto(it, it.getPhotoURI()))
             }
@@ -199,8 +206,8 @@ class ReportPresenter(
         val data = (fragment.entrancesListAdapter.data[holder.adapterPosition] as ReportEntrancesListModel.Entrance)
         data.selected = data.selected xor type
         val entrances = fragment.entrancesListAdapter.data
-                .filter { it is ReportEntrancesListModel.Entrance }
-                .map { it as ReportEntrancesListModel.Entrance }
+            .filter { it is ReportEntrancesListModel.Entrance }
+            .map { it as ReportEntrancesListModel.Entrance }
 
         val isEuroEnabled = data.selected and 0x0001 != 0
         val hasLookout = data.selected and 0x0010 != 0
@@ -217,7 +224,7 @@ class ReportPresenter(
         }
 
         GlobalScope.launch(Dispatchers.Default) {
-            val db = MyApplication.instance.database
+            val db = DeliveryApp.appContext.database
 
             if (data.coupleEnabled) {
                 for ((idx, taskItem) in fragment.taskItems.withIndex()) {
@@ -262,10 +269,10 @@ class ReportPresenter(
     }
 
     private suspend fun createOrUpdateTaskResult(
-            taskItemId: Int,
-            gps: GPSCoordinatesModel? = null,
-            description: String? = null,
-            entrances: List<ReportEntrancesListModel.Entrance>? = null
+        taskItemId: Int,
+        gps: GPSCoordinatesModel? = null,
+        description: String? = null,
+        entrances: List<ReportEntrancesListModel.Entrance>? = null
     ) {
         val db = application().database
         val taskItemEntity = db.taskItemDao().getById(taskItemId)
@@ -288,23 +295,23 @@ class ReportPresenter(
 
     private fun createTaskItemResult(taskItemId: Int, db: AppDatabase) {
         val newId = db.taskItemResultsDao().insert(
-                TaskItemResultEntity(
-                        0,
-                        taskItemId,
-                        GPSCoordinatesModel(0.0, 0.0, Date()),
-                        null,
-                        ""
-                )
+            TaskItemResultEntity(
+                0,
+                taskItemId,
+                GPSCoordinatesModel(0.0, 0.0, Date()),
+                null,
+                ""
+            )
         )
         db.entrancesDao().insertAll(
-                fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.map {
-                    TaskItemResultEntranceEntity(
-                            0,
-                            newId.toInt(),
-                            (it as ReportEntrancesListModel.Entrance).entranceNumber,
-                            0
-                    )
-                }
+            fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.map {
+                TaskItemResultEntranceEntity(
+                    0,
+                    newId.toInt(),
+                    (it as ReportEntrancesListModel.Entrance).entranceNumber,
+                    0
+                )
+            }
         )
     }
 
@@ -326,7 +333,11 @@ class ReportPresenter(
         }
     }
 
-    private suspend fun updateTaskItemEntrancesResult(taskItemId: Int, db: AppDatabase, entrances: List<ReportEntrancesListModel.Entrance>) {
+    private suspend fun updateTaskItemEntrancesResult(
+        taskItemId: Int,
+        db: AppDatabase,
+        entrances: List<ReportEntrancesListModel.Entrance>
+    ) {
         val result = db.taskItemResultsDao().getByTaskItemId(taskItemId)
         result ?: return
         val savedEntrances = db.entrancesDao().getByTaskItemResultId(result.id)
@@ -341,13 +352,14 @@ class ReportPresenter(
     fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (permissions[0] == android.Manifest.permission.WRITE_EXTERNAL_STORAGE) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                fragment.activity()?.showError("Необходимо разрешить приложению записывать данные на карту.", object : ErrorButtonsListener {
-                    override fun positiveListener() {
-                        fragment.requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
-                    }
+                fragment.activity()
+                    ?.showError("Необходимо разрешить приложению записывать данные на карту.", object : ErrorButtonsListener {
+                        override fun positiveListener() {
+                            fragment.requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
+                        }
 
-                    override fun negativeListener() {}
-                }, "Ок", "Отмена")
+                        override fun negativeListener() {}
+                    }, "Ок", "Отмена")
             } else {
                 requestPhoto(true, -1)
             }
@@ -358,13 +370,15 @@ class ReportPresenter(
         photoUUID = UUID.randomUUID()
         photoMultiMode = multiPhoto
 
-        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID
-                ?: UUID.randomUUID())
+        val photoFile = getTaskItemPhotoFile(
+            fragment.taskItems[currentTask], photoUUID
+                ?: UUID.randomUUID()
+        )
 
         val photoUri = FileProvider.getUriForFile(
-                fragment.requireContext(),
-                "com.relabs.kurjer.file_provider",
-                photoFile
+            fragment.requireContext(),
+            "com.relabs.kurjer.file_provider",
+            photoFile
         )
         val intent: Intent? = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         intent?.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
@@ -390,8 +404,10 @@ class ReportPresenter(
                 }
                 return false
             }
-            val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID
-                    ?: UUID.randomUUID())
+            val photoFile = getTaskItemPhotoFile(
+                fragment.taskItems[currentTask], photoUUID
+                    ?: UUID.randomUUID()
+            )
             if (photoFile.exists()) {
                 saveNewPhoto(photoFile.absolutePath, requestEntrance ?: -1)
                 requestEntrance = null
@@ -429,8 +445,10 @@ class ReportPresenter(
     }
 
     private fun saveNewPhoto(bmp: Bitmap?, entranceNumber: Int): File? {
-        val photoFile = getTaskItemPhotoFile(fragment.taskItems[currentTask], photoUUID
-                ?: UUID.randomUUID())
+        val photoFile = getTaskItemPhotoFile(
+            fragment.taskItems[currentTask], photoUUID
+                ?: UUID.randomUUID()
+        )
         if (bmp != null) {
             val photo: Bitmap
             try {
@@ -453,7 +471,7 @@ class ReportPresenter(
             photo.recycle()
         }
         GlobalScope.launch(Dispatchers.Main) {
-            val db = MyApplication.instance.database
+            val db = DeliveryApp.appContext.database
             var currentGPS = application().currentLocation
 
             val photoEntity = TaskItemPhotoEntity(0, photoUUID.toString(), currentGPS, fragment.taskItems[currentTask].id, entranceNumber)
@@ -476,18 +494,20 @@ class ReportPresenter(
     fun onRemovePhotoClicked(holder: RecyclerView.ViewHolder) {
         val position = holder.adapterPosition
         if (position >= fragment.photosListAdapter.data.size ||
-                position < 0) {
+            position < 0
+        ) {
 
             (fragment.context as? MainActivity)?.showError("Не возможно удалить фото.")
             return
         }
-        val status = File((fragment.photosListAdapter.data[holder.adapterPosition] as ReportPhotosListModel.TaskItemPhoto).photoURI.path).delete()
+        val status =
+            File((fragment.photosListAdapter.data[holder.adapterPosition] as ReportPhotosListModel.TaskItemPhoto).photoURI.path).delete()
         if (!status) {
             (fragment.context as MainActivity).showError("Не возможно удалить фото из памяти.")
         }
         val taskItemPhotoId = (fragment.photosListAdapter.data[holder.adapterPosition] as ReportPhotosListModel.TaskItemPhoto).taskItem.id
         GlobalScope.launch {
-            val db = MyApplication.instance.database
+            val db = DeliveryApp.appContext.database
             val photoEntity = db.photosDao().getById(taskItemPhotoId)
             db.photosDao().delete(photoEntity)
             fillEntrancesAdapterData(db)
@@ -497,7 +517,7 @@ class ReportPresenter(
 
 
     fun onCloseClicked(checkPause: Boolean = true) = GlobalScope.launch(Dispatchers.Main) {
-        if (MyApplication.instance.pauseRepository.isPaused) {
+        if (DeliveryApp.appContext.pauseRepository.isPaused) {
             if (checkPause) {
                 fragment.showPauseWarning()
                 return@launch
@@ -517,21 +537,21 @@ class ReportPresenter(
 
         val noAddressPhotos = fragment.taskItems[currentTask].needPhoto &&
                 fragment.photosListAdapter.data
-                        .filter { it is ReportPhotosListModel.TaskItemPhoto && it.taskItem.entranceNumber == -1 }
-                        .isEmpty()
+                    .filter { it is ReportPhotosListModel.TaskItemPhoto && it.taskItem.entranceNumber == -1 }
+                    .isEmpty()
         val noEntrancesPhotos = fragment.taskItems[currentTask].entrancesData
-                .filter { it.photoRequired }
-                .map { requiredEntrance ->
-                    fragment.photosListAdapter.data
-                            .any { it is ReportPhotosListModel.TaskItemPhoto && it.taskItem.entranceNumber == requiredEntrance.number }
-                    //^ Has photo for required entrance
-                }
-                .any { !it }
+            .filter { it.photoRequired }
+            .map { requiredEntrance ->
+                fragment.photosListAdapter.data
+                    .any { it is ReportPhotosListModel.TaskItemPhoto && it.taskItem.entranceNumber == requiredEntrance.number }
+                //^ Has photo for required entrance
+            }
+            .any { !it }
         if (noAddressPhotos || noEntrancesPhotos) {
             val psdebug = fragment.photosListAdapter.data
-                    .filter { it is ReportPhotosListModel.TaskItemPhoto }
-                    .map { (it as ReportPhotosListModel.TaskItemPhoto).taskItem.entranceNumber }
-                    .joinToString(", ")
+                .filter { it is ReportPhotosListModel.TaskItemPhoto }
+                .map { (it as ReportPhotosListModel.TaskItemPhoto).taskItem.entranceNumber }
+                .joinToString(", ")
             CustomLog.writeToFile("No photos for $currentTask. noAddressPhotos: $noAddressPhotos, noEntrancesPhotos: $noEntrancesPhotos, has photos for: $psdebug")
             (fragment?.context as? MainActivity)?.showError("Необходимо сделать фотографии")
             return@launch
@@ -556,7 +576,14 @@ class ReportPresenter(
                         CustomLog.writeToFile("Show coordinates not found")
                         fragment.showPreCloseDialog(message = "Не определились координаты отправь крэш лог! \nKoordinatalari aniqlanmadi, xato jurnalini yuborish!") {
                             fragment.showSendCrashReportDialog()
-                            closeTaskItem(description, false, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
+                            closeTaskItem(
+                                description,
+                                false,
+                                currentPosition,
+                                distance.toFloat(),
+                                radius,
+                                radiusRepository.isRadiusRequired
+                            )
                         }
                     }
                 }
@@ -595,7 +622,8 @@ class ReportPresenter(
 
 
     private fun getGPSDistance(userLocation: GPSCoordinatesModel): Double {
-        val housePosition = GPSCoordinatesModel(fragment.taskItems[currentTask].address.lat, fragment.taskItems[currentTask].address.long, Date())
+        val housePosition =
+            GPSCoordinatesModel(fragment.taskItems[currentTask].address.lat, fragment.taskItems[currentTask].address.long, Date())
         return calculateDistance(userLocation, housePosition)
     }
 
@@ -618,16 +646,18 @@ class ReportPresenter(
     }
 
     private fun closeClicked(
-            description: String,
-            forceRemove: Boolean? = null,
-            location: GPSCoordinatesModel,
-            distance: Float,
-            allowedDistance: Int,
-            radiusRequired: Boolean
+        description: String,
+        forceRemove: Boolean? = null,
+        location: GPSCoordinatesModel,
+        distance: Float,
+        allowedDistance: Int,
+        radiusRequired: Boolean
     ) {
         GlobalScope.launch(Dispatchers.Main) {
-            showCloseDialog(description, forceRemove
-                    ?: (distance < allowedDistance), location, distance, allowedDistance, radiusRequired)
+            showCloseDialog(
+                description, forceRemove
+                    ?: (distance < allowedDistance), location, distance, allowedDistance, radiusRequired
+            )
         }
     }
 
@@ -635,19 +665,19 @@ class ReportPresenter(
         locationProvider.updatesChannel(true).apply {
             withTimeoutOrNull(40 * 1000) {
                 val loc = receive()
-                MyApplication.instance.currentLocation = GPSCoordinatesModel(loc.latitude, loc.longitude, Date(loc.time))
+                DeliveryApp.appContext.currentLocation = GPSCoordinatesModel(loc.latitude, loc.longitude, Date(loc.time))
             }
             cancel()
         }
     }
 
     private fun showCloseDialog(
-            description: String,
-            withRemove: Boolean,
-            location: GPSCoordinatesModel,
-            distance: Float,
-            allowedDistance: Int,
-            radiusRequired: Boolean
+        description: String,
+        withRemove: Boolean,
+        location: GPSCoordinatesModel,
+        distance: Float,
+        allowedDistance: Int,
+        radiusRequired: Boolean
     ) {
         (fragment.context as MainActivity).showError("КНОПКИ НАЖАЛ?\nОТЧЁТ ОТПРАВЛЯЮ?\n(tugmachalari bosildi? " +
                 "hisobot yuboringmi?)", object : ErrorButtonsListener {
@@ -662,37 +692,38 @@ class ReportPresenter(
                     }
                 }
             }
-        }, "Да", "Нет", style = R.style.RedAlertDialog)
+        }, "Да", "Нет", style = R.style.RedAlertDialog
+        )
     }
 
     private fun closeTaskItem(
-            description: String,
-            withRemove: Boolean,
-            location: GPSCoordinatesModel,
-            distance: Float,
-            allowedDistance: Int,
-            radiusRequired: Boolean
+        description: String,
+        withRemove: Boolean,
+        location: GPSCoordinatesModel,
+        distance: Float,
+        allowedDistance: Int,
+        radiusRequired: Boolean
     ): Boolean {
         val app = application()
-        if (MyApplication.instance.pauseRepository.isPaused) {
+        if (DeliveryApp.appContext.pauseRepository.isPaused) {
             GlobalScope.launch(Dispatchers.Default) {
-                MyApplication.instance.pauseRepository.stopPause(withNotify = true, withUpdate = true)
+                DeliveryApp.appContext.pauseRepository.stopPause(withNotify = true, withUpdate = true)
             }
         }
         GlobalScope.launch(Dispatchers.Default) {
             val db = app.database
             val userToken = (app.user as? UserModel.Authorized)?.token ?: ""
             val entrances = fragment.entrancesListAdapter.data
-                    .filter { it is ReportEntrancesListModel.Entrance }
-                    .map { it as ReportEntrancesListModel.Entrance }
+                .filter { it is ReportEntrancesListModel.Entrance }
+                .map { it as ReportEntrancesListModel.Entrance }
 
             withContext(Dispatchers.Default) {
                 try {
                     createOrUpdateTaskResult(
-                            fragment.taskItems[currentTask].id,
-                            gps = location,
-                            description = description,
-                            entrances = entrances
+                        fragment.taskItems[currentTask].id,
+                        gps = location,
+                        description = description,
+                        entrances = entrances
                     )
                 } catch (e: Throwable) {
                     CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
@@ -712,8 +743,10 @@ class ReportPresenter(
                         val token = (app.user as? UserModel.Authorized)?.token
 
                         db.sendQueryDao().insert(
-                                SendQueryItemEntity(0, BuildConfig.API_URL + "/api/v1/tasks/${it.id}/accepted?token=" + (token
-                                        ?: ""), "")
+                            SendQueryItemEntity(
+                                0, BuildConfig.API_URL + "/api/v1/tasks/${it.id}/accepted?token=" + (token
+                                    ?: ""), ""
+                            )
                         )
                     }
 
@@ -721,17 +754,22 @@ class ReportPresenter(
                 }
 
                 val reportItem = ReportQueryItemEntity(
-                        0, fragment.taskItems[currentTask].id, fragment.tasks[currentTask].id, fragment.taskItems[currentTask].address.id, location,
-                        Date(), description,
-                        fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.map {
-                            Pair((it as ReportEntrancesListModel.Entrance).entranceNumber, it.selected)
-                        },
-                        userToken,
-                        ((getBatteryLevel(fragment.context) ?: 0f) * 100).roundToInt(),
-                        withRemove,
-                        distance.toInt(),
-                        allowedDistance,
-                        radiusRequired
+                    0,
+                    fragment.taskItems[currentTask].id,
+                    fragment.tasks[currentTask].id,
+                    fragment.taskItems[currentTask].address.id,
+                    location,
+                    Date(),
+                    description,
+                    fragment.entrancesListAdapter.data.filter { it is ReportEntrancesListModel.Entrance }.map {
+                        Pair((it as ReportEntrancesListModel.Entrance).entranceNumber, it.selected)
+                    },
+                    userToken,
+                    ((getBatteryLevel(fragment.context) ?: 0f) * 100).roundToInt(),
+                    withRemove,
+                    distance.toInt(),
+                    allowedDistance,
+                    radiusRequired
                 )
 
                 db.reportQueryDao().insert(reportItem)
@@ -780,12 +818,14 @@ class ReportPresenter(
         val entrance = fragment.entrancesListAdapter.data[adapterPosition] as ReportEntrancesListModel.Entrance
         val currentCoupleState = fragment.taskItems[currentTask].entrances[adapterPosition].coupleEnabled
 
-        val taskItemsWithSameCoupleType = fragment.taskItems.filterIndexed { idx, _ -> fragment.tasks[idx].coupleType == fragment.tasks[currentTask].coupleType }
+        val taskItemsWithSameCoupleType =
+            fragment.taskItems.filterIndexed { idx, _ -> fragment.tasks[idx].coupleType == fragment.tasks[currentTask].coupleType }
         entrance.coupleEnabled = !currentCoupleState && taskItemsWithSameCoupleType.size > 1
 
         for ((idx, taskItem) in fragment.taskItems.withIndex()) {
             if (fragment.tasks[idx].coupleType == fragment.tasks[currentTask].coupleType)
-                taskItem.entrances[adapterPosition].coupleEnabled = entrance.coupleEnabled && entrance.taskItem.state == TaskItemModel.CREATED
+                taskItem.entrances[adapterPosition].coupleEnabled =
+                    entrance.coupleEnabled && entrance.taskItem.state == TaskItemModel.CREATED
         }
 
         fragment.entrancesListAdapter.notifyItemChanged(adapterPosition)

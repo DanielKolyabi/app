@@ -1,7 +1,6 @@
-package ru.relabs.kurjer.repository
+package ru.relabs.kurjer.domain.repositories
 
 import android.content.SharedPreferences
-import kotlinx.coroutines.*
 import kotlinx.coroutines.*
 import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.utils.tryOrLogAsync

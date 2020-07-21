@@ -1,4 +1,4 @@
-package ru.relabs.kurjer.repository
+package ru.relabs.kurjer.domain.providers
 
 import android.app.Application
 import android.content.Context
@@ -9,7 +9,7 @@ import android.os.Bundle
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.location.*
-import com.yandex.runtime.logging.Logger.debug
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import ru.relabs.kurjer.utils.CustomLog
@@ -22,8 +22,9 @@ interface LocationProvider {
     fun lastReceivedLocation(): Location?
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class PlayServicesLocationProvider(private val client: FusedLocationProviderClient) :
-        LocationProvider {
+    LocationProvider {
     private var lastReceivedLocation: Location? = null
 
     override fun lastReceivedLocation(): Location? = lastReceivedLocation
@@ -61,6 +62,7 @@ class PlayServicesLocationProvider(private val client: FusedLocationProviderClie
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class NativeLocationProvider(private val client: LocationManager) : LocationProvider {
     private var lastReceivedLocation: Location? = null
 
@@ -107,7 +109,11 @@ class NativeLocationProvider(private val client: LocationManager) : LocationProv
 fun getLocationProvider(application: Application): LocationProvider {
     return if (GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(application.applicationContext) == ConnectionResult.SUCCESS) {
         CustomLog.writeToFile("Used PlayServices provider")
-        PlayServicesLocationProvider(LocationServices.getFusedLocationProviderClient(application))
+        PlayServicesLocationProvider(
+            LocationServices.getFusedLocationProviderClient(
+                application
+            )
+        )
     } else {
         CustomLog.writeToFile("Used native provider")
         NativeLocationProvider(application.getSystemService(Context.LOCATION_SERVICE) as LocationManager)

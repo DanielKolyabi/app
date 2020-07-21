@@ -12,7 +12,7 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_login.*
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.ErrorButtonsListener
-import ru.relabs.kurjer.MyApplication
+import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.ui.helpers.setVisible
@@ -24,8 +24,8 @@ class LoginFragment : Fragment() {
 
     val presenter = LoginPresenter(
             this,
-            MyApplication.instance.radiusRepository,
-            MyApplication.instance.pauseRepository
+            DeliveryApp.appContext.radiusRepository,
+            DeliveryApp.appContext.pauseRepository
     )
 
     var shouldResetRememberOnInput = false

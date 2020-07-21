@@ -60,7 +60,7 @@ tasks {
     withType(KotlinCompile::class) {
         kotlinOptions {
             jvmTarget = "1.8"
-            freeCompilerArgs += listOf("-XXLanguage:+NewInference", "-XXLanguage:+InlineClasses")
+            freeCompilerArgs += listOf("-XXLanguage:+NewInference", "-XXLanguage:+InlineClasses", "-Xopt-in=org.mylibrary.OptInAnnotation")
         }
     }
 }

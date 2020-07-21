@@ -6,11 +6,9 @@ import android.graphics.BitmapFactory
 import android.location.LocationManager
 import android.location.LocationManager.GPS_PROVIDER
 import android.net.ConnectivityManager
-import android.net.Uri
 import android.net.wifi.WifiManager
 import android.provider.Settings
 import android.util.Log
-import android.webkit.MimeTypeMap
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -19,15 +17,13 @@ import com.google.android.gms.location.LocationSettingsStatusCodes
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.asRequestBody
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.REQUEST_LOCATION
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.network.DeliveryServerAPI.api
-import ru.relabs.kurjer.network.models.PhotoReportModel
-import ru.relabs.kurjer.network.models.TaskItemReportModel
+import ru.relabs.kurjer.data.models.PhotoReportRequest
+import ru.relabs.kurjer.data.models.TaskItemReportRequest
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.TaskItemPhotoEntity
 import ru.relabs.kurjer.utils.logError
@@ -127,27 +123,28 @@ object NetworkHelper {
 
     suspend fun sendReport(data: ReportQueryItemEntity, photos: List<TaskItemPhotoEntity>): Boolean {
 
-        val photosMap = mutableMapOf<String, PhotoReportModel>()
+        val photosMap = mutableMapOf<String, PhotoReportRequest>()
         val photoParts = mutableListOf<MultipartBody.Part>()
 
         var imgCount = 0
         photos.forEachIndexed { i, photo ->
             try {
                 photoParts.add(photoEntityToPart("img_$imgCount", data, photo))
-                photosMap["img_$imgCount"] = PhotoReportModel("", photo.gps, photo.entranceNumber)
+                photosMap["img_$imgCount"] =
+                    PhotoReportRequest("", photo.gps, photo.entranceNumber)
                 imgCount++
             } catch (e: Throwable) {
                 e.fillInStackTrace().logError()
             }
         }
 
-        val reportObject = TaskItemReportModel(
-                data.taskId, data.taskItemId, data.imageFolderId,
-                data.gps, data.closeTime, data.userDescription, data.entrances, photosMap,
-                data.batteryLevel, data.closeDistance, data.allowedDistance, data.radiusRequired
+        val reportObject = TaskItemReportRequest(
+            data.taskId, data.taskItemId, data.imageFolderId,
+            data.gps, data.closeTime, data.userDescription, data.entrances, photosMap,
+            data.batteryLevel, data.closeDistance, data.allowedDistance, data.radiusRequired
         )
 
-        return api.sendTaskReport(data.taskItemId, data.token, reportObject, photoParts).status
+        return TODO("Use new api")//api.sendTaskReport(data.taskItemId, data.token, reportObject, photoParts).status
     }
 
     private fun photoEntityToPart(partName: String, reportEnt: ReportQueryItemEntity, photoEnt: TaskItemPhotoEntity): MultipartBody.Part {

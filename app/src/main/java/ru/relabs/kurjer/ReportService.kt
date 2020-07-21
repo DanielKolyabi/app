@@ -15,8 +15,10 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.*
 import org.joda.time.DateTime
+import org.koin.core.KoinComponent
+import org.koin.core.inject
+import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.models.UserModel
-import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
@@ -26,7 +28,6 @@ import ru.relabs.kurjer.utils.logError
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.concurrent.TimeUnit
 
 
 const val CHANNEL_ID = "notification_channel"
@@ -34,7 +35,10 @@ const val CLOSE_SERVICE_TIMEOUT = 80 * 60 * 1000
 const val TIMELIMIT_NOTIFICATION_TIMEOUT = 30 * 60 * 1000
 const val TASK_CHECK_DELAY = 10 * 60 * 1000
 
-class ReportService : Service() {
+class ReportService : Service(), KoinComponent {
+    private val repository: DeliveryRepository by inject()
+    private val database: AppDatabase by inject()
+
     private var timeUntilRun: Int = 0
     private var pauseDisableJob: Job? = null
     private var thread: Job? = null
@@ -117,19 +121,17 @@ class ReportService : Service() {
         thread?.cancel()
         thread = GlobalScope.launch {
             while (true) {
-                val db = MyApplication.instance.database
-
                 var isTaskSended = false
 
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
-                    val sendQuery = getSendQuery(db)
-                    val reportQuery = getReportQuery(db)
+                    val sendQuery = getSendQuery(database)
+                    val reportQuery = getReportQuery(database)
 
                     if (reportQuery != null) {
                         try {
-                            sendReportQuery(db, reportQuery)
+                            sendReportQuery(reportQuery)
                             isTaskSended = true
-                            PersistenceHelper.removeReport(db, reportQuery)
+                            PersistenceHelper.removeReport(database, reportQuery)
                         } catch (e: Exception) {
                             e.logError()
                         }
@@ -137,12 +139,12 @@ class ReportService : Service() {
                         try {
                             sendSendQuery(sendQuery)
                             isTaskSended = true
-                            db.sendQueryDao().delete(sendQuery)
+                            database.sendQueryDao().delete(sendQuery)
                         } catch (e: Exception) {
                             e.logError()
                         }
                     } else if (System.currentTimeMillis() - lastTasksChecking > TASK_CHECK_DELAY) {
-                        val app = MyApplication.instance
+                        val app = DeliveryApp.appContext
                         if (app.user is UserModel.Authorized) {
                             val user = app.user as UserModel.Authorized
                             val time = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
@@ -174,7 +176,7 @@ class ReportService : Service() {
                     }
                 }
 
-                updateNotificationText(db)
+                updateNotificationText(database)
 
                 checkTimelimitJob()
                 pendingGPS()
@@ -188,7 +190,7 @@ class ReportService : Service() {
 
     private fun pendingGPS() {
         if (System.currentTimeMillis() - lastGPSPending > 1 * 60 * 1000) {
-            MyApplication.instance.requestLocation()
+            DeliveryApp.appContext.requestLocation()
             lastGPSPending = System.currentTimeMillis()
         }
     }
@@ -219,7 +221,7 @@ class ReportService : Service() {
         if (System.currentTimeMillis() > startTime + TIMELIMIT_NOTIFICATION_TIMEOUT) {
             GlobalScope.launch {
                 timelimitNotificationStartTime = null
-                if (MyApplication.instance.database.taskDao().allOpened.isEmpty()) {
+                if (database.taskDao().allOpened.isEmpty()) {
                     return@launch
                 }
                 withContext(Dispatchers.Main) {
@@ -257,11 +259,8 @@ class ReportService : Service() {
         NotificationManagerCompat.from(this).notify(1, notification(text, state))
     }
 
-    private suspend fun sendReportQuery(db: AppDatabase, item: ReportQueryItemEntity) {
-        NetworkHelper.sendReport(
-                item,
-                db.photosDao().getByTaskItemId(item.taskItemId)
-        )
+    private suspend fun sendReportQuery(item: ReportQueryItemEntity) {
+        repository.sendReport(item)
     }
 
     private fun getReportQuery(db: AppDatabase): ReportQueryItemEntity? {

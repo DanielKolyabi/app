@@ -2,12 +2,11 @@ package ru.relabs.kurjer.utils
 
 import androidx.fragment.app.Fragment
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.crashlytics.internal.common.CrashlyticsCore
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.selects.select
 import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.MyApplication
+import ru.relabs.kurjer.DeliveryApp
 
 
 /**
@@ -15,8 +14,8 @@ import ru.relabs.kurjer.MyApplication
  */
 
 
-fun application(): MyApplication {
-    return MyApplication.instance
+fun application(): DeliveryApp {
+    return DeliveryApp.appContext
 }
 
 fun Fragment.activity(): MainActivity? {

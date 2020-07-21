@@ -8,10 +8,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
-import ru.relabs.kurjer.MyApplication
+import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
-import ru.relabs.kurjer.repository.PauseType
+import ru.relabs.kurjer.domain.repositories.PauseType
 
 /**
  * Created by ProOrange on 11.08.2018.
@@ -20,7 +20,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(pushToken: String) {
         super.onNewToken(pushToken)
         GlobalScope.launch {
-            (application as? MyApplication)?.let {
+            (application as? DeliveryApp)?.let {
                 it.savePushToken(pushToken)
                 it.sendDeviceInfo(pushToken)
             }
@@ -35,10 +35,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     suspend fun processMessageData(data: Map<String, String>) {
         if (data.containsKey("request_gps")) {
-            (application as? MyApplication)?.user as? UserModel.Authorized ?: return
+            (application as? DeliveryApp)?.user as? UserModel.Authorized ?: return
             GlobalScope.launch {
-                val coordinates = MyApplication.instance.currentLocation
-                val token = (MyApplication.instance.user as UserModel.Authorized).token
+                val coordinates = DeliveryApp.appContext.currentLocation
+                val token = (DeliveryApp.appContext.user as UserModel.Authorized).token
                 try {
                     DeliveryServerAPI.api.sendGPS(token, coordinates.lat, coordinates.long, DateTime(coordinates.time).toString("yyyy-MM-dd'T'HH:mm:ss"))
                 } catch (e: Exception) {
@@ -70,7 +70,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val startTime = data["start_time"]?.toLongOrNull() ?: return@withContext
                 val pauseTypeInt = data["pause_type"]?.toIntOrNull() ?: return@withContext
                 val userId = data["user_id"]?.toIntOrNull() ?: return@withContext
-                if (userId.toString() != (MyApplication.instance.user as? UserModel.Authorized)?.login) {
+                if (userId.toString() != (DeliveryApp.appContext.user as? UserModel.Authorized)?.login) {
                     return@withContext
                 }
 
@@ -80,8 +80,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     else -> return@withContext
                 }
 
-                MyApplication.instance.pauseRepository.putPauseStartTime(pauseType, startTime)
-                MyApplication.instance.pauseRepository.updatePauseState(pauseType)
+                DeliveryApp.appContext.pauseRepository.putPauseStartTime(pauseType, startTime)
+                DeliveryApp.appContext.pauseRepository.updatePauseState(pauseType)
             }
         }
         if(data.containsKey("pause_stop")){
@@ -89,7 +89,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val stopTime = data["stop_time"]?.toLongOrNull() ?: return
                 val pauseTypeInt = data["pause_type"]?.toIntOrNull() ?: return
                 val userId = data["user_id"]?.toIntOrNull() ?: return
-                if (userId.toString() != (MyApplication.instance.user as? UserModel.Authorized)?.login) {
+                if (userId.toString() != (DeliveryApp.appContext.user as? UserModel.Authorized)?.login) {
                     return@run
                 }
 
@@ -99,8 +99,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     else -> return@run
                 }
 
-                MyApplication.instance.pauseRepository.putPauseEndTime(pauseType, stopTime)
-                MyApplication.instance.pauseRepository.updatePauseState(pauseType)
+                DeliveryApp.appContext.pauseRepository.putPauseEndTime(pauseType, stopTime)
+                DeliveryApp.appContext.pauseRepository.updatePauseState(pauseType)
             }
         }
     }

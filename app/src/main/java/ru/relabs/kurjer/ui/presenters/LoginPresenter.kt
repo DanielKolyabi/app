@@ -16,10 +16,10 @@ import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI.api
 import ru.relabs.kurjer.network.NetworkHelper
-import ru.relabs.kurjer.network.models.ErrorUtils
+import ru.relabs.kurjer.data.models.ErrorUtils
 import ru.relabs.kurjer.persistence.PersistenceHelper
-import ru.relabs.kurjer.repository.PauseRepository
-import ru.relabs.kurjer.repository.RadiusRepository
+import ru.relabs.kurjer.domain.repositories.PauseRepository
+import ru.relabs.kurjer.domain.repositories.RadiusRepository
 import ru.relabs.kurjer.ui.fragments.LoginFragment
 import ru.relabs.kurjer.utils.activity
 import ru.relabs.kurjer.utils.application
@@ -31,9 +31,9 @@ import java.util.*
 const val INVALID_TOKEN_ERROR_CODE = 4
 
 class LoginPresenter(
-        val fragment: LoginFragment,
-        val radiusRepository: RadiusRepository,
-        val pauseRepository: PauseRepository
+    val fragment: LoginFragment,
+    val radiusRepository: RadiusRepository,
+    val pauseRepository: PauseRepository
 ) {
 
     private var isPasswordRemembered = false

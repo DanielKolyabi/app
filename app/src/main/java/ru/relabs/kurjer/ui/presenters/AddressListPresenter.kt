@@ -1,11 +1,8 @@
 package ru.relabs.kurjer.ui.presenters
 
 import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
-import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -108,7 +105,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
 
     fun updateStates() {
         GlobalScope.launch(Dispatchers.Main) {
-            val db = (fragment.activity?.application as? MyApplication)?.database
+            val db = (fragment.activity?.application as? DeliveryApp)?.database
             db ?: return@launch
 
             withContext(Dispatchers.Default) {

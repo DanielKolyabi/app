@@ -37,9 +37,8 @@ import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
-import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.network.NetworkHelper
-import ru.relabs.kurjer.network.models.UpdateInfo
+import ru.relabs.kurjer.data.models.UpdateDataResponse
 import ru.relabs.kurjer.ui.adapters.SearchInputAdapter
 import ru.relabs.kurjer.ui.fragments.*
 import ru.relabs.kurjer.ui.helpers.setVisible
@@ -132,7 +131,7 @@ class MainActivity : AppCompatActivity() {
             }
             if (intent.getIntExtra("task_item_closed", 0) != 0) {
                 run {
-                    val db = (application as? MyApplication)?.database
+                    val db = (application as? DeliveryApp)?.database
                     db ?: return@run
                     GlobalScope.launch {
                         db.taskItemDao().getById(intent.getIntExtra("task_item_closed", 0))?.let {
@@ -187,7 +186,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         registerReceiver(gpsSwitchStateReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
-        MyApplication.instance.enableLocationListening()
+        DeliveryApp.appContext.enableLocationListening()
 
         serviceCheckingJob?.cancel()
         serviceCheckingJob = GlobalScope.launch(Default) {
@@ -301,7 +300,7 @@ class MainActivity : AppCompatActivity() {
             onBackPressed()
         }
         device_uuid.setOnClickListener {
-            val deviceUUID = (application as? MyApplication)?.deviceUUID?.split("-")?.last() ?: ""
+            val deviceUUID = (application as? DeliveryApp)?.deviceUUID?.split("-")?.last() ?: ""
             if (deviceUUID == "") {
                 showError("Не удалось получить device UUID")
                 return@setOnClickListener
@@ -446,7 +445,7 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (requestCode == 1) {
             permissions.indexOfFirst { it == android.Manifest.permission.ACCESS_FINE_LOCATION }.let {
-                if (it >= 0 && grantResults[it] == PackageManager.PERMISSION_GRANTED && !MyApplication.instance.enableLocationListening()) {
+                if (it >= 0 && grantResults[it] == PackageManager.PERMISSION_GRANTED && !DeliveryApp.appContext.enableLocationListening()) {
                     showError("Невозможно включить геолокацию")
                 }
             }
@@ -549,15 +548,15 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun processUpdate(updateInfo: UpdateInfo): Boolean {
-        if (updateInfo.version > BuildConfig.VERSION_CODE) {
+    private fun processUpdate(updateData: UpdateDataResponse): Boolean {
+        if (updateData.version > BuildConfig.VERSION_CODE) {
 
             showError("Доступно новое обновление.", object : ErrorButtonsListener {
                 override fun positiveListener() {
                     try {
-                        Log.d("updates", "Try install from ${updateInfo.url}")
+                        Log.d("updates", "Try install from ${updateData.url}")
                         loading.setVisible(true)
-                        installURL = URL(updateInfo.url)
+                        installURL = URL(updateData.url)
                         checkInstallUpdate()
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -570,7 +569,7 @@ class MainActivity : AppCompatActivity() {
                     loading.setVisible(false)
                 }
 
-            }, "Установить", if (updateInfo.isRequired) "" else "Напомнить позже")
+            }, "Установить", if (updateData.isRequired) "" else "Напомнить позже")
             return true
         }
         return false

@@ -22,7 +22,7 @@ class SplashActivity : AppCompatActivity() {
 
         AsyncTask.execute {
             GlobalScope.launch {
-                MyApplication.instance.pauseRepository.loadPauseDurations()
+                DeliveryApp.appContext.pauseRepository.loadPauseDurations()
                 Thread.sleep(500)
                 withContext(Dispatchers.Main) {
                     startActivity(Intent(this@SplashActivity, MainActivity::class.java))

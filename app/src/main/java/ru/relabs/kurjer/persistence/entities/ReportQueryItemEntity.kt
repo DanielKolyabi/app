@@ -12,29 +12,18 @@ import java.util.*
 
 @Entity(tableName = "report_query")
 data class ReportQueryItemEntity(
-        @PrimaryKey(autoGenerate = true)
-        var id: Int,
-        @ColumnInfo(name = "task_item_id")
-        var taskItemId: Int,
-        @ColumnInfo(name = "task_id")
-        var taskId: Int,
-        @ColumnInfo(name = "image_folder_id")
-        var imageFolderId: Int,
-        var gps: GPSCoordinatesModel?,
-        @ColumnInfo(name = "close_time")
-        var closeTime: Date,
-        @ColumnInfo(name = "user_description")
-        var userDescription: String,
-        var entrances: List<Pair<Int, Int>>,
-        var token: String,
-        @ColumnInfo(name = "battery_level")
-        var batteryLevel: Int,
-        @ColumnInfo(name = "remove_after_send")
-        var removeAfterSend: Boolean,
-        @ColumnInfo(name = "close_distance")
-        var closeDistance: Int,
-        @ColumnInfo(name = "allowed_distance")
-        var allowedDistance: Int,
-        @ColumnInfo(name = "radius_required")
-        var radiusRequired: Boolean
+    @PrimaryKey(autoGenerate = true) var id: Int,
+    @ColumnInfo(name = "task_item_id") var taskItemId: Int,
+    @ColumnInfo(name = "task_id") var taskId: Int,
+    @ColumnInfo(name = "image_folder_id") var imageFolderId: Int,
+    @ColumnInfo(name = "gps") var gps: GPSCoordinatesModel,
+    @ColumnInfo(name = "close_time") var closeTime: Date,
+    @ColumnInfo(name = "user_description") var userDescription: String,
+    @ColumnInfo(name = "entrances") var entrances: List<Pair<Int, Int>>,
+    @ColumnInfo(name = "token") var token: String,
+    @ColumnInfo(name = "battery_level") var batteryLevel: Int,
+    @ColumnInfo(name = "remove_after_send") var removeAfterSend: Boolean,
+    @ColumnInfo(name = "close_distance") var closeDistance: Int,
+    @ColumnInfo(name = "allowed_distance") var allowedDistance: Int,
+    @ColumnInfo(name = "radius_required") var radiusRequired: Boolean
 )

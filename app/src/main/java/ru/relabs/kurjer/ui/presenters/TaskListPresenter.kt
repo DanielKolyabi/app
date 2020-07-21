@@ -10,7 +10,7 @@ import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI.api
 import ru.relabs.kurjer.network.NetworkHelper
-import ru.relabs.kurjer.network.models.ErrorUtils
+import ru.relabs.kurjer.data.models.ErrorUtils
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity

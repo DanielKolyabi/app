@@ -3,11 +3,12 @@ package ru.relabs.kurjer
 import android.content.Intent
 import android.os.AsyncTask
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.view.Window
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SplashActivity : AppCompatActivity() {
 
@@ -20,10 +21,10 @@ class SplashActivity : AppCompatActivity() {
         startService(Intent(this, ReportService::class.java))
 
         AsyncTask.execute {
-            launch {
+            GlobalScope.launch {
                 MyApplication.instance.pauseRepository.loadPauseDurations()
                 Thread.sleep(500)
-                withContext(UI) {
+                withContext(Dispatchers.Main) {
                     startActivity(Intent(this@SplashActivity, MainActivity::class.java))
                     finish()
                 }

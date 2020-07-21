@@ -4,7 +4,7 @@ package ru.relabs.kurjer.persistence
  * Created by ProOrange on 30.08.2018.
  */
 
-import android.arch.persistence.room.TypeConverter
+import androidx.room.TypeConverter
 import android.util.Log
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement

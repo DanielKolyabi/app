@@ -3,14 +3,14 @@ package ru.relabs.kurjer.ui.presenters
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.support.v4.content.ContextCompat.startActivity
-import android.support.v4.content.FileProvider
+import androidx.core.content.ContextCompat.startActivity
+import androidx.core.content.FileProvider
 import android.util.Log
 import android.widget.Toast
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.AddressModel
@@ -107,13 +107,11 @@ class AddressListPresenter(val fragment: AddressListFragment) {
     }
 
     fun updateStates() {
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Main) {
             val db = (fragment.activity?.application as? MyApplication)?.database
-            db ?: run {
-                return@launch
-            }
+            db ?: return@launch
 
-            withContext(CommonPool) {
+            withContext(Dispatchers.Default) {
                 tasks.forEach { task ->
                     task.items.map { item ->
                         val savedState = db.taskItemDao().getById(item.id)?.state
@@ -126,7 +124,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
             }
 
             applySorting()
-            withContext(CommonPool) { checkTasksIsClosed(db) }
+            withContext(Dispatchers.Default) { checkTasksIsClosed(db) }
             if (tasks.size == 0) {
                 (fragment.context as? MainActivity)?.showTaskListScreen(false)
             } else {

@@ -2,7 +2,7 @@ package ru.relabs.kurjer.repository
 
 import android.content.SharedPreferences
 import android.util.Log
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import retrofit2.HttpException
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.ReportService
@@ -44,9 +44,9 @@ class PauseRepository(
         loadDuration = sharedPreferences.getInt(LOAD_KEY, loadDuration)
     }
 
-    suspend fun loadPauseDurations() = withContext(DefaultDispatcher) {
+    suspend fun loadPauseDurations() = withContext(Dispatchers.Default) {
         tryOrLogAsync {
-            val response = api.getPauseDurations().await()
+            val response = api.getPauseDurations()
             sharedPreferences.edit()
                     .putInt(LUNCH_KEY, response.lunch.toInt())
                     .putInt(LOAD_KEY, response.loading.toInt())
@@ -102,7 +102,7 @@ class PauseRepository(
         }
 
         return try {
-            api.isPauseAllowed((application().user as UserModel.Authorized).token, pauseType).await().status
+            api.isPauseAllowed((application().user as UserModel.Authorized).token, pauseType).status
         } catch (e: HttpException) {
             val remotePauseTime = ErrorUtils.getError(e).data["last_pause"] as? Long
             remotePauseTime?.let {
@@ -160,8 +160,8 @@ class PauseRepository(
         }
 
         pauseEndJob?.cancel()
-        pauseEndJob = launch(CommonPool) {
-            delay(pauseEndTime - currentTime + 10, TimeUnit.SECONDS)
+        pauseEndJob = GlobalScope.launch(Dispatchers.Default) {
+            delay((pauseEndTime - currentTime + 10)*1000)
             updatePauseState()
         }
 
@@ -263,10 +263,10 @@ class PauseRepository(
         return null
     }
 
-    suspend fun loadLastPausesRemote() = withContext(DefaultDispatcher) {
+    suspend fun loadLastPausesRemote() = withContext(Dispatchers.Default) {
         val token = tokenProvider() ?: return@withContext
         tryOrLogAsync {
-            val response = api.getLastPauseTimes(token).await()
+            val response = api.getLastPauseTimes(token)
             putPauseStartTime(PauseType.Load, response.start.loading)
             putPauseStartTime(PauseType.Lunch, response.start.lunch)
             putPauseEndTime(PauseType.Load, response.end.loading)

@@ -2,13 +2,13 @@ package ru.relabs.kurjer.ui.presenters
 
 import android.content.Intent
 import android.net.Uri
-import android.support.v4.content.ContextCompat
-import android.support.v4.content.FileProvider
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import android.widget.Toast
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
@@ -26,10 +26,10 @@ class TaskDetailsPresenter(val fragment: TaskDetailsFragment) {
     }
 
     fun onExaminedClicked(task: TaskModel) {
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Main) {
             val db = application().database
 
-            withContext(CommonPool) {
+            withContext(Dispatchers.Default) {
                 val taskEntity = db.taskDao().getById(task.id) ?: return@withContext
 
                 taskEntity.state = TaskModel.EXAMINED

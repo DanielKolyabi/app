@@ -2,9 +2,11 @@ package ru.relabs.kurjer.models
 
 import android.os.Parcel
 import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 import ru.relabs.kurjer.persistence.entities.TaskEntity
 import java.util.*
 
+@Parcelize
 data class TaskModel(
         var id: Int,
         var name: String,
@@ -35,58 +37,8 @@ data class TaskModel(
             state
         }
 
-    val displayName = "${name} №${edition}, ${copies}экз., (${brigade}бр/${area}уч)"
-
-    constructor(parcel: Parcel) : this(
-            parcel.readInt(),
-            parcel.readString(),
-            parcel.readInt(),
-            parcel.readInt(),
-            parcel.readInt(),
-            parcel.readInt(),
-            parcel.readInt(),
-            parcel.readInt(),
-            parcel.readSerializable() as Date,
-            parcel.readSerializable() as Date,
-            parcel.readInt(),
-            parcel.readString(),
-            parcel.readString(),
-            parcel.readInt(),
-            arrayListOf<TaskItemModel>().apply {
-                parcel.readList(this, TaskItemModel::class.java.classLoader)
-            },
-            parcel.readString(),
-            parcel.readString(),
-            parcel.readInt(),
-            parcel.readByte() != 0.toByte(),
-            parcel.readInt())
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeInt(id)
-        parcel.writeString(name)
-        parcel.writeInt(edition)
-        parcel.writeInt(copies)
-        parcel.writeInt(packs)
-        parcel.writeInt(remain)
-        parcel.writeInt(area)
-        parcel.writeInt(state)
-        parcel.writeSerializable(startTime)
-        parcel.writeSerializable(endTime)
-        parcel.writeInt(brigade)
-        parcel.writeString(brigadier)
-        parcel.writeString(rastMapUrl)
-        parcel.writeInt(userId)
-        parcel.writeList(items)
-        parcel.writeString(city)
-        parcel.writeString(storageAddress)
-        parcel.writeInt(iteration)
-        parcel.writeByte(if (selected) 1 else 0)
-        parcel.writeInt(coupleType)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
+    val displayName
+        get() = "${name} №${edition}, ${copies}экз., (${brigade}бр/${area}уч)"
 
     fun toTaskEntity(): TaskEntity {
         return TaskEntity(
@@ -98,15 +50,7 @@ data class TaskModel(
     fun isAvailableByDate(date: Date): Boolean = (date >= startTime)
     fun canShowedByDate(date: Date): Boolean = date <= Date(endTime.time)
 
-    companion object CREATOR : Parcelable.Creator<TaskModel> {
-        override fun createFromParcel(parcel: Parcel): TaskModel {
-            return TaskModel(parcel)
-        }
-
-        override fun newArray(size: Int): Array<TaskModel?> {
-            return arrayOfNulls(size)
-        }
-
+    companion object {
         val CREATED = 0
         val EXAMINED = 1
         val STARTED = 2

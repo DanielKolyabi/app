@@ -24,7 +24,7 @@ data class ErrorModel(
 object ErrorUtils{
     fun getError(e: HttpException): ResponseErrorModel{
         try {
-            val serializedError = e.response().errorBody()?.string()
+            val serializedError = e.response()?.errorBody()?.string()
             return Gson().fromJson(serializedError, ErrorModel::class.java).error!!
         }catch (e: Exception){
             e.printStackTrace()

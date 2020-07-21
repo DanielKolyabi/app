@@ -1,10 +1,10 @@
 package ru.relabs.kurjer.ui.helpers
 
 import android.content.SharedPreferences
-import android.support.constraint.ConstraintLayout
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.Transformation
+import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.android.synthetic.main.include_hint_container.view.*
 
 /**

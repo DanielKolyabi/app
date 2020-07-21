@@ -8,11 +8,11 @@ import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
-import android.support.v4.app.Fragment
-import android.support.v4.graphics.ColorUtils
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.graphics.ColorUtils
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Circle
@@ -20,6 +20,7 @@ import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.runtime.image.ImageProvider
+import kotlinx.android.parcel.Parcelize
 import kotlinx.android.synthetic.main.fragment_yandex_map.*
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.utils.application
@@ -174,34 +175,11 @@ class YandexMapFragment : Fragment() {
                 }
     }
 
+    @Parcelize
     data class AddressWithColor(
             val address: AddressModel,
             val color: Int
-    ) : Parcelable {
-        constructor(parcel: Parcel) : this(
-                parcel.readParcelable(AddressModel::class.java.classLoader),
-                parcel.readInt()
-        )
-
-        override fun writeToParcel(parcel: Parcel, flags: Int) {
-            parcel.writeParcelable(address, flags)
-            parcel.writeInt(color)
-        }
-
-        override fun describeContents(): Int {
-            return 0
-        }
-
-        companion object CREATOR : Parcelable.Creator<AddressWithColor> {
-            override fun createFromParcel(parcel: Parcel): AddressWithColor {
-                return AddressWithColor(parcel)
-            }
-
-            override fun newArray(size: Int): Array<AddressWithColor?> {
-                return arrayOfNulls(size)
-            }
-        }
-    }
+    ) : Parcelable
 }
 
 

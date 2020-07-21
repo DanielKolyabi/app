@@ -3,10 +3,10 @@ package ru.relabs.kurjer.utils
 import android.content.Intent
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
 import ru.relabs.kurjer.MyApplication
 import ru.relabs.kurjer.models.UserModel
@@ -19,7 +19,7 @@ import ru.relabs.kurjer.repository.PauseType
 class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(pushToken: String) {
         super.onNewToken(pushToken)
-        launch {
+        GlobalScope.launch {
             (application as? MyApplication)?.let {
                 it.savePushToken(pushToken)
                 it.sendDeviceInfo(pushToken)
@@ -28,7 +28,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(msg: RemoteMessage) {
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Default) {
             processMessageData(msg.data)
         }
     }
@@ -36,11 +36,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     suspend fun processMessageData(data: Map<String, String>) {
         if (data.containsKey("request_gps")) {
             (application as? MyApplication)?.user as? UserModel.Authorized ?: return
-            launch {
+            GlobalScope.launch {
                 val coordinates = MyApplication.instance.currentLocation
                 val token = (MyApplication.instance.user as UserModel.Authorized).token
                 try {
-                    DeliveryServerAPI.api.sendGPS(token, coordinates.lat, coordinates.long, DateTime(coordinates.time).toString("yyyy-MM-dd'T'HH:mm:ss")).await()
+                    DeliveryServerAPI.api.sendGPS(token, coordinates.lat, coordinates.long, DateTime(coordinates.time).toString("yyyy-MM-dd'T'HH:mm:ss"))
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -66,7 +66,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             }
         }
         if(data.containsKey("pause_start")){
-            withContext(CommonPool) {
+            withContext(Dispatchers.Default) {
                 val startTime = data["start_time"]?.toLongOrNull() ?: return@withContext
                 val pauseTypeInt = data["pause_type"]?.toIntOrNull() ?: return@withContext
                 val userId = data["user_id"]?.toIntOrNull() ?: return@withContext

@@ -1,10 +1,11 @@
 package ru.relabs.kurjer.utils
 
-import android.support.v4.app.Fragment
-import com.crashlytics.android.Crashlytics
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.selects.select
+import androidx.fragment.app.Fragment
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.crashlytics.internal.common.CrashlyticsCore
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.selects.select
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.MyApplication
 
@@ -25,7 +26,7 @@ fun Fragment.activity(): MainActivity? {
 fun Throwable.logError() {
     this.printStackTrace()
 
-    Crashlytics.logException(this)
+    FirebaseCrashlytics.getInstance().recordException(this)
     val stacktrace = CustomLog.getStacktraceAsString(this)
     CustomLog.writeToFile(stacktrace)
 }

@@ -12,12 +12,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
-import android.support.v4.content.FileProvider
-import android.support.v7.widget.RecyclerView
+import androidx.core.content.FileProvider
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import kotlinx.android.synthetic.main.fragment_report.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.*
 import ru.relabs.kurjer.*
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper.getTaskItemPhotoFile
@@ -62,11 +61,11 @@ class ReportPresenter(
 
         val db = (fragment.activity?.application as? MyApplication)?.database
         db?.let {
-            launch {
+            GlobalScope.launch {
                 fillPhotosAdapterData(db)
                 fillEntrancesAdapterData(db)
                 fillDescriptionData(db)
-                withContext(UI) {
+                withContext(Dispatchers.Main) {
                     try {
                         fragment.loading.visibility = View.GONE
                     } catch (e: Throwable) {
@@ -93,7 +92,7 @@ class ReportPresenter(
 
     private fun fillDescriptionData(db: AppDatabase) {
         db.taskItemResultsDao().getByTaskItemId(fragment.taskItems[currentTask].id)?.let {
-            launch(UI) {
+            GlobalScope.launch(Dispatchers.Main) {
                 tryOrLog {
                     fragment?.user_explanation_input?.setText(it.description)
                 }
@@ -106,19 +105,19 @@ class ReportPresenter(
             fragment?.showPauseError()
             return
         }
-        launch(CommonPool) {
+        GlobalScope.launch(Dispatchers.Default) {
             tryOrLogAsync {
                 if (!MyApplication.instance.pauseRepository.isPauseAvailableRemote(type)) {
-                    withContext(UI) {
+                    withContext(Dispatchers.Main) {
                         fragment?.showPauseError()
                     }
                     return@tryOrLogAsync
                 }
 
                 MyApplication.instance.pauseRepository.startPause(type, withNotify = true)
-                withContext(UI) {
-                    fragment.updatePauseButtonEnabled()
-                }
+            }
+            withContext(Dispatchers.Main) {
+                fragment.updatePauseButtonEnabled()
             }
         }
     }
@@ -167,24 +166,24 @@ class ReportPresenter(
         return entrances
     }
 
-    private suspend fun fillEntrancesAdapterData(db: AppDatabase) = withContext(CommonPool) {
+    private suspend fun fillEntrancesAdapterData(db: AppDatabase) = withContext(Dispatchers.Default) {
 
         val entrances = getTaskItemEntranceData(fragment.taskItems[currentTask], fragment.tasks[currentTask], db)
 
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Main) {
             fragment.entrancesListAdapter.data.clear()
             fragment.entrancesListAdapter.data.addAll(entrances)
             fragment.entrancesListAdapter.notifyDataSetChanged()
         }
     }
 
-    suspend fun fillPhotosAdapterData(db: AppDatabase) = withContext(CommonPool) {
+    suspend fun fillPhotosAdapterData(db: AppDatabase) = withContext(Dispatchers.Default) {
         fragment.photosListAdapter.data.clear()
         val taskPhotos = db.photosDao().getByTaskItemId(fragment.taskItems[currentTask].id).map {
             it.toTaskItemPhotoModel(db)
         }.filterNotNull()
 
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Main) {
             fragment.photosListAdapter.data.add(ReportPhotosListModel.BlankPhoto(fragment.taskItems[currentTask].needPhoto, taskPhotos.any { it.entranceNumber == -1 }))
             taskPhotos.forEach {
                 fragment.photosListAdapter.data.add(ReportPhotosListModel.TaskItemPhoto(it, it.getPhotoURI()))
@@ -217,7 +216,7 @@ class ReportPresenter(
             }
         }
 
-        launch(CommonPool) {
+        GlobalScope.launch(Dispatchers.Default) {
             val db = MyApplication.instance.database
 
             if (data.coupleEnabled) {
@@ -245,7 +244,7 @@ class ReportPresenter(
             } catch (e: Throwable) {
                 CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
             }
-            withContext(UI) { fragment.entrancesListAdapter.notifyItemChanged(holder.adapterPosition) }
+            withContext(Dispatchers.Main) { fragment.entrancesListAdapter.notifyItemChanged(holder.adapterPosition) }
         }
     }
 
@@ -253,7 +252,7 @@ class ReportPresenter(
         fragment.user_explanation_input ?: return
         val description = fragment.user_explanation_input.text.toString()
 
-        launch(CommonPool) {
+        GlobalScope.launch(Dispatchers.Default) {
             try {
                 createOrUpdateTaskResult(fragment.taskItems[currentTask].id, description = description)
             } catch (e: Exception) {
@@ -453,12 +452,12 @@ class ReportPresenter(
 
             photo.recycle()
         }
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Main) {
             val db = MyApplication.instance.database
             var currentGPS = application().currentLocation
 
             val photoEntity = TaskItemPhotoEntity(0, photoUUID.toString(), currentGPS, fragment.taskItems[currentTask].id, entranceNumber)
-            val photoModel = withContext(CommonPool) {
+            val photoModel = withContext(Dispatchers.Default) {
                 val id = db.photosDao().insert(photoEntity)
                 db.photosDao().getById(id.toInt()).toTaskItemPhotoModel(db)
             }
@@ -487,7 +486,7 @@ class ReportPresenter(
             (fragment.context as MainActivity).showError("Не возможно удалить фото из памяти.")
         }
         val taskItemPhotoId = (fragment.photosListAdapter.data[holder.adapterPosition] as ReportPhotosListModel.TaskItemPhoto).taskItem.id
-        launch {
+        GlobalScope.launch {
             val db = MyApplication.instance.database
             val photoEntity = db.photosDao().getById(taskItemPhotoId)
             db.photosDao().delete(photoEntity)
@@ -497,7 +496,7 @@ class ReportPresenter(
     }
 
 
-    fun onCloseClicked(checkPause: Boolean = true) = launch(UI) {
+    fun onCloseClicked(checkPause: Boolean = true) = GlobalScope.launch(Dispatchers.Main) {
         if (MyApplication.instance.pauseRepository.isPaused) {
             if (checkPause) {
                 fragment.showPauseWarning()
@@ -609,11 +608,13 @@ class ReportPresenter(
     }
 
     private suspend fun reloadGPSCoordinates() {
-        fragment?.showGPSLoadingDialog()
-        val delayJob = async { delay(40 * 1000) }
-        val gpsJob = async(UI) { requestGPSCoordinates() }
-        listOf(delayJob, gpsJob).awaitFirst()
-        fragment?.hideGPSLoadingDialog()
+        coroutineScope {
+            fragment?.showGPSLoadingDialog()
+            val delayJob = async { delay(40 * 1000) }
+            val gpsJob = async(Dispatchers.Main) { requestGPSCoordinates() }
+            listOf(delayJob, gpsJob).awaitFirst()
+            fragment?.hideGPSLoadingDialog()
+        }
     }
 
     private fun closeClicked(
@@ -624,7 +625,7 @@ class ReportPresenter(
             allowedDistance: Int,
             radiusRequired: Boolean
     ) {
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Main) {
             showCloseDialog(description, forceRemove
                     ?: (distance < allowedDistance), location, distance, allowedDistance, radiusRequired)
         }
@@ -674,18 +675,18 @@ class ReportPresenter(
     ): Boolean {
         val app = application()
         if (MyApplication.instance.pauseRepository.isPaused) {
-            launch(CommonPool) {
+            GlobalScope.launch(Dispatchers.Default) {
                 MyApplication.instance.pauseRepository.stopPause(withNotify = true, withUpdate = true)
             }
         }
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Default) {
             val db = app.database
             val userToken = (app.user as? UserModel.Authorized)?.token ?: ""
             val entrances = fragment.entrancesListAdapter.data
                     .filter { it is ReportEntrancesListModel.Entrance }
                     .map { it as ReportEntrancesListModel.Entrance }
 
-            withContext(CommonPool) {
+            withContext(Dispatchers.Default) {
                 try {
                     createOrUpdateTaskResult(
                             fragment.taskItems[currentTask].id,

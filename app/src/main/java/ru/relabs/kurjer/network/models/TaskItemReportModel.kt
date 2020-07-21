@@ -1,6 +1,6 @@
 package ru.relabs.kurjer.network.models
 
-import android.arch.persistence.room.ColumnInfo
+import androidx.room.ColumnInfo
 import com.google.gson.annotations.SerializedName
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import java.util.*

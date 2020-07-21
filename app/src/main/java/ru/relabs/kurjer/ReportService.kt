@@ -11,10 +11,9 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.support.v4.app.NotificationCompat
-import android.support.v4.app.NotificationManagerCompat
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.UI
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import kotlinx.coroutines.*
 import org.joda.time.DateTime
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
@@ -116,7 +115,7 @@ class ReportService : Service() {
         var lastNetworkEnabledChecking = System.currentTimeMillis()
 
         thread?.cancel()
-        thread = launch {
+        thread = GlobalScope.launch {
             while (true) {
                 val db = MyApplication.instance.database
 
@@ -148,7 +147,7 @@ class ReportService : Service() {
                             val user = app.user as UserModel.Authorized
                             val time = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
                             try {
-                                val tasks = DeliveryServerAPI.api.getTasks(user.token, time).await()
+                                val tasks = DeliveryServerAPI.api.getTasks(user.token, time)
                                 if (PersistenceHelper.isMergeNeeded(app.database, tasks.map { it.toTaskModel(app.deviceUUID) })) {
                                     val int = Intent().apply {
                                         putExtra("tasks_changed", true)
@@ -218,12 +217,12 @@ class ReportService : Service() {
         startTime ?: return
 
         if (System.currentTimeMillis() > startTime + TIMELIMIT_NOTIFICATION_TIMEOUT) {
-            launch(CommonPool) {
+            GlobalScope.launch {
                 timelimitNotificationStartTime = null
                 if (MyApplication.instance.database.taskDao().allOpened.isEmpty()) {
                     return@launch
                 }
-                withContext(UI) {
+                withContext(Dispatchers.Main) {
                     val intent = Intent(applicationContext, AlertNotificationActivity::class.java)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     intent.addFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME)
@@ -293,8 +292,8 @@ class ReportService : Service() {
         timelimitNotificationStartTime = null
         timeUntilRun = (timeLimitStart + TIMELIMIT_NOTIFICATION_TIMEOUT - System.currentTimeMillis()).toInt()
         pauseDisableJob?.cancel()
-        pauseDisableJob = launch {
-            delay(endTime - startTime, TimeUnit.SECONDS)
+        pauseDisableJob = GlobalScope.launch {
+            delay((endTime - startTime)*1000)
             if (!isActive) return@launch
             startTaskClosingTimer(true)
         }

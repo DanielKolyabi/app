@@ -3,8 +3,8 @@ package ru.relabs.kurjer.persistence
 import android.os.Environment
 import android.os.StatFs
 import android.util.Log
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
@@ -79,7 +79,7 @@ object PersistenceHelper {
             db: AppDatabase,
             newTasks: List<TaskModel>
     ): Boolean {
-        return withContext(CommonPool) {
+        return withContext(Dispatchers.Default) {
             val savedTasksIDs = db.taskDao().all.map { it.id }
             val newTasksIDs = newTasks.map { it.id }
 
@@ -112,7 +112,7 @@ object PersistenceHelper {
             onTaskChanged: (oldTask: TaskModel, newTask: TaskModel) -> Unit
     ): MergeResult {
         val result = MergeResult(false, false)
-        withContext(CommonPool) {
+        withContext(Dispatchers.Default) {
             val savedTasksIDs = db.taskDao().all.map { it.id }
             val newTasksIDs = newTasks.map { it.id }
 

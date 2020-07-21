@@ -1,7 +1,7 @@
 package ru.relabs.kurjer.ui.adapters
 
 import android.content.Context
-import android.support.v4.app.FragmentManager
+import androidx.fragment.app.FragmentManager
 import android.widget.ArrayAdapter
 import android.widget.Filter
 import ru.relabs.kurjer.ui.fragments.SearchableFragment

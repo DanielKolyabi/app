@@ -8,13 +8,11 @@ import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.view.Window
 import android.view.WindowManager
 import kotlinx.android.synthetic.main.alert_activity.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.*
 
 /**
  * Created by Daniil Kurchanov on 06.08.2019.
@@ -41,7 +39,7 @@ class AlertNotificationActivity: AppCompatActivity() {
                     or WindowManager.LayoutParams.FLAG_ALLOW_LOCK_WHILE_SCREEN_ON)
         }
 
-        val job = launch(CommonPool) {
+        val job = GlobalScope.launch(Dispatchers.Default) {
             delay(30000)
             if(!isActive){
                 return@launch

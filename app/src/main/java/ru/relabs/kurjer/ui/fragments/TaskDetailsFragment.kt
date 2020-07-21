@@ -1,8 +1,8 @@
 package ru.relabs.kurjer.ui.fragments
 
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v7.widget.LinearLayoutManager
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +10,7 @@ import kotlinx.android.synthetic.main.fragment_task_details.*
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.models.TaskModel.CREATOR.TASK_STATE_MASK
+import ru.relabs.kurjer.models.TaskModel.Companion.TASK_STATE_MASK
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.TaskDetailsHeaderDelegate
 import ru.relabs.kurjer.ui.delegates.TaskDetailsInfoDelegate
@@ -28,7 +28,7 @@ class TaskDetailsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            task = it.getParcelable("task")
+            task = it.getParcelable("task")!!
             posInList = it.getInt("pos_in_list")
         }
     }

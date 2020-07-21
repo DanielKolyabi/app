@@ -3,10 +3,10 @@ package ru.relabs.kurjer.ui.presenters
 import android.content.Context
 import android.util.Log
 import kotlinx.android.synthetic.main.fragment_login.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
 import retrofit2.HttpException
 import ru.relabs.kurjer.BuildConfig
@@ -54,7 +54,7 @@ class LoginPresenter(
             return
         }
 
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Main) {
             val db = application().database
             val sharedPref = application().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
             fragment.setLoginButtonLoading(true)
@@ -62,9 +62,9 @@ class LoginPresenter(
                 val time = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
 
                 val response = if (!authByToken)
-                    api.login(login, pwd, application().deviceUUID, time).await()
+                    api.login(login, pwd, application().deviceUUID, time)
                 else
-                    api.loginByToken(pwd, application().deviceUUID, time).await()
+                    api.loginByToken(pwd, application().deviceUUID, time)
 
                 if (response.error != null) {
                     if (response.error.code == INVALID_TOKEN_ERROR_CODE) {
@@ -83,7 +83,7 @@ class LoginPresenter(
                 }
                 if (sharedPref.getString("last_login", "") != response.user.login) {
                     Log.d("login", "Clear local database. User changed. Last login ${sharedPref.getString("last_login", "")}. New login ${response.user.login}")
-                    withContext(CommonPool) {
+                    withContext(Dispatchers.Default) {
                         db.taskDao().all.forEach {
                             PersistenceHelper.closeTaskById(db, it.id)
                         }

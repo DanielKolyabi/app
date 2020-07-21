@@ -19,6 +19,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.REQUEST_LOCATION
 import ru.relabs.kurjer.files.ImageUtils
@@ -146,7 +147,7 @@ object NetworkHelper {
                 data.batteryLevel, data.closeDistance, data.allowedDistance, data.radiusRequired
         )
 
-        return api.sendTaskReport(data.taskItemId, data.token, reportObject, photoParts).await().status
+        return api.sendTaskReport(data.taskItemId, data.token, reportObject, photoParts).status
     }
 
     private fun photoEntityToPart(partName: String, reportEnt: ReportQueryItemEntity, photoEnt: TaskItemPhotoEntity): MultipartBody.Part {
@@ -157,14 +158,11 @@ object NetworkHelper {
         if (!photoFile.exists()) {
             throw FileNotFoundException(photoFile.path)
         }
-        val extension = Uri.fromFile(photoFile).toString().split(".").last()
-        val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
 
-        val requestFile = RequestBody.create(
-                MediaType.parse(mime),
-                photoFile
-        )
-        return MultipartBody.Part.createFormData(partName, photoFile.name, requestFile)
+        val request =
+            RequestBody.run { photoFile.asRequestBody(MediaType.run { "image/jpeg".toMediaType() }) }
+
+        return MultipartBody.Part.createFormData(partName, photoFile.name, request)
     }
 
     fun loadTaskRasterizeMap(task: TaskModel, contentResolver: ContentResolver?) {

@@ -1,7 +1,8 @@
 package ru.relabs.kurjer.repository
 
 import android.content.SharedPreferences
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.*
 import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.utils.tryOrLogAsync
 
@@ -35,7 +36,7 @@ class RadiusRepository(
 
     suspend fun startRemoteUpdating() {
         updateJob?.cancel()
-        updateJob = launch(DefaultDispatcher) {
+        updateJob = GlobalScope.launch(Dispatchers.Default) {
             while (isActive) {
                 loadRadiusRemote()
                 delay(30 * 1000)
@@ -43,10 +44,10 @@ class RadiusRepository(
         }
     }
 
-    suspend fun loadRadiusRemote() = withContext(DefaultDispatcher) {
+    suspend fun loadRadiusRemote() = withContext(Dispatchers.Default) {
         val token = tokenProvider() ?: return@withContext
         tryOrLogAsync {
-            val response = api.getRadius(token).await()
+            val response = api.getRadius(token)
             sharedPreferences.edit()
                     .putBoolean(RADIUS_REQUIRED_KEY, response.locked)
                     .putInt(RADIUS_KEY, response.radius)

@@ -6,8 +6,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.Window
 import kotlinx.android.synthetic.main.dialog_timer_loading.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.*
 import ru.relabs.kurjer.R
 
 /**
@@ -32,11 +31,11 @@ class GPSRequestTimeDialog(ctx: Context, val cancelable: Boolean = false) :
         tv_progress?.visibility = View.VISIBLE
         tv_progress?.text = "Ищём вас по GPS"
 
-        timerJob = launch{
+        timerJob = GlobalScope.launch{
             while(isActive){
                 delay(100)
                 progress++
-                withContext(UI){
+                withContext(Dispatchers.Main){
                     pb_loader?.progress = progress
                 }
             }

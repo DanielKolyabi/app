@@ -3,7 +3,6 @@ package ru.relabs.kurjer.ui.holders
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.graphics.Color
-import android.support.v4.graphics.ColorUtils
 import android.view.View
 import kotlinx.android.synthetic.main.item_addr_list_task.view.*
 import ru.relabs.kurjer.models.TaskItemModel
@@ -12,6 +11,7 @@ import ru.relabs.kurjer.ui.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.ui.models.AddressListModel
 import android.animation.ValueAnimator
 import android.animation.ArgbEvaluator
+import androidx.core.graphics.ColorUtils
 import ru.relabs.kurjer.R
 
 

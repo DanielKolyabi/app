@@ -1,7 +1,7 @@
 package ru.relabs.kurjer.persistence.entities
 
-import android.arch.persistence.room.Entity
-import android.arch.persistence.room.PrimaryKey
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 /**
  * Created by ProOrange on 06.09.2018.

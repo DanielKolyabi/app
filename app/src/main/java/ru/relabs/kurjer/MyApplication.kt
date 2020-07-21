@@ -2,17 +2,16 @@ package ru.relabs.kurjer
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.arch.persistence.db.SupportSQLiteDatabase
-import android.arch.persistence.room.Room
-import android.arch.persistence.room.migration.Migration
 import android.content.Context
 import android.content.pm.PackageManager
 import android.media.MediaDrm
 import android.os.Build
 import android.os.StrictMode
-import android.support.v4.content.ContextCompat
 import android.telephony.TelephonyManager
-import com.crashlytics.android.Crashlytics
+import androidx.core.content.ContextCompat
+import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -21,9 +20,9 @@ import com.google.android.gms.location.LocationResult
 import com.google.firebase.iid.FirebaseInstanceId
 import com.instacart.library.truetime.TrueTime
 import com.yandex.mapkit.MapKitFactory
-import io.fabric.sdk.android.Fabric
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI
@@ -58,7 +57,11 @@ class MyApplication : Application() {
 
         override fun onLocationResult(location: LocationResult?) {
             location?.let {
-                currentLocation = GPSCoordinatesModel(it.lastLocation.latitude, it.lastLocation.longitude, Date(it.lastLocation.time))
+                currentLocation = GPSCoordinatesModel(
+                    it.lastLocation.latitude,
+                    it.lastLocation.longitude,
+                    Date(it.lastLocation.time)
+                )
             }
         }
     }
@@ -70,7 +73,8 @@ class MyApplication : Application() {
             when {
                 Build.VERSION.SDK_INT >= 29 -> {
                     val WIDEVINE_UUID = UUID(-0x121074568629b532L, -0x5c37d8232ae2de13L)
-                    val id = MediaDrm(WIDEVINE_UUID).getPropertyByteArray(MediaDrm.PROPERTY_DEVICE_UNIQUE_ID)
+                    val id =
+                        MediaDrm(WIDEVINE_UUID).getPropertyByteArray(MediaDrm.PROPERTY_DEVICE_UNIQUE_ID)
                     Base64.getEncoder().encodeToString(id)
                 }
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ->
@@ -102,13 +106,12 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        launch {
+        GlobalScope.launch {
             while (!initTrueTime()) {
                 delay(500)
             }
             CustomLog.writeToFile("True Time initialized")
         }
-        Fabric.with(this, Crashlytics())
 
         locationManager = FusedLocationProviderClient(applicationContext)
         instance = this
@@ -130,7 +133,8 @@ class MyApplication : Application() {
         }
         val migration_28_29 = object : Migration(28, 29) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("""
+                database.execSQL(
+                    """
                     CREATE TABLE entrances_data(
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         task_item_id INTEGER NOT NULL,
@@ -142,7 +146,8 @@ class MyApplication : Application() {
                         is_refused INTEGER NOT NULL,
                         FOREIGN KEY(task_item_id) REFERENCES task_items(id) ON DELETE CASCADE
                     )
-                """.trimIndent())
+                """.trimIndent()
+                )
             }
         }
         val migration_29_30 = object : Migration(29, 30) {
@@ -174,26 +179,32 @@ class MyApplication : Application() {
         }
 
         database = Room
-                .databaseBuilder(applicationContext, AppDatabase::class.java, "deliveryman")
-                .addMigrations(migration_26_27, migration_27_28, migration_28_29,
-                        migration_29_30, migration_30_31, migration_31_32, migration_32_33,
-                        migration_33_34)
-                .build()
+            .databaseBuilder(applicationContext, AppDatabase::class.java, "deliveryman")
+            .addMigrations(
+                migration_26_27, migration_27_28, migration_28_29,
+                migration_29_30, migration_30_31, migration_31_32, migration_32_33,
+                migration_33_34
+            )
+            .build()
 
         pauseRepository = PauseRepository(
-                DeliveryServerAPI.api,
-                getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE),
-                database
+            DeliveryServerAPI.api,
+            getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE),
+            database
         ) { (user as? UserModel.Authorized)?.token }
         radiusRepository = RadiusRepository(
-                DeliveryServerAPI.api,
-                getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+            DeliveryServerAPI.api,
+            getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
         ) { (user as? UserModel.Authorized)?.token }
         locationProvider = getLocationProvider(this)
     }
 
     fun requestLocation() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             return
         }
 
@@ -205,7 +216,11 @@ class MyApplication : Application() {
     }
 
     fun enableLocationListening(time: Long = 60 * 1000, distance: Float = 10f): Boolean {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             return false
         }
 
@@ -224,15 +239,21 @@ class MyApplication : Application() {
     fun storeUserCredentials() {
         if (user !is UserModel.Authorized) return
         getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-                .edit()
-                .putString("login", (user as UserModel.Authorized).login)
-                .putString("token", (user as UserModel.Authorized).token)
-                .apply()
+            .edit()
+            .putString("login", (user as UserModel.Authorized).login)
+            .putString("token", (user as UserModel.Authorized).token)
+            .apply()
     }
 
     fun getUserCredentials(): UserModel.Authorized? {
-        val login = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE).getString("login", "-unknw")
-        val token = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE).getString("token", "-unknw")
+        val login = getSharedPreferences(
+            BuildConfig.APPLICATION_ID,
+            Context.MODE_PRIVATE
+        ).getString("login", "-unknw") ?: "-unknw"
+        val token = getSharedPreferences(
+            BuildConfig.APPLICATION_ID,
+            Context.MODE_PRIVATE
+        ).getString("token", "-unknw") ?: "-unknw"
         if (token == "-unknw") {
             return null
         }
@@ -241,33 +262,32 @@ class MyApplication : Application() {
 
     fun restoreUserCredentials() {
         getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-                .edit()
-                .remove("login")
-                .remove("token")
-                .apply()
+            .edit()
+            .remove("login")
+            .remove("token")
+            .apply()
     }
 
 
     fun getOrGenerateDeviceUUID(): String {
-        val sharedPreferences = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-        var deviceUUID = sharedPreferences.getString(
-                "device_uuid", "unknown"
-        )
+        val sharedPreferences =
+            getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+        var deviceUUID = sharedPreferences.getString("device_uuid", "unknown") ?: "unknown"
 
         if (deviceUUID == "unknown") {
             deviceUUID = UUID.randomUUID().toString()
             sharedPreferences.edit()
-                    .putString("device_uuid", deviceUUID)
-                    .apply()
+                .putString("device_uuid", deviceUUID)
+                .apply()
         }
         return deviceUUID
     }
 
     fun savePushToken(pushToken: String) {
         getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-                .edit()
-                .putString("firebase_token", pushToken)
-                .apply()
+            .edit()
+            .putString("firebase_token", pushToken)
+            .apply()
 
     }
 
@@ -276,16 +296,23 @@ class MyApplication : Application() {
 
         if (shouldSendImei) {
             tryOrLogAsync {
-                DeliveryServerAPI.api.sendDeviceImei((user as UserModel.Authorized).token, getDeviceUniqueId()).await()
+                DeliveryServerAPI.api.sendDeviceImei(
+                    (user as UserModel.Authorized).token,
+                    getDeviceUniqueId()
+                )
             }
         }
 
         if (pushToken != null) {
             tryOrLogAsync {
-                DeliveryServerAPI.api.sendPushToken((user as UserModel.Authorized).token, pushToken).await()
+                DeliveryServerAPI.api.sendPushToken((user as UserModel.Authorized).token, pushToken)
+
             }
         } else {
-            val token = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE).getString("firebase_token", "notoken")
+            val token = getSharedPreferences(
+                BuildConfig.APPLICATION_ID,
+                Context.MODE_PRIVATE
+            ).getString("firebase_token", "notoken")
             if (token != "notoken") {
                 sendDeviceInfo(token)
                 return

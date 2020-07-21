@@ -9,12 +9,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
-import android.support.v4.content.FileProvider
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -25,9 +25,13 @@ import android.widget.Toast
 import com.instacart.library.truetime.TrueTime
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.joda.time.DateTime
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
@@ -130,7 +134,7 @@ class MainActivity : AppCompatActivity() {
                 run {
                     val db = (application as? MyApplication)?.database
                     db ?: return@run
-                    launch(CommonPool) {
+                    GlobalScope.launch {
                         db.taskItemDao().getById(intent.getIntExtra("task_item_closed", 0))?.let {
                             it.state = TaskItemModel.CLOSED
                             db.taskItemDao().update(it)
@@ -186,7 +190,7 @@ class MainActivity : AppCompatActivity() {
         MyApplication.instance.enableLocationListening()
 
         serviceCheckingJob?.cancel()
-        serviceCheckingJob = launch(DefaultDispatcher) {
+        serviceCheckingJob = GlobalScope.launch(Default) {
             while (true) {
                 if (!ReportService.isRunning) {
                     startService(Intent(this@MainActivity, ReportService::class.java))
@@ -195,10 +199,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
         errorsChannelHandlerJob?.cancel()
-        errorsChannelHandlerJob = launch(DefaultDispatcher) {
+        errorsChannelHandlerJob = GlobalScope.launch(Default) {
             for (error in errorsChannel) {
                 try {
-                    launch(UI) {
+                    GlobalScope.launch(Main) {
                         error.invoke()
                     }
                 } catch (e: java.lang.Exception) {
@@ -306,7 +310,7 @@ class MainActivity : AppCompatActivity() {
                 override fun positiveListener() {
                     try {
                         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.primaryClip = ClipData.newPlainText("Device UUID", deviceUUID)
+                        clipboard.setPrimaryClip(ClipData.newPlainText("Device UUID", deviceUUID))
                         Toast.makeText(this@MainActivity, "Скопированно в буфер обмена", Toast.LENGTH_LONG).show()
                     } catch (e: java.lang.Exception) {
                         Toast.makeText(this@MainActivity, "Произошла ошибка", Toast.LENGTH_LONG).show()
@@ -430,8 +434,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun restoreApplicationUser() {
         val sharedPref = application().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-        val token = sharedPref.getString("token", "")
-        val login = sharedPref.getString("login", "")
+        val token = sharedPref.getString("token", "") ?: ""
+        val login = sharedPref.getString("login", "") ?: ""
         if (token.isBlank() || login.isBlank()) {
             showLoginScreen()
         } else {
@@ -483,20 +487,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun installUpdate(url: URL) {
-        launch {
+        GlobalScope.launch {
             var file: File?
             try {
                 progress_bar.isIndeterminate = false
                 file = NetworkHelper.loadUpdateFile(url) { current, total ->
                     val percents = current.toFloat() / total.toFloat()
-                    launch(UI) {
+                    GlobalScope.launch(Main) {
                         loader_progress_text.setVisible(true)
                         loader_progress_text.setText("Загрузка: ${(percents * 100).roundToInt()}%")
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                launch(UI) {
+                GlobalScope.launch(Main) {
                     loader_progress_text.setVisible(false)
                     loading.setVisible(false)
                     progress_bar.isIndeterminate = true
@@ -505,7 +509,7 @@ class MainActivity : AppCompatActivity() {
                 return@launch
             }
 
-            launch(UI) {
+            GlobalScope.launch(Main) {
                 val intent = Intent(Intent.ACTION_VIEW).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -579,9 +583,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        launch(UI) {
+        GlobalScope.launch(Main) {
             try {
-                val updateInfo = DeliveryServerAPI.api.getUpdateInfo().await()
+                val updateInfo = DeliveryServerAPI.api.getUpdateInfo()
                 application().lastRequiredAppVersion = updateInfo?.last_required?.version ?: 0
                 if (updateInfo.last_required.version <= BuildConfig.VERSION_CODE
                         && updateInfo.last_optional.version <= BuildConfig.VERSION_CODE) {

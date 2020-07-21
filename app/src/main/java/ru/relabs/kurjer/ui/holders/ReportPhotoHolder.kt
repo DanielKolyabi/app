@@ -1,6 +1,6 @@
 package ru.relabs.kurjer.ui.holders
 
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.item_report_photo.view.*

@@ -1,7 +1,7 @@
 package ru.relabs.kurjer.ui.holders
 
 import android.graphics.Color
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.widget.Button
 import kotlinx.android.synthetic.main.item_report_entrance.view.*

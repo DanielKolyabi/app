@@ -7,18 +7,18 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v7.widget.LinearLayoutManager
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
 import kotlinx.android.synthetic.main.fragment_address_list.*
 import kotlinx.android.synthetic.main.include_hint_container.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.AddressModel
@@ -115,7 +115,7 @@ class AddressListFragment : Fragment(), SearchableFragment {
         super.onCreate(savedInstanceState)
 
         arguments?.let {
-            taskIds = it.getIntegerArrayList("task_ids")
+            taskIds = it.getIntegerArrayList("task_ids")?.toList() ?: listOf()
             needLoadFromDatabse = true
         }
         activity?.registerReceiver(broadcastReceiver, intentFilter)
@@ -165,7 +165,7 @@ class AddressListFragment : Fragment(), SearchableFragment {
 
         list.layoutManager = LinearLayoutManager(context)
         list.adapter = adapter
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Main) {
             if (needLoadFromDatabse) {
                 adapter.data.add(AddressListModel.Loader)
                 adapter.notifyDataSetChanged()
@@ -227,7 +227,7 @@ class AddressListFragment : Fragment(), SearchableFragment {
 
     private suspend fun loadTasksFromDatabase() {
         val db = application().database
-        withContext(CommonPool) {
+        withContext(Dispatchers.Default) {
             tasks = taskIds.mapNotNull {
                 db.taskDao().getById(it)?.toTaskModel(db)
             }.filter { it.canShowedByDate(Date()) }
@@ -249,8 +249,8 @@ class AddressListFragment : Fragment(), SearchableFragment {
         data ?: return
         if (requestCode != 1 || resultCode != Activity.RESULT_OK) return
 
-        val changedItem = data.extras.get("changed_item") as TaskItemModel
-        val changedTask = data.extras.get("changed_task") as TaskModel
+        val changedItem = data.extras?.get("changed_item") as TaskItemModel
+        val changedTask = data.extras?.get("changed_task") as TaskModel
 
         presenter.onDataChanged(changedTask, changedItem)
     }

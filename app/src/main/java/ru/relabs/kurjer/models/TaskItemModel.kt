@@ -23,18 +23,19 @@ data class TaskItemModel(
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this(
-            parcel.readParcelable(AddressModel::class.java.classLoader),
+            parcel.readParcelable(AddressModel::class.java.classLoader)!!,
             parcel.readInt(),
             parcel.readInt(),
-            parcel.createStringArrayList(),
-            parcel.createIntArray().toList().map {
+            parcel.createStringArrayList()!!,
+            parcel.createIntArray()!!.toList().map {
                 EntranceModel(it, false)
             },
             parcel.readInt(),
             parcel.readInt(),
             parcel.readInt(),
             parcel.readByte() != 0.toByte(),
-            parcel.createTypedArrayList(EntranceDataModel))
+            parcel.createTypedArrayList(EntranceDataModel)!!
+    )
 
     fun toTaskItemEntity(parentTaskId: Int): TaskItemEntity {
         return TaskItemEntity(

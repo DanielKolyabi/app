@@ -1,6 +1,6 @@
 package ru.relabs.kurjer.persistence.daos
 
-import android.arch.persistence.room.*
+import androidx.room.*
 import ru.relabs.kurjer.persistence.entities.TaskItemResultEntranceEntity
 
 /**

@@ -8,9 +8,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.text.Editable
 import android.text.Html
 import android.text.TextWatcher
@@ -19,10 +19,8 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.include_hint_container.*
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.NonCancellable.isActive
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.MyApplication
@@ -84,8 +82,8 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            tasks = it.getParcelableArrayList("tasks")
-            taskItems = it.getParcelableArrayList("task_items")
+            tasks = it.getParcelableArrayList<TaskModel>("tasks")?.toMutableList() ?: mutableListOf()
+            taskItems = it.getParcelableArrayList<TaskItemModel>("task_items")?.toMutableList() ?: mutableListOf()
             selectedTaskItemId = it.getInt("selected_task_id")
         }
         activity?.registerReceiver(broadcastReceiver, intentFilter)
@@ -176,9 +174,9 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
         })
 
         val listClickInterceptor = object : RecyclerView.OnItemTouchListener {
-            override fun onTouchEvent(rv: RecyclerView?, e: MotionEvent?) {}
+            override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
 
-            override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean =
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean =
                     taskItems[presenter.currentTask].state == TaskItemModel.CLOSED || !tasks[presenter.currentTask].isAvailableByDate(Date())
 
             override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
@@ -342,7 +340,7 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
         pb_gps_loading.progress = 0
         pb_gps_loading.isIndeterminate = false
         gpsLoaderJob?.cancel()
-        gpsLoaderJob = launch(UI) {
+        gpsLoaderJob = GlobalScope.launch(Dispatchers.Main) {
             var i = 0
             while (i < 41) {
                 delay(1000)

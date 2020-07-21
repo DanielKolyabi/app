@@ -1,13 +1,11 @@
 package ru.relabs.kurjer.ui.presenters
 
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
-import kotlinx.coroutines.experimental.withTimeout
+import kotlinx.coroutines.*
 import org.joda.time.DateTime
 import retrofit2.HttpException
-import ru.relabs.kurjer.*
+import ru.relabs.kurjer.BuildConfig
+import ru.relabs.kurjer.ErrorButtonsListener
+import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.DeliveryServerAPI.api
@@ -22,7 +20,6 @@ import ru.relabs.kurjer.utils.activity
 import ru.relabs.kurjer.utils.application
 import ru.relabs.kurjer.utils.logError
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 /**
  * Created by ProOrange on 27.08.2018.
@@ -100,11 +97,11 @@ class TaskListPresenter(val fragment: TaskListFragment) {
 
     fun onStartClicked() {
         (fragment.activity as? MainActivity)?.showAddressListScreen(
-                fragment.adapter.data.filter {
-                    (it is TaskListModel.Task) && it.task.selected
-                }.map {
-                    (it as TaskListModel.Task).task
-                }
+            fragment.adapter.data.filter {
+                (it is TaskListModel.Task) && it.task.selected
+            }.map {
+                (it as TaskListModel.Task).task
+            }
         )
     }
 
@@ -117,13 +114,13 @@ class TaskListPresenter(val fragment: TaskListFragment) {
     }
 
     fun isStartAvailable(): Boolean =
-            fragment.adapter.data.any {
-                if (it !is TaskListModel.Task) return@any false
-                it.task.selected
-            }
+        fragment.adapter.data.any {
+            if (it !is TaskListModel.Task) return@any false
+            it.task.selected
+        }
 
     fun loadTasks(loadFromNetwork: Boolean = false) {
-        launch(UI) {
+        GlobalScope.launch(Dispatchers.Main) {
             val db = application().database
 
             //Load from network if available
@@ -132,8 +129,8 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                     var newTasks: List<TaskModel>?
 
                     try {
-                        newTasks = withContext(CommonPool) {
-                            withTimeout(7 * 60, TimeUnit.SECONDS) {
+                        newTasks = withContext(Dispatchers.Default) {
+                            withTimeout(7 * 60 * 1000L) {
                                 loadTasksFromNetwork()
                             }
                         }
@@ -151,7 +148,8 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                             })
                             return@launch
                         }
-                        fragment.activity()?.showError("Задания не были обновлены. Возможна ошибка дат. Обратитесь к бригадиру.\nОшибка №${err.code}.")
+                        fragment.activity()
+                            ?.showError("Задания не были обновлены. Возможна ошибка дат. Обратитесь к бригадиру.\nОшибка №${err.code}.")
                     } catch (e: Exception) {
                         e.printStackTrace()
                         newTasks = null
@@ -162,29 +160,30 @@ class TaskListPresenter(val fragment: TaskListFragment) {
                         val token = (application().user as? UserModel.Authorized)?.token ?: ""
 
                         val mergeResult = PersistenceHelper.merge(
-                                db,
-                                newTasks,
-                                {
-                                    db.sendQueryDao().insert(
-                                            SendQueryItemEntity(0,
-                                                    BuildConfig.API_URL + "/api/v1/tasks/${it.id}/received?token=" + token,
-                                                    ""
-                                            )
+                            db,
+                            newTasks,
+                            {
+                                db.sendQueryDao().insert(
+                                    SendQueryItemEntity(
+                                        0,
+                                        BuildConfig.API_URL + "/api/v1/tasks/${it.id}/received?token=" + token,
+                                        ""
                                     )
+                                )
 
-                                    try {
-                                        NetworkHelper.loadTaskRasterizeMap(it, fragment.context?.contentResolver)
-                                    } catch (e: Exception) {
-                                        e.logError()
-                                    }
-                                },
-                                { oldTask, newTask ->
-                                    try {
-                                        NetworkHelper.loadTaskRasterizeMap(newTask, fragment.context?.contentResolver)
-                                    } catch (e: Exception) {
-                                        e.logError()
-                                    }
+                                try {
+                                    NetworkHelper.loadTaskRasterizeMap(it, fragment.context?.contentResolver)
+                                } catch (e: Exception) {
+                                    e.logError()
                                 }
+                            },
+                            { oldTask, newTask ->
+                                try {
+                                    NetworkHelper.loadTaskRasterizeMap(newTask, fragment.context?.contentResolver)
+                                } catch (e: Exception) {
+                                    e.logError()
+                                }
+                            }
                         )
                         if (mergeResult.isTasksChanged) {
                             fragment.activity()?.showError("Задания были обновлены.")
@@ -200,7 +199,7 @@ class TaskListPresenter(val fragment: TaskListFragment) {
             }
 
             //Delete all closed tasks that haven't ReportItems
-            withContext(CommonPool) { PersistenceHelper.removeUnusedClosedTasks(db) }
+            withContext(Dispatchers.Default) { PersistenceHelper.removeUnusedClosedTasks(db) }
             //Load from database
             val savedTasks = loadTasksFromDatabase(db)
             fragment.adapter.data.clear()
@@ -214,12 +213,12 @@ class TaskListPresenter(val fragment: TaskListFragment) {
     private suspend fun loadTasksFromNetwork(): List<TaskModel> {
         val app = application()
         val time = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
-        val tasks = api.getTasks((app.user as UserModel.Authorized).token, time).await()
+        val tasks = api.getTasks((app.user as UserModel.Authorized).token, time)
         return tasks.map { it.toTaskModel(app.deviceUUID) }
     }
 
     suspend fun loadTasksFromDatabase(db: AppDatabase): List<TaskListModel.Task> {
-        val tasks = withContext(CommonPool) { db.taskDao().allOpened.map { it.toTaskModel(db) } }
+        val tasks = withContext(Dispatchers.Default) { db.taskDao().allOpened.map { it.toTaskModel(db) } }
         return tasks.filter { it.items.isNotEmpty() && it.canShowedByDate(Date()) }.map { TaskListModel.Task(it) }
     }
 }

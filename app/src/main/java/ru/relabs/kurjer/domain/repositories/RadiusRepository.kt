@@ -2,35 +2,32 @@ package ru.relabs.kurjer.domain.repositories
 
 import android.content.SharedPreferences
 import kotlinx.coroutines.*
-import ru.relabs.kurjer.network.DeliveryServerAPI
-import ru.relabs.kurjer.utils.tryOrLogAsync
+import ru.relabs.kurjer.domain.models.AllowedCloseRadius
+import ru.relabs.kurjer.utils.Left
+import ru.relabs.kurjer.utils.Right
 
 /**
  * Created by Daniil Kurchanov on 13.01.2020.
  */
 class RadiusRepository(
-        private val api: DeliveryServerAPI.IDeliveryServerAPI,
-        private val sharedPreferences: SharedPreferences,
-        private val tokenProvider: () -> String?
+    private val api: DeliveryRepository,
+    private val sharedPreferences: SharedPreferences
 ) {
-    var isRadiusRequired: Boolean = true
-    var radius: Int = 50
+    var allowedCloseRadius: AllowedCloseRadius = loadSavedRadius()
+
+    val isRadiusRequired: Boolean
+        get() = allowedCloseRadius is AllowedCloseRadius.Required
+    val radius: Int?
+        get() = (allowedCloseRadius as? AllowedCloseRadius.Required)?.distance
+
     private var updateJob: Job? = null
 
-    init {
-        sharedPreferences.apply {
-            isRadiusRequired = getBoolean(RADIUS_REQUIRED_KEY, isRadiusRequired)
-            radius = getInt(RADIUS_KEY, radius)
-        }
-    }
-
     fun resetData() {
+        allowedCloseRadius = AllowedCloseRadius.Required(DEFAULT_REQUIRED_RADIUS)
         sharedPreferences.edit()
-                .remove(RADIUS_REQUIRED_KEY)
-                .remove(RADIUS_KEY)
-                .apply()
-        isRadiusRequired = false
-        radius = 50
+            .remove(RADIUS_REQUIRED_KEY)
+            .remove(RADIUS_KEY)
+            .apply()
     }
 
     suspend fun startRemoteUpdating() {
@@ -44,21 +41,43 @@ class RadiusRepository(
     }
 
     suspend fun loadRadiusRemote() = withContext(Dispatchers.Default) {
-        val token = tokenProvider() ?: return@withContext
-        tryOrLogAsync {
-            val response = api.getRadius(token)
-            sharedPreferences.edit()
-                    .putBoolean(RADIUS_REQUIRED_KEY, response.locked)
-                    .putInt(RADIUS_KEY, response.radius)
-                    .apply()
-
-            isRadiusRequired = response.locked
-            radius = response.radius
+        when (val r = api.getAllowedCloseRadius()) {
+            is Right -> {
+                allowedCloseRadius = r.value
+                saveRadius(allowedCloseRadius)
+            }
+            is Left -> TODO("Handle error")
         }
+    }
+
+    private fun loadSavedRadius(): AllowedCloseRadius {
+        val required = sharedPreferences.getBoolean(RADIUS_REQUIRED_KEY, true)
+        return if (!required) {
+            AllowedCloseRadius.NotRequired
+        } else {
+            val radius = sharedPreferences.getInt(RADIUS_KEY, DEFAULT_REQUIRED_RADIUS)
+            AllowedCloseRadius.Required(radius)
+        }
+    }
+
+    private fun saveRadius(allowedCloseRadius: AllowedCloseRadius) {
+        val editor = sharedPreferences.edit()
+        when (allowedCloseRadius) {
+            AllowedCloseRadius.NotRequired -> {
+                editor.putBoolean(RADIUS_REQUIRED_KEY, false)
+                editor.remove(RADIUS_KEY)
+            }
+            is AllowedCloseRadius.Required -> {
+                editor.putBoolean(RADIUS_REQUIRED_KEY, true)
+                editor.putInt(RADIUS_KEY, allowedCloseRadius.distance)
+            }
+        }
+        editor.apply()
     }
 
     companion object {
         const val RADIUS_REQUIRED_KEY = "radius_required"
         const val RADIUS_KEY = "radius"
+        const val DEFAULT_REQUIRED_RADIUS = 50
     }
 }

@@ -3,6 +3,7 @@ package ru.relabs.kurjer.domain.storage
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import ru.relabs.kurjer.data.models.auth.UserLogin
+import ru.relabs.kurjer.domain.models.DeviceId
 
 /**
  * Created by Daniil Kurchanov on 05.12.2019.
@@ -31,12 +32,13 @@ class AppPreferences(
     fun resetCurrentUserLogin() =
         sharedPreferences.edit { remove(KEY_CURRENT_USER_ID) }
 
-    fun getDeviceUUID(): String? =
+    fun getDeviceUUID(): DeviceId? =
         sharedPreferences.getString(DEVICE_UUID_KEY, UNKNOWN_DEVICE_UUID)
             .takeIf { it != UNKNOWN_DEVICE_UUID }
+            ?.let { DeviceId(it) }
 
-    fun saveDeviceUUID(deviceUUID: String) = sharedPreferences.edit()
-        .putString(DEVICE_UUID_KEY, deviceUUID)
+    fun saveDeviceUUID(deviceUUID: DeviceId) = sharedPreferences.edit()
+        .putString(DEVICE_UUID_KEY, deviceUUID.id)
         .apply()
 
 

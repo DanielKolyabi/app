@@ -84,14 +84,14 @@ interface DeliveryApi {
     suspend fun startPause(
         @Header("X-TOKEN") token: String,
         @Query("type") type: Int,
-        @Query("time") time: Int
+        @Query("time") time: Long
     )
 
     @POST("api/v1/pause/stop")
     suspend fun stopPause(
         @Header("X-TOKEN") token: String,
         @Query("type") type: Int,
-        @Query("time") time: Int
+        @Query("time") time: Long
     )
 
     @GET("api/v1/radius")

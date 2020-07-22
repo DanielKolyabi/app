@@ -8,5 +8,5 @@ import kotlinx.android.parcel.Parcelize
 data class UserLogin(val login: String): Parcelable
 
 data class UserResponse(
-    @SerializedName("login") val login: UserLogin
+    @SerializedName("login") val login: String
 )

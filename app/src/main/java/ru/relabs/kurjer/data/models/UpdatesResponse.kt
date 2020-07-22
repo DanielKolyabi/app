@@ -9,6 +9,6 @@ data class UpdateDataResponse(
 )
 
 data class UpdatesResponse(
-    @SerializedName("last_required") val required: UpdateDataResponse,
-    @SerializedName("last_optional") val optional: UpdateDataResponse
+    @SerializedName("last_required") val required: UpdateDataResponse?,
+    @SerializedName("last_optional") val optional: UpdateDataResponse?
 )

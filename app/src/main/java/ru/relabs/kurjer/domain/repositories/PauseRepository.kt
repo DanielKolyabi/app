@@ -10,6 +10,7 @@ import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import ru.relabs.kurjer.utils.*
+import java.lang.RuntimeException
 import java.util.*
 
 /**
@@ -18,6 +19,17 @@ import java.util.*
 
 enum class PauseType {
     Lunch, Load
+}
+
+fun PauseType.toInt() = when(this){
+    PauseType.Lunch -> 0
+    PauseType.Load -> 1
+}
+
+fun Int.toPauseType() = when(this){
+    0 -> PauseType.Lunch
+    1 -> PauseType.Load
+    else -> throw RuntimeException("Unknown pause type")
 }
 
 class PauseRepository(

@@ -19,11 +19,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
+import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.AddressListAddressDelegate
 import ru.relabs.kurjer.ui.delegates.AddressListLoaderDelegate
@@ -40,6 +42,7 @@ import ru.relabs.kurjer.utils.application
 import java.util.*
 
 class AddressListFragment : Fragment(), SearchableFragment {
+
     override fun onSearchItems(filter: String): List<String> {
         if (filter.contains(",")) {
             return adapter.data.asSequence()
@@ -82,11 +85,12 @@ class AddressListFragment : Fragment(), SearchableFragment {
     }
 
     var targetAddress: AddressModel? = null
-    val presenter = AddressListPresenter(this)
     private lateinit var hintHelper: HintHelper
     private var taskIds: List<Int> = listOf()
     private var tasks: List<TaskModel> = listOf()
+    val database: AppDatabase by inject()
     val adapter = DelegateAdapter<AddressListModel>()
+    val presenter = AddressListPresenter(this, database)
 
     var listScrollPosition = 0
 
@@ -226,10 +230,9 @@ class AddressListFragment : Fragment(), SearchableFragment {
     }
 
     private suspend fun loadTasksFromDatabase() {
-        val db = application().database
         withContext(Dispatchers.Default) {
             tasks = taskIds.mapNotNull {
-                db.taskDao().getById(it)?.toTaskModel(db)
+                database.taskDao().getById(it)?.toTaskModel(database)
             }.filter { it.canShowedByDate(Date()) }
 
             for (task in tasks) {

@@ -290,10 +290,10 @@ class PauseRepository(
     suspend fun loadLastPausesRemote() = withContext(Dispatchers.Default) {
         when (val r = api.getLastPauseTimes()) {
             is Right -> {
-                putPauseStartTime(PauseType.Load, r.value.start.loading)
-                putPauseStartTime(PauseType.Lunch, r.value.start.lunch)
-                putPauseEndTime(PauseType.Load, r.value.end.loading)
-                putPauseEndTime(PauseType.Lunch, r.value.end.lunch)
+                putPauseStartTime(PauseType.Load, r.value.loading.start)
+                putPauseStartTime(PauseType.Lunch, r.value.lunch.start)
+                putPauseEndTime(PauseType.Load, r.value.loading.end)
+                putPauseEndTime(PauseType.Lunch, r.value.lunch.end)
                 updatePauseState()
             }
             is Left -> TODO("Handle error")

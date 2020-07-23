@@ -1,30 +1,33 @@
 package ru.relabs.kurjer.ui.presenters
 
 import kotlinx.coroutines.*
-import org.joda.time.DateTime
-import retrofit2.HttpException
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.ErrorButtonsListener
 import ru.relabs.kurjer.MainActivity
+import ru.relabs.kurjer.data.models.common.DomainException
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.repositories.DeliveryRepository
+import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
-import ru.relabs.kurjer.network.DeliveryServerAPI.api
 import ru.relabs.kurjer.network.NetworkHelper
-import ru.relabs.kurjer.data.models.ErrorUtils
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import ru.relabs.kurjer.ui.fragments.TaskListFragment
 import ru.relabs.kurjer.ui.models.TaskListModel
-import ru.relabs.kurjer.utils.activity
-import ru.relabs.kurjer.utils.application
-import ru.relabs.kurjer.utils.logError
+import ru.relabs.kurjer.utils.*
 import java.util.*
 
 /**
  * Created by ProOrange on 27.08.2018.
  */
-class TaskListPresenter(val fragment: TaskListFragment) {
+class TaskListPresenter(
+    val fragment: TaskListFragment,
+    val repository: DeliveryRepository,
+    val database: AppDatabase,
+    val authTokenStorage: AuthTokenStorage
+) {
     fun onTaskSelected(pos: Int) {
         if (pos < 0) {
             return
@@ -120,50 +123,46 @@ class TaskListPresenter(val fragment: TaskListFragment) {
         }
 
     fun loadTasks(loadFromNetwork: Boolean = false) {
-        GlobalScope.launch(Dispatchers.Main) {
-            val db = application().database
-
+        GlobalScope.launch {
             //Load from network if available
             if (loadFromNetwork) {
                 if (NetworkHelper.isNetworkAvailable(fragment.context)) {
-                    var newTasks: List<TaskModel>?
+                    val newTasks = withContext(Dispatchers.Default) {
+                        withTimeout(7 * 60 * 1000L) {
+                            when (val tasks = repository.getTasks()) {
+                                is Right -> tasks.value
+                                is Left -> when (val e = tasks.value) {
+                                    is DomainException.ApiException -> {
+                                        if (e.error.code == 3) {
+                                            fragment.activity()?.showError(e.error.message, object : ErrorButtonsListener {
+                                                override fun positiveListener() {
+                                                    fragment.activity()?.showLoginScreen()
+                                                }
 
-                    try {
-                        newTasks = withContext(Dispatchers.Default) {
-                            withTimeout(7 * 60 * 1000L) {
-                                loadTasksFromNetwork()
+                                                override fun negativeListener() {}
+                                            })
+                                        } else {
+                                            fragment.activity()
+                                                ?.showError("Задания не были обновлены. Возможна ошибка дат. Обратитесь к бригадиру.\nОшибка №${e.error.code}.")
+                                        }
+                                        null
+                                    }
+                                    else -> {
+                                        fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить позже.")
+                                        null
+                                    }
+                                }
                             }
                         }
-                    } catch (e: HttpException) {
-                        e.printStackTrace()
-                        val err = ErrorUtils.getError(e)
-                        newTasks = null
-                        if (err.code == 3) { //INVALID_DATE_TIME
-                            fragment.activity()?.showError(err.message, object : ErrorButtonsListener {
-                                override fun positiveListener() {
-                                    fragment.activity()?.showLoginScreen()
-                                }
-
-                                override fun negativeListener() {}
-                            })
-                            return@launch
-                        }
-                        fragment.activity()
-                            ?.showError("Задания не были обновлены. Возможна ошибка дат. Обратитесь к бригадиру.\nОшибка №${err.code}.")
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        newTasks = null
-                        fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить позже.")
                     }
-
                     if (newTasks != null) {
-                        val token = (application().user as? UserModel.Authorized)?.token ?: ""
+                        val token = authTokenStorage.getToken() ?: ""
 
                         val mergeResult = PersistenceHelper.merge(
-                            db,
+                            database,
                             newTasks,
                             {
-                                db.sendQueryDao().insert(
+                                database.sendQueryDao().insert(
                                     SendQueryItemEntity(
                                         0,
                                         BuildConfig.API_URL + "/api/v1/tasks/${it.id}/received?token=" + token,
@@ -199,22 +198,15 @@ class TaskListPresenter(val fragment: TaskListFragment) {
             }
 
             //Delete all closed tasks that haven't ReportItems
-            withContext(Dispatchers.Default) { PersistenceHelper.removeUnusedClosedTasks(db) }
+            withContext(Dispatchers.Default) { PersistenceHelper.removeUnusedClosedTasks(database) }
             //Load from database
-            val savedTasks = loadTasksFromDatabase(db)
+            val savedTasks = loadTasksFromDatabase(database)
             fragment.adapter.data.clear()
             fragment.adapter.data.addAll(savedTasks)
             fragment.adapter.notifyDataSetChanged()
             updateStartButton()
             fragment.scrollListToTarget()
         }
-    }
-
-    private suspend fun loadTasksFromNetwork(): List<TaskModel> {
-        val app = application()
-        val time = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
-        val tasks = api.getTasks((app.user as UserModel.Authorized).token, time)
-        return tasks.map { it.toTaskModel(app.deviceUUID) }
     }
 
     suspend fun loadTasksFromDatabase(db: AppDatabase): List<TaskListModel.Task> {

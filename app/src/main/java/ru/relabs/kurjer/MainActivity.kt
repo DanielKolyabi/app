@@ -9,12 +9,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import androidx.core.app.ActivityCompat
-import androidx.fragment.app.Fragment
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -22,6 +16,12 @@ import android.view.Window
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.fragment.app.Fragment
 import com.instacart.library.truetime.TrueTime
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.view.*
@@ -33,12 +33,19 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.joda.time.DateTime
+import org.koin.android.ext.android.inject
+import ru.relabs.kurjer.data.models.UpdateDataResponse
+import ru.relabs.kurjer.data.models.auth.UserLogin
+import ru.relabs.kurjer.domain.models.AppUpdate
+import ru.relabs.kurjer.domain.models.User
+import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
+import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.NetworkHelper
-import ru.relabs.kurjer.data.models.UpdateDataResponse
+import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.ui.adapters.SearchInputAdapter
 import ru.relabs.kurjer.ui.fragments.*
 import ru.relabs.kurjer.ui.helpers.setVisible
@@ -64,6 +71,10 @@ class MainActivity : AppCompatActivity() {
     private val errorsChannel = Channel<() -> Unit>(Channel.UNLIMITED)
     private var errorsChannelHandlerJob: Job? = null
 
+    private val database: AppDatabase by inject()
+    private val repository: DeliveryRepository by inject()
+    private val deviceUUIDProvider: DeviceUUIDProvider by inject()
+
     val gpsSwitchStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == LocationManager.PROVIDERS_CHANGED_ACTION) {
@@ -81,17 +92,17 @@ class MainActivity : AppCompatActivity() {
         networkErrorShowed = true
 
         showError(
-                "Небходимо включить передачу данных",
-                object : ErrorButtonsListener {
-                    override fun positiveListener() {
-                        networkErrorShowed = false
-                        if (!NetworkHelper.isNetworkEnabled(this@MainActivity)) {
-                            showNetworkDisabledError()
-                            return
-                        }
+            "Небходимо включить передачу данных",
+            object : ErrorButtonsListener {
+                override fun positiveListener() {
+                    networkErrorShowed = false
+                    if (!NetworkHelper.isNetworkEnabled(this@MainActivity)) {
+                        showNetworkDisabledError()
+                        return
                     }
-                },
-                "Ок"
+                }
+            },
+            "Ок"
         )
     }
 
@@ -106,9 +117,9 @@ class MainActivity : AppCompatActivity() {
                 installURL?.let { installUpdate(it) }
             } else {
                 startActivityForResult(
-                        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(
-                                Uri.parse(String.format("package:%s", packageName))
-                        ), REQUEST_CODE_INSTALL_PACKAGE
+                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(
+                        Uri.parse(String.format("package:%s", packageName))
+                    ), REQUEST_CODE_INSTALL_PACKAGE
                 )
             }
         }
@@ -131,12 +142,10 @@ class MainActivity : AppCompatActivity() {
             }
             if (intent.getIntExtra("task_item_closed", 0) != 0) {
                 run {
-                    val db = (application as? DeliveryApp)?.database
-                    db ?: return@run
                     GlobalScope.launch {
-                        db.taskItemDao().getById(intent.getIntExtra("task_item_closed", 0))?.let {
+                        database.taskItemDao().getById(intent.getIntExtra("task_item_closed", 0))?.let {
                             it.state = TaskItemModel.CLOSED
-                            db.taskItemDao().update(it)
+                            database.taskItemDao().update(it)
                         }
                     }
                 }
@@ -166,9 +175,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         if (XiaomiUtilities.isMIUI
-                && (!XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_SHOW_WHEN_LOCKED)
-                        || !XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_BACKGROUND_START_ACTIVITY)
-                        || !XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_POPUPS))
+            && (!XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_SHOW_WHEN_LOCKED)
+                    || !XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_BACKGROUND_START_ACTIVITY)
+                    || !XiaomiUtilities.isCustomPermissionGranted(applicationContext, XiaomiUtilities.OP_POPUPS))
         ) {
             showXiaomiPermissionRequirement()
         }
@@ -186,7 +195,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         registerReceiver(gpsSwitchStateReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
-        DeliveryApp.appContext.enableLocationListening()
+        (DeliveryApp.appContext as DeliveryApp).enableLocationListening()
 
         serviceCheckingJob?.cancel()
         serviceCheckingJob = GlobalScope.launch(Default) {
@@ -229,22 +238,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showXiaomiPermissionRequirement() {
-        showError("Необходимо дать доступ к \"Экран блокировки\", \"Всплывающие окна\" и \"Отображать всплывающие окна, когда запущено в фоновом режиме\".", object : ErrorButtonsListener {
-            override fun positiveListener() {
-                val intent = XiaomiUtilities.getPermissionManagerIntent(applicationContext)
-                try {
-                    startActivity(intent)
-                } catch (x: java.lang.Exception) {
+        showError(
+            "Необходимо дать доступ к \"Экран блокировки\", \"Всплывающие окна\" и \"Отображать всплывающие окна, когда запущено в фоновом режиме\".",
+            object : ErrorButtonsListener {
+                override fun positiveListener() {
+                    val intent = XiaomiUtilities.getPermissionManagerIntent(applicationContext)
                     try {
-                        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        intent.data = Uri.parse("package:" + applicationContext.packageName)
                         startActivity(intent)
-                    } catch (xx: java.lang.Exception) {
-                        xx.logError()
+                    } catch (x: java.lang.Exception) {
+                        try {
+                            val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                            intent.data = Uri.parse("package:" + applicationContext.packageName)
+                            startActivity(intent)
+                        } catch (xx: java.lang.Exception) {
+                            xx.logError()
+                        }
                     }
                 }
-            }
-        })
+            })
     }
 
     override fun onDestroy() {
@@ -300,8 +311,8 @@ class MainActivity : AppCompatActivity() {
             onBackPressed()
         }
         device_uuid.setOnClickListener {
-            val deviceUUID = (application as? DeliveryApp)?.deviceUUID?.split("-")?.last() ?: ""
-            if (deviceUUID == "") {
+            val deviceUUID = deviceUUIDProvider.getOrGenerateDeviceUUID().id.split("-").last()
+            if (deviceUUID.isEmpty()) {
                 showError("Не удалось получить device UUID")
                 return@setOnClickListener
             }
@@ -341,7 +352,10 @@ class MainActivity : AppCompatActivity() {
             setSearchButtonVisible(current is TaskListFragment || current is AddressListFragment)
             if (search_input.visibility == View.VISIBLE) {
                 search_input.setVisible(false)
-                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(search_input.windowToken, 0)
+                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(
+                    search_input.windowToken,
+                    0
+                )
                 top_app_bar.title.setVisible(true)
             }
 
@@ -361,13 +375,25 @@ class MainActivity : AppCompatActivity() {
             }
         }
         val permissions = mutableListOf<String>()
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             permissions.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
         }
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             permissions.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             permissions.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
         }
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
@@ -397,7 +423,10 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             setSearchInputVisible(true)
-            (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.showSoftInput(search_input, InputMethodManager.SHOW_IMPLICIT)
+            (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.showSoftInput(
+                search_input,
+                InputMethodManager.SHOW_IMPLICIT
+            )
             search_input.requestFocus()
         }
         val adapter = SearchInputAdapter(this, R.layout.item_search, R.id.text, supportFragmentManager)
@@ -405,18 +434,22 @@ class MainActivity : AppCompatActivity() {
 
         search_input.setOnEditorActionListener { _, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH ||
-                    actionId == EditorInfo.IME_ACTION_DONE ||
-                    actionId == EditorInfo.IME_ACTION_NEXT ||
-                    event != null &&
-                    event.action == KeyEvent.ACTION_DOWN &&
-                    event.keyCode == KeyEvent.KEYCODE_ENTER) {
+                actionId == EditorInfo.IME_ACTION_DONE ||
+                actionId == EditorInfo.IME_ACTION_NEXT ||
+                event != null &&
+                event.action == KeyEvent.ACTION_DOWN &&
+                event.keyCode == KeyEvent.KEYCODE_ENTER
+            ) {
 
                 val current = supportFragmentManager.findFragmentByTag("fragment") as? SearchableFragment
                 current ?: return@setOnEditorActionListener true
 
                 current.onItemSelected(search_input.text.toString(), search_input)
 
-                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(search_input.windowToken, 0)
+                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(
+                    search_input.windowToken,
+                    0
+                )
 
                 search_input.setVisible(false)
                 top_app_bar.title.setVisible(true)
@@ -431,6 +464,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @Deprecated("Move into repository")
     private fun restoreApplicationUser() {
         val sharedPref = application().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
         val token = sharedPref.getString("token", "") ?: ""
@@ -438,14 +472,15 @@ class MainActivity : AppCompatActivity() {
         if (token.isBlank() || login.isBlank()) {
             showLoginScreen()
         } else {
-            application().user = UserModel.Authorized(login, token)
+            //TODO: Get rid of it
+            application().user = User(UserLogin(login))
         }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (requestCode == 1) {
             permissions.indexOfFirst { it == android.Manifest.permission.ACCESS_FINE_LOCATION }.let {
-                if (it >= 0 && grantResults[it] == PackageManager.PERMISSION_GRANTED && !DeliveryApp.appContext.enableLocationListening()) {
+                if (it >= 0 && grantResults[it] == PackageManager.PERMISSION_GRANTED && !(DeliveryApp.appContext as DeliveryApp).enableLocationListening()) {
                     showError("Невозможно включить геолокацию")
                 }
             }
@@ -473,9 +508,9 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!packageManager.canRequestPackageInstalls()) {
                 startActivityForResult(
-                        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(
-                                Uri.parse(String.format("package:%s", packageName))
-                        ), REQUEST_CODE_INSTALL_PACKAGE
+                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(
+                        Uri.parse(String.format("package:%s", packageName))
+                    ), REQUEST_CODE_INSTALL_PACKAGE
                 )
             } else {
                 installURL?.let { installUpdate(it) }
@@ -514,8 +549,8 @@ class MainActivity : AppCompatActivity() {
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         setDataAndType(
-                                FileProvider.getUriForFile(this@MainActivity, "com.relabs.kurjer.file_provider", file),
-                                "application/vnd.android.package-archive"
+                            FileProvider.getUriForFile(this@MainActivity, "com.relabs.kurjer.file_provider", file),
+                            "application/vnd.android.package-archive"
                         )
                     } else {
                         setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive")
@@ -548,7 +583,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun processUpdate(updateData: UpdateDataResponse): Boolean {
+    private fun processUpdate(updateData: AppUpdate): Boolean {
         if (updateData.version > BuildConfig.VERSION_CODE) {
 
             showError("Доступно новое обновление.", object : ErrorButtonsListener {
@@ -583,30 +618,37 @@ class MainActivity : AppCompatActivity() {
         }
 
         GlobalScope.launch(Main) {
-            try {
-                val updateInfo = DeliveryServerAPI.api.getUpdateInfo()
-                application().lastRequiredAppVersion = updateInfo?.last_required?.version ?: 0
-                if (updateInfo.last_required.version <= BuildConfig.VERSION_CODE
-                        && updateInfo.last_optional.version <= BuildConfig.VERSION_CODE) {
-                    loading.setVisible(false)
-                    return@launch
+            when (val updateInfo = repository.getAppUpdatesInfo()) {
+                is Right -> {
+                    application().lastRequiredAppVersion = updateInfo.value.required?.version ?: 0
+                    val requiredVersion = updateInfo.value.required?.version ?: 0
+                    val optionalVersion = updateInfo.value.optional?.version ?: 0
+
+                    if (requiredVersion <= BuildConfig.VERSION_CODE
+                        && optionalVersion <= BuildConfig.VERSION_CODE
+                    ) {
+                        loading.setVisible(false)
+                        return@launch
+                    }
+                    if(updateInfo.value.required != null){
+                        if (processUpdate(updateInfo.value.required)) return@launch
+                    }
+                    if(updateInfo.value.optional != null){
+                        if (processUpdate(updateInfo.value.optional)) return@launch
+                    }
                 }
-
-                if (processUpdate(updateInfo.last_required)) return@launch
-                if (processUpdate(updateInfo.last_optional)) return@launch
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                loading.setVisible(false)
-                showError("Не удалось получить информацию об обновлениях.")
+                is Left -> {
+                    loading.setVisible(false)
+                    showError("Не удалось получить информацию об обновлениях.")
+                }
             }
         }
     }
 
     fun showTaskListScreen(
-            shouldUpdate: Boolean = false,
-            posInList: Int = 0,
-            shouldCheckTasks: Boolean = false
+        shouldUpdate: Boolean = false,
+        posInList: Int = 0,
+        shouldCheckTasks: Boolean = false
     ): TaskListFragment {
         val fragment = TaskListFragment.newInstance(shouldUpdate, posInList, shouldCheckTasks)
         navigateTo(fragment)
@@ -623,29 +665,29 @@ class MainActivity : AppCompatActivity() {
 
     fun showYandexMap(taskItems: List<TaskItemModel>, onAddressClicked: (AddressModel) -> Unit): YandexMapFragment {
         val addresses = taskItems.groupBy { it.address.id }
-                .mapValues { entry ->
-                    entry.value.firstOrNull { it.needPhoto }
-                            ?: (entry.value.firstOrNull { it.state == TaskItemModel.CLOSED }
-                                    ?: entry.value.firstOrNull())
-                }
-                .mapNotNull { entry ->
-                    val value = entry.value
-                    if (value is TaskItemModel) {
-                        val color = if (value.state == TaskItemModel.CLOSED) {
-                            //Gray
-                            Color.GRAY
-                        } else if (value.needPhoto) {
-                            //Red
-                            resources.getColor(R.color.colorAccent)
-                        } else {
-                            //Orange
-                            Color.argb(255, 255, 165, 0)
-                        }
-                        YandexMapFragment.AddressWithColor(value.address, color)
+            .mapValues { entry ->
+                entry.value.firstOrNull { it.needPhoto }
+                    ?: (entry.value.firstOrNull { it.state == TaskItemModel.CLOSED }
+                        ?: entry.value.firstOrNull())
+            }
+            .mapNotNull { entry ->
+                val value = entry.value
+                if (value is TaskItemModel) {
+                    val color = if (value.state == TaskItemModel.CLOSED) {
+                        //Gray
+                        Color.GRAY
+                    } else if (value.needPhoto) {
+                        //Red
+                        resources.getColor(R.color.colorAccent)
                     } else {
-                        null
+                        //Orange
+                        Color.argb(255, 255, 165, 0)
                     }
+                    YandexMapFragment.AddressWithColor(value.address, color)
+                } else {
+                    null
                 }
+            }
         val fragment = YandexMapFragment.newInstance(addresses)
         fragment.onAddressClicked = onAddressClicked
         navigateTo(fragment, true)
@@ -664,16 +706,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showErrorInternal(
-            errorMessage: String,
-            listener: ErrorButtonsListener? = null,
-            forcePositiveButtonName: String = "Ок",
-            forceNegativeButtonName: String = "",
-            cancelable: Boolean = false,
-            style: Int? = null
+        errorMessage: String,
+        listener: ErrorButtonsListener? = null,
+        forcePositiveButtonName: String = "Ок",
+        forceNegativeButtonName: String = "",
+        cancelable: Boolean = false,
+        style: Int? = null
     ) {
         try {
             val builder = (if (style == null) AlertDialog.Builder(this) else AlertDialog.Builder(this, style))
-                    .setMessage(errorMessage)
+                .setMessage(errorMessage)
 
             if (forcePositiveButtonName.isNotBlank()) {
                 builder.setPositiveButton(forcePositiveButtonName) { _, _ -> listener?.positiveListener() }
@@ -689,12 +731,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showError(
-            errorMessage: String,
-            listener: ErrorButtonsListener? = null,
-            forcePositiveButtonName: String = "Ок",
-            forceNegativeButtonName: String = "",
-            cancelable: Boolean = false,
-            style: Int? = null
+        errorMessage: String,
+        listener: ErrorButtonsListener? = null,
+        forcePositiveButtonName: String = "Ок",
+        forceNegativeButtonName: String = "",
+        cancelable: Boolean = false,
+        style: Int? = null
     ) {
         if (!isRunning) {
             errorsChannel.offer {
@@ -718,13 +760,13 @@ class MainActivity : AppCompatActivity() {
     fun showTasksReportScreen(tasks: List<AddressListModel.TaskItem>, selectedTaskId: Int): ReportFragment {
 
         val fragment = ReportFragment.newInstance(
-                tasks.map {
-                    it.parentTask
-                },
-                tasks.map {
-                    it.taskItem
-                },
-                selectedTaskId
+            tasks.map {
+                it.parentTask
+            },
+            tasks.map {
+                it.taskItem
+            },
+            selectedTaskId
         )
         navigateTo(fragment, true)
         return fragment
@@ -757,7 +799,10 @@ class MainActivity : AppCompatActivity() {
             setSearchButtonVisible(fragment is TaskListFragment || fragment is AddressListFragment)
             if (search_input.visibility == View.VISIBLE) {
                 search_input.setVisible(false)
-                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(search_input.windowToken, 0)
+                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(
+                    search_input.windowToken,
+                    0
+                )
                 top_app_bar.title.setVisible(true)
             }
             setNavigationBackVisible(backVisible)
@@ -790,8 +835,8 @@ class MainActivity : AppCompatActivity() {
     private fun clearBackStack() {
 
         val backStackEntryCount = this
-                .supportFragmentManager
-                .backStackEntryCount
+            .supportFragmentManager
+            .backStackEntryCount
 
         for (i in 0 until backStackEntryCount) {
             this.supportFragmentManager.popBackStackImmediate()
@@ -807,7 +852,10 @@ class MainActivity : AppCompatActivity() {
         try {
             if (search_input.visibility == View.VISIBLE) {
                 search_input.setVisible(false)
-                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(search_input.windowToken, 0)
+                (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)?.hideSoftInputFromWindow(
+                    search_input.windowToken,
+                    0
+                )
                 top_app_bar.title.setVisible(true)
                 val current = supportFragmentManager?.findFragmentByTag("fragment")
                 if (current is TaskListFragment) {

@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
 import kotlinx.android.synthetic.main.fragment_task_list.*
 import kotlinx.android.synthetic.main.include_hint_container.*
+import org.koin.android.ext.android.get
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.R
@@ -54,7 +55,7 @@ class TaskListFragment : Fragment(), SearchableFragment {
         tasks_list.smoothScrollToPosition(itemIndex)
     }
 
-    val presenter = TaskListPresenter(this)
+    val presenter = TaskListPresenter(this, get(), get(), get())
     private lateinit var hintHelper: HintHelper
     val adapter = DelegateAdapter<TaskListModel>()
     private var shouldUpdate: Boolean = false

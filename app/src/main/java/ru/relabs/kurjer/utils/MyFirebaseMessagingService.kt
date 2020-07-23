@@ -8,15 +8,23 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 import ru.relabs.kurjer.DeliveryApp
+import ru.relabs.kurjer.domain.repositories.DeliveryRepository
+import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.models.UserModel
-import ru.relabs.kurjer.network.DeliveryServerAPI
 import ru.relabs.kurjer.domain.repositories.PauseType
+import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 
 /**
  * Created by ProOrange on 11.08.2018.
  */
-class MyFirebaseMessagingService : FirebaseMessagingService() {
+class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
+    private val deliveryRepository: DeliveryRepository by inject()
+    private val pauseRepository: PauseRepository by inject()
+    private val tokenStorage: AuthTokenStorage by inject()
+
     override fun onNewToken(pushToken: String) {
         super.onNewToken(pushToken)
         GlobalScope.launch {
@@ -35,15 +43,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     suspend fun processMessageData(data: Map<String, String>) {
         if (data.containsKey("request_gps")) {
-            (application as? DeliveryApp)?.user as? UserModel.Authorized ?: return
             GlobalScope.launch {
-                val coordinates = DeliveryApp.appContext.currentLocation
-                val token = (DeliveryApp.appContext.user as UserModel.Authorized).token
-                try {
-                    DeliveryServerAPI.api.sendGPS(token, coordinates.lat, coordinates.long, DateTime(coordinates.time).toString("yyyy-MM-dd'T'HH:mm:ss"))
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+                val coordinates = (DeliveryApp.appContext as DeliveryApp).currentLocation
+                deliveryRepository.updateLocation(coordinates)
             }
         }
         if (data.containsKey("tasks_update")) {
@@ -70,7 +72,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val startTime = data["start_time"]?.toLongOrNull() ?: return@withContext
                 val pauseTypeInt = data["pause_type"]?.toIntOrNull() ?: return@withContext
                 val userId = data["user_id"]?.toIntOrNull() ?: return@withContext
-                if (userId.toString() != (DeliveryApp.appContext.user as? UserModel.Authorized)?.login) {
+                if (userId.toString() != (DeliveryApp.appContext as DeliveryApp).user?.login?.login) {
                     return@withContext
                 }
 
@@ -80,8 +82,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     else -> return@withContext
                 }
 
-                DeliveryApp.appContext.pauseRepository.putPauseStartTime(pauseType, startTime)
-                DeliveryApp.appContext.pauseRepository.updatePauseState(pauseType)
+                pauseRepository.putPauseStartTime(pauseType, startTime)
+                pauseRepository.updatePauseState(pauseType)
             }
         }
         if(data.containsKey("pause_stop")){
@@ -89,7 +91,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val stopTime = data["stop_time"]?.toLongOrNull() ?: return
                 val pauseTypeInt = data["pause_type"]?.toIntOrNull() ?: return
                 val userId = data["user_id"]?.toIntOrNull() ?: return
-                if (userId.toString() != (DeliveryApp.appContext.user as? UserModel.Authorized)?.login) {
+                if (userId.toString() != (DeliveryApp.appContext as DeliveryApp).user?.login?.login) {
                     return@run
                 }
 
@@ -99,8 +101,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     else -> return@run
                 }
 
-                DeliveryApp.appContext.pauseRepository.putPauseEndTime(pauseType, stopTime)
-                DeliveryApp.appContext.pauseRepository.updatePauseState(pauseType)
+                pauseRepository.putPauseEndTime(pauseType, stopTime)
+                pauseRepository.updatePauseState(pauseType)
             }
         }
     }

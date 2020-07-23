@@ -14,16 +14,15 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.*
-import org.joda.time.DateTime
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
-import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
+import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.logError
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
@@ -90,13 +89,13 @@ class ReportService : Service(), KoinComponent {
         }
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(body + closeNotifyText)
-                .setSmallIcon(ic)
-                .setLargeIcon(currentIconBitmap)
-                .setWhen(System.currentTimeMillis())
-                .setChannelId(CHANNEL_ID)
-                .setOnlyAlertOnce(true)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(body + closeNotifyText)
+            .setSmallIcon(ic)
+            .setLargeIcon(currentIconBitmap)
+            .setWhen(System.currentTimeMillis())
+            .setChannelId(CHANNEL_ID)
+            .setOnlyAlertOnce(true)
 
         return notification.build()
     }
@@ -113,7 +112,7 @@ class ReportService : Service(), KoinComponent {
         isRunning = true
 
         var lastTasksChecking = System.currentTimeMillis()
-        if(intent?.getBooleanExtra("force_check_updates", false) == true){
+        if (intent?.getBooleanExtra("force_check_updates", false) == true) {
             lastTasksChecking -= TASK_CHECK_DELAY
         }
         var lastNetworkEnabledChecking = System.currentTimeMillis()
@@ -144,21 +143,13 @@ class ReportService : Service(), KoinComponent {
                             e.logError()
                         }
                     } else if (System.currentTimeMillis() - lastTasksChecking > TASK_CHECK_DELAY) {
-                        val app = DeliveryApp.appContext
-                        if (app.user is UserModel.Authorized) {
-                            val user = app.user as UserModel.Authorized
-                            val time = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
-                            try {
-                                val tasks = DeliveryServerAPI.api.getTasks(user.token, time)
-                                if (PersistenceHelper.isMergeNeeded(app.database, tasks.map { it.toTaskModel(app.deviceUUID) })) {
-                                    val int = Intent().apply {
-                                        putExtra("tasks_changed", true)
-                                        action = "NOW"
-                                    }
-                                    sendBroadcast(int)
+                        when (val tasks = repository.getTasks()) {
+                            is Right -> if (PersistenceHelper.isMergeNeeded(database, tasks.value)) {
+                                val int = Intent().apply {
+                                    putExtra("tasks_changed", true)
+                                    action = "NOW"
                                 }
-                            } catch (e: Exception) {
-                                e.logError()
+                                sendBroadcast(int)
                             }
                         }
                         lastTasksChecking = System.currentTimeMillis()
@@ -190,7 +181,7 @@ class ReportService : Service(), KoinComponent {
 
     private fun pendingGPS() {
         if (System.currentTimeMillis() - lastGPSPending > 1 * 60 * 1000) {
-            DeliveryApp.appContext.requestLocation()
+            (DeliveryApp.appContext as DeliveryApp).requestLocation()
             lastGPSPending = System.currentTimeMillis()
         }
     }
@@ -238,7 +229,8 @@ class ReportService : Service(), KoinComponent {
 
     fun startTaskClosingTimer(fromPause: Boolean = false) {
         pauseDisableJob?.cancel()
-        timelimitNotificationStartTime = System.currentTimeMillis() - ((TIMELIMIT_NOTIFICATION_TIMEOUT - timeUntilRun).takeIf { timeUntilRun != 0 && fromPause }
+        timelimitNotificationStartTime =
+            System.currentTimeMillis() - ((TIMELIMIT_NOTIFICATION_TIMEOUT - timeUntilRun).takeIf { timeUntilRun != 0 && fromPause }
                 ?: 0)
         timeUntilRun = 0
     }
@@ -292,7 +284,7 @@ class ReportService : Service(), KoinComponent {
         timeUntilRun = (timeLimitStart + TIMELIMIT_NOTIFICATION_TIMEOUT - System.currentTimeMillis()).toInt()
         pauseDisableJob?.cancel()
         pauseDisableJob = GlobalScope.launch {
-            delay((endTime - startTime)*1000)
+            delay((endTime - startTime) * 1000)
             if (!isActive) return@launch
             startTaskClosingTimer(true)
         }

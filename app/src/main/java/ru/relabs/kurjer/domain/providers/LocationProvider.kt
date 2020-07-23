@@ -22,7 +22,7 @@ interface LocationProvider {
     fun lastReceivedLocation(): Location?
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@ExperimentalCoroutinesApi
 class PlayServicesLocationProvider(private val client: FusedLocationProviderClient) :
     LocationProvider {
     private var lastReceivedLocation: Location? = null
@@ -62,7 +62,7 @@ class PlayServicesLocationProvider(private val client: FusedLocationProviderClie
     }
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@ExperimentalCoroutinesApi
 class NativeLocationProvider(private val client: LocationManager) : LocationProvider {
     private var lastReceivedLocation: Location? = null
 

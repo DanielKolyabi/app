@@ -7,20 +7,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.joda.time.DateTime
-import retrofit2.HttpException
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.ErrorButtonsListener
 import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.models.GPSCoordinatesModel
-import ru.relabs.kurjer.models.UserModel
-import ru.relabs.kurjer.network.DeliveryServerAPI.api
-import ru.relabs.kurjer.network.NetworkHelper
-import ru.relabs.kurjer.data.models.ErrorUtils
-import ru.relabs.kurjer.persistence.PersistenceHelper
+import ru.relabs.kurjer.data.models.auth.UserLogin
+import ru.relabs.kurjer.data.models.common.DomainException
+import ru.relabs.kurjer.domain.models.User
+import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.RadiusRepository
+import ru.relabs.kurjer.domain.useCases.LoginUseCase
+import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.persistence.AppDatabase
+import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.ui.fragments.LoginFragment
+import ru.relabs.kurjer.utils.Left
+import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.activity
 import ru.relabs.kurjer.utils.application
 import java.util.*
@@ -32,8 +35,11 @@ const val INVALID_TOKEN_ERROR_CODE = 4
 
 class LoginPresenter(
     val fragment: LoginFragment,
-    val radiusRepository: RadiusRepository,
-    val pauseRepository: PauseRepository
+    private val radiusRepository: RadiusRepository,
+    private val pauseRepository: PauseRepository,
+    private val database: AppDatabase,
+    private val deliveryRepository: DeliveryRepository,
+    private val loginUseCase: LoginUseCase
 ) {
 
     private var isPasswordRemembered = false
@@ -55,63 +61,55 @@ class LoginPresenter(
         }
 
         GlobalScope.launch(Dispatchers.Main) {
-            val db = application().database
             val sharedPref = application().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
             fragment.setLoginButtonLoading(true)
-            try {
-                val time = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
 
-                val response = if (!authByToken)
-                    api.login(login, pwd, application().deviceUUID, time)
-                else
-                    api.loginByToken(pwd, application().deviceUUID, time)
+            val response = if (!authByToken)
+                deliveryRepository.login(UserLogin(login), pwd)
+            else
+                deliveryRepository.login(pwd)
 
-                if (response.error != null) {
-                    if (response.error.code == INVALID_TOKEN_ERROR_CODE) {
-                        response.error.message = "Введите пароль"
+            when (response) {
+                is Right -> {
+                    application().currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
+                    application().user = response.value
+                    if (isPasswordRemembered) {
+                        //TODO: Remove
+                        application().storeUserCredentials()
+                    } else {
+                        application().restoreUserCredentials()
                     }
-                    fragment.activity()?.showError("Ошибка №${response.error.code}\n${response.error.message}")
-                    return@launch
-                }
 
-                application().currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
-                application().user = UserModel.Authorized(response.user!!.login, response.token!!)
-                if (isPasswordRemembered) {
-                    application().storeUserCredentials()
-                } else {
-                    application().restoreUserCredentials()
-                }
-                if (sharedPref.getString("last_login", "") != response.user.login) {
-                    Log.d("login", "Clear local database. User changed. Last login ${sharedPref.getString("last_login", "")}. New login ${response.user.login}")
-                    withContext(Dispatchers.Default) {
-                        db.taskDao().all.forEach {
-                            PersistenceHelper.closeTaskById(db, it.id)
+                    if (sharedPref.getString("last_login", "") != response.value.login.login) {
+                        Log.d(
+                            "login",
+                            "Clear local database. User changed. Last login ${sharedPref.getString(
+                                "last_login",
+                                ""
+                            )}. New login ${response.value.login}"
+                        )
+                        withContext(Dispatchers.Default) {
+                            database.taskDao().all.forEach {
+                                PersistenceHelper.closeTaskById(database, it.id)
+                            }
                         }
+                        radiusRepository.resetData()
+                        pauseRepository.resetData()
                     }
-                    radiusRepository.resetData()
-                    pauseRepository.resetData()
+
+                    application().sendDeviceInfo(null)
+                    radiusRepository.startRemoteUpdating()
+                    pauseRepository.loadLastPausesRemote()
+                    sharedPref.edit().putString("last_login", response.value.login.login).apply()
+                    (fragment.activity as? MainActivity)?.showTaskListScreen(!authByToken, 0, true)
                 }
-
-                application().sendDeviceInfo(null)
-                radiusRepository.startRemoteUpdating()
-                pauseRepository.loadLastPausesRemote()
-
-                sharedPref.edit().putString("last_login", response.user.login).apply()
-                (fragment.activity as? MainActivity)?.showTaskListScreen(!authByToken, 0, true)
-
-            } catch (e: HttpException) {
-                e.printStackTrace()
-
-                if (e.code() == 502) {
-                    showOfflineLoginOffer()
-                    return@launch
+                is Left -> when (val r = response.value) {
+                    is DomainException.ApiException ->
+                        fragment.activity()?.showError("Ошибка №${r.error.code}\n${r.error.message}")
+                    else -> {
+                        showOfflineLoginOffer()
+                    }
                 }
-
-                val err = ErrorUtils.getError(e)
-                fragment.activity()?.showError("Ошибка №${err.code}.\n${err.message}")
-            } catch (e: Exception) {
-                e.printStackTrace()
-                showOfflineLoginOffer()
             }
             fragment.setLoginButtonLoading(false)
         }
@@ -119,25 +117,27 @@ class LoginPresenter(
 
     fun showOfflineLoginOffer() {
         fragment.activity()?.showError("Нет ответа от сервера.",
-                object : ErrorButtonsListener {
-                    override fun negativeListener() {
-                        val status = loginOffline()
-                        if (!status) {
-                            fragment.activity()?.showError("Невозможно войти оффлайн. Необходима авторизация через сервер.")
-                            return
-                        }
-                        (fragment.activity as? MainActivity)?.showTaskListScreen(false)
+            object : ErrorButtonsListener {
+                override fun negativeListener() {
+                    val status = loginOffline()
+                    if (!status) {
+                        fragment.activity()?.showError("Невозможно войти оффлайн. Необходима авторизация через сервер.")
+                        return
                     }
-
-                    override fun positiveListener() {}
+                    (fragment.activity as? MainActivity)?.showTaskListScreen(false)
                 }
-                , "Ок", "Войти Оффлайн")
+
+                override fun positiveListener() {}
+            }
+            , "Ок", "Войти Оффлайн")
     }
 
     fun loginOffline(): Boolean {
         val user = application().getUserCredentials()
         user ?: return false
-        application().user = user
+
+        application().user = User(UserLogin(user.login))
+        loginUseCase.logIn(User(UserLogin(user.login)), user.token)
         return true
     }
 

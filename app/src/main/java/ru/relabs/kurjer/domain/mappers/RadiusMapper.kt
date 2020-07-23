@@ -6,6 +6,6 @@ import ru.relabs.kurjer.domain.models.AllowedCloseRadius
 object RadiusMapper {
     fun fromRaw(raw: RadiusResponse): AllowedCloseRadius = when (raw.locked) {
         true -> AllowedCloseRadius.Required(raw.radius)
-        else -> AllowedCloseRadius.NotRequired
+        else -> AllowedCloseRadius.NotRequired(raw.radius)
     }
 }

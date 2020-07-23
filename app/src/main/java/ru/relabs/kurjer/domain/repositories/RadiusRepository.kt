@@ -17,8 +17,6 @@ class RadiusRepository(
 
     val isRadiusRequired: Boolean
         get() = allowedCloseRadius is AllowedCloseRadius.Required
-    val radius: Int?
-        get() = (allowedCloseRadius as? AllowedCloseRadius.Required)?.distance
 
     private var updateJob: Job? = null
 
@@ -52,10 +50,10 @@ class RadiusRepository(
 
     private fun loadSavedRadius(): AllowedCloseRadius {
         val required = sharedPreferences.getBoolean(RADIUS_REQUIRED_KEY, true)
+        val radius = sharedPreferences.getInt(RADIUS_KEY, DEFAULT_REQUIRED_RADIUS)
         return if (!required) {
-            AllowedCloseRadius.NotRequired
+            AllowedCloseRadius.NotRequired(radius)
         } else {
-            val radius = sharedPreferences.getInt(RADIUS_KEY, DEFAULT_REQUIRED_RADIUS)
             AllowedCloseRadius.Required(radius)
         }
     }
@@ -63,9 +61,9 @@ class RadiusRepository(
     private fun saveRadius(allowedCloseRadius: AllowedCloseRadius) {
         val editor = sharedPreferences.edit()
         when (allowedCloseRadius) {
-            AllowedCloseRadius.NotRequired -> {
+            is AllowedCloseRadius.NotRequired -> {
                 editor.putBoolean(RADIUS_REQUIRED_KEY, false)
-                editor.remove(RADIUS_KEY)
+                editor.putInt(RADIUS_KEY, allowedCloseRadius.distance)
             }
             is AllowedCloseRadius.Required -> {
                 editor.putBoolean(RADIUS_REQUIRED_KEY, true)

@@ -17,18 +17,20 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.coroutines.*
 import ru.relabs.kurjer.*
+import ru.relabs.kurjer.domain.models.AllowedCloseRadius
+import ru.relabs.kurjer.domain.providers.LocationProvider
+import ru.relabs.kurjer.domain.repositories.PauseRepository
+import ru.relabs.kurjer.domain.repositories.PauseType
+import ru.relabs.kurjer.domain.repositories.RadiusRepository
+import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper.getTaskItemPhotoFile
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.persistence.entities.*
-import ru.relabs.kurjer.domain.providers.LocationProvider
-import ru.relabs.kurjer.domain.repositories.PauseType
-import ru.relabs.kurjer.domain.repositories.RadiusRepository
 import ru.relabs.kurjer.ui.fragments.ReportFragment
 import ru.relabs.kurjer.ui.models.ReportEntrancesListModel
 import ru.relabs.kurjer.ui.models.ReportPhotosListModel
@@ -44,7 +46,10 @@ const val REQUEST_PHOTO = 1
 class ReportPresenter(
     private val fragment: ReportFragment,
     private val radiusRepository: RadiusRepository,
-    private val locationProvider: LocationProvider
+    private val locationProvider: LocationProvider,
+    private val database: AppDatabase,
+    private val pauseRepository: PauseRepository,
+    private val tokenStorage: AuthTokenStorage
 ) {
     var requestEntrance: Int? = null
     var photoUUID: UUID? = null
@@ -58,19 +63,16 @@ class ReportPresenter(
 
         fragment.showHintText(fragment.taskItems[currentTask].notes)
 
-        val db = (fragment.activity?.application as? DeliveryApp)?.database
-        db?.let {
-            GlobalScope.launch {
-                fillPhotosAdapterData(db)
-                fillEntrancesAdapterData(db)
-                fillDescriptionData(db)
-                withContext(Dispatchers.Main) {
-                    try {
-                        fragment.loading.visibility = View.GONE
-                    } catch (e: Throwable) {
-                        e.printStackTrace()
-                        CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
-                    }
+        GlobalScope.launch {
+            fillPhotosAdapterData(database)
+            fillEntrancesAdapterData(database)
+            fillDescriptionData(database)
+            withContext(Dispatchers.Main) {
+                try {
+                    fragment.loading.visibility = View.GONE
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                    CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
                 }
             }
         }
@@ -100,20 +102,20 @@ class ReportPresenter(
     }
 
     fun startPause(type: PauseType) {
-        if (!DeliveryApp.appContext.pauseRepository.isPauseAvailable(type)) {
+        if (pauseRepository.isPauseAvailable(type)) {
             fragment?.showPauseError()
             return
         }
         GlobalScope.launch(Dispatchers.Default) {
             tryOrLogAsync {
-                if (!DeliveryApp.appContext.pauseRepository.isPauseAvailableRemote(type)) {
+                if (!pauseRepository.isPauseAvailableRemote(type)) {
                     withContext(Dispatchers.Main) {
                         fragment?.showPauseError()
                     }
                     return@tryOrLogAsync
                 }
 
-                DeliveryApp.appContext.pauseRepository.startPause(type, withNotify = true)
+                pauseRepository.startPause(type, withNotify = true)
             }
             withContext(Dispatchers.Main) {
                 fragment.updatePauseButtonEnabled()
@@ -224,8 +226,6 @@ class ReportPresenter(
         }
 
         GlobalScope.launch(Dispatchers.Default) {
-            val db = DeliveryApp.appContext.database
-
             if (data.coupleEnabled) {
                 for ((idx, taskItem) in fragment.taskItems.withIndex()) {
                     if (taskItem == fragment.taskItems[currentTask] || taskItem.state == TaskItemModel.CLOSED) {
@@ -235,7 +235,7 @@ class ReportPresenter(
                         continue
                     }
 
-                    val taskItemEntrances = getTaskItemEntranceData(taskItem, fragment.tasks[idx], db)
+                    val taskItemEntrances = getTaskItemEntranceData(taskItem, fragment.tasks[idx], database)
                     if (taskItemEntrances.size > data.entranceNumber - 1) {
                         taskItemEntrances[data.entranceNumber - 1].selected = data.selected
                         try {
@@ -274,21 +274,20 @@ class ReportPresenter(
         description: String? = null,
         entrances: List<ReportEntrancesListModel.Entrance>? = null
     ) {
-        val db = application().database
-        val taskItemEntity = db.taskItemDao().getById(taskItemId)
-        val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItemEntity!!.id)
+        val taskItemEntity = database.taskItemDao().getById(taskItemId)
+        val taskItemResult = database.taskItemResultsDao().getByTaskItemId(taskItemEntity!!.id)
         if (taskItemResult == null) {
-            createTaskItemResult(taskItemId, db)
+            createTaskItemResult(taskItemId, database)
         }
 
         gps?.let {
-            updateTaskItemGPSResult(taskItemId, db, it)
+            updateTaskItemGPSResult(taskItemId, database, it)
         }
         description?.let {
-            updateTaskItemDescriptionResult(taskItemId, db, description)
+            updateTaskItemDescriptionResult(taskItemId, database, description)
         }
         entrances?.let {
-            updateTaskItemEntrancesResult(taskItemId, db, entrances)
+            updateTaskItemEntrancesResult(taskItemId, database, entrances)
         }
     }
 
@@ -471,17 +470,16 @@ class ReportPresenter(
             photo.recycle()
         }
         GlobalScope.launch(Dispatchers.Main) {
-            val db = DeliveryApp.appContext.database
             var currentGPS = application().currentLocation
 
             val photoEntity = TaskItemPhotoEntity(0, photoUUID.toString(), currentGPS, fragment.taskItems[currentTask].id, entranceNumber)
             val photoModel = withContext(Dispatchers.Default) {
-                val id = db.photosDao().insert(photoEntity)
-                db.photosDao().getById(id.toInt()).toTaskItemPhotoModel(db)
+                val id = database.photosDao().insert(photoEntity)
+                database.photosDao().getById(id.toInt()).toTaskItemPhotoModel(database)
             }
 
-            fillPhotosAdapterData(db)
-            fillEntrancesAdapterData(db)
+            fillPhotosAdapterData(database)
+            fillEntrancesAdapterData(database)
 
             if (photoMultiMode) {
                 requestPhoto(true, entranceNumber)
@@ -507,17 +505,16 @@ class ReportPresenter(
         }
         val taskItemPhotoId = (fragment.photosListAdapter.data[holder.adapterPosition] as ReportPhotosListModel.TaskItemPhoto).taskItem.id
         GlobalScope.launch {
-            val db = DeliveryApp.appContext.database
-            val photoEntity = db.photosDao().getById(taskItemPhotoId)
-            db.photosDao().delete(photoEntity)
-            fillEntrancesAdapterData(db)
-            fillPhotosAdapterData(db)
+            val photoEntity = database.photosDao().getById(taskItemPhotoId)
+            database.photosDao().delete(photoEntity)
+            fillEntrancesAdapterData(database)
+            fillPhotosAdapterData(database)
         }
     }
 
 
     fun onCloseClicked(checkPause: Boolean = true) = GlobalScope.launch(Dispatchers.Main) {
-        if (DeliveryApp.appContext.pauseRepository.isPaused) {
+        if (pauseRepository.isPaused) {
             if (checkPause) {
                 fragment.showPauseWarning()
                 return@launch
@@ -561,11 +558,11 @@ class ReportPresenter(
     }
 
     private suspend fun closeClickedCheck(withTryReload: Boolean = true) {
-        val radius = radiusRepository.radius
+        val radius = radiusRepository.allowedCloseRadius
         val currentPosition = application().currentLocation
         val distance = getGPSDistance(currentPosition)
         val description = getDescription()
-        if (radiusRepository.isRadiusRequired) {
+        if (radius is AllowedCloseRadius.Required) {
             when {
                 currentPosition.isEmpty || currentPosition.isOld -> {
                     if (withTryReload) {
@@ -581,40 +578,40 @@ class ReportPresenter(
                                 false,
                                 currentPosition,
                                 distance.toFloat(),
-                                radius,
-                                radiusRepository.isRadiusRequired
+                                radius.distance,
+                                true
                             )
                         }
                     }
                 }
-                distance > radius -> {
+                distance > radius.distance -> {
                     CustomLog.writeToFile("Show coordinates you are far from house")
                     fragment.showPreCloseDialog(message = "Ты не у дома! Подойди и попробуй еще \nSiz uyning yonida emassiz! Yaqinlashing va qaytadan urining") {
-                        closeTaskItem(description, false, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
+                        closeTaskItem(description, false, currentPosition, distance.toFloat(), radius.distance, true)
                     }
                 }
                 else -> {
                     CustomLog.writeToFile("Close house")
-                    closeClicked(description, null, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
+                    closeClicked(description, null, currentPosition, distance.toFloat(), radius.distance, true)
                 }
             }
-        } else {
+        } else if (radius is AllowedCloseRadius.NotRequired) {
             when {
                 currentPosition.isEmpty || currentPosition.isOld -> {
                     CustomLog.writeToFile("Show coordinates not found")
                     fragment.showPreCloseDialog(message = "Не определились координаты. \nKoordinatalar yo'q") {
-                        closeClicked(description, true, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
+                        closeClicked(description, true, currentPosition, distance.toFloat(), radius.distance, false)
                     }
                 }
-                distance > radius -> {
+                distance > radius.distance -> {
                     CustomLog.writeToFile("Show coordinates you are far from house")
                     fragment.showPreCloseDialog(message = "Ты не у дома. \nSiz uyda emassiz") {
-                        closeClicked(description, true, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
+                        closeClicked(description, true, currentPosition, distance.toFloat(), radius.distance, false)
                     }
                 }
                 else -> {
                     CustomLog.writeToFile("Close house")
-                    closeClicked(description, true, currentPosition, distance.toFloat(), radius, radiusRepository.isRadiusRequired)
+                    closeClicked(description, true, currentPosition, distance.toFloat(), radius.distance, false)
                 }
             }
         }
@@ -665,7 +662,7 @@ class ReportPresenter(
         locationProvider.updatesChannel(true).apply {
             withTimeoutOrNull(40 * 1000) {
                 val loc = receive()
-                DeliveryApp.appContext.currentLocation = GPSCoordinatesModel(loc.latitude, loc.longitude, Date(loc.time))
+                (DeliveryApp.appContext as DeliveryApp).currentLocation = GPSCoordinatesModel(loc.latitude, loc.longitude, Date(loc.time))
             }
             cancel()
         }
@@ -679,20 +676,21 @@ class ReportPresenter(
         allowedDistance: Int,
         radiusRequired: Boolean
     ) {
-        (fragment.context as MainActivity).showError("КНОПКИ НАЖАЛ?\nОТЧЁТ ОТПРАВЛЯЮ?\n(tugmachalari bosildi? " +
-                "hisobot yuboringmi?)", object : ErrorButtonsListener {
-            override fun positiveListener() {
-                val status = closeTaskItem(description, withRemove, location, distance, allowedDistance, radiusRequired)
-                if (!status) {
-                    (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
-                } else {
-                    fragment.activity()?.restartTaskClosingTimer()
-                    if (!NetworkHelper.isNetworkEnabled(fragment.context)) {
-                        (fragment.activity as? MainActivity)?.showNetworkDisabledError()
+        (fragment.context as MainActivity).showError(
+            "КНОПКИ НАЖАЛ?\nОТЧЁТ ОТПРАВЛЯЮ?\n(tugmachalari bosildi? " +
+                    "hisobot yuboringmi?)", object : ErrorButtonsListener {
+                override fun positiveListener() {
+                    val status = closeTaskItem(description, withRemove, location, distance, allowedDistance, radiusRequired)
+                    if (!status) {
+                        (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
+                    } else {
+                        fragment.activity()?.restartTaskClosingTimer()
+                        if (!NetworkHelper.isNetworkEnabled(fragment.context)) {
+                            (fragment.activity as? MainActivity)?.showNetworkDisabledError()
+                        }
                     }
                 }
-            }
-        }, "Да", "Нет", style = R.style.RedAlertDialog
+            }, "Да", "Нет", style = R.style.RedAlertDialog
         )
     }
 
@@ -705,17 +703,16 @@ class ReportPresenter(
         radiusRequired: Boolean
     ): Boolean {
         val app = application()
-        if (DeliveryApp.appContext.pauseRepository.isPaused) {
+        if (pauseRepository.isPaused) {
             GlobalScope.launch(Dispatchers.Default) {
-                DeliveryApp.appContext.pauseRepository.stopPause(withNotify = true, withUpdate = true)
+                pauseRepository.stopPause(withNotify = true, withUpdate = true)
             }
         }
         GlobalScope.launch(Dispatchers.Default) {
-            val db = app.database
-            val userToken = (app.user as? UserModel.Authorized)?.token ?: ""
+            //TODO: Remove token from here, move creation into databaseRepository
+            val userToken = tokenStorage.getToken() ?: ""
             val entrances = fragment.entrancesListAdapter.data
-                .filter { it is ReportEntrancesListModel.Entrance }
-                .map { it as ReportEntrancesListModel.Entrance }
+                .filterIsInstance<ReportEntrancesListModel.Entrance>()
 
             withContext(Dispatchers.Default) {
                 try {
@@ -730,27 +727,25 @@ class ReportPresenter(
                 }
 
                 if (withRemove) {
-                    db.taskItemDao().getById(fragment.taskItems[currentTask].id)?.apply {
+                    database.taskItemDao().getById(fragment.taskItems[currentTask].id)?.apply {
                         state = TaskItemModel.CLOSED
                     }?.let {
-                        db.taskItemDao().update(it)
+                        database.taskItemDao().update(it)
                     }
                 }
 
-                db.taskDao().getById(fragment.tasks[currentTask].id)?.let {
+                database.taskDao().getById(fragment.tasks[currentTask].id)?.let {
                     if (it.state and TaskModel.EXAMINED != 0) {
                         it.state = TaskModel.STARTED
-                        val token = (app.user as? UserModel.Authorized)?.token
 
-                        db.sendQueryDao().insert(
+                        database.sendQueryDao().insert(
                             SendQueryItemEntity(
-                                0, BuildConfig.API_URL + "/api/v1/tasks/${it.id}/accepted?token=" + (token
-                                    ?: ""), ""
+                                0, BuildConfig.API_URL + "/api/v1/tasks/${it.id}/accepted?token=" + userToken, ""
                             )
                         )
                     }
 
-                    db.taskDao().update(it)
+                    database.taskDao().update(it)
                 }
 
                 val reportItem = ReportQueryItemEntity(
@@ -772,7 +767,7 @@ class ReportPresenter(
                     radiusRequired
                 )
 
-                db.reportQueryDao().insert(reportItem)
+                database.reportQueryDao().insert(reportItem)
             }
 
             val int = Intent().apply {

@@ -18,6 +18,7 @@ import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
+import ru.relabs.kurjer.domain.useCases.LoginUseCase
 import ru.relabs.kurjer.persistence.AppDatabase
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
@@ -47,36 +48,11 @@ val fileSystemModule = module {
     single<File>(Modules.CACHE_DIR) { androidApplication().cacheDir }
 }
 
-val mainModule = module {
+val storagesModule = module {
     single<SharedPreferences> { androidApplication().getSharedPreferences(get(Modules.SHARED_PREFERENCES_NAME), Context.MODE_PRIVATE) }
     single<AppPreferences> { AppPreferences(get<SharedPreferences>()) }
     single<AuthTokenStorage> { AuthTokenStorage(get<AppPreferences>()) }
     single<CurrentUserStorage> { CurrentUserStorage(get<AppPreferences>()) }
-
-    single<ApiProvider> { ApiProvider(get(Modules.DELIVERY_URL)) }
-    single<AppDatabase> {
-        Room.databaseBuilder(androidApplication(), AppDatabase::class.java, "deliveryman")
-            .addMigrations(*Migrations.getMigrations())
-            .fallbackToDestructiveMigration()
-            .build()
-    }
-
-    single<DeliveryRepository> {
-        DeliveryRepository(
-            get<ApiProvider>().practisApi,
-            get<AuthTokenStorage>(),
-            get<CurrentUserStorage>(),
-            get<File>(Modules.CACHE_DIR)
-        )
-    }
-    single<PauseRepository>{
-        PauseRepository(
-            get<DeliveryRepository>(),
-            get<SharedPreferences>(),
-            get<AppDatabase>(),
-            get<CurrentUserStorage>()
-        )
-    }
 
     single<DeviceUUIDProvider> {
         DeviceUUIDProvider(
@@ -87,4 +63,43 @@ val mainModule = module {
     single<LocationProvider> {
         getLocationProvider(androidApplication())
     }
+
+    single<AppDatabase> {
+        Room.databaseBuilder(androidApplication(), AppDatabase::class.java, "deliveryman")
+            .addMigrations(*Migrations.getMigrations())
+            .fallbackToDestructiveMigration()
+            .build()
+    }
+
+    single<ApiProvider> { ApiProvider(get(Modules.DELIVERY_URL)) }
 }
+
+val useCasesModule = module {
+    single<LoginUseCase> {
+        LoginUseCase(
+            get<AuthTokenStorage>(),
+            get<CurrentUserStorage>()
+        )
+    }
+}
+
+val repositoryModule = module {
+
+    single<DeliveryRepository> {
+        DeliveryRepository(
+            get<ApiProvider>().practisApi,
+            get<AuthTokenStorage>(),
+            get<LoginUseCase>(),
+            get<File>(Modules.CACHE_DIR),
+            get<DeviceUUIDProvider>()
+        )
+    }
+    single<PauseRepository> {
+        PauseRepository(
+            get<DeliveryRepository>(),
+            get<SharedPreferences>(),
+            get<AppDatabase>()
+        )
+    }
+}
+

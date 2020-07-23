@@ -1,14 +1,17 @@
 package ru.relabs.kurjer.ui.presenters
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
-import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ru.relabs.kurjer.*
+import ru.relabs.kurjer.DeliveryApp
+import ru.relabs.kurjer.ErrorButtonsListener
+import ru.relabs.kurjer.MainActivity
+import ru.relabs.kurjer.ReportService
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
@@ -26,7 +29,10 @@ import java.util.*
 /**
  * Created by ProOrange on 09.08.2018.
  */
-class AddressListPresenter(val fragment: AddressListFragment) {
+class AddressListPresenter(
+    val fragment: AddressListFragment,
+    val database: AppDatabase
+) {
 
     var sortingMethod = TaskAddressSorter.ALPHABETIC
     val tasks = mutableListOf<TaskModel>()
@@ -41,9 +47,9 @@ class AddressListPresenter(val fragment: AddressListFragment) {
 
         tasks.forEach { task ->
             items.addAll(
-                    task.items.map {
-                        AddressListModel.TaskItem(it, task)
-                    }
+                task.items.map {
+                    AddressListModel.TaskItem(it, task)
+                }
             )
         }
         fragment.adapter.data.clear()
@@ -105,13 +111,10 @@ class AddressListPresenter(val fragment: AddressListFragment) {
 
     fun updateStates() {
         GlobalScope.launch(Dispatchers.Main) {
-            val db = (fragment.activity?.application as? DeliveryApp)?.database
-            db ?: return@launch
-
             withContext(Dispatchers.Default) {
                 tasks.forEach { task ->
                     task.items.map { item ->
-                        val savedState = db.taskItemDao().getById(item.id)?.state
+                        val savedState = database.taskItemDao().getById(item.id)?.state
                         savedState ?: return@map
                         if (savedState != item.state) {
                             item.state = savedState
@@ -121,7 +124,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
             }
 
             applySorting()
-            withContext(Dispatchers.Default) { checkTasksIsClosed(db) }
+            withContext(Dispatchers.Default) { checkTasksIsClosed(database) }
             if (tasks.size == 0) {
                 (fragment.context as? MainActivity)?.showTaskListScreen(false)
             } else {
@@ -138,7 +141,7 @@ class AddressListPresenter(val fragment: AddressListFragment) {
             CustomLog.writeToFile("Для задания ${task.id} не удалось получить растровую карту. ${task.rastMapUrl}")
             return
         }
-        
+
         val intent = Intent()
         intent.action = Intent.ACTION_VIEW
         val uri = FileProvider.getUriForFile(ctx, "com.relabs.kurjer.file_provider", image)

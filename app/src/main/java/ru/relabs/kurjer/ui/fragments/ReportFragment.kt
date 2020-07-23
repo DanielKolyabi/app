@@ -8,25 +8,31 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import android.text.Editable
 import android.text.Html
 import android.text.TextWatcher
 import android.view.*
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.include_hint_container.*
 import kotlinx.coroutines.*
+import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
-import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.DeliveryApp
+import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.providers.LocationProvider
+import ru.relabs.kurjer.domain.repositories.PauseRepository
+import ru.relabs.kurjer.domain.repositories.PauseType
+import ru.relabs.kurjer.domain.repositories.RadiusRepository
+import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.domain.repositories.PauseType
+import ru.relabs.kurjer.persistence.AppDatabase
 import ru.relabs.kurjer.ui.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.ui.delegates.*
 import ru.relabs.kurjer.ui.dialogs.GPSRequestTimeDialog
@@ -50,15 +56,23 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
     private lateinit var hintHelper: HintHelper
     private var gpsLoaderJob: Job? = null
     private var loadingDialog: Dialog? = null
+    private val radiusRepository: RadiusRepository by inject()
+    private val pauseRepository: PauseRepository by inject()
+    private val locationProvider: LocationProvider by inject()
+    private val authTokenStorage: AuthTokenStorage by inject()
+    private val database: AppDatabase by inject()
 
     val tasksListAdapter = DelegateAdapter<ReportTasksListModel>()
     val entrancesListAdapter = DelegateAdapter<ReportEntrancesListModel>()
     val photosListAdapter = DelegateAdapter<ReportPhotosListModel>()
 
     private val presenter = ReportPresenter(
-            this,
-            DeliveryApp.appContext.radiusRepository,
-            DeliveryApp.appContext.locationProvider
+        this,
+        radiusRepository,
+        locationProvider,
+        database,
+        pauseRepository,
+        authTokenStorage
     )
 
     private val broadcastReceiver = object : BroadcastReceiver() {
@@ -101,8 +115,10 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
         super.onDestroy()
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
 
         savedInstanceState?.getString("photoUUID")?.let {
             presenter.photoUUID = UUID.fromString(it)
@@ -131,10 +147,10 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
         super.onViewCreated(view, savedInstanceState)
 
         hintHelper = HintHelper(
-                hint_container,
-                "",
-                false,
-                activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+            hint_container,
+            "",
+            false,
+            activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
         )
 
         hint_container.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
@@ -150,17 +166,17 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
             presenter.changeCurrentTask(it)
         })
         entrancesListAdapter.addDelegate(
-                ReportEntrancesDelegate(
-                        { type, holder ->
-                            presenter.onEntranceSelected(type, holder)
-                        },
-                        { adapterPosition ->
-                            presenter.onCouplingChanged(adapterPosition)
-                        },
-                        { entranceNumber ->
-                            presenter.requestPhoto(true, entranceNumber)
-                        }
-                )
+            ReportEntrancesDelegate(
+                { type, holder ->
+                    presenter.onEntranceSelected(type, holder)
+                },
+                { adapterPosition ->
+                    presenter.onCouplingChanged(adapterPosition)
+                },
+                { entranceNumber ->
+                    presenter.requestPhoto(true, entranceNumber)
+                }
+            )
         )
         photosListAdapter.addDelegate(ReportPhotoDelegate { holder ->
             presenter.onRemovePhotoClicked(holder)
@@ -176,7 +192,7 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
             override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
 
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean =
-                    taskItems[presenter.currentTask].state == TaskItemModel.CLOSED || !tasks[presenter.currentTask].isAvailableByDate(Date())
+                taskItems[presenter.currentTask].state == TaskItemModel.CLOSED || !tasks[presenter.currentTask].isAvailableByDate(Date())
 
             override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
         }
@@ -223,31 +239,31 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
     }
 
     fun updatePauseButtonEnabled() {
-        pause_button?.isEnabled = !DeliveryApp.appContext.pauseRepository.isPaused
+        pause_button?.isEnabled = !pauseRepository.isPaused
     }
 
     private fun showPauseDialog() {
         var dialog: AlertDialog? = null
 
         val adapter = ArrayAdapter<String>(requireContext(), android.R.layout.select_dialog_singlechoice).apply {
-            if (DeliveryApp.appContext.pauseRepository.isPauseAvailable(PauseType.Lunch)) {
+            if (pauseRepository.isPauseAvailable(PauseType.Lunch)) {
                 add("Обед")
             }
-            if (DeliveryApp.appContext.pauseRepository.isPauseAvailable(PauseType.Load)) {
+            if (pauseRepository.isPauseAvailable(PauseType.Load)) {
                 add("Дозагрузка")
             }
             add("Отмена")
         }
 
         dialog = AlertDialog.Builder(requireContext())
-                .setAdapter(adapter) { _, id ->
-                    val text = adapter.getItem(id)
-                    when (text) {
-                        "Обед" -> presenter.startPause(PauseType.Lunch)
-                        "Дозагрузка" -> presenter.startPause(PauseType.Load)
-                        "Отмена" -> dialog?.dismiss()
-                    }
-                }.show()
+            .setAdapter(adapter) { _, id ->
+                val text = adapter.getItem(id)
+                when (text) {
+                    "Обед" -> presenter.startPause(PauseType.Lunch)
+                    "Дозагрузка" -> presenter.startPause(PauseType.Load)
+                    "Отмена" -> dialog?.dismiss()
+                }
+            }.show()
     }
 
     fun showHintText(notes: List<String>) {
@@ -282,18 +298,18 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
             return
         }
         AlertDialog.Builder(requireContext())
-                .setTitle("Ошибка")
-                .setMessage("Пауза недоступна")
-                .setPositiveButton("Ок") { _, _ -> }
-                .show()
+            .setTitle("Ошибка")
+            .setMessage("Пауза недоступна")
+            .setPositiveButton("Ок") { _, _ -> }
+            .show()
     }
 
     fun showPauseWarning() {
         AlertDialog.Builder(requireContext())
-                .setTitle("Пауза")
-                .setMessage("Пауза будет прервана")
-                .setPositiveButton("Ок") { _, _ -> presenter.onCloseClicked(false) }
-                .show()
+            .setTitle("Пауза")
+            .setMessage("Пауза будет прервана")
+            .setPositiveButton("Ок") { _, _ -> presenter.onCloseClicked(false) }
+            .show()
     }
 
     fun showGPSLoadingDialog() {
@@ -307,30 +323,30 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
 
     fun showPreCloseDialog(message: String, action: (() -> Unit)? = null) {
         AlertDialog.Builder(requireContext())
-                .setTitle("Ошибка")
-                .setMessage(message)
-                .setPositiveButton("Ок") { _, _ ->
-                    action?.invoke()
-                }
-                .show()
+            .setTitle("Ошибка")
+            .setMessage(message)
+            .setPositiveButton("Ок") { _, _ ->
+                action?.invoke()
+            }
+            .show()
     }
 
     fun showSendCrashReportDialog() {
         AlertDialog.Builder(requireContext())
-                .setTitle("Crash Log")
-                .setMessage("Отправка crash.log")
-                .setPositiveButton("Отправить") { _, _ ->
-                    try {
-                        CustomLog.share(requireActivity())
-                    } catch (e: FileNotFoundException) {
-                        Toast.makeText(requireContext(), "crash.log отсутствует", Toast.LENGTH_LONG).show()
-                    } catch (e: java.lang.Exception) {
-                        CustomLog.writeToFile(getStacktraceAsString(e))
-                        Toast.makeText(requireContext(), "Произошла ошибка", Toast.LENGTH_LONG).show()
-                    }
+            .setTitle("Crash Log")
+            .setMessage("Отправка crash.log")
+            .setPositiveButton("Отправить") { _, _ ->
+                try {
+                    CustomLog.share(requireActivity())
+                } catch (e: FileNotFoundException) {
+                    Toast.makeText(requireContext(), "crash.log отсутствует", Toast.LENGTH_LONG).show()
+                } catch (e: java.lang.Exception) {
+                    CustomLog.writeToFile(getStacktraceAsString(e))
+                    Toast.makeText(requireContext(), "Произошла ошибка", Toast.LENGTH_LONG).show()
                 }
-                .setNegativeButton("Отмена") { _, _ -> }
-                .show()
+            }
+            .setNegativeButton("Отмена") { _, _ -> }
+            .show()
     }
 
     fun showGPSLoader() {
@@ -367,12 +383,12 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
     companion object {
         @JvmStatic
         fun newInstance(task: List<TaskModel>, taskItem: List<TaskItemModel>, selectedTaskId: Int) =
-                ReportFragment().apply {
-                    arguments = Bundle().apply {
-                        putParcelableArrayList("tasks", ArrayList(task))
-                        putParcelableArrayList("task_items", ArrayList(taskItem))
-                        putInt("selected_task_id", selectedTaskId)
-                    }
+            ReportFragment().apply {
+                arguments = Bundle().apply {
+                    putParcelableArrayList("tasks", ArrayList(task))
+                    putParcelableArrayList("task_items", ArrayList(taskItem))
+                    putInt("selected_task_id", selectedTaskId)
                 }
+            }
     }
 }

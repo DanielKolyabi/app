@@ -2,6 +2,8 @@ package ru.relabs.kurjer.files
 
 import android.os.Environment
 import ru.relabs.kurjer.DeliveryApp
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import java.io.File
@@ -35,12 +37,12 @@ object PathHelper {
         return File(getTaskItemPhotoFolderById(taskItemID), "$uuid.jpg")
     }
 
-    fun getTaskRasterizeMapFile(task: TaskModel): File {
+    fun getTaskRasterizeMapFile(task: Task): File {
         return getTaskRasterizeMapFileById(task.id)
     }
 
-    fun getTaskRasterizeMapFileById(taskId: Int): File {
-        return File(mapDir, "$taskId.jpg")
+    fun getTaskRasterizeMapFileById(taskId: TaskId): File {
+        return File(mapDir, "${taskId.id}.jpg")
     }
 
     fun getUpdateFile(): File {

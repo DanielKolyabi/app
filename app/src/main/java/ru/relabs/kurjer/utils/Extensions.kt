@@ -15,7 +15,7 @@ import ru.relabs.kurjer.DeliveryApp
 
 
 fun application(): DeliveryApp {
-    return DeliveryApp.appContext
+    return DeliveryApp.appContext as DeliveryApp
 }
 
 fun Fragment.activity(): MainActivity? {

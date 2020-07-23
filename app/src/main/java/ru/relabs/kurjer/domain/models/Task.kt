@@ -43,5 +43,16 @@ enum class TaskState {
     EXAMINED,
     STARTED,
     COMPLETED,
-    CANCELED
+    CANCELED;
+
+    @Deprecated("Should be removed after refactoring")
+    fun toInt(): Int {
+        return when(this){
+            CREATED -> 0
+            EXAMINED -> 1
+            STARTED -> 2
+            COMPLETED -> 4
+            CANCELED -> 16
+        }
+    }
 }

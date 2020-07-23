@@ -14,21 +14,19 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.location.LocationResult
-import com.google.firebase.iid.FirebaseInstanceId
 import com.instacart.library.truetime.TrueTime
 import com.yandex.mapkit.MapKitFactory
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
-import ru.relabs.kurjer.di.constModule
-import ru.relabs.kurjer.di.fileSystemModule
-import ru.relabs.kurjer.di.mainModule
-import ru.relabs.kurjer.di.navigationModule
+import ru.relabs.kurjer.di.*
+import ru.relabs.kurjer.domain.models.User
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.utils.CustomLog
-import ru.relabs.kurjer.utils.instanceIdAsync
-import ru.relabs.kurjer.utils.tryOrLogAsync
 import ru.terrakok.cicerone.Cicerone
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
@@ -50,8 +48,7 @@ class DeliveryApp : Application() {
         get() = cicerone.navigatorHolder
 
 
-
-    var user: UserModel = UserModel.Unauthorized
+    var user: User? = null
     var locationManager: FusedLocationProviderClient? = null
     var currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
 
@@ -81,7 +78,7 @@ class DeliveryApp : Application() {
 
         startKoin {
             androidContext(this@DeliveryApp)
-            modules(listOf(constModule, navigationModule, fileSystemModule, mainModule))
+            modules(listOf(constModule, navigationModule, fileSystemModule, storagesModule, useCasesModule, repositoryModule))
         }
         //All below is a trash
 
@@ -174,11 +171,11 @@ class DeliveryApp : Application() {
     }
 
     fun storeUserCredentials() {
-        if (user !is UserModel.Authorized) return
+        val ctxUser = user ?: return
         getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
             .edit()
-            .putString("login", (user as UserModel.Authorized).login)
-            .putString("token", (user as UserModel.Authorized).token)
+            .putString("login", ctxUser.login.login)
+            //.putString("token", (user as UserModel.Authorized).token)
             .apply()
     }
 
@@ -229,7 +226,7 @@ class DeliveryApp : Application() {
     }
 
     suspend fun sendDeviceInfo(pushToken: String?, shouldSendImei: Boolean = true) {
-        if (user !is UserModel.Authorized) return
+        if (user == null) return
 
         TODO("Refactor")
 //        if (shouldSendImei) {
@@ -264,7 +261,7 @@ class DeliveryApp : Application() {
 //        }
     }
 
-    companion object{
+    companion object {
         lateinit var appContext: Context
     }
 }

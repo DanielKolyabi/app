@@ -5,12 +5,12 @@ import android.os.AsyncTask
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Window
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import org.koin.android.ext.android.inject
+import ru.relabs.kurjer.domain.repositories.PauseRepository
 
 class SplashActivity : AppCompatActivity() {
+    val pauseRepository: PauseRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,8 +22,8 @@ class SplashActivity : AppCompatActivity() {
 
         AsyncTask.execute {
             GlobalScope.launch {
-                DeliveryApp.appContext.pauseRepository.loadPauseDurations()
-                Thread.sleep(500)
+                pauseRepository.loadPauseDurations()
+                delay(500)
                 withContext(Dispatchers.Main) {
                     startActivity(Intent(this@SplashActivity, MainActivity::class.java))
                     finish()

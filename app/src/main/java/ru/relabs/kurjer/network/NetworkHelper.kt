@@ -24,6 +24,7 @@ import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.data.models.PhotoReportRequest
 import ru.relabs.kurjer.data.models.TaskItemReportRequest
+import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.persistence.entities.TaskItemPhotoEntity
 import ru.relabs.kurjer.utils.logError
@@ -162,7 +163,7 @@ object NetworkHelper {
         return MultipartBody.Part.createFormData(partName, photoFile.name, request)
     }
 
-    fun loadTaskRasterizeMap(task: TaskModel, contentResolver: ContentResolver?) {
+    fun loadTaskRasterizeMap(task: Task, contentResolver: ContentResolver?) {
         val url = URL(task.rastMapUrl)
         val bmp = BitmapFactory.decodeStream(url.openStream())
         val mapFile = PathHelper.getTaskRasterizeMapFile(task)

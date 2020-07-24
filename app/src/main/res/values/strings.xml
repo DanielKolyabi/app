@@ -49,4 +49,10 @@
     <string name="crash_log_not_found">crash.log отсутствует</string>
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="send">Отправить</string>
+    <string name="update_new_available">Доступно новое обновление</string>
+    <string name="update_install">Установить</string>
+    <string name="update_later">Напомнить позже</string>
+    <string name="update_install_error">Не удалось загрузить файл обновления</string>
+    <string name="update_progress">Загрузка %d/100</string>
+    <string name="update_cant_get_info">Не удалось получить информацию об обновлениях</string>
 </resources>

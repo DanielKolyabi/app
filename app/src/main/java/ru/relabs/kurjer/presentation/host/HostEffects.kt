@@ -1,12 +1,19 @@
 package ru.relabs.kurjer.presentation.host
 
+import android.net.Uri
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ru.relabs.kurjer.R
+import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
+import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.getFirebaseToken
+import java.io.FileOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 object HostEffects {
     fun effectInit(restored: Boolean): HostEffect = { c, _ ->
@@ -30,24 +37,95 @@ object HostEffects {
         }
     }
 
-    fun effectCheckApiVersion(): HostEffect = { c, _ ->
-        //TODO: Check app version
-//        if (!ApiVersionUtils.checkApiVersion(c.repository)) {
-//            c.showApiMismatchError()
-//        }
+    fun effectCheckUpdates(): HostEffect = { c, s ->
+        messages.send(HostMessages.msgAddLoaders(1))
+        when (val r = s.appUpdates?.let { Right(it) } ?: c.repository.getAppUpdatesInfo()) {
+            is Right -> {
+                messages.send(HostMessages.msgUpdatesInfo(r.value))
+                if (r.value.required != null) {
+                    withContext(Dispatchers.Main) {
+                        c.showUpdateDialog(r.value.required)
+                    }
+                } else if (r.value.optional != null) {
+                    withContext(Dispatchers.Main) {
+                        c.showUpdateDialog(r.value.optional)
+                    }
+                }
+            }
+            is Left -> withContext(Dispatchers.Main) {
+                c.showErrorDialog(R.string.update_cant_get_info)
+            }
+
+        }
+        messages.send(HostMessages.msgAddLoaders(-1))
     }
 
     fun effectLogout(): HostEffect = { c, s ->
         c.loginUseCase.logout()
-        withContext(Dispatchers.Main){
+        withContext(Dispatchers.Main) {
             c.router.newRootScreen(RootScreen.Login)
         }
     }
 
     fun effectCopyDeviceUUID(): HostEffect = { c, _ ->
         val uuid = c.deviceUUIDProvider.getOrGenerateDeviceUUID()
-        withContext(Dispatchers.Main){
+        withContext(Dispatchers.Main) {
             c.copyToClipboard(uuid.id)
         }
+    }
+
+    fun effectLoadUpdate(uri: Uri): HostEffect = { c, s ->
+        messages.send(HostMessages.msgAddLoaders(1))
+        messages.send(HostMessages.msgLoadProgress(0))
+        val url = URL(uri.toString())
+        val file = PathHelper.getUpdateFile()
+        val connection = url.openConnection() as HttpURLConnection
+        val stream = url.openStream()
+        val fos = FileOutputStream(file)
+        try {
+            val fileSize = connection.contentLength
+            val b = ByteArray(2048)
+            var read = stream.read(b)
+            var total = read
+            while (read != -1) {
+                fos.write(b, 0, read)
+                read = stream.read(b)
+                total += read
+                debug("Load update file $total/$fileSize")
+                messages.send(HostMessages.msgLoadProgress(((total / fileSize.toFloat()) * 100).toInt()))
+            }
+
+            withContext(Dispatchers.Main) {
+                c.installUpdate(file)
+            }
+        } catch (e: Exception) {
+            debug("Loading error", e)
+            withContext(Dispatchers.Main) {
+                c.showErrorDialog(R.string.update_install_error)
+            }
+        } finally {
+            stream.close()
+            connection.disconnect()
+            fos.close()
+        }
+        messages.send(HostMessages.msgLoadProgress(null))
+        messages.send(HostMessages.msgAddLoaders(-1))
+
+    }
+
+    fun effectCheckXiaomiPermissions(): HostEffect = { c, s ->
+        //TODO("Check permissions")
+    }
+
+    fun effectCheckGPSEnabled(): HostEffect = { c, s ->
+        //TODO("Check GPS")
+    }
+
+    fun effectCheckNetworkEnabled(): HostEffect = { c, s ->
+        //TODO("Check Network")
+    }
+
+    fun effectCheckTimeValid(): HostEffect = { c, s ->
+        //TODO("Check Time")
     }
 }

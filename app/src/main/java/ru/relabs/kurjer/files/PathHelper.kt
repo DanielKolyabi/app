@@ -15,7 +15,9 @@ import java.util.*
 
 object PathHelper {
     private val dataRootDir = DeliveryApp.appContext.applicationContext.filesDir
-    private val updatesPath = Environment.getExternalStorageDirectory().path + File.separator + "deliveryman" + File.separator
+    private val updatesPath = File(dataRootDir, "updates").apply {
+        mkdirs()
+    }
     private val photoDir = File(dataRootDir, "photos").apply {
         mkdirs()
     }

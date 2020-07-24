@@ -8,4 +8,7 @@
     <files-path
         name="maps"
         path="maps/" />
+    <files-path
+        name="updates"
+        path="updates/" />
 </paths>

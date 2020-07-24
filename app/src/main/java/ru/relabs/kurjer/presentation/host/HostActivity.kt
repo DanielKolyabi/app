@@ -1,13 +1,17 @@
 package ru.relabs.kurjer.presentation.host
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.holder.DimenHolder
@@ -18,7 +22,9 @@ import kotlinx.android.synthetic.main.nav_header.view.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import org.koin.android.ext.android.inject
+import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
@@ -31,12 +37,11 @@ import ru.relabs.kurjer.presentation.customViews.drawables.NavDrawerBackgroundDr
 import ru.relabs.kurjer.presentation.tasks.TasksFragment
 import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
+import ru.relabs.kurjer.utils.extensions.showDialog
 import ru.relabs.kurjer.utils.extensions.showSnackbar
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
-import ru.terrakok.cicerone.android.support.SupportAppNavigator
-import ru.terrakok.cicerone.android.support.SupportAppScreen
-import ru.terrakok.cicerone.commands.Command
+import java.io.File
 import java.io.FileNotFoundException
 
 
@@ -50,27 +55,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     private val router: Router by inject()
     private lateinit var navigationDrawer: Drawer
 
-    private val navigator =
-        object : SupportAppNavigator(this, supportFragmentManager, R.id.fragment_container) {
-            override fun createFragment(screen: SupportAppScreen): Fragment? {
-                return super.createFragment(screen).also { onFragmentChanged(it) }
-            }
-
-            override fun setupFragmentTransaction(
-                command: Command,
-                currentFragment: Fragment?,
-                nextFragment: Fragment?,
-                fragmentTransaction: FragmentTransaction
-            ) {
-                super.setupFragmentTransaction(
-                    command,
-                    currentFragment,
-                    nextFragment,
-                    fragmentTransaction
-                )
-                fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-            }
-        }
+    private val navigator = CiceroneNavigator(this)
 
     override fun onFragmentAttached(fragment: Fragment) {
         when (fragment) {
@@ -84,27 +69,93 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_INSTALL_PACKAGE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (resultCode == Activity.RESULT_OK && packageManager.canRequestPackageInstalls()) {
+                uiScope.sendMessage(controller, HostMessages.msgRequestUpdates())
+            } else {
+                startActivityForResult(
+                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse(String.format("package:%s", packageName))),
+                    REQUEST_CODE_INSTALL_PACKAGE
+                )
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_host)
 
+        Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler())
         controller.start(HostMessages.msgInit(savedInstanceState != null))
         uiScope.launch {
             val renders = listOf(
                 HostRenders.renderDrawer(navigationDrawer),
                 HostRenders.renderFullScreen(window),
-                HostRenders.renderLoader(loading_overlay)
+                HostRenders.renderLoader(loading_overlay, pb_loading, tv_loader)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
-            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
+            //launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
         }
         prepareNavigation()
         controller.context.errorContext.attach(window.decorView.rootView)
         controller.context.copyToClipboard = ::copyToClipboard
+        controller.context.showUpdateDialog = ::showUpdateDialog
+        controller.context.showErrorDialog = ::showErrorDialog
+        controller.context.installUpdate = ::installUpdate
     }
 
-    fun copyToClipboard(text: String){
-        when(val r = ClipboardHelper.copyToClipboard(this, text)){
+    private fun showErrorDialog(stringResource: Int) {
+        showDialog(
+            stringResource,
+            R.string.ok to {}
+        )
+    }
+
+    private fun installUpdate(updateFile: File) {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                setDataAndType(
+                    FileProvider.getUriForFile(this@HostActivity, "com.relabs.kurjer.file_provider", updateFile),
+                    "application/vnd.android.package-archive"
+                )
+            } else {
+                setDataAndType(Uri.fromFile(updateFile), "application/vnd.android.package-archive")
+            }
+        }
+        startActivity(intent)
+    }
+
+    private fun showUpdateDialog(appUpdate: AppUpdate) {
+        if (appUpdate.version > BuildConfig.VERSION_CODE) {
+            showDialog(
+                R.string.update_new_available,
+                R.string.update_install to { checkUpdateRequirements(appUpdate.url) },
+                (R.string.update_later to {}).takeIf { !appUpdate.isRequired }
+            )
+        }
+    }
+
+    private fun checkUpdateRequirements(url: Uri) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!packageManager.canRequestPackageInstalls()) {
+                startActivityForResult(
+                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse(String.format("package:%s", packageName))),
+                    REQUEST_CODE_INSTALL_PACKAGE
+                )
+            } else {
+                uiScope.sendMessage(controller, HostMessages.msgStartUpdateLoading(url))
+            }
+        } else {
+            uiScope.sendMessage(controller, HostMessages.msgStartUpdateLoading(url))
+        }
+    }
+
+    private fun copyToClipboard(text: String) {
+        when (val r = ClipboardHelper.copyToClipboard(this, text)) {
             is Right ->
                 showSnackbar(
                     resources.getString(R.string.copied_to_clipboard),
@@ -124,6 +175,9 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.stop()
         supervisor.cancelChildren()
         controller.context.errorContext.detach()
+        controller.context.showUpdateDialog = {}
+        controller.context.showErrorDialog = {}
+        controller.context.installUpdate = {}
         navigationHolder.removeNavigator()
     }
 
@@ -180,8 +234,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     }
 
     private fun sendCrashLog(): Boolean {
-        when(val r = CustomLog.share(this)){
-            is Left -> when(val e = r.value){
+        when (val r = CustomLog.share(this)) {
+            is Left -> when (val e = r.value) {
                 is FileNotFoundException -> showSnackbar(resources.getString(R.string.crash_log_not_found))
                 else -> showSnackbar(resources.getString(R.string.unknown_runtime_error))
             }
@@ -266,7 +320,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     }
 
 
-    private fun onFragmentChanged(fragment: Fragment?) {
+    fun onFragmentChanged(fragment: Fragment?) {
         hideKeyboard()
 
         when (fragment) {
@@ -291,12 +345,12 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     }
 
     companion object {
+        const val REQUEST_CODE_INSTALL_PACKAGE = 997
+
         const val NAVIGATION_TASKS = 1L
         const val NAVIGATION_CRASH = 2L
         const val NAVIGATION_UUID = 3L
         const val NAVIGATION_LOGOUT = 4L
-
-        const val KEY_INTENT_INTENT_ACTION = "notification_action"
 
         fun getIntent(parentContext: Context) = Intent(parentContext, HostActivity::class.java)
     }

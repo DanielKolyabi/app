@@ -4,8 +4,11 @@ import android.os.Build
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.drawerlayout.widget.DrawerLayout
 import com.mikepenz.materialdrawer.Drawer
+import ru.relabs.kurjer.R
 import ru.relabs.kurjer.presentation.base.tea.renderT
 import ru.relabs.kurjer.utils.extensions.visible
 
@@ -41,8 +44,19 @@ object HostRenders {
         }
     )
 
-    fun renderLoader(view: View): HostRender = renderT(
-        { it.loaders > 0 },
-        { view.visible = it }
+    fun renderLoader(view: View, progressBar: ProgressBar, progressText: TextView): HostRender = renderT(
+        { (it.loaders > 0) to it.loadProgress },
+        { (visible, progress) ->
+            view.visible = visible
+            progressBar.isIndeterminate = progress == null
+            progressText.visible = progress != null
+
+            if(progress != null){
+                progressBar.max = 100
+                progressBar.progress = progress
+
+                progressText.text = progressText.resources.getString(R.string.update_progress, progress)
+            }
+        }
     )
 }

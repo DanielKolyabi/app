@@ -78,14 +78,14 @@ class LoginFragment : Fragment() {
         }
         login_button?.isEnabled = true
         login_button.setOnClickListener {
-            if (application().lastRequiredAppVersion > BuildConfig.VERSION_CODE) {
-                activity()?.showError("Необходимо обновить приложение.", object : ErrorButtonsListener {
-                    override fun positiveListener() {
-                        activity()?.checkUpdates()
-                    }
-                }, "Обновить")
-                return@setOnClickListener
-            }
+//            if (application().lastRequiredAppVersion > BuildConfig.VERSION_CODE) {
+//                activity()?.showError("Необходимо обновить приложение.", object : ErrorButtonsListener {
+//                    override fun positiveListener() {
+//                        activity()?.checkUpdates()
+//                    }
+//                }, "Обновить")
+//                return@setOnClickListener
+//            }
             if (!NetworkHelper.isNetworkEnabled(context)) {
                 activity()?.showNetworkDisabledError()
                 return@setOnClickListener

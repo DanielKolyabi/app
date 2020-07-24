@@ -589,7 +589,7 @@ class MainActivity : AppCompatActivity() {
                     try {
                         Log.d("updates", "Try install from ${updateData.url}")
                         loading.setVisible(true)
-                        installURL = URL(updateData.url)
+                        installURL = URL(updateData.url.toString())
                         checkInstallUpdate()
                     } catch (e: Exception) {
                         e.printStackTrace()

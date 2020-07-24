@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.models.auth.UserLogin
+import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.presentation.base.TextChangeListener
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.tea.debugCollector
@@ -71,12 +72,12 @@ class LoginFragment : BaseFragment() {
         }
         controller.context.errorContext.attach(view)
         controller.context.showOfflineLoginOffer = ::showLoginOfflineOffer
-        controller.context.showOfflineLoginError = ::showLoginOfflineLoginError
+        controller.context.showError = ::showError
     }
 
-    private fun showLoginOfflineLoginError() {
+    private fun showError(id: Int) {
         showDialog(
-            R.string.login_offline_error,
+            id,
             R.string.ok to {}
         )
     }
@@ -96,7 +97,12 @@ class LoginFragment : BaseFragment() {
             uiScope.sendMessage(controller, LoginMessages.msgRememberChanged(isChecked))
         }
         view.btn_login.setOnClickListener {
-            uiScope.sendMessage(controller, LoginMessages.msgLoginClicked())
+            uiScope.sendMessage(
+                controller,
+                LoginMessages.msgLoginClicked(
+                    NetworkHelper.isNetworkEnabled(requireContext())
+                )
+            )
         }
     }
 
@@ -104,7 +110,7 @@ class LoginFragment : BaseFragment() {
         super.onDestroyView()
         renderJob?.cancel()
         controller.context.showOfflineLoginOffer = {}
-        controller.context.showOfflineLoginError = {}
+        controller.context.showError = {}
         controller.context.errorContext.detach()
     }
 

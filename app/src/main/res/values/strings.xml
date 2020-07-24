@@ -55,4 +55,6 @@
     <string name="update_install_error">Не удалось загрузить файл обновления</string>
     <string name="update_progress">Загрузка %d/100</string>
     <string name="update_cant_get_info">Не удалось получить информацию об обновлениях</string>
+    <string name="login_need_update">Необходимо обновить приложение</string>
+    <string name="login_need_network">Необходимо включить передачу данных</string>
 </resources>

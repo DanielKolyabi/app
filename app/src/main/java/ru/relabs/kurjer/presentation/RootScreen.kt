@@ -11,6 +11,6 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
 
     override fun getFragment(): Fragment = fabric()
 
-    object Login : RootScreen({ LoginFragment() })
-    object Tasks : RootScreen({ TasksFragment() })
+    object Login : RootScreen({ LoginFragment.newInstance() })
+    object Tasks : RootScreen({ TasksFragment.newInstance() })
 }

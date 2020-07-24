@@ -2,8 +2,9 @@ package ru.relabs.kurjer.presentation.login
 
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.models.auth.UserLogin
-import ru.relabs.kurjer.domain.useCases.LoginUseCase
+import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.presentation.base.tea.*
 
 /**
@@ -22,8 +23,10 @@ class LoginContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     RouterContext by RouterContextMainImpl(),
     KoinComponent {
 
+    val updateUseCase: AppUpdateUseCase by inject()
+
     var showOfflineLoginOffer: () -> Unit = {}
-    var showOfflineLoginError: () -> Unit = {}
+    var showError: (id: Int) -> Unit = {}
 }
 
 typealias LoginMessage = ElmMessage<LoginContext, LoginState>

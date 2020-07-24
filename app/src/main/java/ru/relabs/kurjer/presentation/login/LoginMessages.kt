@@ -24,8 +24,8 @@ object LoginMessages {
     fun msgRememberChanged(remember: Boolean): LoginMessage =
         msgState { it.copy(isPasswordRemembered = remember) }
 
-    fun msgLoginClicked(): LoginMessage =
-        msgEffect(LoginEffects.effectLogin())
+    fun msgLoginClicked(isNetworkEnabled: Boolean): LoginMessage =
+        msgEffect(LoginEffects.effectLoginCheck(isNetworkEnabled))
 
     fun msgLoginOffline(): LoginMessage =
         msgEffect(LoginEffects.effectLoginOffline())

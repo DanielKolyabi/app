@@ -85,18 +85,18 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_host)
 
-//        controller.start(HostMessages.msgInit(savedInstanceState != null))
-//        uiScope.launch {
-//            val renders = listOf(
-//                HostRenders.renderDrawer(navigationDrawer),
-//                HostRenders.renderFullScreen(window),
-//                HostRenders.renderLoader(loading_overlay)
-//            )
-//            launch { controller.stateFlow().collect(rendersCollector(renders)) }
-//            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
-//        }
-//        prepareNavigation()
-//        controller.context.errorContext.attach(window.decorView.rootView)
+        controller.start(HostMessages.msgInit(savedInstanceState != null))
+        uiScope.launch {
+            val renders = listOf(
+                HostRenders.renderDrawer(navigationDrawer),
+                HostRenders.renderFullScreen(window),
+                HostRenders.renderLoader(loading_overlay)
+            )
+            launch { controller.stateFlow().collect(rendersCollector(renders)) }
+            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
+        }
+        prepareNavigation()
+        controller.context.errorContext.attach(window.decorView.rootView)
     }
 
     override fun onDestroy() {

@@ -21,7 +21,7 @@ class HostContext(
     ErrorContext by errorContext,
     RouterContext by RouterContextMainImpl() {
 
-    //val repository: DeliveryRepository by inject()
+    val repository: DeliveryRepository by inject()
 }
 
 typealias HostRender = ElmRender<HostState>

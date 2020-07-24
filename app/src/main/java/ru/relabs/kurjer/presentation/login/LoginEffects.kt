@@ -9,6 +9,6 @@ import kotlinx.coroutines.flow.collect
 object LoginEffects {
 
     fun effectInit(): LoginEffect = { c, s ->
-        TODO("Implement Init")
+
     }
 }

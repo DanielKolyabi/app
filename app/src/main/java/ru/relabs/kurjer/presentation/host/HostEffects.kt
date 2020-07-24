@@ -11,7 +11,7 @@ import ru.relabs.kurjer.utils.extensions.getFirebaseToken
 object HostEffects {
     fun effectInit(restored: Boolean): HostEffect = { c, _ ->
         if (!restored) {
-            if (false) {
+            if (c.repository.isAuthenticated()) {
                 withContext(Dispatchers.Main) {
                     c.router.newRootScreen(RootScreen.Tasks)
                 }

@@ -8,8 +8,10 @@ import android.view.Window
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.domain.repositories.PauseRepository
+import ru.relabs.kurjer.presentation.host.HostActivity
 
 class SplashActivity : AppCompatActivity() {
+    val scope = CoroutineScope(Dispatchers.Default)
     val pauseRepository: PauseRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,14 +22,11 @@ class SplashActivity : AppCompatActivity() {
 
         startService(Intent(this, ReportService::class.java))
 
-        AsyncTask.execute {
-            GlobalScope.launch {
-                pauseRepository.loadPauseDurations()
-                delay(500)
-                withContext(Dispatchers.Main) {
-                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
-                    finish()
-                }
+        scope.launch {
+            pauseRepository.loadPauseDurations()
+            withContext(Dispatchers.Main) {
+                startActivity(HostActivity.getIntent(this@SplashActivity))
+                finish()
             }
         }
     }

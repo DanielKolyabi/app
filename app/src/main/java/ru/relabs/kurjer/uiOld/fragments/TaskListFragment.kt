@@ -55,7 +55,7 @@ class TaskListFragment : Fragment(), SearchableFragment {
         tasks_list.smoothScrollToPosition(itemIndex)
     }
 
-    val presenter = TaskListPresenter(this, get(), get(), get())
+    val presenter = TaskListPresenter(this, get(), get(), get(), get())
     private lateinit var hintHelper: HintHelper
     val adapter = DelegateAdapter<TaskListModel>()
     private var shouldUpdate: Boolean = false

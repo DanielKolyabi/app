@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_task_details.*
+import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
@@ -24,9 +25,8 @@ import ru.relabs.kurjer.uiOld.presenters.TaskDetailsPresenter
 class TaskDetailsFragment : Fragment() {
 
     val database: AppDatabase by inject()
-    val authTokenStorage: AuthTokenStorage by inject()
 
-    val presenter = TaskDetailsPresenter(this, database, authTokenStorage)
+    val presenter = TaskDetailsPresenter(this, database, get())
     val adapter = DelegateAdapter<DetailsListModel>()
     lateinit var task: TaskModel
     var posInList = 0

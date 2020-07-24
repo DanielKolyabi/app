@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="status_bar_height">27dp</dimen>
+    <dimen name="navigation_header_height">80dp</dimen>
+    <dimen name="navigation_header_with_status_height">105dp</dimen>
+</resources>

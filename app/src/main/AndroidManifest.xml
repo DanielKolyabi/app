@@ -64,7 +64,7 @@
         </service>
 
         <activity
-            android:name=".MainActivity"
+            android:name=".presentation.host.HostActivity"
             android:screenOrientation="portrait" />
 
         <service

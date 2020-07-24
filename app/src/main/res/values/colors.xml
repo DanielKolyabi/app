@@ -6,4 +6,7 @@
     <color name="colorFuchsia">#EC3796</color>
     <color name="red_alert_dialog_text">#BB0000</color>
     <color name="textGreen">#008000</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="selectedMenuItemBackground">#BBBBBB</color>
 </resources>

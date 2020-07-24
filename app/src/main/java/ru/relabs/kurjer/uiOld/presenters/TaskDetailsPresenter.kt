@@ -46,18 +46,18 @@ class TaskDetailsPresenter(
 
     fun onMapClicked(task: TaskModel) {
         val ctx = fragment.context ?: return
-        val image = PathHelper.getTaskRasterizeMapFile(task)
-        if (!image.exists()) {
-            Toast.makeText(ctx, "Файл карты не найден.", Toast.LENGTH_SHORT).show()
-            CustomLog.writeToFile("Для задания ${task.id} не удалось получить растровую карту. ${task.rastMapUrl}")
-            return
-        }
-
-        val intent = Intent()
-        intent.action = Intent.ACTION_VIEW
-        val uri = FileProvider.getUriForFile(ctx, "com.relabs.kurjer.file_provider", image)
-        intent.setDataAndType(uri, "image/*")
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        ContextCompat.startActivity(ctx, intent, null)
+//        val image = PathHelper.getTaskRasterizeMapFile(task)
+//        if (!image.exists()) {
+//            Toast.makeText(ctx, "Файл карты не найден.", Toast.LENGTH_SHORT).show()
+//            CustomLog.writeToFile("Для задания ${task.id} не удалось получить растровую карту. ${task.rastMapUrl}")
+//            return
+//        }
+//
+//        val intent = Intent()
+//        intent.action = Intent.ACTION_VIEW
+//        val uri = FileProvider.getUriForFile(ctx, "com.relabs.kurjer.file_provider", image)
+//        intent.setDataAndType(uri, "image/*")
+//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+//        ContextCompat.startActivity(ctx, intent, null)
     }
 }

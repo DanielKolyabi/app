@@ -44,7 +44,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
         if (data.containsKey("request_gps")) {
             GlobalScope.launch {
                 val coordinates = (DeliveryApp.appContext as DeliveryApp).currentLocation
-                deliveryRepository.updateLocation(coordinates)
+//                deliveryRepository.updateLocation(coordinates)
             }
         }
         if (data.containsKey("tasks_update")) {

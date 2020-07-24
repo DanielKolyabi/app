@@ -9,19 +9,19 @@ import org.koin.dsl.module
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.data.api.ApiProvider
+import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.migrations.Migrations
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.providers.getLocationProvider
+import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
+import ru.relabs.kurjer.domain.repositories.RadiusRepository
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.domain.useCases.LoginUseCase
-import ru.relabs.kurjer.data.database.AppDatabase
-import ru.relabs.kurjer.domain.repositories.DatabaseRepository
-import ru.relabs.kurjer.domain.repositories.RadiusRepository
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
 import java.io.File
@@ -46,7 +46,7 @@ val navigationModule = module {
 }
 
 val fileSystemModule = module {
-    single<File>(Modules.CACHE_DIR) { androidApplication().filesDir }
+    single<File>(Modules.FILES_DIR) { androidApplication().filesDir }
     single<File>(Modules.CACHE_DIR) { androidApplication().cacheDir }
 }
 
@@ -76,14 +76,6 @@ val storagesModule = module {
     single<ApiProvider> { ApiProvider(get(Modules.DELIVERY_URL)) }
 }
 
-val useCasesModule = module {
-    single<LoginUseCase> {
-        LoginUseCase(
-            get<AuthTokenStorage>(),
-            get<CurrentUserStorage>()
-        )
-    }
-}
 
 val repositoryModule = module {
 
@@ -96,7 +88,7 @@ val repositoryModule = module {
             get<DeviceUUIDProvider>()
         )
     }
-    single<DatabaseRepository>{
+    single<DatabaseRepository> {
         DatabaseRepository(
             get<AppDatabase>(),
             get<AuthTokenStorage>(),
@@ -114,6 +106,17 @@ val repositoryModule = module {
             get<DeliveryRepository>(),
             get<SharedPreferences>(),
             get<DatabaseRepository>()
+        )
+    }
+}
+val useCasesModule = module {
+    single<LoginUseCase> {
+        LoginUseCase(
+            get<AuthTokenStorage>(),
+            get<CurrentUserStorage>(),
+            get<DatabaseRepository>(),
+            get<RadiusRepository>(),
+            get<PauseRepository>()
         )
     }
 }

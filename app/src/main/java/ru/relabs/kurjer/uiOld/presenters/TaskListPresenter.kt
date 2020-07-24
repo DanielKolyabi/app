@@ -178,7 +178,8 @@ class TaskListPresenter(
                                 } catch (e: Exception) {
                                     e.logError()
                                 }
-                            }
+                            },
+                            dbRep
                         )
                         if (mergeResult.isTasksChanged) {
                             fragment.activity()?.showError("Задания были обновлены.")

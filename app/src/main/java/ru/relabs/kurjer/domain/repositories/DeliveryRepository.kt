@@ -140,8 +140,10 @@ class DeliveryRepository(
         return try {
             Right(block())
         } catch (e: CancellationException) {
+            debug("CancellationException $e")
             Left(DomainException.CanceledException)
         } catch (e: HttpException) {
+            debug("HttpException $e")
             if (e.code() == 401) {
                 Left(DomainException.ApiException(ApiError(401, "Unauthorized", null)))
             } else {

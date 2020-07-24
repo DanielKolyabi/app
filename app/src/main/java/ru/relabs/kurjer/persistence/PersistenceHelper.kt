@@ -115,110 +115,111 @@ object PersistenceHelper {
         dbRep: DatabaseRepository
     ): MergeResult {
         val result = MergeResult(false, false)
-        withContext(Dispatchers.Default) {
-            val savedTasksIDs = db.taskDao().all.map { it.id }
-            val newTasksIDs = newTasks.map { it.id.id }
-
-            //Задача отсутствует в ответе от сервера (удалено)
-            db.taskDao().all.filter { it.id !in newTasksIDs }.forEach { task ->
-                closeTask(db, task.toTaskModel(db))
-                result.isTasksChanged = true
-                Log.d("merge", "Close task: ${task.id}")
-            }
-
-            //Задача не присутствует в сохранённых (новая)
-            newTasks.filter { it.id.id !in savedTasksIDs }.forEach { task ->
-                if (task.state.state == TaskState.CANCELED) {
-                    Log.d("merge", "New task ${task.id} passed due 12 status")
-                    return@forEach
-                }
-                //Add task
-                val newTaskId = db.taskDao().insert(task.toTaskEntity())
-                Log.d("merge", "Add task ID: $newTaskId")
-                var openedTaskItems = 0
-                task.items.forEach { item ->
-                    //Add address
-                    db.addressDao().insert(item.address.toAddressEntity())
-                    //Add item
-                    val reportForThisTask = db.reportQueryDao().getByTaskItemId(item.id.id)
-                    if (reportForThisTask != null) {
-                        item.state = TaskItemState.CLOSED
-                    }
-                    if (item.state != TaskItemState.CLOSED) {
-                        openedTaskItems++
-                    }
-                    val newId = db.taskItemDao().insert(item.toTaskItemEntity(task.id))
-                    db.entranceDataDao().insertAll(item.entrancesData.map { enData -> enData.toEntity(item.id) })
-                    Log.d("merge", "Add taskItem ID: $newId")
-                }
-                if (openedTaskItems <= 0) {
-                    result.isTasksChanged = true
-                    closeTaskById(db, newTaskId.toInt())
-                } else {
-                    result.isNewTasksAdded = true
-                    onNewTaskAppear(task)
-                }
-            }
-
-            //Задача есть и на сервере и на клиенте (мерж)
-            /*
-            Если она закрыта | выполнена на сервере - удалить с клиента
-            Если итерация > сохранённой | состояние отличается от сохранённого и сохранённое != начато |
-             */
-            newTasks.filter { it.id.id in savedTasksIDs }.forEach { task ->
-                val savedTask = db.taskDao().getById(task.id.id) ?: return@forEach
-                if (task.state.state == TaskState.CANCELED) {
-                    if (savedTask.plainState == TaskModel.STARTED) {
-                        dbRep.putSendQuery(SendQueryData.TaskAccepted(TaskId(savedTask.id)))
-                    } else {
-                        result.isTasksChanged = true
-                        closeTask(db, savedTask.toTaskModel(db))
-                    }
-                } else if (task.state.state == TaskState.COMPLETED) {
-                    result.isTasksChanged = true
-                    closeTask(db, savedTask.toTaskModel(db))
-                    return@forEach
-                } else if (
-                    (savedTask.iteration < task.iteration)
-                    || (task.state.state.toInt() != savedTask.state && savedTask.plainState != TaskModel.STARTED)
-                    || (task.endTime != savedTask.endTime || task.startTime != savedTask.startTime)
-                ) {
-
-                    val examinedByOtherUser = if (savedTask.state == TaskModel.CREATED
-                        && task.state.state == TaskState.EXAMINED
-                    ) TaskModel.BY_OTHER_USER else 0
-
-                    onTaskChanged(savedTask.toTaskModel(db), task)
-
-                    db.taskDao().update(task.toTaskEntity().apply {
-                        state = state xor examinedByOtherUser
-                    })
-
-                    val currentTasks = db.taskItemDao().getAllForTask(task.id).toMutableList()
-
-                    //Add new tasks and update old tasks
-                    task.items.forEach { newTaskItem ->
-                        currentTasks.removeAll { oldTaskItem -> oldTaskItem.id == newTaskItem.id }
-
-                        db.addressDao().insert(newTaskItem.address.toAddressEntity())
-
-                        val reportForThisTask = db.reportQueryDao().getByTaskItemId(newTaskItem.id)
-                        if (reportForThisTask != null) {
-                            newTaskItem.state = TaskItemModel.CLOSED
-                        }
-                        db.taskItemDao().insert(newTaskItem.toTaskItemEntity(task.id))
-                        db.entranceDataDao().insertAll(newTaskItem.entrancesData.map { enData -> enData.toEntity(newTaskItem.id) })
-                    }
-
-                    //Remove old taskItems
-                    currentTasks.forEach {
-                        removeTaskItem(db, it.id)
-                    }
-                    result.isTasksChanged = true
-                }
-            }
-        }
         return result
+//        withContext(Dispatchers.Default) {
+//            val savedTasksIDs = db.taskDao().all.map { it.id }
+//            val newTasksIDs = newTasks.map { it.id.id }
+//
+//            //Задача отсутствует в ответе от сервера (удалено)
+//            db.taskDao().all.filter { it.id !in newTasksIDs }.forEach { task ->
+//                closeTask(db, task.toTaskModel(db))
+//                result.isTasksChanged = true
+//                Log.d("merge", "Close task: ${task.id}")
+//            }
+//
+//            //Задача не присутствует в сохранённых (новая)
+//            newTasks.filter { it.id.id !in savedTasksIDs }.forEach { task ->
+//                if (task.state.state == TaskState.CANCELED) {
+//                    Log.d("merge", "New task ${task.id} passed due 12 status")
+//                    return@forEach
+//                }
+//                //Add task
+//                val newTaskId = db.taskDao().insert(task.toTaskEntity())
+//                Log.d("merge", "Add task ID: $newTaskId")
+//                var openedTaskItems = 0
+//                task.items.forEach { item ->
+//                    //Add address
+//                    db.addressDao().insert(item.address.toAddressEntity())
+//                    //Add item
+//                    val reportForThisTask = db.reportQueryDao().getByTaskItemId(item.id.id)
+//                    if (reportForThisTask != null) {
+//                        item.state = TaskItemState.CLOSED
+//                    }
+//                    if (item.state != TaskItemState.CLOSED) {
+//                        openedTaskItems++
+//                    }
+//                    val newId = db.taskItemDao().insert(item.toTaskItemEntity(task.id))
+//                    db.entranceDataDao().insertAll(item.entrancesData.map { enData -> enData.toEntity(item.id) })
+//                    Log.d("merge", "Add taskItem ID: $newId")
+//                }
+//                if (openedTaskItems <= 0) {
+//                    result.isTasksChanged = true
+//                    closeTaskById(db, newTaskId.toInt())
+//                } else {
+//                    result.isNewTasksAdded = true
+//                    onNewTaskAppear(task)
+//                }
+//            }
+//
+//            //Задача есть и на сервере и на клиенте (мерж)
+//            /*
+//            Если она закрыта | выполнена на сервере - удалить с клиента
+//            Если итерация > сохранённой | состояние отличается от сохранённого и сохранённое != начато |
+//             */
+//            newTasks.filter { it.id.id in savedTasksIDs }.forEach { task ->
+//                val savedTask = db.taskDao().getById(task.id.id) ?: return@forEach
+//                if (task.state.state == TaskState.CANCELED) {
+//                    if (savedTask.plainState == TaskModel.STARTED) {
+//                        dbRep.putSendQuery(SendQueryData.TaskAccepted(TaskId(savedTask.id)))
+//                    } else {
+//                        result.isTasksChanged = true
+//                        closeTask(db, savedTask.toTaskModel(db))
+//                    }
+//                } else if (task.state.state == TaskState.COMPLETED) {
+//                    result.isTasksChanged = true
+//                    closeTask(db, savedTask.toTaskModel(db))
+//                    return@forEach
+//                } else if (
+//                    (savedTask.iteration < task.iteration)
+//                    || (task.state.state.toInt() != savedTask.state && savedTask.plainState != TaskModel.STARTED)
+//                    || (task.endTime != savedTask.endTime || task.startTime != savedTask.startTime)
+//                ) {
+//
+//                    val examinedByOtherUser = if (savedTask.state == TaskModel.CREATED
+//                        && task.state.state == TaskState.EXAMINED
+//                    ) TaskModel.BY_OTHER_USER else 0
+//
+//                    onTaskChanged(savedTask.toTaskModel(db), task)
+//
+//                    db.taskDao().update(task.toTaskEntity().apply {
+//                        state = state xor examinedByOtherUser
+//                    })
+//
+//                    val currentTasks = db.taskItemDao().getAllForTask(task.id).toMutableList()
+//
+//                    //Add new tasks and update old tasks
+//                    task.items.forEach { newTaskItem ->
+//                        currentTasks.removeAll { oldTaskItem -> oldTaskItem.id == newTaskItem.id }
+//
+//                        db.addressDao().insert(newTaskItem.address.toAddressEntity())
+//
+//                        val reportForThisTask = db.reportQueryDao().getByTaskItemId(newTaskItem.id)
+//                        if (reportForThisTask != null) {
+//                            newTaskItem.state = TaskItemModel.CLOSED
+//                        }
+//                        db.taskItemDao().insert(newTaskItem.toTaskItemEntity(task.id))
+//                        db.entranceDataDao().insertAll(newTaskItem.entrancesData.map { enData -> enData.toEntity(newTaskItem.id) })
+//                    }
+//
+//                    //Remove old taskItems
+//                    currentTasks.forEach {
+//                        removeTaskItem(db, it.id)
+//                    }
+//                    result.isTasksChanged = true
+//                }
+//            }
+//        }
+//        return result
     }
 
     private fun removeTaskItem(db: AppDatabase, taskItemId: Int) {

@@ -118,4 +118,5 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:17.0.0")
     implementation("com.github.instacart.truetime-android:library:3.4")
     implementation("joda-time:joda-time:2.10.1")
+    implementation("com.mikepenz:materialdrawer:7.0.0-rc08")
 }

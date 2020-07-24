@@ -138,11 +138,11 @@ object NetworkHelper {
             }
         }
 
-        val reportObject = TaskItemReportRequest(
-            data.taskId, data.taskItemId, data.imageFolderId,
-            data.gps, data.closeTime, data.userDescription, data.entrances, photosMap,
-            data.batteryLevel, data.closeDistance, data.allowedDistance, data.radiusRequired
-        )
+//        val reportObject = TaskItemReportRequest(
+//            data.taskId, data.taskItemId, data.imageFolderId,
+//            data.gps, data.closeTime, data.userDescription, data.entrances, photosMap,
+//            data.batteryLevel, data.closeDistance, data.allowedDistance, data.radiusRequired
+//        )
 
         return TODO("Use new api")//api.sendTaskReport(data.taskItemId, data.token, reportObject, photoParts).status
     }

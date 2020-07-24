@@ -14,11 +14,11 @@ import ru.relabs.kurjer.domain.models.User
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.RadiusRepository
-import ru.relabs.kurjer.domain.useCases.LoginUseCase
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
+import ru.relabs.kurjer.domain.useCases.LoginUseCase
 import ru.relabs.kurjer.uiOld.fragments.LoginFragment
 import ru.relabs.kurjer.utils.*
 import java.util.*
@@ -33,7 +33,6 @@ class LoginPresenter(
     private val radiusRepository: RadiusRepository,
     private val pauseRepository: PauseRepository,
     private val database: AppDatabase,
-    private val deliveryRepository: DeliveryRepository,
     private val loginUseCase: LoginUseCase,
     private val dbRep: DatabaseRepository
 ) {
@@ -61,9 +60,9 @@ class LoginPresenter(
             fragment.setLoginButtonLoading(true)
 
             val response = if (!authByToken)
-                deliveryRepository.login(UserLogin(login), pwd)
+                loginUseCase.login(UserLogin(login), pwd)
             else
-                deliveryRepository.login(pwd)
+                loginUseCase.login(pwd)
 
             when (response) {
                 is Right -> {
@@ -110,7 +109,7 @@ class LoginPresenter(
 
         application().user = User(UserLogin(user.login))
         GlobalScope.launch {
-            loginUseCase.logIn(User(UserLogin(user.login)), user.token)
+            loginUseCase.loginOffline(UserLogin(user.login), user.token)
         }
         return true
     }

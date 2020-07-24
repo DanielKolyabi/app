@@ -12,7 +12,7 @@ import ru.relabs.kurjer.data.database.entities.*
  */
 @Database(entities = [AddressEntity::class, TaskEntity::class, TaskItemEntity::class,
     TaskItemPhotoEntity::class, TaskItemResultEntity::class, TaskItemResultEntranceEntity::class,
-    SendQueryItemEntity::class, ReportQueryItemEntity::class, EntranceDataEntity::class], version = 34)
+    SendQueryItemEntity::class, ReportQueryItemEntity::class, EntranceDataEntity::class], version = 35)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun taskItemDao(): TaskItemEntityDao

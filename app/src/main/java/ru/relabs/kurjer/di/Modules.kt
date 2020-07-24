@@ -73,26 +73,26 @@ val storagesModule = module {
             .build()
     }
 
-    single<ApiProvider> { ApiProvider(get(Modules.DELIVERY_URL)) }
+    single<ApiProvider> {
+        ApiProvider(get<String>(Modules.DELIVERY_URL))
+    }
 }
 
 
 val repositoryModule = module {
 
-    single<DeliveryRepository> {
-        DeliveryRepository(
-            get<ApiProvider>().practisApi,
-            get<AuthTokenStorage>(),
-            get<LoginUseCase>(),
-            get<File>(Modules.CACHE_DIR),
-            get<DeviceUUIDProvider>()
-        )
-    }
     single<DatabaseRepository> {
         DatabaseRepository(
             get<AppDatabase>(),
             get<AuthTokenStorage>(),
-            get(Modules.DELIVERY_URL)
+            get<String>(Modules.DELIVERY_URL)
+        )
+    }
+    single<DeliveryRepository> {
+        DeliveryRepository(
+            get<ApiProvider>().practisApi,
+            get<AuthTokenStorage>(),
+            get<DeviceUUIDProvider>()
         )
     }
     single<RadiusRepository> {
@@ -110,12 +110,13 @@ val repositoryModule = module {
     }
 }
 val useCasesModule = module {
-    single<LoginUseCase> {
+    single<LoginUseCase>{
         LoginUseCase(
-            get<AuthTokenStorage>(),
+            get<DeliveryRepository>(),
             get<CurrentUserStorage>(),
             get<DatabaseRepository>(),
             get<RadiusRepository>(),
+            get<AuthTokenStorage>(),
             get<PauseRepository>()
         )
     }

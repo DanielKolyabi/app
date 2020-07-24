@@ -45,6 +45,7 @@ class PauseRepository(
     }
 
     suspend fun loadPauseDurations() = withContext(Dispatchers.Default) {
+        debug("Load durations")
         when (val r = api.getPauseDurations()) {
             is Right -> {
                 sharedPreferences.edit()

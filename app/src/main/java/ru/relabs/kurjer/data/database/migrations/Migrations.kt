@@ -12,7 +12,8 @@ object Migrations {
         migration_30_31,
         migration_31_32,
         migration_32_33,
-        migration_33_34
+        migration_33_34,
+        migration_34_35
     )
 
 
@@ -70,6 +71,54 @@ object Migrations {
     private val migration_33_34 = object : Migration(33, 34) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("ALTER TABLE entrances_data ADD COLUMN photo_required INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+    private val migration_34_35 = object : Migration(34, 35) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                    CREATE TABLE report_query_temp(
+                        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        task_item_id INTEGER NOT NULL,
+                        task_id INTEGER NOT NULL,
+                        image_folder_id INTEGER NOT NULL,
+                        gps TEXT NOT NULL,
+                        close_time INTEGER NOT NULL,
+                        user_description TEXT NOT NULL,
+                        entrances TEXT NOT NULL,
+                        token TEXT NOT NULL,
+                        battery_level INTEGER NOT NULL,
+                        remove_after_send INTEGER NOT NULL,
+                        close_distance INTEGER NOT NULL,
+                        allowed_distance INTEGER NOT NULL,
+                        radius_required INTEGER NOT NULL
+                    )
+                """.trimIndent()
+            )
+            database.execSQL("INSERT INTO report_query_temp SELECT * FROM report_query")
+            database.execSQL("DROP TABLE report_query")
+            database.execSQL(
+                """
+                    CREATE TABLE report_query(
+                        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        task_item_id INTEGER NOT NULL,
+                        task_id INTEGER NOT NULL,
+                        image_folder_id INTEGER NOT NULL,
+                        gps TEXT NOT NULL,
+                        close_time INTEGER NOT NULL,
+                        user_description TEXT NOT NULL,
+                        entrances TEXT NOT NULL,
+                        token TEXT NOT NULL,
+                        battery_level INTEGER NOT NULL,
+                        remove_after_send INTEGER NOT NULL,
+                        close_distance INTEGER NOT NULL,
+                        allowed_distance INTEGER NOT NULL,
+                        radius_required INTEGER NOT NULL
+                    )
+                """.trimIndent()
+            )
+            database.execSQL("INSERT INTO report_query SELECT * FROM report_query_temp")
+            database.execSQL("DROP TABLE report_query_temp")
         }
     }
 }

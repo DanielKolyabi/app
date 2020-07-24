@@ -1,13 +1,13 @@
 package ru.relabs.kurjer.domain.repositories
 
 import android.location.Location
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
 import org.joda.time.DateTime
 import retrofit2.HttpException
 import retrofit2.Response
 import ru.relabs.kurjer.data.api.DeliveryApi
+import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.data.models.common.ApiError
 import ru.relabs.kurjer.data.models.common.DomainException
@@ -16,24 +16,20 @@ import ru.relabs.kurjer.domain.mappers.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
-import ru.relabs.kurjer.domain.useCases.LoginUseCase
-import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
+import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.debug
-import java.io.File
 
 class DeliveryRepository(
     private val deliveryApi: DeliveryApi,
     private val authTokenStorage: AuthTokenStorage,
-    private val loginUseCase: LoginUseCase,
-    private val cacheDir: File,
     private val deviceIdProvider: DeviceUUIDProvider
 ) {
     //TODO: Add mapping
     fun isAuthenticated(): Boolean = authTokenStorage.getToken() != null
 
-    suspend fun login(login: UserLogin, password: String): EitherE<User> = anonymousRequest {
+    suspend fun login(login: UserLogin, password: String): EitherE<Pair<User, String>> = anonymousRequest {
         val r = deliveryApi.login(
             login.login,
             password,
@@ -41,21 +37,19 @@ class DeliveryRepository(
             currentTime()
         )
         val user = UserMapper.fromRaw(r.user)
-        loginUseCase.logIn(user, r.token)
 
-        user
+        user to r.token
     }
 
-    suspend fun login(token: String): EitherE<User> = anonymousRequest {
+    suspend fun login(token: String): EitherE<Pair<User, String>> = anonymousRequest {
         val r = deliveryApi.loginByToken(
             token,
             deviceIdProvider.getOrGenerateDeviceUUID().id,
             currentTime()
         )
         val user = UserMapper.fromRaw(r.user)
-        loginUseCase.logIn(user, r.token)
 
-        user
+        user to token
     }
 
     suspend fun getTasks(): EitherE<List<Task>> = authenticatedRequest { token ->
@@ -129,7 +123,7 @@ class DeliveryRepository(
         true
     }
 
-    fun currentTime(): String = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
+    private fun currentTime(): String = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
 
     private inline fun <T> authenticatedRequest(block: (token: String) -> T): EitherE<T> {
         return authTokenStorage.getToken()?.let { token -> anonymousRequest { block(token) } }
@@ -151,7 +145,7 @@ class DeliveryRepository(
             }
         } catch (e: Exception) {
             debug("UnknownException $e")
-            FirebaseCrashlytics.getInstance().recordException(e)
+//            FirebaseCrashlytics.getInstance().recordException(e)
             Left(DomainException.UnknownException)
         }
     }

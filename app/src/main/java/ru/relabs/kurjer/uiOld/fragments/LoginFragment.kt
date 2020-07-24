@@ -18,9 +18,9 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.RadiusRepository
-import ru.relabs.kurjer.domain.useCases.LoginUseCase
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.domain.useCases.LoginUseCase
 import ru.relabs.kurjer.uiOld.helpers.setVisible
 import ru.relabs.kurjer.uiOld.presenters.LoginPresenter
 import ru.relabs.kurjer.utils.activity
@@ -31,7 +31,6 @@ class LoginFragment : Fragment() {
     private val radiusRepository: RadiusRepository by inject()
     private val pauseRepository: PauseRepository by inject()
     private val database: AppDatabase by inject()
-    private val deliveryRepository: DeliveryRepository by inject()
     private val loginUseCase: LoginUseCase by inject()
 
     val presenter = LoginPresenter(
@@ -39,7 +38,6 @@ class LoginFragment : Fragment() {
         radiusRepository,
         pauseRepository,
         database,
-        deliveryRepository,
         loginUseCase,
         get()
     )

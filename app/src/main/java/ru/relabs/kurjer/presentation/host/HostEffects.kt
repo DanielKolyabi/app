@@ -1,6 +1,5 @@
 package ru.relabs.kurjer.presentation.host
 
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -12,7 +11,7 @@ import ru.relabs.kurjer.utils.extensions.getFirebaseToken
 object HostEffects {
     fun effectInit(restored: Boolean): HostEffect = { c, _ ->
         if (!restored) {
-            if (c.repository.isAuthenticated()) {
+            if (false) {
                 withContext(Dispatchers.Main) {
                     c.router.newRootScreen(RootScreen.Tasks)
                 }
@@ -20,7 +19,7 @@ object HostEffects {
                 withContext(Dispatchers.IO) {
                     when (val result = FirebaseInstanceId.getInstance().getFirebaseToken()) {
                         is Right -> Unit //TODO: Upload c.repository.updateMe(firebaseToken = result.value)
-                        is Left -> FirebaseCrashlytics.getInstance().log("Can't get firebase token")
+                        is Left -> Unit//FirebaseCrashlytics.getInstance().log("Can't get firebase token")
                     }
                 }
             } else {

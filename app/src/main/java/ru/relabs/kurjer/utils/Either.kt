@@ -21,7 +21,7 @@ sealed class Either<out L, out R> {
 data class Right<out R>(val value: R) : Either<Nothing, R>()
 data class Left<out L>(val value: L) : Either<L, Nothing>()
 
-fun <L, R, U> Either<L, R>.fmap(transform: (R) -> U): Either<L, U> {
+inline fun <L, R, U> Either<L, R>.fmap(transform: (R) -> U): Either<L, U> {
     return when (this) {
         is Right -> Right(transform(this.value))
         is Left -> this

@@ -9,12 +9,35 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
+import ru.relabs.kurjer.utils.debug
 import java.util.concurrent.TimeUnit
 
 
 class ApiProvider(deliveryUrl: String) {
     private val httpClient: OkHttpClient
     val practisApi: DeliveryApi
+
+    private val timeoutInterceptor: Interceptor = object : Interceptor {
+        override fun intercept(chain: Interceptor.Chain): Response {
+            val request = chain.request()
+            if (request.url.toString().matches(Regex(".*/api/v1/tasks/[0-9]*/report.*"))) {
+                return chain.withConnectTimeout(5, TimeUnit.SECONDS)
+                    .withReadTimeout(120, TimeUnit.SECONDS)
+                    .withWriteTimeout(120, TimeUnit.SECONDS)
+                    .proceed(request)
+            } else if (request.url.toString().matches(Regex(".*/api/v1/tasks.*"))) {
+                return chain.withConnectTimeout(5, TimeUnit.SECONDS)
+                    .withReadTimeout(7, TimeUnit.MINUTES)
+                    .withWriteTimeout(10, TimeUnit.SECONDS)
+                    .proceed(request)
+            } else {
+                return chain.withConnectTimeout(5, TimeUnit.SECONDS)
+                    .withReadTimeout(15, TimeUnit.SECONDS)
+                    .withWriteTimeout(10, TimeUnit.SECONDS)
+                    .proceed(request)
+            }
+        }
+    }
 
     init {
         httpClient = buildClient()
@@ -39,28 +62,4 @@ class ApiProvider(deliveryUrl: String) {
         .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
         .addInterceptor(timeoutInterceptor)
         .build()
-
-    private val timeoutInterceptor: Interceptor = object : Interceptor {
-        override fun intercept(chain: Interceptor.Chain): Response {
-            val request = chain.request()
-
-            if (request.url.toString().matches(Regex(".*/api/v1/tasks/[0-9]*/report.*"))) {
-                return chain.withConnectTimeout(5, TimeUnit.SECONDS)
-                    .withReadTimeout(120, TimeUnit.SECONDS)
-                    .withWriteTimeout(120, TimeUnit.SECONDS)
-                    .proceed(request)
-            } else if (request.url.toString().matches(Regex(".*/api/v1/tasks.*"))) {
-                return chain.withConnectTimeout(5, TimeUnit.SECONDS)
-                    .withReadTimeout(7, TimeUnit.MINUTES)
-                    .withWriteTimeout(10, TimeUnit.SECONDS)
-                    .proceed(request)
-            } else {
-                return chain.withConnectTimeout(5, TimeUnit.SECONDS)
-                    .withReadTimeout(15, TimeUnit.SECONDS)
-                    .withWriteTimeout(10, TimeUnit.SECONDS)
-                    .proceed(request)
-            }
-        }
-    }
-
 }

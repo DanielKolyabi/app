@@ -1,18 +1,20 @@
 package ru.relabs.kurjer
 
 import android.content.Intent
-import android.os.AsyncTask
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Window
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
+import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.presentation.host.HostActivity
+import ru.relabs.kurjer.utils.debug
 
 class SplashActivity : AppCompatActivity() {
-    val scope = CoroutineScope(Dispatchers.Default)
-    val pauseRepository: PauseRepository by inject()
+    private val supervisor = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.Default + supervisor)
+    private val pauseRepository: PauseRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,7 +24,7 @@ class SplashActivity : AppCompatActivity() {
 
         startService(Intent(this, ReportService::class.java))
 
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             pauseRepository.loadPauseDurations()
             withContext(Dispatchers.Main) {
                 startActivity(HostActivity.getIntent(this@SplashActivity))

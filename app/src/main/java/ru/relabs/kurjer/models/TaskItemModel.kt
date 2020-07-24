@@ -2,7 +2,7 @@ package ru.relabs.kurjer.models
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
-import ru.relabs.kurjer.persistence.entities.TaskItemEntity
+import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 
 @Parcelize
 data class EntranceModel(

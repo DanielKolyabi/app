@@ -21,12 +21,11 @@ import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.REQUEST_LOCATION
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper
-import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.data.models.PhotoReportRequest
 import ru.relabs.kurjer.data.models.TaskItemReportRequest
 import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
-import ru.relabs.kurjer.persistence.entities.TaskItemPhotoEntity
+import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
+import ru.relabs.kurjer.data.database.entities.TaskItemPhotoEntity
 import ru.relabs.kurjer.utils.logError
 import java.io.File
 import java.io.FileNotFoundException

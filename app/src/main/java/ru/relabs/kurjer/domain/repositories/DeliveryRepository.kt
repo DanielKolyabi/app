@@ -17,7 +17,7 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.useCases.LoginUseCase
-import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
+import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.debug

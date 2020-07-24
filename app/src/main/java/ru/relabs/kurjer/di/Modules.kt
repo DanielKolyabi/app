@@ -19,7 +19,9 @@ import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.domain.useCases.LoginUseCase
-import ru.relabs.kurjer.persistence.AppDatabase
+import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.domain.repositories.DatabaseRepository
+import ru.relabs.kurjer.domain.repositories.RadiusRepository
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
 import java.io.File
@@ -94,11 +96,24 @@ val repositoryModule = module {
             get<DeviceUUIDProvider>()
         )
     }
+    single<DatabaseRepository>{
+        DatabaseRepository(
+            get<AppDatabase>(),
+            get<AuthTokenStorage>(),
+            get(Modules.DELIVERY_URL)
+        )
+    }
+    single<RadiusRepository> {
+        RadiusRepository(
+            get<DeliveryRepository>(),
+            get<SharedPreferences>()
+        )
+    }
     single<PauseRepository> {
         PauseRepository(
             get<DeliveryRepository>(),
             get<SharedPreferences>(),
-            get<AppDatabase>()
+            get<DatabaseRepository>()
         )
     }
 }

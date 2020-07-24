@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.fragments.TaskItemExplanationFragment">
+    tools:context=".uiOld.fragments.TaskItemExplanationFragment">
 
     <TextView
         android:id="@+id/note1_text"

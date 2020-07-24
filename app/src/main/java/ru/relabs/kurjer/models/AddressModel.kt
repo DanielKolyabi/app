@@ -2,7 +2,7 @@ package ru.relabs.kurjer.models
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
-import ru.relabs.kurjer.persistence.entities.AddressEntity
+import ru.relabs.kurjer.data.database.entities.AddressEntity
 
 @Parcelize
 data class AddressModel(

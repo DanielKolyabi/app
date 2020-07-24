@@ -5,17 +5,17 @@ import android.os.StatFs
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import ru.relabs.kurjer.BuildConfig
+import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.domain.models.TaskState
+import ru.relabs.kurjer.domain.repositories.DatabaseRepository
+import ru.relabs.kurjer.domain.repositories.SendQueryData
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.models.UserModel
-import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
-import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
-import ru.relabs.kurjer.utils.application
 import java.util.*
 
 
@@ -57,7 +57,6 @@ object PersistenceHelper {
             db.taskDao().delete(it)
         }
         //Remove rast map
-        PathHelper.getTaskRasterizeMapFileById(taskId).delete()
     }
 
 
@@ -111,8 +110,9 @@ object PersistenceHelper {
     suspend fun merge(
         db: AppDatabase,
         newTasks: List<Task>,
-        onNewTaskAppear: (task: Task) -> Unit,
-        onTaskChanged: (oldTask: Task, newTask: Task) -> Unit
+        onNewTaskAppear: suspend (task: Task) -> Unit,
+        onTaskChanged: (oldTask: Task, newTask: Task) -> Unit,
+        dbRep: DatabaseRepository
     ): MergeResult {
         val result = MergeResult(false, false)
         withContext(Dispatchers.Default) {
@@ -169,13 +169,7 @@ object PersistenceHelper {
                 val savedTask = db.taskDao().getById(task.id.id) ?: return@forEach
                 if (task.state.state == TaskState.CANCELED) {
                     if (savedTask.plainState == TaskModel.STARTED) {
-                        db.sendQueryDao().insert(
-                            SendQueryItemEntity(
-                                0,
-                                BuildConfig.API_URL + "/api/v1/tasks/${savedTask.id}/accepted?token=" + (application().user as UserModel.Authorized).token,
-                                ""
-                            )
-                        )
+                        dbRep.putSendQuery(SendQueryData.TaskAccepted(TaskId(savedTask.id)))
                     } else {
                         result.isTasksChanged = true
                         closeTask(db, savedTask.toTaskModel(db))

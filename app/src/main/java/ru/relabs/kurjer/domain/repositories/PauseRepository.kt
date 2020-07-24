@@ -3,14 +3,9 @@ package ru.relabs.kurjer.domain.repositories
 import android.content.SharedPreferences
 import android.util.Log
 import kotlinx.coroutines.*
-import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.ReportService
 import ru.relabs.kurjer.data.models.common.DomainException
-import ru.relabs.kurjer.models.UserModel
-import ru.relabs.kurjer.persistence.AppDatabase
-import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
 import ru.relabs.kurjer.utils.*
-import java.lang.RuntimeException
 import java.util.*
 
 /**
@@ -21,12 +16,12 @@ enum class PauseType {
     Lunch, Load
 }
 
-fun PauseType.toInt() = when(this){
+fun PauseType.toInt() = when (this) {
     PauseType.Lunch -> 0
     PauseType.Load -> 1
 }
 
-fun Int.toPauseType() = when(this){
+fun Int.toPauseType() = when (this) {
     0 -> PauseType.Lunch
     1 -> PauseType.Load
     else -> throw RuntimeException("Unknown pause type")
@@ -35,7 +30,7 @@ fun Int.toPauseType() = when(this){
 class PauseRepository(
     private val api: DeliveryRepository,
     private val sharedPreferences: SharedPreferences,
-    private val db: AppDatabase
+    private val db: DatabaseRepository
 ) {
     private var lunchDuration: Int = 20 * 60
     private var loadDuration: Int = 20 * 60
@@ -155,22 +150,15 @@ class PauseRepository(
         return true
     }
 
-    fun startPause(type: PauseType, time: Long? = null, withNotify: Boolean = true) {
+    suspend fun startPause(type: PauseType, time: Long? = null, withNotify: Boolean = true) {
         CustomLog.writeToFile("Start pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
-        Log.d(
-            "PauseRepository",
-            "Start pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify"
-        )
+        debug("Start pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
         if (isPaused) {
             return
         }
 
         val currentTime = currentTimestamp()
 
-        val pauseType = when (type) {
-            PauseType.Lunch -> 0
-            PauseType.Load -> 1
-        }
         val pauseTime = time ?: currentTime
         val pauseEndTime = pauseTime + when (type) {
             PauseType.Lunch -> lunchDuration
@@ -189,22 +177,13 @@ class PauseRepository(
         ReportService.instance?.pauseTimer(pauseTime, pauseEndTime)
         putPauseStartTime(type, pauseTime)
         if (withNotify) {
-            db.sendQueryDao().insert(
-                SendQueryItemEntity(
-                    0,
-                    BuildConfig.API_URL + "/api/v1/pause/start?token=" + (application().user as UserModel.Authorized).token,
-                    "type=$pauseType&time=${pauseTime}"
-                )
-            )
+            db.putSendQuery(SendQueryData.PauseStart(type, pauseTime))
         }
     }
 
-    fun stopPause(type: PauseType? = null, time: Long? = null, withNotify: Boolean, withUpdate: Boolean) {
+    suspend fun stopPause(type: PauseType? = null, time: Long? = null, withNotify: Boolean, withUpdate: Boolean) {
         CustomLog.writeToFile("Stop pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
-        Log.d(
-            "PauseRepository",
-            "Stop pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify"
-        )
+        debug("Stop pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
         if (!isPaused) {
             return
         }
@@ -212,20 +191,9 @@ class PauseRepository(
         val type = type ?: getActivePauseType() ?: return
         pauseEndJob?.cancel()
 
-        val pauseType = when (type) {
-            PauseType.Lunch -> 0
-            PauseType.Load -> 1
-        }
-
         val pauseTime = time ?: currentTimestamp()
         if (withNotify) {
-            db.sendQueryDao().insert(
-                SendQueryItemEntity(
-                    0,
-                    BuildConfig.API_URL + "/api/v1/pause/stop?token=" + (application().user as UserModel.Authorized).token,
-                    "type=$pauseType&time=${pauseTime}"
-                )
-            )
+            db.putSendQuery(SendQueryData.PauseStop(type, pauseTime))
         }
         isPaused = false
         currentPauseType = null
@@ -235,12 +203,12 @@ class PauseRepository(
         }
     }
 
-    fun updatePauseState() {
+    private suspend fun updatePauseState() {
         updatePauseState(PauseType.Lunch)
         updatePauseState(PauseType.Load)
     }
 
-    fun updatePauseState(type: PauseType) {
+    suspend fun updatePauseState(type: PauseType) {
         val currentTime = currentTimestamp()
         val lastPauseStartTime = getPauseStartTime(type)
         val lastPauseEndTime = getPauseEndTime(type)

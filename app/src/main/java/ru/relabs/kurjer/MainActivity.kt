@@ -34,7 +34,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.joda.time.DateTime
 import org.koin.android.ext.android.inject
-import ru.relabs.kurjer.data.models.UpdateDataResponse
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.models.User
@@ -43,13 +42,12 @@ import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.network.NetworkHelper
-import ru.relabs.kurjer.persistence.AppDatabase
-import ru.relabs.kurjer.ui.adapters.SearchInputAdapter
-import ru.relabs.kurjer.ui.fragments.*
-import ru.relabs.kurjer.ui.helpers.setVisible
-import ru.relabs.kurjer.ui.models.AddressListModel
+import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.uiOld.adapters.SearchInputAdapter
+import ru.relabs.kurjer.uiOld.fragments.*
+import ru.relabs.kurjer.uiOld.helpers.setVisible
+import ru.relabs.kurjer.uiOld.models.AddressListModel
 import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.CustomLog.getStacktraceAsString
 import java.io.File

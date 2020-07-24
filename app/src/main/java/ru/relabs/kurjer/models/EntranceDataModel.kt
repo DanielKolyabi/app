@@ -1,10 +1,9 @@
 package ru.relabs.kurjer.models
 
-import android.os.Parcel
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
-import ru.relabs.kurjer.persistence.entities.EntranceDataEntity
+import ru.relabs.kurjer.data.database.entities.EntranceDataEntity
 
 @Parcelize
 data class EntranceDataModel(

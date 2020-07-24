@@ -1,9 +1,8 @@
 package ru.relabs.kurjer.models
 
-import android.os.Parcel
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
-import ru.relabs.kurjer.persistence.entities.TaskEntity
+import ru.relabs.kurjer.data.database.entities.TaskEntity
 import java.util.*
 
 @Parcelize

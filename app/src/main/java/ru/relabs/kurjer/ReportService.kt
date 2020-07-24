@@ -18,10 +18,10 @@ import org.koin.core.KoinComponent
 import org.koin.core.inject
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.network.NetworkHelper
-import ru.relabs.kurjer.persistence.AppDatabase
+import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.persistence.PersistenceHelper
-import ru.relabs.kurjer.persistence.entities.ReportQueryItemEntity
-import ru.relabs.kurjer.persistence.entities.SendQueryItemEntity
+import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
+import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.logError
 import java.io.OutputStreamWriter

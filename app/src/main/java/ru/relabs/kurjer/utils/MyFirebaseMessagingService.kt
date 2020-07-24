@@ -23,7 +23,6 @@ import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
     private val deliveryRepository: DeliveryRepository by inject()
     private val pauseRepository: PauseRepository by inject()
-    private val tokenStorage: AuthTokenStorage by inject()
 
     override fun onNewToken(pushToken: String) {
         super.onNewToken(pushToken)

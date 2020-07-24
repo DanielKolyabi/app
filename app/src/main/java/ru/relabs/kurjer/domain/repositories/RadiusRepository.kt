@@ -30,6 +30,7 @@ class RadiusRepository(
 
     suspend fun startRemoteUpdating() {
         updateJob?.cancel()
+        //TODO: Use some scope
         updateJob = GlobalScope.launch(Dispatchers.Default) {
             while (isActive) {
                 loadRadiusRemote()

@@ -1,21 +1,21 @@
 package ru.relabs.kurjer.presentation.host
 
 import android.net.Uri
+import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.presentation.base.tea.msgState
 import ru.relabs.kurjer.utils.XiaomiUtilities
-import java.net.URL
+import java.io.File
 
 object HostMessages {
     fun msgInit(restored: Boolean): HostMessage = msgEffects(
         { it },
         {
             listOf(
-                HostEffects.effectInit(restored),
-                HostEffects.effectCheckUpdates()
+                HostEffects.effectInit(restored)
             )
         }
     )
@@ -27,6 +27,10 @@ object HostMessages {
         { it },
         { state ->
             listOfNotNull(
+                HostEffects.effectCheckUpdates()
+                    .takeIf { isUpdateRequired(state) && state.updateFile == null },
+                state.updateFile?.let { HostEffects.effectInstallUpdate(it) }
+                    .takeIf { isUpdateRequired(state) && state.updateFile != null },
                 HostEffects.effectCheckXiaomiPermissions()
                     .takeIf { XiaomiUtilities.isMIUI },
                 HostEffects.effectCheckGPSEnabled(),
@@ -35,6 +39,9 @@ object HostMessages {
             )
         }
     )
+
+    private fun isUpdateRequired(state: HostState): Boolean =
+        state.appUpdates == null || ((state.appUpdates.required?.version ?: 0) > BuildConfig.VERSION_CODE && !state.isUpdateLoadingFailed)
 
     fun msgAddLoaders(i: Int): HostMessage =
         msgState { it.copy(loaders = it.loaders + i) }
@@ -55,5 +62,11 @@ object HostMessages {
         msgEffect(HostEffects.effectCheckUpdates())
 
     fun msgUpdatesInfo(value: AppUpdatesInfo): HostMessage =
-        msgState { it.copy() }
+        msgState { it.copy(appUpdates = value) }
+
+    fun msgUpdateLoadingFailed(): HostMessage =
+        msgState { it.copy(isUpdateLoadingFailed = true) }
+
+    fun msgUpdateLoaded(file: File): HostMessage =
+        msgState { it.copy(updateFile = file) }
 }

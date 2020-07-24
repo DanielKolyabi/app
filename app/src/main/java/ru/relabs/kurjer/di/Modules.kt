@@ -21,6 +21,7 @@ import ru.relabs.kurjer.domain.repositories.RadiusRepository
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
+import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.domain.useCases.LoginUseCase
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
@@ -118,6 +119,12 @@ val useCasesModule = module {
             get<RadiusRepository>(),
             get<AuthTokenStorage>(),
             get<PauseRepository>()
+        )
+    }
+
+    single<AppUpdateUseCase>{
+        AppUpdateUseCase(
+            get<DeliveryRepository>()
         )
     }
 }

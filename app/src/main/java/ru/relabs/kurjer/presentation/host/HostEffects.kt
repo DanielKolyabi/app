@@ -7,10 +7,12 @@ import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.presentation.RootScreen
+import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.getFirebaseToken
+import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -39,7 +41,7 @@ object HostEffects {
 
     fun effectCheckUpdates(): HostEffect = { c, s ->
         messages.send(HostMessages.msgAddLoaders(1))
-        when (val r = s.appUpdates?.let { Right(it) } ?: c.repository.getAppUpdatesInfo()) {
+        when (val r = s.appUpdates?.let { Right(it) } ?: c.updatesUseCase.getAppUpdatesInfo()) {
             is Right -> {
                 messages.send(HostMessages.msgUpdatesInfo(r.value))
                 if (r.value.required != null) {
@@ -95,11 +97,11 @@ object HostEffects {
                 messages.send(HostMessages.msgLoadProgress(((total / fileSize.toFloat()) * 100).toInt()))
             }
 
-            withContext(Dispatchers.Main) {
-                c.installUpdate(file)
-            }
+            messages.send(HostMessages.msgUpdateLoaded(file))
+            messages.send(msgEffect(effectInstallUpdate(file)))
         } catch (e: Exception) {
             debug("Loading error", e)
+            messages.send(HostMessages.msgUpdateLoadingFailed())
             withContext(Dispatchers.Main) {
                 c.showErrorDialog(R.string.update_install_error)
             }
@@ -111,6 +113,12 @@ object HostEffects {
         messages.send(HostMessages.msgLoadProgress(null))
         messages.send(HostMessages.msgAddLoaders(-1))
 
+    }
+
+    fun effectInstallUpdate(file: File): HostEffect = { c, s ->
+        withContext(Dispatchers.Main) {
+            c.installUpdate(file)
+        }
     }
 
     fun effectCheckXiaomiPermissions(): HostEffect = { c, s ->

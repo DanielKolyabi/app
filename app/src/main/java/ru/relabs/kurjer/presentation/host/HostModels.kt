@@ -6,6 +6,7 @@ import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
+import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.tea.*
 import java.io.File
@@ -17,8 +18,11 @@ data class HostState(
     val settings: AppBarSettings = AppBarSettings(),
     val loaders: Int = 0,
     val loadProgress: Int? = null,
-    val appUpdates: AppUpdatesInfo? = null
-){}
+
+    val appUpdates: AppUpdatesInfo? = null,
+    val isUpdateLoadingFailed: Boolean = false,
+    val updateFile: File? = null
+)
 
 class HostContext(
     val errorContext: ErrorContextImpl = ErrorContextImpl()
@@ -27,6 +31,7 @@ class HostContext(
     RouterContext by RouterContextMainImpl() {
 
     val repository: DeliveryRepository by inject()
+    val updatesUseCase: AppUpdateUseCase by inject()
     val deviceUUIDProvider: DeviceUUIDProvider by inject()
 
     var copyToClipboard: (String) -> Unit = {}

@@ -29,7 +29,6 @@ class DeliveryRepository(
     private val authTokenStorage: AuthTokenStorage,
     private val deviceIdProvider: DeviceUUIDProvider
 ) {
-    //TODO: Add mapping
     fun isAuthenticated(): Boolean = authTokenStorage.getToken() != null
 
     suspend fun login(login: UserLogin, password: String): EitherE<Pair<User, String>> = anonymousRequest {
@@ -66,7 +65,9 @@ class DeliveryRepository(
     }
 
     suspend fun getAppUpdatesInfo(): EitherE<AppUpdatesInfo> = anonymousRequest {
-        UpdatesMapper.fromRaw(deliveryApi.getUpdateInfo())
+        val updates = UpdatesMapper.fromRaw(deliveryApi.getUpdateInfo())
+
+        updates
     }
 
     suspend fun updatePushToken(pushToken: String): EitherE<Boolean> = authenticatedRequest { token ->

@@ -5,4 +5,5 @@
     <color name="colorAccent">#EC3796</color>
     <color name="colorFuchsia">#EC3796</color>
     <color name="red_alert_dialog_text">#BB0000</color>
+    <color name="textGreen">#008000</color>
 </resources>

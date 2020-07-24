@@ -1,7 +1,7 @@
 package ru.relabs.kurjer.uiOld.presenters
 
 import android.content.Context
-import kotlinx.android.synthetic.main.fragment_login.*
+import kotlinx.android.synthetic.main.fragment_login_old.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

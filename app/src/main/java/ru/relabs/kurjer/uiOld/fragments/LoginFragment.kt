@@ -9,7 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import kotlinx.android.synthetic.main.fragment_login.*
+import kotlinx.android.synthetic.main.fragment_login_old.*
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.ErrorButtonsListener
@@ -48,7 +48,7 @@ class LoginFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_login, container, false)
+        return inflater.inflate(R.layout.fragment_login_old, container, false)
     }
 
     fun setRememberPasswordEnabled(enabled: Boolean) {

@@ -6,7 +6,7 @@ import android.text.TextWatcher
 /**
  * Created by Daniil Kurchanov on 27.01.2020.
  */
-class SearchTextChangeListener(val onSearch: (String) -> Unit): TextWatcher {
+class TextChangeListener(val onChange: (String) -> Unit): TextWatcher {
     override fun afterTextChanged(s: Editable?) {    }
 
     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {    }
@@ -16,6 +16,6 @@ class SearchTextChangeListener(val onSearch: (String) -> Unit): TextWatcher {
             return
         }
 
-        onSearch(s.toString())
+        onChange(s.toString())
     }
 }

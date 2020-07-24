@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.utils.extensions
 
+import android.app.Activity
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -12,6 +13,18 @@ import ru.relabs.kurjer.R
 
 fun Fragment.showToast(text: String) {
     Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
+}
+
+fun Activity.showSnackbar(
+    message: String,
+    action: SnackbarAction? = null,
+    onDismiss: (() -> Unit)? = null,
+    onDisappear: (() -> Unit)? = null,
+    length: Int? = null
+) {
+    this.findViewById<View>(android.R.id.content)?.let {
+        showSnackbar(it, message, action, onDismiss, onDisappear, length)
+    }
 }
 
 fun Fragment.showSnackbar(

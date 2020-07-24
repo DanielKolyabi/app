@@ -45,7 +45,6 @@ class RadiusRepository(
                 allowedCloseRadius = r.value
                 saveRadius(allowedCloseRadius)
             }
-            is Left -> TODO("Handle error")
         }
     }
 

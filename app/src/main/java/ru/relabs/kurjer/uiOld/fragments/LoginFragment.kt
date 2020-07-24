@@ -93,7 +93,7 @@ class LoginFragment : Fragment() {
             presenter.onLoginClick(login_input.text.toString(), password_input.text.toString())
         }
 
-        app_version.text = resources.getString(R.string.app_version_label, BuildConfig.VERSION_NAME)
+        app_version.text = resources.getString(R.string.app_version_label, BuildConfig.VERSION_CODE)
 
         val myTextWatcher = object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {}

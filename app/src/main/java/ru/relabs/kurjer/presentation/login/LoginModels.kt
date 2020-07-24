@@ -2,6 +2,8 @@ package ru.relabs.kurjer.presentation.login
 
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import ru.relabs.kurjer.data.models.auth.UserLogin
+import ru.relabs.kurjer.domain.useCases.LoginUseCase
 import ru.relabs.kurjer.presentation.base.tea.*
 
 /**
@@ -9,7 +11,10 @@ import ru.relabs.kurjer.presentation.base.tea.*
  */
 
 data class LoginState(
-    val data: Any? = null
+    val login: UserLogin = UserLogin(""),
+    val password: String = "",
+    val isPasswordRemembered: Boolean = false,
+    val loaders: Int = 0
 )
 
 class LoginContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
@@ -17,6 +22,8 @@ class LoginContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     RouterContext by RouterContextMainImpl(),
     KoinComponent {
 
+    var showOfflineLoginOffer: () -> Unit = {}
+    var showOfflineLoginError: () -> Unit = {}
 }
 
 typealias LoginMessage = ElmMessage<LoginContext, LoginState>

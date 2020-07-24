@@ -55,7 +55,6 @@ class PauseRepository(
                 lunchDuration = r.value.lunch.toInt()
                 loadDuration = r.value.loading.toInt()
             }
-            is Left -> TODO("Handle error")
         }
     }
 
@@ -265,7 +264,6 @@ class PauseRepository(
                 putPauseEndTime(PauseType.Lunch, r.value.lunch.end)
                 updatePauseState()
             }
-            is Left -> TODO("Handle error")
         }
     }
 

@@ -2,7 +2,9 @@ package ru.relabs.kurjer.presentation.host
 
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
+import ru.relabs.kurjer.domain.useCases.LoginUseCase
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.tea.*
 
@@ -22,6 +24,9 @@ class HostContext(
     RouterContext by RouterContextMainImpl() {
 
     val repository: DeliveryRepository by inject()
+    val deviceUUIDProvider: DeviceUUIDProvider by inject()
+
+    var copyToClipboard: (String) -> Unit = {}
 }
 
 typealias HostRender = ElmRender<HostState>

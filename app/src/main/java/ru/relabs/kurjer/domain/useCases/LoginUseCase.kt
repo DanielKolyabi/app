@@ -1,5 +1,7 @@
 package ru.relabs.kurjer.domain.useCases
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.data.models.common.EitherE
 import ru.relabs.kurjer.domain.models.User
@@ -20,9 +22,12 @@ class LoginUseCase(
     private val pauseRepository: PauseRepository
 ){
 
-    suspend fun loginOffline(login: UserLogin, token: String): User {
-        loginInternal(login, token)
-        return User(login)
+    suspend fun loginOffline(): User? {
+        val savedLogin = currentUserStorage.getCurrentUserLogin() ?: return null
+        val savedToken = authTokenStorage.getToken() ?: return null
+
+        loginInternal(savedLogin, savedToken)
+        return User(savedLogin)
     }
 
     suspend fun login(login: UserLogin, password: String): EitherE<User> {
@@ -39,7 +44,7 @@ class LoginUseCase(
         }
     }
 
-    private suspend fun loginInternal(login: UserLogin, token: String){
+    private suspend fun loginInternal(login: UserLogin, token: String) = withContext(Dispatchers.IO){
         val lastUserLogin = currentUserStorage.getCurrentUserLogin()
         if (lastUserLogin != login) {
             databaseRepository.clearTasks()
@@ -48,5 +53,10 @@ class LoginUseCase(
         }
         authTokenStorage.saveToken(token)
         currentUserStorage.saveCurrentUserLogin(login)
+    }
+
+    fun logout() {
+        authTokenStorage.resetToken()
+        currentUserStorage.resetCurrentUserLogin()
     }
 }

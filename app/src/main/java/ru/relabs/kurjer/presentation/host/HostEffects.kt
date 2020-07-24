@@ -38,6 +38,16 @@ object HostEffects {
     }
 
     fun effectLogout(): HostEffect = { c, s ->
-        TODO("LogOut")
+        c.loginUseCase.logout()
+        withContext(Dispatchers.Main){
+            c.router.newRootScreen(RootScreen.Login)
+        }
+    }
+
+    fun effectCopyDeviceUUID(): HostEffect = { c, _ ->
+        val uuid = c.deviceUUIDProvider.getOrGenerateDeviceUUID()
+        withContext(Dispatchers.Main){
+            c.copyToClipboard(uuid.id)
+        }
     }
 }

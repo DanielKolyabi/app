@@ -3,7 +3,6 @@
     <item>
         <shape>
             <padding android:top="@dimen/status_bar_height"/>
-            <corners android:topRightRadius="16dp" android:bottomRightRadius="16dp"/>
             <solid android:color="@color/white"/>
         </shape>
     </item>

@@ -9,6 +9,7 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.models.common.DomainException
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
+import ru.relabs.kurjer.domain.useCases.LoginUseCase
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.utils.extensions.showSnackbar
 import ru.terrakok.cicerone.Router
@@ -19,14 +20,12 @@ interface ErrorContext {
 
 interface RouterContext {
     val router: Router
-    val authTokenStorage: AuthTokenStorage
-    val currentUserStorage: CurrentUserStorage
+    val loginUseCase: LoginUseCase
 }
 
 class RouterContextMainImpl : RouterContext, KoinComponent {
     override val router: Router by inject()
-    override val authTokenStorage: AuthTokenStorage by inject()
-    override val currentUserStorage: CurrentUserStorage by inject()
+    override val loginUseCase: LoginUseCase by inject()
 }
 
 class ErrorContextImpl : ErrorContext {
@@ -58,8 +57,7 @@ object CommonMessages {
         return when (error) {
             is DomainException.ApiException -> when (error.error.code) {
                 401 -> msgEffect { c, _ ->
-                    c.authTokenStorage.resetToken()
-                    c.currentUserStorage.resetCurrentUserLogin()
+                    c.loginUseCase.logout()
                     withContext(Dispatchers.Main) {
                         c.router.newRootScreen(RootScreen.Login)
                     }

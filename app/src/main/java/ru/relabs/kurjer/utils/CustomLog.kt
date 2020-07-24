@@ -3,8 +3,8 @@ package ru.relabs.kurjer.utils
 import android.app.Activity
 import android.content.Intent
 import android.os.Environment
-import androidx.core.content.FileProvider
 import android.util.Log
+import androidx.core.content.FileProvider
 import org.joda.time.DateTime
 import ru.relabs.kurjer.BuildConfig
 import java.io.*
@@ -24,16 +24,18 @@ object CustomLog {
         return stacktrace
     }
 
-    fun share(context: Activity) {
-        val dir = File(Environment.getExternalStorageDirectory(),
-                "deliveryman")
+    fun share(context: Activity): Either<Exception, Unit> = Either.of {
+        val dir = File(
+            Environment.getExternalStorageDirectory(),
+            "deliveryman"
+        )
         val f = File(dir, CRASH_FILENAME)
-        if(!f.exists()){
+        if (!f.exists()) {
             throw FileNotFoundException()
         }
 
         val uri = FileProvider.getUriForFile(context, "com.relabs.kurjer.file_provider", f)
-        val intent = Intent().apply{
+        val intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, "crash.log")
             putExtra(Intent.EXTRA_STREAM, uri)
@@ -46,8 +48,10 @@ object CustomLog {
         try {
 
             //Gets the Android external storage directory & Create new folder Crash_Reports
-            val dir = File(Environment.getExternalStorageDirectory(),
-                    "deliveryman")
+            val dir = File(
+                Environment.getExternalStorageDirectory(),
+                "deliveryman"
+            )
             if (!dir.exists()) {
                 dir.mkdirs()
             }

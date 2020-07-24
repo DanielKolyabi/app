@@ -628,10 +628,10 @@ class MainActivity : AppCompatActivity() {
                         loading.setVisible(false)
                         return@launch
                     }
-                    if(updateInfo.value.required != null){
+                    if (updateInfo.value.required != null) {
                         if (processUpdate(updateInfo.value.required)) return@launch
                     }
-                    if(updateInfo.value.optional != null){
+                    if (updateInfo.value.optional != null) {
                         if (processUpdate(updateInfo.value.optional)) return@launch
                     }
                 }

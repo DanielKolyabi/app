@@ -109,7 +109,7 @@ class LoginPresenter(
 
         application().user = User(UserLogin(user.login))
         GlobalScope.launch {
-            loginUseCase.loginOffline(UserLogin(user.login), user.token)
+            //loginUseCase.loginOffline(UserLogin(user.login), user.token)
         }
         return true
     }

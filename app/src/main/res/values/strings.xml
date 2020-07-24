@@ -32,7 +32,7 @@
     <string name="pile">Стопка</string>
     <string name="watch">Вахта</string>
     <string name="euro">Евро</string>
-    <string name="app_version_label">Версия: %s</string>
+    <string name="app_version_label">Версия: %d</string>
     <string name="show_task_on_map">Показать на карте</string>
     <string name="pause">Пауза</string>
     <string name="unknown_network_error">Ошибка соединения с интернетом</string>
@@ -40,4 +40,13 @@
     <string name="menu_title">Меню</string>
     <string name="menu_tasks">Задачи</string>
     <string name="menu_logout">Выйти</string>
+    <string name="login_no_network">Нет ответа от сервера</string>
+    <string name="ok">Ок</string>
+    <string name="login_offline">Войти оффлайн</string>
+    <string name="login_offline_error">Невозможно войти оффлайн. Необходима авторизация через сервер.</string>
+    <string name="menu_info">Отправить crash.log</string>
+    <string name="menu_uuid">Скопировать UUID</string>
+    <string name="crash_log_not_found">crash.log отсутствует</string>
+    <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
+    <string name="send">Отправить</string>
 </resources>

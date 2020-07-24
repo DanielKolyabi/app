@@ -28,13 +28,16 @@ import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.presentation.customViews.drawables.NavDrawerBackgroundDrawable
-import ru.relabs.kurjer.utils.debug
+import ru.relabs.kurjer.presentation.tasks.TasksFragment
+import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
+import ru.relabs.kurjer.utils.extensions.showSnackbar
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
 import ru.terrakok.cicerone.android.support.SupportAppNavigator
 import ru.terrakok.cicerone.android.support.SupportAppScreen
 import ru.terrakok.cicerone.commands.Command
+import java.io.FileNotFoundException
 
 
 class HostActivity : AppCompatActivity(), IFragmentHolder {
@@ -97,6 +100,23 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         }
         prepareNavigation()
         controller.context.errorContext.attach(window.decorView.rootView)
+        controller.context.copyToClipboard = ::copyToClipboard
+    }
+
+    fun copyToClipboard(text: String){
+        when(val r = ClipboardHelper.copyToClipboard(this, text)){
+            is Right ->
+                showSnackbar(
+                    resources.getString(R.string.copied_to_clipboard),
+                    resources.getString(R.string.send) to { sendDeviceUUID(text) }
+                )
+            is Left ->
+                showSnackbar(resources.getString(R.string.unknown_runtime_error))
+        }
+    }
+
+    private fun sendDeviceUUID(text: String) {
+        //TODO: Implement share text feature
     }
 
     override fun onDestroy() {
@@ -140,7 +160,9 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                 ): Boolean {
                     return when (drawerItem.identifier) {
                         NAVIGATION_TASKS -> navigateTasks()
-                        NAVIGATION_LOGOUT -> navigateLogout()
+                        NAVIGATION_CRASH -> sendCrashLog()
+                        NAVIGATION_UUID -> copyDeviceId()
+                        NAVIGATION_LOGOUT -> logout()
                         else -> true
                     }
                 }
@@ -152,6 +174,21 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
+    private fun copyDeviceId(): Boolean {
+        uiScope.sendMessage(controller, HostMessages.msgCopyDeviceUUID())
+        return false
+    }
+
+    private fun sendCrashLog(): Boolean {
+        when(val r = CustomLog.share(this)){
+            is Left -> when(val e = r.value){
+                is FileNotFoundException -> showSnackbar(resources.getString(R.string.crash_log_not_found))
+                else -> showSnackbar(resources.getString(R.string.unknown_runtime_error))
+            }
+        }
+        return false
+    }
+
     private fun bindBackstackListener() {
         supportFragmentManager.addOnBackStackChangedListener {
             supportFragmentManager.findFragmentById(R.id.fragment_container)?.let {
@@ -160,7 +197,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         }
     }
 
-    private fun navigateLogout(): Boolean {
+    private fun logout(): Boolean {
         uiScope.sendMessage(controller, HostMessages.msgLogout())
         return false
     }
@@ -181,6 +218,14 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
             buildDrawerItem(
                 NAVIGATION_TASKS,
                 R.string.menu_tasks
+            ),
+            buildDrawerItem(
+                NAVIGATION_CRASH,
+                R.string.menu_info
+            ),
+            buildDrawerItem(
+                NAVIGATION_UUID,
+                R.string.menu_uuid
             ),
             buildDrawerItem(
                 NAVIGATION_LOGOUT,
@@ -225,7 +270,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         hideKeyboard()
 
         when (fragment) {
-            //TODO: is *Fragment -> setDrawerSelectedItem()
+            is TasksFragment -> setDrawerSelectedItem(NAVIGATION_TASKS)
         }
     }
 
@@ -247,7 +292,9 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
     companion object {
         const val NAVIGATION_TASKS = 1L
-        const val NAVIGATION_LOGOUT = 2L
+        const val NAVIGATION_CRASH = 2L
+        const val NAVIGATION_UUID = 3L
+        const val NAVIGATION_LOGOUT = 4L
 
         const val KEY_INTENT_INTENT_ACTION = "notification_action"
 

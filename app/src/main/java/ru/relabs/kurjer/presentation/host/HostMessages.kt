@@ -23,4 +23,7 @@ object HostMessages {
 
     fun msgLogout(): HostMessage =
         msgEffect(HostEffects.effectLogout())
+
+    fun msgCopyDeviceUUID(): HostMessage =
+        msgEffect(HostEffects.effectCopyDeviceUUID())
 }

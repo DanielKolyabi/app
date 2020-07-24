@@ -14,6 +14,10 @@ sealed class DomainException : Exception() {
     object UnknownException : DomainException()
 }
 
+data class ApiErrorContainer(
+    @SerializedName("error") val error: ApiError?
+)
+
 data class ApiError(
     @SerializedName("code") val code: Int,
     @SerializedName("message") val message: String,

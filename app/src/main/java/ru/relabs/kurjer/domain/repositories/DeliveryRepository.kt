@@ -3,6 +3,8 @@ package ru.relabs.kurjer.domain.repositories
 import android.location.Location
 import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
 import retrofit2.HttpException
 import retrofit2.Response
@@ -10,6 +12,7 @@ import ru.relabs.kurjer.data.api.DeliveryApi
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.data.models.common.ApiError
+import ru.relabs.kurjer.data.models.common.ApiErrorContainer
 import ru.relabs.kurjer.data.models.common.DomainException
 import ru.relabs.kurjer.data.models.common.EitherE
 import ru.relabs.kurjer.domain.mappers.*
@@ -125,13 +128,13 @@ class DeliveryRepository(
 
     private fun currentTime(): String = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
 
-    private inline fun <T> authenticatedRequest(block: (token: String) -> T): EitherE<T> {
+    private suspend inline fun <T> authenticatedRequest(crossinline block: suspend (token: String) -> T): EitherE<T> {
         return authTokenStorage.getToken()?.let { token -> anonymousRequest { block(token) } }
             ?: Left(DomainException.ApiException(ApiError(401, "Empty token", null)))
     }
 
-    private inline fun <T> anonymousRequest(block: () -> T): EitherE<T> {
-        return try {
+    private suspend inline fun <T> anonymousRequest(crossinline block: suspend () -> T): EitherE<T> = withContext(Dispatchers.IO){
+        return@withContext try {
             Right(block())
         } catch (e: CancellationException) {
             debug("CancellationException $e")
@@ -156,7 +159,7 @@ class DeliveryRepository(
 
     private fun parseErrorBody(response: Response<*>?): ApiError? {
         return try {
-            Gson().fromJson(response?.errorBody()?.string(), ApiError::class.java)
+            Gson().fromJson(response?.errorBody()?.string(), ApiErrorContainer::class.java)?.error
         } catch (e: Exception) {
             debug("Can't parse HTTP error", e)
             return null

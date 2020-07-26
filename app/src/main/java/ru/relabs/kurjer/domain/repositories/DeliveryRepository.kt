@@ -15,11 +15,10 @@ import ru.relabs.kurjer.data.models.common.ApiError
 import ru.relabs.kurjer.data.models.common.ApiErrorContainer
 import ru.relabs.kurjer.data.models.common.DomainException
 import ru.relabs.kurjer.data.models.common.EitherE
-import ru.relabs.kurjer.domain.mappers.*
+import ru.relabs.kurjer.domain.mappers.network.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
-import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.debug

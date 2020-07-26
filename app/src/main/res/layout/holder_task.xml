@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:id="@+id/container"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?android:attr/selectableItemBackground">
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@string/text_font"
+
+        android:gravity="center"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_selected"
+        app:layout_constraintEnd_toStartOf="@+id/iv_active"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/iv_selected"
+        tools:text="Вечерняя Москва №4, 280 экз. (16бр/7уч)" />
+
+    <ImageView
+        android:id="@+id/iv_selected"
+        android:layout_width="40dp"
+        android:layout_height="0dp"
+        android:adjustViewBounds="true"
+        android:clickable="true"
+        android:cropToPadding="false"
+        android:focusable="true"
+        android:padding="2dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_chain_disabled" />
+
+    <ImageView
+        android:id="@+id/iv_active"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_selected"
+        app:layout_constraintEnd_toStartOf="@+id/iv_selected"
+        app:layout_constraintTop_toTopOf="@+id/iv_selected"
+        app:srcCompat="@drawable/ic_check_enabled" />
+</androidx.constraintlayout.widget.ConstraintLayout>

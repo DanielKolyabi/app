@@ -1,4 +1,4 @@
-package ru.relabs.kurjer.domain.mappers
+package ru.relabs.kurjer.domain.mappers.network
 
 import ru.relabs.kurjer.data.models.auth.AddressResponse
 import ru.relabs.kurjer.domain.models.Address

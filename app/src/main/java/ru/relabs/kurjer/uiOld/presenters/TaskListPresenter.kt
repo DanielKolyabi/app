@@ -167,14 +167,14 @@ class TaskListPresenter(
                                 dbRep.putSendQuery(SendQueryData.TaskReceived(it.id))
 
                                 try {
-                                    NetworkHelper.loadTaskRasterizeMap(it, fragment.context?.contentResolver)
+                                    NetworkHelper.loadTaskRasterizeMap(it)
                                 } catch (e: Exception) {
                                     e.log()
                                 }
                             },
                             { oldTask, newTask ->
                                 try {
-                                    NetworkHelper.loadTaskRasterizeMap(newTask, fragment.context?.contentResolver)
+                                    NetworkHelper.loadTaskRasterizeMap(newTask)
                                 } catch (e: Exception) {
                                     e.log()
                                 }

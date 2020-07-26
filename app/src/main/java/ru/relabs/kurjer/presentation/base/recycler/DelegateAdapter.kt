@@ -3,6 +3,7 @@ package ru.relabs.kurjer.presentation.base.recycler
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
+import ru.relabs.kurjer.R
 
 class DelegateAdapter<T>(vararg delegate: IAdapterDelegate<T>) : RecyclerView.Adapter<BaseHolder<T>>() {
 
@@ -61,6 +62,6 @@ fun <T, E> holderDefine(
 fun <T> holderDefine(parent: ViewGroup, @LayoutRes layout: Int, bind: BaseHolder<T>.(T) -> Unit) =
     holderDefine(parent, layout, { it }, bind)
 
-//fun <T> delegateLoader(check: (T) -> Boolean): IAdapterDelegate<T> = delegateDefine(check) {
-//    holderDefine(it, R.layout.item_loader) {}
-//}
+fun <T> delegateLoader(check: (T) -> Boolean): IAdapterDelegate<T> = delegateDefine(check) {
+    holderDefine(it, R.layout.holder_loader) {}
+}

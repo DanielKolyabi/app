@@ -2,6 +2,8 @@ package ru.relabs.kurjer.domain.models
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
+import ru.relabs.kurjer.domain.mappers.MappingException
+import java.lang.RuntimeException
 import java.util.*
 
 @Parcelize
@@ -45,14 +47,22 @@ enum class TaskState {
     COMPLETED,
     CANCELED;
 
-    @Deprecated("Should be removed after refactoring")
     fun toInt(): Int {
         return when(this){
-            CREATED -> 0
-            EXAMINED -> 1
-            STARTED -> 2
+            CREATED -> 1
+            EXAMINED -> 2
+            STARTED -> 3
             COMPLETED -> 4
-            CANCELED -> 16
+            CANCELED -> 5
         }
     }
+}
+
+fun Int.toTaskState() = when(this){
+    1 -> TaskState.CREATED
+    2 -> TaskState.EXAMINED
+    3 -> TaskState.STARTED
+    4 -> TaskState.COMPLETED
+    5 -> TaskState.CANCELED
+    else -> throw MappingException("state", this)
 }

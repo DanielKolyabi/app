@@ -29,22 +29,6 @@ data class TaskModel(
         var selected: Boolean,
         var coupleType: Int
 ) : Parcelable {
-    val plainState
-        get() = if(state and TaskModel.BY_OTHER_USER == 1){
-            state xor TaskModel.BY_OTHER_USER
-        }else{
-            state
-        }
-
-    val displayName
-        get() = "${name} №${edition}, ${copies}экз., (${brigade}бр/${area}уч)"
-
-    fun toTaskEntity(): TaskEntity {
-        return TaskEntity(
-                id, name, edition, copies, packs, remain, area, state, startTime, endTime, brigade, brigadier, rastMapUrl, userId,
-                city, storageAddress, iteration, coupleType
-        )
-    }
 
     fun isAvailableByDate(date: Date): Boolean = (date >= startTime)
     fun canShowedByDate(date: Date): Boolean = date <= Date(endTime.time)

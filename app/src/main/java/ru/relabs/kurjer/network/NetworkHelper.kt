@@ -161,11 +161,11 @@ object NetworkHelper {
         return MultipartBody.Part.createFormData(partName, photoFile.name, request)
     }
 
-    fun loadTaskRasterizeMap(task: Task, contentResolver: ContentResolver?) {
+    fun loadTaskRasterizeMap(task: Task) {
         val url = URL(task.rastMapUrl)
         val bmp = BitmapFactory.decodeStream(url.openStream())
         val mapFile = PathHelper.getTaskRasterizeMapFile(task)
-        ImageUtils.saveImage(bmp, mapFile, contentResolver)
+        ImageUtils.saveImage(bmp, mapFile)
         bmp.recycle()
     }
 

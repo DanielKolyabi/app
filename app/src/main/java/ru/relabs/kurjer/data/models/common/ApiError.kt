@@ -28,6 +28,7 @@ data class ApiError(
 
     //TODO: Add error codes
     companion object {
-        const val SOME_ERROR = 1
+        const val ERROR_INVALID_DATE_TIME = 5
+
     }
 }

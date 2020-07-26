@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.domain.models.TaskState
 import java.util.*
 
 /**
@@ -37,7 +38,9 @@ data class TaskEntity(
         var storageAddress: String,
         var iteration: Int,
         @ColumnInfo(name = "couple_type")
-        var coupleType: Int
+        var coupleType: Int,
+        @ColumnInfo(name = "by_other_user")
+        var byOtherUser: Boolean
 ) {
     val plainState
         get() = if(state and TaskModel.BY_OTHER_USER == 1){

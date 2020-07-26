@@ -1,4 +1,4 @@
-package ru.relabs.kurjer.domain.mappers
+package ru.relabs.kurjer.domain.mappers.network
 
 import ru.relabs.kurjer.data.models.pause.PauseTimeResponse
 import ru.relabs.kurjer.data.models.pause.PauseTimesResponse

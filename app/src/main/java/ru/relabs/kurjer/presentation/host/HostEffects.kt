@@ -24,7 +24,7 @@ object HostEffects {
         if (!restored) {
             if (c.repository.isAuthenticated()) {
                 withContext(Dispatchers.Main) {
-                    c.router.newRootScreen(RootScreen.Tasks)
+                    c.router.newRootScreen(RootScreen.Tasks(false))
                 }
 
                 withContext(Dispatchers.IO) {

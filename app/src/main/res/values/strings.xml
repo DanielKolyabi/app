@@ -62,4 +62,11 @@
     <string name="settings">Настройки</string>
     <string name="xiaomi_permissions_request">Необходимо дать доступ к \"Экран блокировки\", \"Всплывающие окна\" и \"Отображать всплывающие окна, когда запущено в фоновом режиме\"</string>
     <string name="request_permissions_rationale">Необходимо дать разрешения:\n%s</string>
+    <string name="tasks_title">Список заданий</string>
+    <string name="task_list_not_examined">Вы должны ознакомиться с заданием</string>
+    <string name="task_list_not_started">Дата начала распространения не наступила</string>
+    <string name="task_list_tasks_updated">Задания были обновлены</string>
+    <string name="task_list_tasks_created">Обновление прошло успешно</string>
+    <string name="task_list_tasks_not_changed">Нет новых заданий</string>
+    <string name="task_list_update_in_progress">Обновление в процессе</string>
 </resources>

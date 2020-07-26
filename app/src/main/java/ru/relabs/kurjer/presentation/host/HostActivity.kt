@@ -240,7 +240,11 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                     drawerItem: IDrawerItem<*>
                 ): Boolean {
                     return when (drawerItem.identifier) {
-                        NAVIGATION_TASKS -> navigateTasks()
+                        NAVIGATION_TASKS -> if (!drawerItem.isSelected) {
+                            navigateTasks()
+                        } else {
+                            true
+                        }
                         NAVIGATION_CRASH -> sendCrashLog()
                         NAVIGATION_UUID -> copyDeviceId()
                         NAVIGATION_LOGOUT -> logout()
@@ -284,7 +288,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     }
 
     private fun navigateTasks(): Boolean {
-        router.newRootScreen(RootScreen.Tasks)
+        router.newRootScreen(RootScreen.Tasks(false))
         return false
     }
 

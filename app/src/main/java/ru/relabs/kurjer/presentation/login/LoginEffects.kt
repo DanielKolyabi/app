@@ -34,7 +34,7 @@ object LoginEffects {
     fun effectLogin(): LoginEffect = { c, s ->
         messages.send(LoginMessages.msgAddLoaders(1))
         when (val r = c.loginUseCase.login(s.login, s.password)) {
-            is Right -> withContext(Dispatchers.Main) { c.router.replaceScreen(RootScreen.Tasks) }
+            is Right -> withContext(Dispatchers.Main) { c.router.replaceScreen(RootScreen.Tasks(true)) }
             is Left -> when (val e = r.value) {
                 is DomainException.ApiException -> messages.send(CommonMessages.msgError(r.value))
                 else -> withContext(Dispatchers.Main) { c.showOfflineLoginOffer() }
@@ -47,7 +47,7 @@ object LoginEffects {
         messages.send(LoginMessages.msgAddLoaders(1))
         when (c.loginUseCase.loginOffline()) {
             null -> withContext(Dispatchers.Main) { c.showError(R.string.login_offline_error) }
-            else -> withContext(Dispatchers.Main) { c.router.replaceScreen(RootScreen.Tasks) }
+            else -> withContext(Dispatchers.Main) { c.router.replaceScreen(RootScreen.Tasks(false)) }
         }
         messages.send(LoginMessages.msgAddLoaders(-1))
     }

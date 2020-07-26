@@ -17,7 +17,7 @@ import ru.relabs.kurjer.uiOld.models.TaskListModel
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.activity
-import ru.relabs.kurjer.utils.logError
+import ru.relabs.kurjer.utils.log
 import java.util.*
 
 /**
@@ -169,14 +169,14 @@ class TaskListPresenter(
                                 try {
                                     NetworkHelper.loadTaskRasterizeMap(it, fragment.context?.contentResolver)
                                 } catch (e: Exception) {
-                                    e.logError()
+                                    e.log()
                                 }
                             },
                             { oldTask, newTask ->
                                 try {
                                     NetworkHelper.loadTaskRasterizeMap(newTask, fragment.context?.contentResolver)
                                 } catch (e: Exception) {
-                                    e.logError()
+                                    e.log()
                                 }
                             },
                             dbRep

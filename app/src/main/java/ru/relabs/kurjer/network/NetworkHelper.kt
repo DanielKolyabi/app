@@ -22,11 +22,10 @@ import ru.relabs.kurjer.REQUEST_LOCATION
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.data.models.PhotoReportRequest
-import ru.relabs.kurjer.data.models.TaskItemReportRequest
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.TaskItemPhotoEntity
-import ru.relabs.kurjer.utils.logError
+import ru.relabs.kurjer.utils.log
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -134,7 +133,7 @@ object NetworkHelper {
                     PhotoReportRequest("", photo.gps, photo.entranceNumber)
                 imgCount++
             } catch (e: Throwable) {
-                e.fillInStackTrace().logError()
+                e.fillInStackTrace().log()
             }
         }
 

@@ -4,10 +4,12 @@ import android.net.Uri
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
+import ru.relabs.kurjer.presentation.host.featureCheckers.FeatureChecker
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.debug
@@ -53,6 +55,7 @@ object HostEffects {
         }
     }
 
+    //UPDATES
     fun effectCheckUpdates(): HostEffect = { c, s ->
         messages.send(HostMessages.msgAddLoaders(1))
         when (val r = s.appUpdates?.let { Right(it) } ?: c.updatesUseCase.getAppUpdatesInfo()) {
@@ -60,13 +63,13 @@ object HostEffects {
                 messages.send(HostMessages.msgUpdatesInfo(r.value))
                 if (r.value.required != null) {
                     withContext(Dispatchers.Main) {
-                        if(c.showUpdateDialog(r.value.required)){
+                        if (c.showUpdateDialog(r.value.required)) {
                             messages.send(HostMessages.msgUpdateDialogShowed(true))
                         }
                     }
                 } else if (r.value.optional != null) {
                     withContext(Dispatchers.Main) {
-                        if(c.showUpdateDialog(r.value.optional)){
+                        if (c.showUpdateDialog(r.value.optional)) {
                             messages.send(HostMessages.msgUpdateDialogShowed(true))
                         }
                     }
@@ -122,19 +125,41 @@ object HostEffects {
         }
     }
 
-    fun effectCheckXiaomiPermissions(): HostEffect = { c, s ->
-        //TODO("Check permissions")
+    suspend fun checkFeature(check: FeatureChecker): Boolean {
+        if (!check.isFeatureEnabled()) {
+            withContext(Dispatchers.Main) {
+                check.requestFeature()
+            }
+            return false
+        }
+        return true
     }
 
-    fun effectCheckGPSEnabled(): HostEffect = { c, s ->
-        //TODO("Check GPS")
+    fun effectCheckRequirements(): HostEffect = { c, s ->
+        val featureCheckersContainer = c.featureCheckersContainer
+        if (featureCheckersContainer != null) {
+            if (
+                checkFeature(featureCheckersContainer.permissions) &&
+                checkFeature(featureCheckersContainer.xiaomiPermissions) &&
+                checkFeature(featureCheckersContainer.network) &&
+                checkFeature(featureCheckersContainer.gps) &&
+                checkFeature(featureCheckersContainer.time)
+            ) {
+
+                if (isUpdateRequired(s) &&
+                    s.updateFile == null &&
+                    !s.isUpdateDialogShowed &&
+                    s.updateLoadProgress == null
+                ) {
+
+                    messages.send(msgEffect(effectCheckUpdates()))
+                } else if (s.updateFile != null && isUpdateRequired(s)) {
+                    messages.send(msgEffect(effectInstallUpdate(s.updateFile)))
+                }
+            }
+        }
     }
 
-    fun effectCheckNetworkEnabled(): HostEffect = { c, s ->
-        //TODO("Check Network")
-    }
-
-    fun effectCheckTimeValid(): HostEffect = { c, s ->
-        //TODO("Check Time")
-    }
+    private fun isUpdateRequired(state: HostState): Boolean =
+        state.appUpdates == null || ((state.appUpdates.required?.version ?: 0) > BuildConfig.VERSION_CODE && !state.isUpdateLoadingFailed)
 }

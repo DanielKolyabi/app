@@ -21,7 +21,7 @@ fun Fragment.activity(): MainActivity? {
     return this.context as? MainActivity
 }
 
-fun Throwable.logError() {
+fun Throwable.log() {
     this.printStackTrace()
 
     //FirebaseCrashlytics.getInstance().recordException(this)
@@ -33,7 +33,7 @@ suspend fun <T> tryOrLogAsync(block: suspend () -> T) {
     try {
         block()
     } catch (e: Exception) {
-        e.logError()
+        e.log()
     }
 }
 
@@ -41,7 +41,7 @@ fun <T> tryOrLog(block: () -> T) {
     try {
         block()
     } catch (e: Exception) {
-        e.logError()
+        e.log()
     }
 }
 

@@ -14,9 +14,7 @@ object HostMessages {
     fun msgInit(restored: Boolean): HostMessage = msgEffects(
         { it },
         {
-            listOf(
-                HostEffects.effectInit(restored)
-            )
+            listOf(HostEffects.effectInit(restored))
         }
     )
 
@@ -27,28 +25,26 @@ object HostMessages {
         { it },
         { state ->
             listOfNotNull(
-                HostEffects.effectCheckUpdates()
-                    .takeIf {
-                        isUpdateRequired(state) &&
-                                state.updateFile == null &&
-                                !state.isUpdateDialogShowed &&
-                                state.updateLoadProgress == null
-                    },
-
-                state.updateFile?.let { HostEffects.effectInstallUpdate(it) }
-                    .takeIf { isUpdateRequired(state) && state.updateFile != null },
-
-                HostEffects.effectCheckXiaomiPermissions()
-                    .takeIf { XiaomiUtilities.isMIUI },
-                HostEffects.effectCheckGPSEnabled(),
-                HostEffects.effectCheckNetworkEnabled(),
-                HostEffects.effectCheckTimeValid()
+                HostEffects.effectCheckRequirements() //Updates, Xiaomi Permissions, GPS, Network, Time
+//                HostEffects.effectCheckUpdates()
+//                    .takeIf {
+//                        isUpdateRequired(state) &&
+//                                state.updateFile == null &&
+//                                !state.isUpdateDialogShowed &&
+//                                state.updateLoadProgress == null
+//                    },
+//
+//                state.updateFile?.let { HostEffects.effectInstallUpdate(it) }
+//                    .takeIf { isUpdateRequired(state) && state.updateFile != null },
+//
+//                HostEffects.effectCheckXiaomiPermissions()
+//                    .takeIf { XiaomiUtilities.isMIUI },
+//                HostEffects.effectCheckGPSEnabled(),
+//                HostEffects.effectCheckNetworkEnabled(),
+//                HostEffects.effectCheckTimeValid()
             )
         }
     )
-
-    private fun isUpdateRequired(state: HostState): Boolean =
-        state.appUpdates == null || ((state.appUpdates.required?.version ?: 0) > BuildConfig.VERSION_CODE && !state.isUpdateLoadingFailed)
 
     fun msgAddLoaders(i: Int): HostMessage =
         msgState { it.copy(loaders = it.loaders + i) }

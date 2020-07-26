@@ -1,16 +1,12 @@
 package ru.relabs.kurjer.presentation.base.fragment
 
 import android.os.Bundle
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
-import ru.relabs.kurjer.presentation.host.IFragmentHolder
-import java.lang.ref.WeakReference
+import ru.relabs.kurjer.presentation.host.interfaces.IFragmentHolder
 
 
 abstract class BaseFragment : Fragment() {

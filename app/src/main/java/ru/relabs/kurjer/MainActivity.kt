@@ -213,7 +213,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 } catch (e: java.lang.Exception) {
                     e.fillInStackTrace()
-                    e.logError()
+                    e.log()
                 }
             }
         }
@@ -229,7 +229,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     startActivity(intent)
                 } catch (x: java.lang.Exception) {
-                    x.logError()
+                    x.log()
                 }
             }
         }, forcePositiveButtonName = "Настройки")
@@ -249,7 +249,7 @@ class MainActivity : AppCompatActivity() {
                             intent.data = Uri.parse("package:" + applicationContext.packageName)
                             startActivity(intent)
                         } catch (xx: java.lang.Exception) {
-                            xx.logError()
+                            xx.log()
                         }
                     }
                 }
@@ -407,7 +407,7 @@ class MainActivity : AppCompatActivity() {
         try {
             registerReceiver(broadcastReceiver, IntentFilter("NOW"))
         } catch (e: java.lang.Exception) {
-            e.logError()
+            e.log()
         }
 
         showPermissionsRequest(permissions.toTypedArray(), false)

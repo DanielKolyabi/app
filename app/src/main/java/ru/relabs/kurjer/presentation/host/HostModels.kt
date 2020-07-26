@@ -9,6 +9,7 @@ import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.tea.*
+import ru.relabs.kurjer.presentation.host.featureCheckers.FeatureCheckersContainer
 import java.io.File
 
 /**
@@ -39,6 +40,8 @@ class HostContext(
     var showUpdateDialog: (AppUpdate) -> Boolean = { false }
     var showErrorDialog: (id: Int) -> Unit = {}
     var installUpdate: (updateFile: File) -> Unit = {}
+
+    var featureCheckersContainer: FeatureCheckersContainer? = null
 }
 
 typealias HostRender = ElmRender<HostState>

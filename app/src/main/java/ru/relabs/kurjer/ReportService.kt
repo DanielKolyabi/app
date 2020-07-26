@@ -23,7 +23,7 @@ import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
 import ru.relabs.kurjer.utils.Right
-import ru.relabs.kurjer.utils.logError
+import ru.relabs.kurjer.utils.log
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
@@ -132,7 +132,7 @@ class ReportService : Service(), KoinComponent {
                             isTaskSended = true
                             PersistenceHelper.removeReport(database, reportQuery)
                         } catch (e: Exception) {
-                            e.logError()
+                            e.log()
                         }
                     } else if (sendQuery != null) {
                         try {
@@ -140,7 +140,7 @@ class ReportService : Service(), KoinComponent {
                             isTaskSended = true
                             database.sendQueryDao().delete(sendQuery)
                         } catch (e: Exception) {
-                            e.logError()
+                            e.log()
                         }
                     } else if (System.currentTimeMillis() - lastTasksChecking > TASK_CHECK_DELAY) {
                         when (val tasks = repository.getTasks()) {

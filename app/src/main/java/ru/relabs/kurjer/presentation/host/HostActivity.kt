@@ -33,6 +33,8 @@ import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.presentation.customViews.drawables.NavDrawerBackgroundDrawable
+import ru.relabs.kurjer.presentation.host.featureCheckers.FeatureCheckersContainer
+import ru.relabs.kurjer.presentation.host.interfaces.IFragmentHolder
 import ru.relabs.kurjer.presentation.tasks.TasksFragment
 import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
@@ -56,6 +58,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
     private val navigator = CiceroneNavigator(this)
 
+    private val featureCheckersContainer = FeatureCheckersContainer(this)
+
     override fun onFragmentAttached(fragment: Fragment) {
         when (fragment) {
             is IFragmentStyleable -> updateAppBar(
@@ -65,20 +69,6 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                 )
             )
             else -> updateAppBar(AppBarSettings())
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_INSTALL_PACKAGE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (resultCode == Activity.RESULT_OK && packageManager.canRequestPackageInstalls()) {
-                uiScope.sendMessage(controller, HostMessages.msgRequestUpdates())
-            } else {
-                startActivityForResult(
-                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse(String.format("package:%s", packageName))),
-                    REQUEST_CODE_INSTALL_PACKAGE
-                )
-            }
         }
     }
 
@@ -104,6 +94,24 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.context.showUpdateDialog = ::showUpdateDialog
         controller.context.showErrorDialog = ::showErrorDialog
         controller.context.installUpdate = ::installUpdate
+
+        controller.context.featureCheckersContainer = featureCheckersContainer
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        featureCheckersContainer.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_CODE_INSTALL_PACKAGE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (resultCode == Activity.RESULT_OK && packageManager.canRequestPackageInstalls()) {
+                uiScope.sendMessage(controller, HostMessages.msgRequestUpdates())
+            } else {
+                startActivityForResult(
+                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(Uri.parse(String.format("package:%s", packageName))),
+                    REQUEST_CODE_INSTALL_PACKAGE
+                )
+            }
+        }
     }
 
     private fun showErrorDialog(stringResource: Int) {
@@ -176,6 +184,11 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
             is Left ->
                 showSnackbar(resources.getString(R.string.unknown_runtime_error))
         }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        featureCheckersContainer.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     private fun sendDeviceUUID(text: String) {

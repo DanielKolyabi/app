@@ -34,7 +34,7 @@ import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.presentation.customViews.drawables.NavDrawerBackgroundDrawable
 import ru.relabs.kurjer.presentation.host.featureCheckers.FeatureCheckersContainer
-import ru.relabs.kurjer.presentation.host.interfaces.IFragmentHolder
+import ru.relabs.kurjer.presentation.host.systemWatchers.SystemWatchersContainer
 import ru.relabs.kurjer.presentation.tasks.TasksFragment
 import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
@@ -59,6 +59,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     private val navigator = CiceroneNavigator(this)
 
     private val featureCheckersContainer = FeatureCheckersContainer(this)
+    private val systemWatchersContainer = SystemWatchersContainer(this, featureCheckersContainer.network, featureCheckersContainer.gps)
 
     override fun onFragmentAttached(fragment: Fragment) {
         when (fragment) {

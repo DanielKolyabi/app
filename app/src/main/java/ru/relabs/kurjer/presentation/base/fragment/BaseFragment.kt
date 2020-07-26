@@ -6,7 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
-import ru.relabs.kurjer.presentation.host.interfaces.IFragmentHolder
+import ru.relabs.kurjer.presentation.host.IFragmentHolder
 
 
 abstract class BaseFragment : Fragment() {

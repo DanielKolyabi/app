@@ -1,4 +1,4 @@
-package ru.relabs.kurjer.presentation.host.interfaces
+package ru.relabs.kurjer.presentation.host
 
 import androidx.fragment.app.Fragment
 

@@ -29,7 +29,6 @@ import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.fragment.IFragmentStyleable
-import ru.relabs.kurjer.presentation.base.tea.debugCollector
 import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
@@ -93,7 +92,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
             val renders = listOf(
                 HostRenders.renderDrawer(navigationDrawer),
                 HostRenders.renderFullScreen(window),
-                HostRenders.renderLoader(loading_overlay, pb_loading, tv_loader)
+                HostRenders.renderLoader(loading_overlay),
+                HostRenders.renderUpdateLoading(loading_overlay, pb_loading, tv_loader)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             //launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
@@ -129,14 +129,26 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         startActivity(intent)
     }
 
-    private fun showUpdateDialog(appUpdate: AppUpdate) {
+    private fun showUpdateDialog(appUpdate: AppUpdate): Boolean {
         if (appUpdate.version > BuildConfig.VERSION_CODE) {
             showDialog(
                 R.string.update_new_available,
-                R.string.update_install to { checkUpdateRequirements(appUpdate.url) },
-                (R.string.update_later to {}).takeIf { !appUpdate.isRequired }
+
+                R.string.update_install to {
+                    checkUpdateRequirements(appUpdate.url)
+                    uiScope.sendMessage(controller, HostMessages.msgUpdateDialogShowed(false))
+                },
+
+                (R.string.update_later to {
+                    uiScope.sendMessage(
+                        controller,
+                        HostMessages.msgUpdateDialogShowed(false)
+                    )
+                }).takeIf { !appUpdate.isRequired }
             )
+            return true
         }
+        return false
     }
 
     private fun checkUpdateRequirements(url: Uri) {
@@ -175,7 +187,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.stop()
         supervisor.cancelChildren()
         controller.context.errorContext.detach()
-        controller.context.showUpdateDialog = {}
+        controller.context.showUpdateDialog = { false }
         controller.context.showErrorDialog = {}
         controller.context.installUpdate = {}
         navigationHolder.removeNavigator()

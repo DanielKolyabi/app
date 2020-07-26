@@ -28,9 +28,16 @@ object HostMessages {
         { state ->
             listOfNotNull(
                 HostEffects.effectCheckUpdates()
-                    .takeIf { isUpdateRequired(state) && state.updateFile == null },
+                    .takeIf {
+                        isUpdateRequired(state) &&
+                                state.updateFile == null &&
+                                !state.isUpdateDialogShowed &&
+                                state.updateLoadProgress == null
+                    },
+
                 state.updateFile?.let { HostEffects.effectInstallUpdate(it) }
                     .takeIf { isUpdateRequired(state) && state.updateFile != null },
+
                 HostEffects.effectCheckXiaomiPermissions()
                     .takeIf { XiaomiUtilities.isMIUI },
                 HostEffects.effectCheckGPSEnabled(),
@@ -56,10 +63,18 @@ object HostMessages {
         msgEffect(HostEffects.effectLoadUpdate(url))
 
     fun msgLoadProgress(progress: Int?): HostMessage =
-        msgState { it.copy(loadProgress = progress) }
+        msgState { it.copy(updateLoadProgress = progress) }
 
     fun msgRequestUpdates(): HostMessage =
-        msgEffect(HostEffects.effectCheckUpdates())
+        msgEffects(
+            { it },
+            { state ->
+                listOfNotNull(
+                    HostEffects.effectCheckUpdates()
+                        .takeIf { !state.isUpdateDialogShowed }
+                )
+            }
+        )
 
     fun msgUpdatesInfo(value: AppUpdatesInfo): HostMessage =
         msgState { it.copy(appUpdates = value) }
@@ -69,4 +84,7 @@ object HostMessages {
 
     fun msgUpdateLoaded(file: File): HostMessage =
         msgState { it.copy(updateFile = file) }
+
+    fun msgUpdateDialogShowed(b: Boolean): HostMessage =
+        msgState { it.copy(isUpdateDialogShowed = b) }
 }

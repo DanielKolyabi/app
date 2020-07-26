@@ -17,11 +17,12 @@ import java.io.File
 data class HostState(
     val settings: AppBarSettings = AppBarSettings(),
     val loaders: Int = 0,
-    val loadProgress: Int? = null,
 
+    val updateLoadProgress: Int? = null,
     val appUpdates: AppUpdatesInfo? = null,
     val isUpdateLoadingFailed: Boolean = false,
-    val updateFile: File? = null
+    val updateFile: File? = null,
+    val isUpdateDialogShowed: Boolean = false
 )
 
 class HostContext(
@@ -35,7 +36,7 @@ class HostContext(
     val deviceUUIDProvider: DeviceUUIDProvider by inject()
 
     var copyToClipboard: (String) -> Unit = {}
-    var showUpdateDialog: (AppUpdate) -> Unit = {}
+    var showUpdateDialog: (AppUpdate) -> Boolean = { false }
     var showErrorDialog: (id: Int) -> Unit = {}
     var installUpdate: (updateFile: File) -> Unit = {}
 }

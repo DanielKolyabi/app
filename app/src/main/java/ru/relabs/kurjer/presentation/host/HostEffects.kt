@@ -39,29 +39,6 @@ object HostEffects {
         }
     }
 
-    fun effectCheckUpdates(): HostEffect = { c, s ->
-        messages.send(HostMessages.msgAddLoaders(1))
-        when (val r = s.appUpdates?.let { Right(it) } ?: c.updatesUseCase.getAppUpdatesInfo()) {
-            is Right -> {
-                messages.send(HostMessages.msgUpdatesInfo(r.value))
-                if (r.value.required != null) {
-                    withContext(Dispatchers.Main) {
-                        c.showUpdateDialog(r.value.required)
-                    }
-                } else if (r.value.optional != null) {
-                    withContext(Dispatchers.Main) {
-                        c.showUpdateDialog(r.value.optional)
-                    }
-                }
-            }
-            is Left -> withContext(Dispatchers.Main) {
-                c.showErrorDialog(R.string.update_cant_get_info)
-            }
-
-        }
-        messages.send(HostMessages.msgAddLoaders(-1))
-    }
-
     fun effectLogout(): HostEffect = { c, s ->
         c.loginUseCase.logout()
         withContext(Dispatchers.Main) {
@@ -76,8 +53,34 @@ object HostEffects {
         }
     }
 
-    fun effectLoadUpdate(uri: Uri): HostEffect = { c, s ->
+    fun effectCheckUpdates(): HostEffect = { c, s ->
         messages.send(HostMessages.msgAddLoaders(1))
+        when (val r = s.appUpdates?.let { Right(it) } ?: c.updatesUseCase.getAppUpdatesInfo()) {
+            is Right -> {
+                messages.send(HostMessages.msgUpdatesInfo(r.value))
+                if (r.value.required != null) {
+                    withContext(Dispatchers.Main) {
+                        if(c.showUpdateDialog(r.value.required)){
+                            messages.send(HostMessages.msgUpdateDialogShowed(true))
+                        }
+                    }
+                } else if (r.value.optional != null) {
+                    withContext(Dispatchers.Main) {
+                        if(c.showUpdateDialog(r.value.optional)){
+                            messages.send(HostMessages.msgUpdateDialogShowed(true))
+                        }
+                    }
+                }
+            }
+            is Left -> withContext(Dispatchers.Main) {
+                c.showErrorDialog(R.string.update_cant_get_info)
+            }
+
+        }
+        messages.send(HostMessages.msgAddLoaders(-1))
+    }
+
+    fun effectLoadUpdate(uri: Uri): HostEffect = { c, s ->
         messages.send(HostMessages.msgLoadProgress(0))
         val url = URL(uri.toString())
         val file = PathHelper.getUpdateFile()
@@ -111,8 +114,6 @@ object HostEffects {
             fos.close()
         }
         messages.send(HostMessages.msgLoadProgress(null))
-        messages.send(HostMessages.msgAddLoaders(-1))
-
     }
 
     fun effectInstallUpdate(file: File): HostEffect = { c, s ->

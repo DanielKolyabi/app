@@ -44,19 +44,27 @@ object HostRenders {
         }
     )
 
-    fun renderLoader(view: View, progressBar: ProgressBar, progressText: TextView): HostRender = renderT(
-        { (it.loaders > 0) to it.loadProgress },
-        { (visible, progress) ->
-            view.visible = visible
+    fun renderUpdateLoading(view: View, progressBar: ProgressBar, progressText: TextView): HostRender = renderT(
+        { it.updateLoadProgress },
+        {progress ->
+            view.visible = progress != null
             progressBar.isIndeterminate = progress == null
             progressText.visible = progress != null
 
-            if(progress != null){
+            if (progress != null) {
                 progressBar.max = 100
                 progressBar.progress = progress
 
                 progressText.text = progressText.resources.getString(R.string.update_progress, progress)
             }
+
+        }
+    )
+
+    fun renderLoader(view: View): HostRender = renderT(
+        { it.loaders > 0 },
+        { visible ->
+            view.visible = visible
         }
     )
 }

@@ -3,21 +3,18 @@ package ru.relabs.kurjer.presentation.host
 import android.net.Uri
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.files.PathHelper
+import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.host.featureCheckers.FeatureChecker
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
-import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.getFirebaseToken
 import java.io.File
-import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 object HostEffects {
     fun effectInit(restored: Boolean): HostEffect = { c, _ ->
@@ -85,36 +82,21 @@ object HostEffects {
 
     fun effectLoadUpdate(uri: Uri): HostEffect = { c, s ->
         messages.send(HostMessages.msgLoadProgress(0))
-        val url = URL(uri.toString())
-        val file = PathHelper.getUpdateFile()
-        val connection = url.openConnection() as HttpURLConnection
-        val stream = url.openStream()
-        val fos = FileOutputStream(file)
-        try {
-            val fileSize = connection.contentLength
-            val b = ByteArray(2048)
-            var read = stream.read(b)
-            var total = read
-            while (read != -1) {
-                fos.write(b, 0, read)
-                read = stream.read(b)
-                total += read
-                debug("Load update file $total/$fileSize")
-                messages.send(HostMessages.msgLoadProgress(((total / fileSize.toFloat()) * 100).toInt()))
+        c.updatesUseCase.downloadUpdate(uri).collect {
+            when (it) {
+                is AppUpdateUseCase.DownloadState.Progress ->
+                    messages.send(HostMessages.msgLoadProgress(((it.current / it.total.toFloat()) * 100).toInt()))
+                is AppUpdateUseCase.DownloadState.Success -> {
+                    messages.send(HostMessages.msgUpdateLoaded(it.file))
+                    messages.send(msgEffect(effectInstallUpdate(it.file)))
+                }
+                AppUpdateUseCase.DownloadState.Failed -> {
+                    messages.send(HostMessages.msgUpdateLoadingFailed())
+                    withContext(Dispatchers.Main) {
+                        c.showErrorDialog(R.string.update_install_error)
+                    }
+                }
             }
-
-            messages.send(HostMessages.msgUpdateLoaded(file))
-            messages.send(msgEffect(effectInstallUpdate(file)))
-        } catch (e: Exception) {
-            debug("Loading error", e)
-            messages.send(HostMessages.msgUpdateLoadingFailed())
-            withContext(Dispatchers.Main) {
-                c.showErrorDialog(R.string.update_install_error)
-            }
-        } finally {
-            stream.close()
-            connection.disconnect()
-            fos.close()
         }
         messages.send(HostMessages.msgLoadProgress(null))
     }

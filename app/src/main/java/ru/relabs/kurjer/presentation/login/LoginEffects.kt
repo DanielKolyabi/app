@@ -21,7 +21,7 @@ object LoginEffects {
 
     fun effectLoginCheck(isNetworkEnabled: Boolean): LoginEffect = { c, s ->
         withContext(Dispatchers.Main) {
-            when (c.updateUseCase.isAppUpdated) {
+            when (c.updateUseCase.isAppUpdated || c.updateUseCase.isUpdateUnavailable) {
                 true -> when (isNetworkEnabled) {
                     true -> messages.send(msgEffect(effectLogin()))
                     false -> c.showError(R.string.login_need_network)

@@ -11,7 +11,7 @@ import ru.relabs.kurjer.presentation.host.featureCheckers.GPSFeatureChecker
 class GPSSystemWatcher(
     a: Activity,
     private val gpsFeatureChecker: GPSFeatureChecker
-) : SystemWatcher(a) {
+) : SystemWatcher(a, null) {
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {

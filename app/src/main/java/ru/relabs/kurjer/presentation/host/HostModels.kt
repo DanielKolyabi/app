@@ -5,6 +5,7 @@ import org.koin.core.inject
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
+import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
@@ -35,6 +36,7 @@ class HostContext(
     val repository: DeliveryRepository by inject()
     val updatesUseCase: AppUpdateUseCase by inject()
     val deviceUUIDProvider: DeviceUUIDProvider by inject()
+    val locationProvider: LocationProvider by inject()
 
     var copyToClipboard: (String) -> Unit = {}
     var showUpdateDialog: (AppUpdate) -> Boolean = { false }

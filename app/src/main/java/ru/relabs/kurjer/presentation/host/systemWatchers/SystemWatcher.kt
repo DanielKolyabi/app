@@ -5,7 +5,7 @@ import kotlinx.coroutines.*
 
 abstract class SystemWatcher(
     internal var activity: Activity?,
-    private val delay: Long = DEFAULT_WATCHER_TICK_DELAY
+    private val delay: Long? = DEFAULT_WATCHER_TICK_DELAY
 ) {
     private val supervisor = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.Default + supervisor)
@@ -13,10 +13,12 @@ abstract class SystemWatcher(
 
     open fun onResume() {
         job?.cancel()
-        job = scope.launch {
-            while (isActive) {
-                delay(delay)
-                onWatcherTick()
+        if(delay != null){
+            job = scope.launch {
+                while (isActive) {
+                    delay(delay)
+                    onWatcherTick()
+                }
             }
         }
     }

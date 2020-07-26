@@ -205,6 +205,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.context.showErrorDialog = {}
         controller.context.installUpdate = {}
         navigationHolder.removeNavigator()
+        featureCheckersContainer.onDestroy()
     }
 
     private fun prepareNavigation() {
@@ -331,6 +332,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     override fun onPause() {
         super.onPause()
         navigationHolder.removeNavigator()
+        uiScope.sendMessage(controller, HostMessages.msgPause())
     }
 
 

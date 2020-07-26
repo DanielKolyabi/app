@@ -3,6 +3,7 @@ package ru.relabs.kurjer.presentation.host
 import android.net.Uri
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.BuildConfig
@@ -11,8 +12,10 @@ import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.host.featureCheckers.FeatureChecker
+import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
+import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.getFirebaseToken
 import java.io.File
 
@@ -49,6 +52,24 @@ object HostEffects {
         val uuid = c.deviceUUIDProvider.getOrGenerateDeviceUUID()
         withContext(Dispatchers.Main) {
             c.copyToClipboard(uuid.id)
+        }
+    }
+
+    fun effectEnableLocation(): HostEffect = { c, s ->
+        withContext(Dispatchers.Main) {
+            if (c.featureCheckersContainer?.gps?.isFeatureEnabled() == true && c.featureCheckersContainer?.permissions?.isFeatureEnabled() == true) {
+                if (!c.locationProvider.startInBackground()) {
+                    CustomLog.writeToFile("Unable to launch gps in background")
+                }
+            }
+        }
+    }
+
+    fun effectDisableLocation(): HostEffect = { c, s ->
+        withContext(Dispatchers.Main) {
+            if (c.featureCheckersContainer?.gps?.isFeatureEnabled() == true) {
+                c.locationProvider.stopInBackground()
+            }
         }
     }
 
@@ -144,4 +165,5 @@ object HostEffects {
 
     private fun isUpdateRequired(state: HostState): Boolean =
         state.appUpdates == null || ((state.appUpdates.required?.version ?: 0) > BuildConfig.VERSION_CODE && !state.isUpdateLoadingFailed)
+
 }

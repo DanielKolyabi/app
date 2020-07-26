@@ -1,13 +1,11 @@
 package ru.relabs.kurjer.presentation.host
 
 import android.net.Uri
-import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.presentation.base.tea.msgState
-import ru.relabs.kurjer.utils.XiaomiUtilities
 import java.io.File
 
 object HostMessages {
@@ -25,25 +23,15 @@ object HostMessages {
         { it },
         { state ->
             listOfNotNull(
-                HostEffects.effectCheckRequirements() //Updates, Xiaomi Permissions, GPS, Network, Time
-//                HostEffects.effectCheckUpdates()
-//                    .takeIf {
-//                        isUpdateRequired(state) &&
-//                                state.updateFile == null &&
-//                                !state.isUpdateDialogShowed &&
-//                                state.updateLoadProgress == null
-//                    },
-//
-//                state.updateFile?.let { HostEffects.effectInstallUpdate(it) }
-//                    .takeIf { isUpdateRequired(state) && state.updateFile != null },
-//
-//                HostEffects.effectCheckXiaomiPermissions()
-//                    .takeIf { XiaomiUtilities.isMIUI },
-//                HostEffects.effectCheckGPSEnabled(),
-//                HostEffects.effectCheckNetworkEnabled(),
-//                HostEffects.effectCheckTimeValid()
+                HostEffects.effectCheckRequirements(), //Updates, Xiaomi Permissions, GPS, Network, Time
+                HostEffects.effectEnableLocation()
             )
         }
+    )
+
+    fun msgPause(): HostMessage = msgEffects(
+        { it },
+        { listOf(HostEffects.effectDisableLocation()) }
     )
 
     fun msgAddLoaders(i: Int): HostMessage =

@@ -34,8 +34,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.joda.time.DateTime
 import org.koin.android.ext.android.inject
+import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.domain.models.AppUpdate
+import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.User
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
@@ -43,7 +45,6 @@ import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.network.NetworkHelper
-import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.uiOld.adapters.SearchInputAdapter
 import ru.relabs.kurjer.uiOld.fragments.*
 import ru.relabs.kurjer.uiOld.helpers.setVisible
@@ -697,7 +698,7 @@ class MainActivity : AppCompatActivity() {
         if (tasks.isEmpty()) {
             showError("Вы не выбрали ни одной задачи.")
         }
-        val fragment = AddressListFragment.newInstance(tasks)
+        val fragment = AddressListFragment.newInstance(tasks.map { it.id })
         navigateTo(fragment, true)
         changeTitle("Список адресов")
         return fragment
@@ -746,11 +747,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showTaskDetailsScreen(task: TaskModel, posInList: Int) {
-        navigateTo(TaskDetailsFragment.newInstance(task, posInList), true)
+//        navigateTo(TaskDetailsFragment.newInstance(task, posInList), true)
         changeTitle("Детали задания")
     }
 
-    fun showTaskItemExplanation(item: TaskItemModel) {
+    fun showTaskItemExplanation(item: TaskItem) {
         navigateTo(TaskItemExplanationFragment.newInstance(item), true)
         changeTitle("Пояснения к заданию")
     }

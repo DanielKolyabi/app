@@ -9,11 +9,12 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_task_item_explanation.view.*
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.models.TaskItemModel
 
 
 class TaskItemExplanationFragment : Fragment() {
-    lateinit var item: TaskItemModel
+    lateinit var item: TaskItem
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -40,7 +41,7 @@ class TaskItemExplanationFragment : Fragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance(item: TaskItemModel) =
+        fun newInstance(item: TaskItem) =
                 TaskItemExplanationFragment().apply {
                     arguments = Bundle().apply {
                         putParcelable("task_item", item)

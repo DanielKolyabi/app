@@ -16,4 +16,9 @@ data class Address(
     val houseName: String,
     val lat: Float,
     val long: Float
-): Parcelable
+): Parcelable {
+
+    val name: String
+        get() = "$street, д. $houseName"
+
+}

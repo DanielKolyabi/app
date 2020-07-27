@@ -3,6 +3,7 @@ package ru.relabs.kurjer.uiOld.delegates
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.uiOld.models.DetailsListModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.uiOld.delegateAdapter.BaseViewHolder
@@ -12,7 +13,7 @@ import ru.relabs.kurjer.uiOld.holders.DetailsTableItemHolder
 /**
  * Created by ProOrange on 29.08.2018.
  */
-class TaskDetailsItemDelegate(val onInfoClicked: (item: TaskItemModel) -> Unit) : IAdapterDelegate<DetailsListModel> {
+class TaskDetailsItemDelegate(val onInfoClicked: (item: TaskItem) -> Unit) : IAdapterDelegate<DetailsListModel> {
     override fun isForViewType(data: List<DetailsListModel>, position: Int): Boolean {
         return data[position] is DetailsListModel.TaskItem
     }

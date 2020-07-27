@@ -10,7 +10,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.SendQueryData
 import ru.relabs.kurjer.files.PathHelper
@@ -25,15 +27,15 @@ class TaskDetailsPresenter(
     val database: AppDatabase,
     val dbRep: DatabaseRepository
 ) {
-    fun onInfoClicked(item: TaskItemModel) {
+    fun onInfoClicked(item: TaskItem) {
         (fragment.context as? MainActivity)?.showTaskItemExplanation(item)
     }
 
-    fun onExaminedClicked(task: TaskModel) {
+    fun onExaminedClicked(task: Task) {
         GlobalScope.launch(Dispatchers.Main) {
 
             withContext(Dispatchers.Default) {
-                val taskEntity = database.taskDao().getById(task.id) ?: return@withContext
+                val taskEntity = database.taskDao().getById(task.id.id) ?: return@withContext
 
                 taskEntity.state = TaskModel.EXAMINED
                 database.taskDao().update(taskEntity)
@@ -44,7 +46,7 @@ class TaskDetailsPresenter(
         }
     }
 
-    fun onMapClicked(task: TaskModel) {
+    fun onMapClicked(task: Task) {
         val ctx = fragment.context ?: return
 //        val image = PathHelper.getTaskRasterizeMapFile(task)
 //        if (!image.exists()) {

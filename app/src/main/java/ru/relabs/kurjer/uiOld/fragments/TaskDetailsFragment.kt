@@ -15,6 +15,10 @@ import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.models.TaskModel.Companion.TASK_STATE_MASK
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.TaskState
 import ru.relabs.kurjer.uiOld.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.uiOld.delegates.TaskDetailsHeaderDelegate
 import ru.relabs.kurjer.uiOld.delegates.TaskDetailsInfoDelegate
@@ -28,7 +32,7 @@ class TaskDetailsFragment : Fragment() {
 
     val presenter = TaskDetailsPresenter(this, database, get())
     val adapter = DelegateAdapter<DetailsListModel>()
-    lateinit var task: TaskModel
+    lateinit var task: Task
     var posInList = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,7 +73,7 @@ class TaskDetailsFragment : Fragment() {
             adapter.data.add(DetailsListModel.Task(task))
             adapter.data.add(DetailsListModel.DetailsTableHeader)
             adapter.data.addAll(
-                    task.items.sortedWith(compareBy<TaskItemModel> { it.subarea }
+                    task.items.sortedWith(compareBy<TaskItem> { it.subarea }
                             .thenBy { it.bypass }
                             .thenBy { it.address.city }
                             .thenBy { it.address.street }
@@ -79,7 +83,7 @@ class TaskDetailsFragment : Fragment() {
                     ).groupBy {
                         it.address.id
                     }.toList().sortedBy {
-                        !it.second.any { it.state != TaskItemModel.CLOSED }
+                        !it.second.any { it.state != TaskItemState.CLOSED }
                     }.toMap().flatMap {
                         it.value
                     }.map { DetailsListModel.TaskItem(it) }
@@ -87,14 +91,14 @@ class TaskDetailsFragment : Fragment() {
 
             adapter.notifyDataSetChanged()
         }
-        val state = task.state and TASK_STATE_MASK
-        examine_button.isEnabled = state == 0
+        val state = task.state.state
+        examine_button.isEnabled = state == TaskState.CREATED
     }
 
     companion object {
 
         @JvmStatic
-        fun newInstance(task: TaskModel, posInList: Int = 0) =
+        fun newInstance(task: Task, posInList: Int = 0) =
                 TaskDetailsFragment().apply {
                     arguments = Bundle().apply {
                         putParcelable("task", task)

@@ -26,6 +26,7 @@ import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.uiOld.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.uiOld.delegates.AddressListAddressDelegate
 import ru.relabs.kurjer.uiOld.delegates.AddressListLoaderDelegate
@@ -258,10 +259,10 @@ class AddressListFragment : Fragment(), SearchableFragment {
     }
 
     companion object {
-        fun newInstance(tasks: List<TaskModel>) =
+        fun newInstance(tasks: List<Int>) =
                 AddressListFragment().apply {
                     arguments = Bundle().apply {
-                        putIntegerArrayList("task_ids", ArrayList(tasks.map { it.id }))
+                        putIntegerArrayList("task_ids", ArrayList(tasks.map { it }))
                     }
                 }
     }

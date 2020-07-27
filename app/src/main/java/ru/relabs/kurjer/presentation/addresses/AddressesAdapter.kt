@@ -141,6 +141,10 @@ object AddressesAdapter {
                     itemView.iv_clear.visible = text.isNotBlank()
                     onSearch(text)
                 }
+                if(itemView.et_search.text.isNotEmpty()){
+                    itemView.et_search.requestFocus()
+
+                }
                 itemView.et_search.setOnEditorActionListener { _, actionId, event ->
                     if (actionId == EditorInfo.IME_ACTION_SEARCH ||
                         actionId == EditorInfo.IME_ACTION_DONE ||

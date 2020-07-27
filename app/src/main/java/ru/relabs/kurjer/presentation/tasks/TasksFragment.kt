@@ -40,7 +40,8 @@ class TasksFragment : BaseFragment(),
         TasksAdapter.taskAdapter(
             { uiScope.sendMessage(controller, TasksMessages.msgTaskSelectClick(it)) },
             { uiScope.sendMessage(controller, TasksMessages.msgTaskClicked(it)) }
-        )
+        ),
+        TasksAdapter.blankAdapter()
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {

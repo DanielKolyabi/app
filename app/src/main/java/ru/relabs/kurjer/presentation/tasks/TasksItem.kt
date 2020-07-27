@@ -9,5 +9,7 @@ sealed class TasksItem{
         val isSelected: Boolean
     ): TasksItem()
 
+    object Blank: TasksItem()
+
     object Loader: TasksItem()
 }

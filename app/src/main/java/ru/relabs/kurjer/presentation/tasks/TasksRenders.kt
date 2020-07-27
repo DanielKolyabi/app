@@ -21,7 +21,7 @@ object TasksRenders {
             } else {
                 tasks.map {
                     TasksItem.TaskItem(it, intersections.getOrElse(it) { false }, selectedTasks.contains(it))
-                }
+                } + listOfNotNull(TasksItem.Blank.takeIf { selectedTasks.isNotEmpty() })
             }
 
             val diff = DiffUtil.calculateDiff(DefaultListDiffCallback(adapter.items, newItems))

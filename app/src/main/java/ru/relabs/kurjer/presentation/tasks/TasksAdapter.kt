@@ -48,4 +48,11 @@ object TasksAdapter {
 
     fun loaderAdapter(): IAdapterDelegate<TasksItem> =
         delegateLoader { it is TasksItem.Loader }
+
+    fun blankAdapter(): IAdapterDelegate<TasksItem> = delegateDefine(
+        { it is TasksItem.Blank },
+        { p ->
+            holderDefine(p, R.layout.holder_empty, { it as TasksItem.Blank }) {}
+        }
+    )
 }

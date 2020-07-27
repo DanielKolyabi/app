@@ -33,7 +33,7 @@ object LoginEffects {
 
     fun effectLogin(): LoginEffect = { c, s ->
         messages.send(LoginMessages.msgAddLoaders(1))
-        when (val r = c.loginUseCase.login(s.login, s.password)) {
+        when (val r = c.loginUseCase.login(s.login, s.password, s.isPasswordRemembered)) {
             is Right -> withContext(Dispatchers.Main) { c.router.replaceScreen(RootScreen.Tasks(true)) }
             is Left -> when (val e = r.value) {
                 is DomainException.ApiException -> messages.send(CommonMessages.msgError(r.value))

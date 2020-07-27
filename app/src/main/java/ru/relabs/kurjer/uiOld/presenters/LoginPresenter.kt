@@ -60,7 +60,7 @@ class LoginPresenter(
             fragment.setLoginButtonLoading(true)
 
             val response = if (!authByToken)
-                loginUseCase.login(UserLogin(login), pwd)
+                loginUseCase.login(UserLogin(login), pwd, false)
             else
                 loginUseCase.login(pwd)
 

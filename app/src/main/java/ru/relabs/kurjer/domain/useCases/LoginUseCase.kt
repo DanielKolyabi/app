@@ -9,6 +9,7 @@ import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.RadiusRepository
+import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.utils.fmap
@@ -19,8 +20,11 @@ class LoginUseCase(
     private val databaseRepository: DatabaseRepository,
     private val radiusRepository: RadiusRepository,
     private val authTokenStorage: AuthTokenStorage,
-    private val pauseRepository: PauseRepository
+    private val pauseRepository: PauseRepository,
+    private val appPreferences: AppPreferences
 ){
+
+    fun isAutologinEnabled() = appPreferences.getUserAutologinEnabled()
 
     suspend fun loginOffline(): User? {
         val savedLogin = currentUserStorage.getCurrentUserLogin() ?: return null
@@ -30,7 +34,8 @@ class LoginUseCase(
         return User(savedLogin)
     }
 
-    suspend fun login(login: UserLogin, password: String): EitherE<User> {
+    suspend fun login(login: UserLogin, password: String, remember: Boolean): EitherE<User> {
+        appPreferences.setUserAutologinEnabled(remember)
         return deliveryRepository.login(login, password).fmap { (user, token) ->
             loginInternal(user.login, token)
             user
@@ -56,6 +61,7 @@ class LoginUseCase(
     }
 
     fun logout() {
+        appPreferences.setUserAutologinEnabled(false)
         authTokenStorage.resetToken()
         currentUserStorage.resetCurrentUserLogin()
     }

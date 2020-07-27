@@ -41,8 +41,16 @@ class AppPreferences(
         .putString(DEVICE_UUID_KEY, deviceUUID.id)
         .apply()
 
+    fun setUserAutologinEnabled(remember: Boolean) = sharedPreferences.edit()
+        .putBoolean(AUTO_LOGIN_ENABLED_KEY, remember)
+        .apply()
+
+    fun getUserAutologinEnabled(): Boolean = sharedPreferences
+        .getBoolean(AUTO_LOGIN_ENABLED_KEY, false)
+
 
     companion object {
+        const val AUTO_LOGIN_ENABLED_KEY = "autologin_enabled"
         const val TOKEN_KEY = "token"
         const val UNKNOWN_TOKEN = "__unknown_token"
         const val KEY_CURRENT_USER_ID = "current_user"

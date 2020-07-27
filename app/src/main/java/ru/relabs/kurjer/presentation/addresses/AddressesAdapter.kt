@@ -1,0 +1,127 @@
+package ru.relabs.kurjer.presentation.addresses
+
+import android.graphics.Color
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import kotlinx.android.synthetic.main.holder_address_list_address.view.*
+import kotlinx.android.synthetic.main.holder_address_list_sorting.view.*
+import kotlinx.android.synthetic.main.holder_address_list_task.view.*
+import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
+import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
+import ru.relabs.kurjer.presentation.base.recycler.delegateLoader
+import ru.relabs.kurjer.presentation.base.recycler.holderDefine
+import ru.relabs.kurjer.utils.extensions.dpToPx
+import ru.relabs.kurjer.utils.extensions.getColorCompat
+
+object AddressesAdapter {
+    fun addressDelegate(
+        onMapClicked: (task: Task) -> Unit
+    ): IAdapterDelegate<AddressesItem> = delegateDefine(
+        { it is AddressesItem.GroupHeader },
+        { p ->
+            holderDefine(p, R.layout.holder_address_list_address, { it as AddressesItem.GroupHeader }) { (task, items, showBypass) ->
+                with(itemView) {
+                    val address = if (showBypass) {
+                        "${items.firstOrNull()?.subarea ?: "?"}-${items.firstOrNull()?.bypass ?: "?"} "
+                    } else {
+                        ""
+                    } + (items.firstOrNull()?.address?.name ?: resources.getString(R.string.address_unknown))
+                    tv_address.text = address
+                    when (items.none { it.state == TaskItemState.CREATED }) {
+                        true -> {
+                            tv_address.setTextColor(Color.parseColor("#CCCCCC"))
+                            iv_task_map.alpha = 0.4f
+                            iv_task_map.isClickable = false
+                        }
+                        false -> {
+                            tv_address.setTextColor(Color.parseColor("#000000"))
+                            iv_task_map.alpha = 1f
+                            iv_task_map.isClickable = true
+                        }
+                    }
+
+                    iv_task_map.setOnClickListener { onMapClicked(task) }
+                }
+            }
+        }
+    )
+
+    fun taskItemDelegate(
+        onItemClicked: (taskItem: TaskItem, task: Task) -> Unit,
+        onMapClicked: (task: Task) -> Unit
+    ): IAdapterDelegate<AddressesItem> = delegateDefine(
+        { it is AddressesItem.AddressItem },
+        { p ->
+            holderDefine(p, R.layout.holder_address_list_task, { it as AddressesItem.AddressItem }) { (taskItem, task) ->
+                with(itemView) {
+                    btn_task.text = "${task.name} №${task.edition}, ${task.copies}экз."
+                    when (taskItem.state == TaskItemState.CLOSED) {
+                        true -> {
+                            iv_item_map.alpha = 0.4f
+                            iv_item_map.isClickable = false
+                            btn_task.setTextColor(Color.parseColor("#66000000"))
+                        }
+                        else -> {
+                            iv_item_map.alpha = 1f
+                            iv_item_map.isClickable = true
+                            btn_task.setTextColor(Color.parseColor("#ff000000"))
+                        }
+                    }
+                    if (taskItem.needPhoto) {
+                        btn_task.setTextColor(resources.getColorCompat(R.color.colorFuchsia))
+                    } else {
+                        btn_task.setTextColor(Color.parseColor("#ff000000"))
+                    }
+
+                    btn_task.setOnClickListener { onItemClicked(taskItem, task) }
+                    iv_item_map.setOnClickListener { onMapClicked(task) }
+                }
+            }
+        }
+    )
+
+    fun sortingAdapter(onSortingSelected: (AddressesSortingMethod) -> Unit): IAdapterDelegate<AddressesItem> = delegateDefine(
+        { it is AddressesItem.Sorting },
+        { p ->
+            holderDefine(p, R.layout.holder_address_list_sorting, { it as AddressesItem.Sorting }) { (sorting) ->
+                when(sorting){
+                    AddressesSortingMethod.STANDARD -> {
+                        itemView.btn_standart.setBackgroundColor(itemView.resources.getColorCompat(R.color.colorAccent))
+                        itemView.btn_alphabetic.setBackgroundColor(itemView.resources.getColorCompat(R.color.button_material_light))
+                    }
+                    AddressesSortingMethod.ALPHABETIC -> {
+                        itemView.btn_standart.setBackgroundColor(itemView.resources.getColorCompat(R.color.button_material_light))
+                        itemView.btn_alphabetic.setBackgroundColor(itemView.resources.getColorCompat(R.color.colorAccent))
+                    }
+                }
+
+                itemView.btn_standart.setOnClickListener {
+                    if(sorting != AddressesSortingMethod.STANDARD){
+                        onSortingSelected(AddressesSortingMethod.STANDARD)
+                    }
+                }
+                itemView.btn_alphabetic.setOnClickListener {
+                    if(sorting != AddressesSortingMethod.ALPHABETIC){
+                        onSortingSelected(AddressesSortingMethod.ALPHABETIC)
+                    }
+                }
+            }
+        }
+    )
+
+    fun loaderAdapter(): IAdapterDelegate<AddressesItem> =
+        delegateLoader { it is AddressesItem.Loading }
+
+    fun blankAdapter(): IAdapterDelegate<AddressesItem> = delegateDefine(
+        { it is AddressesItem.Blank },
+        { p ->
+            holderDefine(p, R.layout.holder_empty, { it as AddressesItem.Blank }) {
+                itemView.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, itemView.context.dpToPx(56).toInt())
+            }
+        }
+    )
+}

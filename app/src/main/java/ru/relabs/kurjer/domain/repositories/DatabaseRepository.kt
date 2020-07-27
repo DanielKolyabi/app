@@ -238,6 +238,12 @@ class DatabaseRepository(
         db.entranceDataDao().deleteAllForTaskItem(taskItemId)
         db.taskItemDao().deleteById(taskItemId)
     }
+
+    suspend fun getTask(id: TaskId): Task? = withContext(Dispatchers.IO) {
+        db.taskDao().getById(id.id)?.let {
+            DatabaseTaskMapper.fromEntity(it, db)
+        }
+    }
 }
 
 sealed class SendQueryData {

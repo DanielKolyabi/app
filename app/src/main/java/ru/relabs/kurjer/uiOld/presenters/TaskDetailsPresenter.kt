@@ -13,6 +13,7 @@ import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskState
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.SendQueryData
 import ru.relabs.kurjer.files.PathHelper
@@ -37,7 +38,7 @@ class TaskDetailsPresenter(
             withContext(Dispatchers.Default) {
                 val taskEntity = database.taskDao().getById(task.id.id) ?: return@withContext
 
-                taskEntity.state = TaskModel.EXAMINED
+                taskEntity.state = TaskState.EXAMINED.toInt()
                 database.taskDao().update(taskEntity)
 
                 dbRep.putSendQuery(SendQueryData.TaskExamined(TaskId(taskEntity.id)))

@@ -38,6 +38,8 @@ class ReportService : Service(), KoinComponent {
     private val repository: DeliveryRepository by inject()
     private val database: AppDatabase by inject()
 
+    private val scope = CoroutineScope(Dispatchers.Default)
+
     private var timeUntilRun: Int = 0
     private var pauseDisableJob: Job? = null
     private var thread: Job? = null
@@ -118,8 +120,8 @@ class ReportService : Service(), KoinComponent {
         var lastNetworkEnabledChecking = System.currentTimeMillis()
 
         thread?.cancel()
-        thread = GlobalScope.launch {
-            while (true) {
+        thread = scope.launch {
+            while (isActive) {
                 var isTaskSended = false
 
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
@@ -171,7 +173,7 @@ class ReportService : Service(), KoinComponent {
 
                 checkTimelimitJob()
                 pendingGPS()
-                updateActivityState()
+                //updateActivityState() //TODO: Revert
                 delay(if (!isTaskSended) 5000 else 1000)
             }
         }

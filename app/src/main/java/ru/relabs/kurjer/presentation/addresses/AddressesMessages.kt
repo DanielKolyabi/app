@@ -33,4 +33,7 @@ object AddressesMessages {
 
     fun msgNavigateBack(): AddressesMessage =
         msgEffect(AddressesEffects.effectNavigateBack())
+
+    fun msgSearch(searchText: String): AddressesMessage =
+        msgState { it.copy(searchFilter = searchText) }
 }

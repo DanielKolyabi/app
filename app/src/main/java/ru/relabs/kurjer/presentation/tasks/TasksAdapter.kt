@@ -2,14 +2,18 @@ package ru.relabs.kurjer.presentation.tasks
 
 import android.graphics.Color
 import android.graphics.PorterDuff
+import androidx.core.widget.addTextChangedListener
+import kotlinx.android.synthetic.main.holder_search.view.*
 import kotlinx.android.synthetic.main.holder_task.view.*
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskState
+import ru.relabs.kurjer.presentation.addresses.AddressesItem
 import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
 import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
 import ru.relabs.kurjer.presentation.base.recycler.delegateLoader
 import ru.relabs.kurjer.presentation.base.recycler.holderDefine
+import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.visible
 
 object TasksAdapter {
@@ -21,7 +25,7 @@ object TasksAdapter {
         { p ->
             holderDefine(p, R.layout.holder_task, { it as TasksItem.TaskItem }) { (task, isTasksWithSameAddressPresented, isSelected) ->
                 with(itemView) {
-                    tv_title.text = "${task.name} №${task.edition}, ${task.copies}экз., (${task.brigade}бр/${task.area}уч)"
+                    tv_title.text = task.listName
                     when (isSelected) {
                         true -> iv_selected.setImageResource(R.drawable.ic_chain_enabled)
                         false -> iv_selected.setImageResource(R.drawable.ic_chain_disabled)
@@ -53,6 +57,23 @@ object TasksAdapter {
         { it is TasksItem.Blank },
         { p ->
             holderDefine(p, R.layout.holder_empty, { it as TasksItem.Blank }) {}
+        }
+    )
+
+    fun searchAdapter(onSearch: (String) -> Unit): IAdapterDelegate<TasksItem> = delegateDefine(
+        { it is TasksItem.Search },
+        { p ->
+            holderDefine(p, R.layout.holder_search, { it as TasksItem.Search }) {
+                itemView.et_search.addTextChangedListener {
+                    val text = (it?.toString() ?: "")
+                    itemView.iv_clear.visible = text.isNotBlank()
+                    onSearch(text)
+                }
+                itemView.iv_clear.setOnClickListener {
+                    itemView.et_search.setText("")
+                    itemView.hideKeyboard(itemView.context)
+                }
+            }
         }
     )
 }

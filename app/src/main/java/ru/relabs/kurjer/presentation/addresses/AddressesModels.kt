@@ -14,7 +14,8 @@ import ru.relabs.kurjer.presentation.base.tea.*
 data class AddressesState(
     val loaders: Int = 0,
     val tasks: List<Task> = emptyList(),
-    val sorting: AddressesSortingMethod = AddressesSortingMethod.STANDARD
+    val sorting: AddressesSortingMethod = AddressesSortingMethod.STANDARD,
+    val searchFilter: String = ""
 )
 
 class AddressesContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :

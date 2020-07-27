@@ -22,26 +22,41 @@ object AddressesRenders {
     )
 
     fun renderList(adapter: DelegateAdapter<AddressesItem>): AddressesRender = renderT(
-        { Triple(it.tasks, it.sorting, it.loaders > 0) },
-        { (tasks, sorting, loading) ->
+        { Triple(it.tasks, it.sorting, it.loaders > 0) to it.searchFilter },
+        { (data, searchFilter) ->
+            val (tasks, sorting, loading) = data
             val newItems =
                 listOfNotNull(
                     AddressesItem.Sorting(sorting).takeIf { tasks.size == 1 },
+                    AddressesItem.Search.takeIf { tasks.isNotEmpty() },
                     AddressesItem.Loading.takeIf { tasks.isEmpty() && loading }
-                ) + getSortedTasks(tasks, sorting) + listOfNotNull(AddressesItem.Blank.takeIf { tasks.isNotEmpty() })
+                ) + getSortedTasks(tasks, sorting, searchFilter) + listOfNotNull(AddressesItem.Blank.takeIf { tasks.isNotEmpty() })
+
+            val diff = DiffUtil.calculateDiff(DefaultListDiffCallback(adapter.items, newItems))
 
             adapter.items.clear()
             adapter.items.addAll(newItems)
-            adapter.notifyDataSetChanged()
+            diff.dispatchUpdatesTo(adapter)
         }
     )
 
-    private fun getSortedTasks(tasks: List<Task>, sorting: AddressesSortingMethod): List<AddressesItem> {
+    private fun getSortedTasks(tasks: List<Task>, sorting: AddressesSortingMethod, searchFilter: String): List<AddressesItem> {
         if (tasks.isEmpty()) {
             return emptyList()
         }
 
-        val taskItems = tasks.flatMap { task -> task.items.map { item -> task to item } }
+        val taskItems = tasks.flatMap { task -> task.items.map { item -> task to item } }.let { items ->
+            if (searchFilter.isNotEmpty()) {
+                items.filter { item -> item.second.address.name.toLowerCase().contains(searchFilter.toLowerCase()) }
+            } else {
+                items
+            }
+        }
+
+        if (taskItems.isEmpty()) {
+            return emptyList()
+        }
+
         val sortedItems = when (sorting) {
             AddressesSortingMethod.STANDARD -> taskItems.sortedWith(compareBy<Pair<Task, TaskItem>> { it.second.subarea }
                 .thenBy { it.second.bypass }
@@ -73,7 +88,13 @@ object AddressesRenders {
 
         var lastAddressId: AddressId? = sortedItems.first().second.address.id
         var lastAddressModel: MutableList<TaskItem> = mutableListOf(sortedItems.first().second)
-        val result = mutableListOf<AddressesItem>(AddressesItem.GroupHeader(sortedItems.first().first, lastAddressModel.toImmutableList(), tasks.size == 1))
+        val result = mutableListOf<AddressesItem>(
+            AddressesItem.GroupHeader(
+                sortedItems.first().first,
+                lastAddressModel.toImmutableList(),
+                tasks.size == 1
+            )
+        )
         sortedItems.forEach {
             if (lastAddressId != it.second.address.id) {
                 lastAddressId = it.second.address.id

@@ -11,5 +11,6 @@ sealed class AddressesItem {
 
     object Loading: AddressesItem()
     object Blank: AddressesItem()
+    object Search: AddressesItem()
 }
 

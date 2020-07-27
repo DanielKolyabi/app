@@ -71,7 +71,7 @@ androidExtensions {
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to "*.jar")))
-    implementation("com.google.android.material:material:1.1.0")
+    implementation("com.google.android.material:material:1.2.0-alpha02")
 
     debugImplementation("com.amitshekhar.android:debug-db:1.0.4")
 

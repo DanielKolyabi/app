@@ -14,7 +14,8 @@ import ru.relabs.kurjer.presentation.base.tea.*
 data class TasksState(
     val tasks: List<Task> = emptyList(),
     val selectedTasks: List<Task> = emptyList(),
-    val loaders: Int = 0
+    val loaders: Int = 0,
+    val searchFilter: String = ""
 )
 
 class TasksContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :

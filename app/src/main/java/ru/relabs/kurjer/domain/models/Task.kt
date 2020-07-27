@@ -32,6 +32,8 @@ data class Task(
     val coupleType: Int
 ) : Parcelable {
 
+    val listName: String
+        get() = "${name} №${edition}, ${copies}экз., (${brigade}бр/${area}уч)"
     @Parcelize
     data class State(
         val state: TaskState,

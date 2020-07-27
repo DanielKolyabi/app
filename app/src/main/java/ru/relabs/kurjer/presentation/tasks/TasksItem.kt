@@ -10,6 +10,6 @@ sealed class TasksItem{
     ): TasksItem()
 
     object Blank: TasksItem()
-
+    object Search: TasksItem()
     object Loader: TasksItem()
 }

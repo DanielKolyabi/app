@@ -41,7 +41,10 @@ class TasksFragment : BaseFragment(),
             { uiScope.sendMessage(controller, TasksMessages.msgTaskSelectClick(it)) },
             { uiScope.sendMessage(controller, TasksMessages.msgTaskClicked(it)) }
         ),
-        TasksAdapter.blankAdapter()
+        TasksAdapter.blankAdapter(),
+        TasksAdapter.searchAdapter{
+            uiScope.sendMessage(controller, TasksMessages.msgSearch(it))
+        }
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {

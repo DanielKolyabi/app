@@ -46,7 +46,10 @@ class AddressesFragment : BaseFragment() {
             uiScope.sendMessage(controller, AddressesMessages.msgSortingChanged(it))
         },
         AddressesAdapter.loaderAdapter(),
-        AddressesAdapter.blankAdapter()
+        AddressesAdapter.blankAdapter(),
+        AddressesAdapter.searchAdapter{
+            uiScope.sendMessage(controller, AddressesMessages.msgSearch(it))
+        }
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {

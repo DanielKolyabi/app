@@ -48,4 +48,7 @@ object TasksMessages {
 
     fun msgRefresh(): TasksMessage =
         msgEffect(TasksEffects.effectRefresh())
+
+    fun msgSearch(searchText: String): TasksMessage =
+        msgState { it.copy(searchFilter = searchText) }
 }

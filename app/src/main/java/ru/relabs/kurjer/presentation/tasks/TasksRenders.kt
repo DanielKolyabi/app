@@ -13,13 +13,20 @@ import ru.relabs.kurjer.utils.extensions.visible
  */
 object TasksRenders {
     fun renderList(adapter: DelegateAdapter<TasksItem>): TasksRender = renderT(
-        { Triple(it.tasks, it.selectedTasks, it.loaders) },
-        { (tasks, selectedTasks, loaders) ->
+        { Triple(it.tasks, it.selectedTasks, it.loaders) to it.searchFilter },
+        { (data, filter) ->
+            val (tasks, selectedTasks, loaders) = data
             val intersections = searchIntersections(tasks, selectedTasks)
             val newItems = if (tasks.isEmpty() && loaders > 0) {
                 listOf(TasksItem.Loader)
             } else {
-                tasks.map {
+                listOf(TasksItem.Search) + tasks.filter {
+                    if (filter.isNotEmpty()) {
+                        it.listName.toLowerCase().contains(filter.toLowerCase())
+                    } else {
+                        true
+                    }
+                }.map {
                     TasksItem.TaskItem(it, intersections.getOrElse(it) { false }, selectedTasks.contains(it))
                 } + listOfNotNull(TasksItem.Blank.takeIf { selectedTasks.isNotEmpty() })
             }

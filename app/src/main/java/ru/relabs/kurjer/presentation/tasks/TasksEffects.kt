@@ -58,20 +58,12 @@ object TasksEffects {
             when (val r = c.deliveryRepository.getTasks()) {
                 is Right -> c.databaseRepository.mergeTasks(r.value).collect {
                     when (it) {
-                        is MergeResult.TaskCreated -> {//TODO: Move into deliveryRepository
-                            try {
-                                NetworkHelper.loadTaskRasterizeMap(it.task)
-                            } catch (e: Exception) {
-                                e.log()
-                            }
+                        is MergeResult.TaskCreated -> {
+                            c.deliveryRepository.loadTaskMap(it.task)
                             tasksCreated = true
                         }
-                        is MergeResult.TaskUpdated -> { //TODO: Move into deliveryRepository
-                            try {
-                                NetworkHelper.loadTaskRasterizeMap(it.task)
-                            } catch (e: Exception) {
-                                e.log()
-                            }
+                        is MergeResult.TaskUpdated -> {
+                            c.deliveryRepository.loadTaskMap(it.task)
                             tasksUpdated = true
                         }
                         is MergeResult.TaskRemoved -> tasksUpdated = true

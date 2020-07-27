@@ -121,6 +121,7 @@ class DatabaseRepository(
             db.taskDao().delete(it)
         }
         //Remove rast map
+        //TODO: Remove rast map
     }
 
     suspend fun mergeTasks(tasks: List<Task>): Flow<MergeResult> = flow {

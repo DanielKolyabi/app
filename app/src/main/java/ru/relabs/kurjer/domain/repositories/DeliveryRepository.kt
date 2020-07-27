@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.domain.repositories
 
+import android.graphics.BitmapFactory
 import android.location.Location
 import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
@@ -19,9 +20,13 @@ import ru.relabs.kurjer.domain.mappers.network.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
+import ru.relabs.kurjer.files.ImageUtils
+import ru.relabs.kurjer.files.PathHelper
+import ru.relabs.kurjer.utils.Either
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.debug
+import java.net.URL
 
 class DeliveryRepository(
     private val deliveryApi: DeliveryApi,
@@ -113,6 +118,15 @@ class DeliveryRepository(
 
     suspend fun getAllowedCloseRadius(): EitherE<AllowedCloseRadius> = authenticatedRequest { token ->
         RadiusMapper.fromRaw(deliveryApi.getRadius(token))
+    }
+
+    suspend fun loadTaskMap(task: Task): Either<Exception, Unit> = Either.of {
+        val url = URL(task.rastMapUrl)
+        val bmp = BitmapFactory.decodeStream(url.openStream())
+        //TODO: Remove path helper
+        val mapFile = PathHelper.getTaskRasterizeMapFile(task)
+        ImageUtils.saveImage(bmp, mapFile)
+        bmp.recycle()
     }
 
     //Could be sended in other user session

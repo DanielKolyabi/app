@@ -2,6 +2,8 @@ package ru.relabs.kurjer.presentation.tasks
 
 import android.graphics.Color
 import android.graphics.PorterDuff
+import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
 import androidx.core.widget.addTextChangedListener
 import kotlinx.android.synthetic.main.holder_search.view.*
 import kotlinx.android.synthetic.main.holder_task.view.*
@@ -68,6 +70,19 @@ object TasksAdapter {
                     val text = (it?.toString() ?: "")
                     itemView.iv_clear.visible = text.isNotBlank()
                     onSearch(text)
+                }
+                itemView.et_search.setOnEditorActionListener { _, actionId, event ->
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                        actionId == EditorInfo.IME_ACTION_DONE ||
+                        actionId == EditorInfo.IME_ACTION_NEXT ||
+                        event != null &&
+                        event.action == KeyEvent.ACTION_DOWN &&
+                        event.keyCode == KeyEvent.KEYCODE_ENTER
+                    ) {
+                        itemView.hideKeyboard(itemView.context)
+                        true
+                    }
+                    false
                 }
                 itemView.iv_clear.setOnClickListener {
                     itemView.et_search.setText("")

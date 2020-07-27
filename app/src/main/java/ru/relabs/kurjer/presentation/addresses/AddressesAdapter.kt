@@ -1,6 +1,8 @@
 package ru.relabs.kurjer.presentation.addresses
 
 import android.graphics.Color
+import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
 import androidx.core.view.doOnDetach
 import androidx.core.widget.addTextChangedListener
@@ -138,6 +140,19 @@ object AddressesAdapter {
                     val text = (it?.toString() ?: "")
                     itemView.iv_clear.visible = text.isNotBlank()
                     onSearch(text)
+                }
+                itemView.et_search.setOnEditorActionListener { _, actionId, event ->
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                        actionId == EditorInfo.IME_ACTION_DONE ||
+                        actionId == EditorInfo.IME_ACTION_NEXT ||
+                        event != null &&
+                        event.action == KeyEvent.ACTION_DOWN &&
+                        event.keyCode == KeyEvent.KEYCODE_ENTER
+                    ) {
+                        itemView.hideKeyboard(itemView.context)
+                        true
+                    }
+                    false
                 }
                 itemView.iv_clear.setOnClickListener {
                     itemView.et_search.setText("")

@@ -206,6 +206,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.context.installUpdate = {}
         navigationHolder.removeNavigator()
         featureCheckersContainer.onDestroy()
+        systemWatchersContainer.onDestroy()
     }
 
     private fun prepareNavigation() {
@@ -327,6 +328,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
     override fun onResume() {
         super.onResume()
+        systemWatchersContainer.onResume()
         val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
         onFragmentChanged(currentFragment)
         navigationHolder.setNavigator(navigator)
@@ -335,6 +337,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
     override fun onPause() {
         super.onPause()
+        systemWatchersContainer.onPause()
         navigationHolder.removeNavigator()
         uiScope.sendMessage(controller, HostMessages.msgPause())
     }

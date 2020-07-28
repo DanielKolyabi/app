@@ -19,24 +19,15 @@ class SystemWatchersContainer(
         network
     )
 
-    init {
-        activity.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityPaused(activity: Activity) {
-                allWatchers.forEach { it.onPause() }
-            }
+    fun onPause(){
+        allWatchers.forEach { it.onPause() }
+    }
 
-            override fun onActivityDestroyed(activity: Activity) {
-                allWatchers.forEach { it.onDestroy() }
-            }
+    fun onResume(){
+        allWatchers.forEach { it.onResume() }
+    }
 
-            override fun onActivityResumed(activity: Activity) {
-                allWatchers.forEach { it.onResume() }
-            }
-
-            override fun onActivityStarted(activity: Activity) {}
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-            override fun onActivityStopped(activity: Activity) {}
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-        })
+    fun onDestroy(){
+        allWatchers.forEach { it.onDestroy() }
     }
 }

@@ -20,7 +20,7 @@ android {
     }
     compileSdkVersion(29)
     defaultConfig {
-        applicationId = "abix.kurjer.new"
+        applicationId = "abix.kurjer"
         minSdkVersion(21)
         targetSdkVersion(29)
         versionCode = 101

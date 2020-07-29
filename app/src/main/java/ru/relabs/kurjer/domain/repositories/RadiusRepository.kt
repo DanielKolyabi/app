@@ -13,6 +13,7 @@ class RadiusRepository(
     private val api: DeliveryRepository,
     private val sharedPreferences: SharedPreferences
 ) {
+    val scope = CoroutineScope(Dispatchers.Main)
     var allowedCloseRadius: AllowedCloseRadius = loadSavedRadius()
 
     val isRadiusRequired: Boolean
@@ -30,8 +31,7 @@ class RadiusRepository(
 
     suspend fun startRemoteUpdating() {
         updateJob?.cancel()
-        //TODO: Use some scope
-        updateJob = GlobalScope.launch(Dispatchers.Default) {
+        updateJob = scope.launch(Dispatchers.IO) {
             while (isActive) {
                 loadRadiusRemote()
                 delay(30 * 1000)

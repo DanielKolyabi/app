@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.domain.models.DeviceId
+import ru.relabs.kurjer.domain.providers.FirebaseToken
 
 /**
  * Created by Daniil Kurchanov on 05.12.2019.
@@ -48,6 +49,15 @@ class AppPreferences(
     fun getUserAutologinEnabled(): Boolean = sharedPreferences
         .getBoolean(AUTO_LOGIN_ENABLED_KEY, false)
 
+    fun getFirebaseToken(): FirebaseToken? = sharedPreferences
+        .getString(FIREBASE_TOKEN_KEY, UNKNOWN_FIREBASE_TOKEN)
+        .takeIf { it != UNKNOWN_FIREBASE_TOKEN }
+        ?.let { FirebaseToken(it) }
+
+    fun saveFirebaseToken(token: FirebaseToken) = sharedPreferences.edit()
+        .putString(FIREBASE_TOKEN_KEY, token.token)
+        .apply()
+
 
     companion object {
         const val AUTO_LOGIN_ENABLED_KEY = "autologin_enabled"
@@ -57,5 +67,7 @@ class AppPreferences(
         const val UNKNOWN_CURRENT_USER_ID = "__unknown_login"
         const val DEVICE_UUID_KEY = "device_uuid"
         const val UNKNOWN_DEVICE_UUID = "__unknown_device_uuid"
+        const val FIREBASE_TOKEN_KEY = "firebase_token"
+        const val UNKNOWN_FIREBASE_TOKEN = "__unknown_firebase_token"
     }
 }

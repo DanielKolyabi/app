@@ -30,26 +30,26 @@ class LoginUseCase(
         val savedLogin = currentUserStorage.getCurrentUserLogin() ?: return null
         val savedToken = authTokenStorage.getToken() ?: return null
 
-        loginInternal(savedLogin, savedToken)
+        loginInternal(savedLogin, savedToken, offline = true)
         return User(savedLogin)
     }
 
     suspend fun login(login: UserLogin, password: String, remember: Boolean): EitherE<User> {
         appPreferences.setUserAutologinEnabled(remember)
         return deliveryRepository.login(login, password).fmap { (user, token) ->
-            loginInternal(user.login, token)
+            loginInternal(user.login, token, offline = false)
             user
         }
     }
 
     suspend fun login(token: String): EitherE<User> {
         return deliveryRepository.login(token).fmap { (user, token) ->
-            loginInternal(user.login, token)
+            loginInternal(user.login, token, offline = false)
             user
         }
     }
 
-    private suspend fun loginInternal(login: UserLogin, token: String) = withContext(Dispatchers.IO){
+    private suspend fun loginInternal(login: UserLogin, token: String, offline: Boolean) = withContext(Dispatchers.IO){
         val lastUserLogin = currentUserStorage.getCurrentUserLogin()
         if (lastUserLogin != login) {
             databaseRepository.clearTasks()
@@ -58,6 +58,11 @@ class LoginUseCase(
         }
         authTokenStorage.saveToken(token)
         currentUserStorage.saveCurrentUserLogin(login)
+
+        radiusRepository.startRemoteUpdating()
+        pauseRepository.loadLastPausesRemote()
+        deliveryRepository.updateDeviceIMEI()
+        deliveryRepository.updatePushToken()
     }
 
     fun logout() {

@@ -11,9 +11,7 @@ import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.data.api.ApiProvider
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.migrations.Migrations
-import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
-import ru.relabs.kurjer.domain.providers.LocationProvider
-import ru.relabs.kurjer.domain.providers.getLocationProvider
+import ru.relabs.kurjer.domain.providers.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
@@ -63,6 +61,14 @@ val storagesModule = module {
         )
     }
 
+    single<DeviceUniqueIdProvider> {
+        DeviceUniqueIdProvider(androidApplication())
+    }
+
+    single<FirebaseTokenProvider> {
+        FirebaseTokenProvider(get<AppPreferences>())
+    }
+
     single<LocationProvider> {
         getLocationProvider(androidApplication())
     }
@@ -93,7 +99,9 @@ val repositoryModule = module {
         DeliveryRepository(
             get<ApiProvider>().practisApi,
             get<AuthTokenStorage>(),
-            get<DeviceUUIDProvider>()
+            get<DeviceUUIDProvider>(),
+            get<DeviceUniqueIdProvider>(),
+            get<FirebaseTokenProvider>()
         )
     }
     single<RadiusRepository> {
@@ -111,7 +119,7 @@ val repositoryModule = module {
     }
 }
 val useCasesModule = module {
-    single<LoginUseCase>{
+    single<LoginUseCase> {
         LoginUseCase(
             get<DeliveryRepository>(),
             get<CurrentUserStorage>(),
@@ -123,7 +131,7 @@ val useCasesModule = module {
         )
     }
 
-    single<AppUpdateUseCase>{
+    single<AppUpdateUseCase> {
         AppUpdateUseCase(
             get<DeliveryRepository>()
         )

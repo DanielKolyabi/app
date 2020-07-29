@@ -19,6 +19,9 @@ import ru.relabs.kurjer.data.models.common.EitherE
 import ru.relabs.kurjer.domain.mappers.network.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
+import ru.relabs.kurjer.domain.providers.DeviceUniqueIdProvider
+import ru.relabs.kurjer.domain.providers.FirebaseToken
+import ru.relabs.kurjer.domain.providers.FirebaseTokenProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper
@@ -31,7 +34,9 @@ import java.net.URL
 class DeliveryRepository(
     private val deliveryApi: DeliveryApi,
     private val authTokenStorage: AuthTokenStorage,
-    private val deviceIdProvider: DeviceUUIDProvider
+    private val deviceIdProvider: DeviceUUIDProvider,
+    private val deviceUniqueIdProvider: DeviceUniqueIdProvider,
+    private val firebaseTokenProvider: FirebaseTokenProvider
 ) {
     fun isAuthenticated(): Boolean = authTokenStorage.getToken() != null
 
@@ -74,13 +79,26 @@ class DeliveryRepository(
         updates
     }
 
-    suspend fun updatePushToken(pushToken: String): EitherE<Boolean> = authenticatedRequest { token ->
-        deliveryApi.sendPushToken(token, pushToken)
+    suspend fun updatePushToken(): EitherE<Boolean> = authenticatedRequest { token ->
+        when (val t = firebaseTokenProvider.get()) {
+            is Right -> when (val r = updatePushToken(t.value)) {
+                is Right -> r.value
+                is Left -> throw r.value
+            }
+            is Left -> {
+                throw t.value
+            }
+        }
+    }
+
+    suspend fun updatePushToken(firebaseToken: FirebaseToken): EitherE<Boolean> = authenticatedRequest { token ->
+        firebaseTokenProvider.set(firebaseToken)
+        deliveryApi.sendPushToken(token, firebaseToken.token)
         true
     }
 
-    suspend fun updateDeviceIMEI(imei: String): EitherE<Boolean> = authenticatedRequest { token ->
-        deliveryApi.sendDeviceImei(token, imei)
+    suspend fun updateDeviceIMEI(): EitherE<Boolean> = authenticatedRequest { token ->
+        deliveryApi.sendDeviceImei(token, deviceUniqueIdProvider.get().id)
         true
     }
 
@@ -147,7 +165,7 @@ class DeliveryRepository(
             ?: Left(DomainException.ApiException(ApiError(401, "Empty token", null)))
     }
 
-    private suspend inline fun <T> anonymousRequest(crossinline block: suspend () -> T): EitherE<T> = withContext(Dispatchers.IO){
+    private suspend inline fun <T> anonymousRequest(crossinline block: suspend () -> T): EitherE<T> = withContext(Dispatchers.IO) {
         return@withContext try {
             Right(block())
         } catch (e: CancellationException) {

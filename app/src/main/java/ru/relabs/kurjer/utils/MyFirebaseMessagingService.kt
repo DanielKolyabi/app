@@ -3,14 +3,12 @@ package ru.relabs.kurjer.utils
 import android.content.Intent
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.joda.time.DateTime
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import ru.relabs.kurjer.DeliveryApp
+import ru.relabs.kurjer.domain.providers.FirebaseToken
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.models.UserModel
@@ -23,14 +21,13 @@ import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
     private val deliveryRepository: DeliveryRepository by inject()
     private val pauseRepository: PauseRepository by inject()
+    private val scope = CoroutineScope(Dispatchers.Main)
 
     override fun onNewToken(pushToken: String) {
         super.onNewToken(pushToken)
-        GlobalScope.launch {
-            (application as? DeliveryApp)?.let {
-                it.savePushToken(pushToken)
-                it.sendDeviceInfo(pushToken)
-            }
+
+        scope.launch {
+            deliveryRepository.updatePushToken(FirebaseToken(pushToken))
         }
     }
 

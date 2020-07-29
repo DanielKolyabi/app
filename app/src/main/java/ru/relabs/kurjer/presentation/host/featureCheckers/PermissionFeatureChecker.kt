@@ -12,6 +12,7 @@ import ru.relabs.kurjer.utils.extensions.showDialog
 
 
 class PermissionFeatureChecker(a: Activity) : FeatureChecker(a) {
+    private val askedPermissions = mutableMapOf<String, Boolean>()
 
     private var requestShowed: Boolean = false
 
@@ -32,16 +33,22 @@ class PermissionFeatureChecker(a: Activity) : FeatureChecker(a) {
         if (requestShowed) return
         activity?.let { a ->
             val requiredPermissions = getNotGrantedPermissions()
-            val shouldShowAnyRationale = requiredPermissions.any { perm ->
-                ActivityCompat.shouldShowRequestPermissionRationale(a, perm)
+            val rationalePermissions = requiredPermissions.filter { perm ->
+                !askedPermissions.getOrPut(perm) { false } || ActivityCompat.shouldShowRequestPermissionRationale(a, perm)
             }
-            if (shouldShowAnyRationale) {
+            val notRationalePermissions = requiredPermissions.filter { perm ->
+                !ActivityCompat.shouldShowRequestPermissionRationale(a, perm)
+            }
+            if (rationalePermissions.isNotEmpty()) {
                 requestShowed = true
-                ActivityCompat.requestPermissions(a, requiredPermissions.toTypedArray(), REQUEST_PERMISSIONS_CODE)
+                rationalePermissions.forEach {
+                    askedPermissions[it] = true
+                }
+                ActivityCompat.requestPermissions(a, rationalePermissions.toTypedArray(), REQUEST_PERMISSIONS_CODE)
             } else {
                 requestShowed = true
                 a.showDialog(
-                    a.resources.getString(R.string.request_permissions_rationale, getPermissionsName(requiredPermissions)),
+                    a.resources.getString(R.string.request_permissions_rationale, getPermissionsName(notRationalePermissions)),
                     R.string.settings to {
                         requestShowed = false
                         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)

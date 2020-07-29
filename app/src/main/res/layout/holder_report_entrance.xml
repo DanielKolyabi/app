@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/tv_entrance"
+        android:layout_width="55dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_entrance_couple_enabled"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_euro"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Под. 11" />
+
+    <Button
+        android:id="@+id/btn_euro"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minWidth="48dp"
+        android:text="@string/euro"
+        android:textAllCaps="false"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_entrance"
+        app:layout_constraintEnd_toStartOf="@+id/btn_watch"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/tv_entrance"
+        app:layout_constraintTop_toTopOf="@+id/tv_entrance" />
+
+    <Button
+        android:id="@+id/btn_watch"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minWidth="58dp"
+        android:text="@string/watch"
+        android:textAllCaps="false"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_euro"
+        app:layout_constraintEnd_toStartOf="@+id/btn_pile"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/btn_euro"
+        app:layout_constraintTop_toTopOf="@+id/btn_euro" />
+
+    <Button
+        android:id="@+id/btn_pile"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minWidth="66dp"
+        android:text="@string/pile"
+        android:textAllCaps="false"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_watch"
+        app:layout_constraintEnd_toStartOf="@+id/btn_reject"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/btn_watch"
+        app:layout_constraintTop_toTopOf="@+id/btn_watch" />
+
+    <Button
+        android:id="@+id/btn_reject"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:minWidth="62dp"
+        android:text="@string/rejection"
+        android:textAllCaps="false"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_pile"
+        app:layout_constraintEnd_toEndOf="@+id/iv_photo"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/btn_pile"
+        app:layout_constraintTop_toTopOf="@+id/btn_pile" />
+
+    <ImageView
+        android:id="@+id/iv_photo"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="8dp"
+        android:background="?android:selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="8dp"
+        android:src="@drawable/ic_entrance_photo"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_reject"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/btn_reject"
+        app:layout_constraintTop_toTopOf="@+id/btn_reject" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

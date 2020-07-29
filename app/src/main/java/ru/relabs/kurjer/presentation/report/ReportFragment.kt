@@ -12,9 +12,8 @@ import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.tea.debugCollector
 import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.rendersCollector
-import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.utils.debug
-import kotlinx.android.synthetic.main.fragment_report2.view.*
+import kotlinx.android.synthetic.main.fragment_report.view.*
 
 
 /**
@@ -42,7 +41,7 @@ class ReportFragment : BaseFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_report2, container, false)
+        return inflater.inflate(R.layout.fragment_report, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

@@ -17,9 +17,6 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.fragment_report.*
-import kotlinx.android.synthetic.main.include_hint_container.*
-import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.MainActivity
@@ -37,7 +34,6 @@ import ru.relabs.kurjer.uiOld.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.uiOld.delegates.*
 import ru.relabs.kurjer.uiOld.dialogs.GPSRequestTimeDialog
 import ru.relabs.kurjer.uiOld.helpers.HintHelper
-import ru.relabs.kurjer.uiOld.helpers.setVisible
 import ru.relabs.kurjer.uiOld.models.ReportEntrancesListModel
 import ru.relabs.kurjer.uiOld.models.ReportPhotosListModel
 import ru.relabs.kurjer.uiOld.models.ReportTasksListModel
@@ -128,7 +124,7 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
         savedInstanceState?.getInt("selected_task_id")?.let {
             selectedTaskItemId = it
         }
-        return inflater.inflate(R.layout.fragment_report, container, false)
+        return inflater.inflate(R.layout.fragment_report_old, container, false)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

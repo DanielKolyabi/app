@@ -14,7 +14,7 @@ import android.provider.MediaStore
 import android.view.View
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.fragment_report.*
+import kotlinx.android.synthetic.main.fragment_report_old.*
 import kotlinx.coroutines.*
 import ru.relabs.kurjer.*
 import ru.relabs.kurjer.domain.models.AllowedCloseRadius

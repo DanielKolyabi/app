@@ -3,58 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/top_app_bar"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/materialize_toolbar"
-        android:background="@color/colorPrimary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:id="@+id/iv_menu"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="8dp"
-            android:adjustViewBounds="true"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_back_new" />
-
-        <TextView
-            android:id="@+id/tv_title"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:fontFamily="@string/text_font"
-            android:gravity="center_vertical"
-            android:maxLines="2"
-            tools:text="Адрес дома"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/iv_menu"
-            app:layout_constraintTop_toTopOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    android:layout_height="match_parent"
+    tools:context=".uiOld.fragments.ReportFragment">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_tasks"
+        android:id="@+id/tasks_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/top_app_bar"
+        app:layout_constraintTop_toTopOf="parent"
         tools:layout_height="64dp"
         tools:visibility="visible" />
 
@@ -65,28 +25,28 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rv_tasks" />
+        app:layout_constraintTop_toBottomOf="@+id/tasks_list" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="vertical"
         app:layout_constraintTop_toBottomOf="@+id/hint_container"
-        app:layout_constraintBottom_toTopOf="@id/et_description"
+        app:layout_constraintBottom_toTopOf="@id/user_explanation_input"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_entrances"
+            android:id="@+id/entrances_list"
             android:layout_height="0dp"
             android:layout_width="match_parent"
             android:fadeScrollbars="false"
             android:scrollbars="vertical"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/rv_photos"/>
+            app:layout_constraintBottom_toTopOf="@id/photos_list"/>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_photos"
+            android:id="@+id/photos_list"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_width="match_parent"
             android:layout_height="48dp"
@@ -95,7 +55,8 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <EditText
-        android:id="@+id/et_description"
+
+        android:id="@+id/user_explanation_input"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginBottom="8dp"
@@ -106,7 +67,7 @@
         android:hint="@string/user_explanation_hint"
         android:inputType="textMultiLine"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/btn_close"
+        app:layout_constraintBottom_toTopOf="@+id/close_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_max="128dp"
         app:layout_constraintHeight_min="48dp"
@@ -114,45 +75,63 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/btn_close"
+        android:id="@+id/close_button"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="0dp"
         android:layout_height="48dp"
         android:text="@string/close_address_button"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btn_pause"
+        app:layout_constraintEnd_toStartOf="@id/pause_button"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/btn_pause"
+        android:id="@+id/pause_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:text="@string/pause"
-        app:layout_constraintBottom_toBottomOf="@id/btn_close"
-        app:layout_constraintTop_toTopOf="@id/btn_close"
-        app:layout_constraintStart_toEndOf="@id/btn_close"
+        app:layout_constraintBottom_toBottomOf="@id/close_button"
+        app:layout_constraintTop_toTopOf="@id/close_button"
+        app:layout_constraintStart_toEndOf="@id/close_button"
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <LinearLayout
         android:id="@+id/loading"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="#DD444444"
-        android:clickable="true"
+        android:background="#FAFAFA"
         android:elevation="8dp"
-        android:focusable="true"
         android:orientation="horizontal"
-        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
 
         <ProgressBar
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:elevation="4dp" />
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/gps_loading"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#FAFAFA"
+        android:elevation="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/pb_gps_loading"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

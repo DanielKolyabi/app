@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -15,60 +14,58 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/number_text"
+        android:id="@+id/tv_column_1"
         android:layout_width="36dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:textSize="16sp"
+        android:text="@string/task_details_column_1"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/address_text"
+        app:layout_constraintEnd_toStartOf="@+id/tv_column_2"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/separator_line"
-        tools:text="1    1" />
+        app:layout_constraintTop_toTopOf="@id/separator_line" />
 
     <TextView
-        android:id="@+id/address_text"
+        android:id="@+id/tv_column_2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:gravity="center"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/number_text"
-        app:layout_constraintEnd_toStartOf="@id/copies_text"
+        android:text="@string/task_details_column_2"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_column_1"
+        app:layout_constraintEnd_toStartOf="@+id/tv_column_3"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/number_text"
-        app:layout_constraintTop_toTopOf="@+id/number_text"
-        tools:text="Чечерский проезд, 22" />
+        app:layout_constraintStart_toEndOf="@+id/tv_column_1"
+        app:layout_constraintTop_toTopOf="@+id/tv_column_1" />
 
     <TextView
-        android:id="@+id/copies_text"
+        android:id="@+id/tv_column_3"
         android:layout_width="48dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:gravity="center"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/address_text"
-        app:layout_constraintEnd_toStartOf="@+id/info_icon"
+        android:text="@string/task_details_column_3"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_column_2"
+        app:layout_constraintEnd_toStartOf="@+id/tv_column_4"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/address_text"
-        app:layout_constraintTop_toTopOf="@+id/address_text"
-        tools:text="210" />
+        app:layout_constraintStart_toEndOf="@+id/tv_column_2"
+        app:layout_constraintTop_toTopOf="@+id/tv_column_2" />
 
-    <ImageView
-        android:id="@+id/info_icon"
+    <TextView
+        android:id="@+id/tv_column_4"
         android:layout_width="42dp"
-        android:layout_height="42dp"
+        android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:padding="8dp"
-        android:src="@drawable/ic_info"
-        app:layout_constraintBottom_toBottomOf="@id/copies_text"
+        android:text="@string/task_details_column_4"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_column_3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@id/copies_text"
-        app:layout_constraintTop_toTopOf="@id/copies_text" />
+        app:layout_constraintStart_toEndOf="@+id/tv_column_3"
+        app:layout_constraintTop_toTopOf="@+id/tv_column_3" />
 </androidx.constraintlayout.widget.ConstraintLayout>

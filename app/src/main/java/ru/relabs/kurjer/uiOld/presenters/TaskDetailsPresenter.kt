@@ -1,9 +1,5 @@
 package ru.relabs.kurjer.uiOld.presenters
 
-import android.content.Intent
-import android.widget.Toast
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -16,15 +12,11 @@ import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.TaskState
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.SendQueryData
-import ru.relabs.kurjer.files.PathHelper
-import ru.relabs.kurjer.models.TaskItemModel
-import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.uiOld.fragments.TaskDetailsFragment
-import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.uiOld.fragments.TaskDetailsOldFragment
 import ru.relabs.kurjer.utils.activity
 
 class TaskDetailsPresenter(
-    val fragment: TaskDetailsFragment,
+    val fragment: TaskDetailsOldFragment,
     val database: AppDatabase,
     val dbRep: DatabaseRepository
 ) {

@@ -244,6 +244,16 @@ class DatabaseRepository(
             DatabaseTaskMapper.fromEntity(it, db)
         }
     }
+
+    suspend fun examineTask(task: Task): Task = withContext(Dispatchers.IO) {
+        db.taskDao().getById(task.id.id)?.let {
+            db.taskDao().update(it.copy(state = TaskState.EXAMINED.toInt()))
+
+            putSendQuery(SendQueryData.TaskExamined(task.id))
+        }
+
+        task.copy(state = task.state.copy(state = TaskState.EXAMINED))
+    }
 }
 
 sealed class SendQueryData {

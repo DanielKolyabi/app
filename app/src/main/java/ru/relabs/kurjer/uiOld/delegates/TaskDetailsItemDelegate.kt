@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.uiOld.models.DetailsListModel
-import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.uiOld.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.uiOld.delegateAdapter.IAdapterDelegate
 import ru.relabs.kurjer.uiOld.holders.DetailsTableItemHolder
@@ -24,7 +23,7 @@ class TaskDetailsItemDelegate(val onInfoClicked: (item: TaskItem) -> Unit) : IAd
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<DetailsListModel> {
         return DetailsTableItemHolder(
-                LayoutInflater.from(parent.context).inflate(R.layout.item_task_details_list_item, parent, false),
+                LayoutInflater.from(parent.context).inflate(R.layout.holder_task_details_list_item, parent, false),
                 onInfoClicked
         )
     }

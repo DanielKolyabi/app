@@ -51,4 +51,15 @@ object TasksMessages {
 
     fun msgSearch(searchText: String): TasksMessage =
         msgState { it.copy(searchFilter = searchText) }
+
+    fun msgTaskExamined(task: Task): TasksMessage =
+        msgState { state ->
+            state.copy(tasks = state.tasks.map { stateTask ->
+                if (stateTask.id == task.id) {
+                    task
+                } else {
+                    stateTask
+                }
+            })
+        }
 }

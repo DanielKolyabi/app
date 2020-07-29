@@ -71,4 +71,15 @@
     <string name="task_list_update_in_progress">Обновление в процессе</string>
     <string name="addresses_title">Список адресов</string>
     <string name="address_unknown">Неизвестный адрес</string>
+    <string name="task_details_title">Детали задания</string>
+    <string name="task_details_photos_required">Необходимы фотографии</string>
+    <string name="task_details_column_1">П/уч.</string>
+    <string name="task_details_column_2">Адрес</string>
+    <string name="task_details_column_3">Тираж</string>
+    <string name="task_details_column_4">Прим.</string>
+    <string name="task_details_date_rande">%s - %s</string>
+    <string name="task_details_publisher">%s #%d</string>
+    <string name="task_details_address_bypass">%d    %d</string>
+    <string name="fatal_error_title">Произошла непредвиденная ошибка\nКод ошибки: %s</string>
+    <string name="image_map_not_found">Файл карты не найден</string>
 </resources>

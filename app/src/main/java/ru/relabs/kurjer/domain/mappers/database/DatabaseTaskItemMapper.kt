@@ -14,7 +14,7 @@ object DatabaseTaskItemMapper {
         },
         state = taskItem.state.toTaskItemState(),
         notes = taskItem.notes,
-        entrances = taskItem.entrances,
+        entrances = taskItem.entrances.map { it.toInt() },
         subarea = taskItem.subarea,
         bypass = taskItem.bypass,
         copies = taskItem.copies,

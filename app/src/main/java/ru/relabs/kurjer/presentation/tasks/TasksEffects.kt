@@ -23,7 +23,7 @@ object TasksEffects {
 
     fun effectNavigateTaskInfo(task: Task): TasksEffect = { c, s ->
         withContext(Dispatchers.Main) {
-            c.router.navigateTo(RootScreen.TaskInfo(task))
+            c.router.navigateTo(RootScreen.TaskInfo(task, c.examinedConsumer))
         }
     }
 

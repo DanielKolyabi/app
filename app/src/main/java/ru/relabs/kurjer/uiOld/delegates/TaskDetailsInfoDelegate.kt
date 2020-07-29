@@ -22,6 +22,6 @@ class TaskDetailsInfoDelegate : IAdapterDelegate<DetailsListModel> {
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<DetailsListModel> {
-        return DetailsTableInfoHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_task_details_list_info, parent, false))
+        return DetailsTableInfoHolder(LayoutInflater.from(parent.context).inflate(R.layout.holder_task_details_list_info, parent, false))
     }
 }

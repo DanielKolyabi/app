@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.fragment.FragmentStyleable
 import ru.relabs.kurjer.presentation.base.fragment.IFragmentStyleable
@@ -21,6 +22,7 @@ import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.presentation.host.HostActivity
+import ru.relabs.kurjer.presentation.taskDetails.IExaminedConsumer
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.showSnackbar
 
@@ -30,9 +32,10 @@ import ru.relabs.kurjer.utils.extensions.showSnackbar
  */
 
 class TasksFragment : BaseFragment(),
-    IFragmentStyleable by FragmentStyleable(false) {
+    IFragmentStyleable by FragmentStyleable(false),
+    IExaminedConsumer {
 
-    private val controller = defaultController(TasksState(), TasksContext())
+    private val controller = defaultController(TasksState(), TasksContext(this))
     private var renderJob: Job? = null
 
     private val tasksAdapter = DelegateAdapter(
@@ -106,6 +109,10 @@ class TasksFragment : BaseFragment(),
         renderJob?.cancel()
         controller.context.errorContext.detach()
         controller.context.showSnackbar = {}
+    }
+
+    override fun onExamined(task: Task) {
+        uiScope.sendMessage(controller, TasksMessages.msgTaskExamined(task))
     }
 
     override fun interceptBackPressed(): Boolean {

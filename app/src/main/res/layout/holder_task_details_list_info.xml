@@ -6,7 +6,7 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:id="@+id/hint_icon"
+        android:id="@+id/iv_hint"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginStart="8dp"
@@ -18,7 +18,7 @@
         app:layout_goneMarginStart="8dp" />
 
     <TextView
-        android:id="@+id/publisher_label"
+        android:id="@+id/tv_publisher_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -26,63 +26,63 @@
         android:fontFamily="@string/text_font"
         android:text="@string/edition_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/hint_icon"
+        app:layout_constraintStart_toEndOf="@+id/iv_hint"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/publisher_text"
+        android:id="@+id/tv_publisher"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/publisher_label"
-        app:layout_constraintTop_toTopOf="@+id/publisher_label"
+        app:layout_constraintStart_toEndOf="@+id/tv_publisher_label"
+        app:layout_constraintTop_toTopOf="@+id/tv_publisher_label"
         tools:text="Вечерняя Москва №4" />
 
 
     <TextView
-        android:id="@+id/dates_label"
+        android:id="@+id/tv_dates_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:fontFamily="@string/text_font"
         android:text="@string/dates_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/publisher_label"
-        app:layout_constraintTop_toBottomOf="@id/publisher_text" />
+        app:layout_constraintStart_toStartOf="@+id/tv_publisher_label"
+        app:layout_constraintTop_toBottomOf="@id/tv_publisher" />
 
     <TextView
-        android:id="@+id/dates_text"
+        android:id="@+id/tv_dates"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/publisher_text"
-        app:layout_constraintTop_toTopOf="@+id/dates_label"
+        app:layout_constraintStart_toStartOf="@+id/tv_publisher"
+        app:layout_constraintTop_toTopOf="@+id/tv_dates_label"
         tools:text="07.02.2018 - 11.02.2018" />
 
     <TextView
-        android:id="@+id/brigade_label"
+        android:id="@+id/tv_brigade_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:fontFamily="@string/text_font"
         android:text="@string/brigade_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/publisher_label"
-        app:layout_constraintTop_toBottomOf="@id/dates_text" />
+        app:layout_constraintStart_toStartOf="@+id/tv_publisher_label"
+        app:layout_constraintTop_toBottomOf="@id/tv_dates" />
 
     <TextView
-        android:id="@+id/brigade_text"
+        android:id="@+id/tv_brigade"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        app:layout_constraintStart_toStartOf="@+id/publisher_text"
-        app:layout_constraintTop_toTopOf="@+id/brigade_label"
+        app:layout_constraintStart_toStartOf="@+id/tv_publisher"
+        app:layout_constraintTop_toTopOf="@+id/tv_brigade_label"
         tools:text="3" />
 
     <TextView
-        android:id="@+id/area_label"
+        android:id="@+id/tv_area_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -90,20 +90,20 @@
         android:fontFamily="@string/text_font"
         android:text="@string/area_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/brigade_text"
-        app:layout_constraintTop_toBottomOf="@id/dates_text" />
+        app:layout_constraintStart_toEndOf="@+id/tv_brigade"
+        app:layout_constraintTop_toBottomOf="@id/tv_dates" />
 
     <TextView
-        android:id="@+id/area_text"
+        android:id="@+id/tv_area"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        app:layout_constraintStart_toEndOf="@+id/area_label"
-        app:layout_constraintTop_toTopOf="@+id/area_label"
+        app:layout_constraintStart_toEndOf="@+id/tv_area_label"
+        app:layout_constraintTop_toTopOf="@+id/tv_area_label"
         tools:text="10" />
 
     <TextView
-        android:id="@+id/city_label"
+        android:id="@+id/tv_city_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -111,42 +111,41 @@
         android:fontFamily="@string/text_font"
         android:text="@string/city_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/area_text"
-        app:layout_constraintTop_toBottomOf="@id/dates_text" />
+        app:layout_constraintStart_toEndOf="@+id/tv_area"
+        app:layout_constraintTop_toBottomOf="@id/tv_dates" />
 
     <TextView
-        android:id="@+id/city_text"
+        android:id="@+id/tv_city"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/city_label"
-        app:layout_constraintTop_toTopOf="@+id/city_label"
+        app:layout_constraintStart_toEndOf="@+id/tv_city_label"
+        app:layout_constraintTop_toTopOf="@+id/tv_city_label"
         tools:text="Новый уренгой" />
-
-
+    
     <TextView
-        android:id="@+id/prints_count_label"
+        android:id="@+id/tv_copies_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:fontFamily="@string/text_font"
         android:text="@string/prints_count_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/publisher_label"
-        app:layout_constraintTop_toBottomOf="@id/city_text" />
+        app:layout_constraintStart_toStartOf="@+id/tv_publisher_label"
+        app:layout_constraintTop_toBottomOf="@id/tv_city" />
 
     <TextView
-        android:id="@+id/copies_text"
+        android:id="@+id/tv_copies"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        app:layout_constraintStart_toStartOf="@+id/publisher_text"
-        app:layout_constraintTop_toTopOf="@+id/prints_count_label"
+        app:layout_constraintStart_toStartOf="@+id/tv_publisher"
+        app:layout_constraintTop_toTopOf="@+id/tv_copies_label"
         tools:text="2500" />
 
     <TextView
-        android:id="@+id/pack_count_label"
+        android:id="@+id/tv_pack_count_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -154,20 +153,20 @@
         android:fontFamily="@string/text_font"
         android:text="@string/pack_count_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/copies_text"
-        app:layout_constraintTop_toBottomOf="@id/city_text" />
+        app:layout_constraintStart_toEndOf="@+id/tv_copies"
+        app:layout_constraintTop_toBottomOf="@id/tv_city" />
 
     <TextView
-        android:id="@+id/pack_count_text"
+        android:id="@+id/tv_pack_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        app:layout_constraintStart_toEndOf="@+id/pack_count_label"
-        app:layout_constraintTop_toTopOf="@+id/pack_count_label"
+        app:layout_constraintStart_toEndOf="@+id/tv_pack_count_label"
+        app:layout_constraintTop_toTopOf="@+id/tv_pack_count_label"
         tools:text="10" />
 
     <TextView
-        android:id="@+id/remain_label"
+        android:id="@+id/tv_remain_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -175,38 +174,37 @@
         android:fontFamily="@string/text_font"
         android:text="@string/remain_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/pack_count_text"
-        app:layout_constraintTop_toBottomOf="@id/city_text" />
+        app:layout_constraintStart_toEndOf="@+id/tv_pack_count"
+        app:layout_constraintTop_toBottomOf="@id/tv_city" />
 
     <TextView
-        android:id="@+id/remain_text"
+        android:id="@+id/tv_remain"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        app:layout_constraintStart_toEndOf="@+id/remain_label"
-        app:layout_constraintTop_toTopOf="@+id/remain_label"
+        app:layout_constraintStart_toEndOf="@+id/tv_remain_label"
+        app:layout_constraintTop_toTopOf="@+id/tv_remain_label"
         tools:text="0" />
-
-
+    
     <TextView
-        android:id="@+id/storage_label"
+        android:id="@+id/tv_storage_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:fontFamily="@string/text_font"
         android:text="@string/storage_label"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@+id/publisher_label"
-        app:layout_constraintTop_toBottomOf="@id/prints_count_label" />
+        app:layout_constraintStart_toStartOf="@+id/tv_publisher_label"
+        app:layout_constraintTop_toBottomOf="@id/tv_copies_label" />
 
     <TextView
-        android:id="@+id/storage_text"
+        android:id="@+id/tv_storage"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/publisher_text"
-        app:layout_constraintTop_toTopOf="@+id/storage_label"
+        app:layout_constraintStart_toStartOf="@+id/tv_publisher"
+        app:layout_constraintTop_toTopOf="@+id/tv_storage_label"
         tools:text="Москва, Южнобутовская ул., 68, под. 3 (в машину у подъезда).\nСветлана, 8-999-999-99-99" />
 
     <TextView
@@ -214,9 +212,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:text="Необходимы фотографии"
+        android:text="@string/task_details_photos_required"
         android:textColor="@color/colorFuchsia"
         android:visibility="gone"
-        app:layout_constraintStart_toStartOf="@id/storage_label"
-        app:layout_constraintTop_toBottomOf="@id/storage_text" />
+        app:layout_constraintStart_toStartOf="@id/tv_storage_label"
+        app:layout_constraintTop_toBottomOf="@id/tv_storage"
+        tools:visibility="visible"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

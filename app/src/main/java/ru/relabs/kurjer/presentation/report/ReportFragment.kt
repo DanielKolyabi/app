@@ -14,6 +14,7 @@ import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.utils.debug
 import kotlinx.android.synthetic.main.fragment_report.view.*
+import ru.relabs.kurjer.presentation.host.HostActivity
 
 
 /**

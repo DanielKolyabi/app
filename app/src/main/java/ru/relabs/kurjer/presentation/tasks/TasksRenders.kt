@@ -6,6 +6,7 @@ import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
+import ru.relabs.kurjer.utils.SearchUtils
 import ru.relabs.kurjer.utils.extensions.visible
 
 /**
@@ -22,7 +23,7 @@ object TasksRenders {
             } else {
                 listOf(TasksItem.Search) + tasks.filter {
                     if (filter.isNotEmpty()) {
-                        it.listName.toLowerCase().contains(filter.toLowerCase())
+                        SearchUtils.isMatches(it.listName, filter)
                     } else {
                         true
                     }

@@ -241,11 +241,6 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                     drawerItem: IDrawerItem<*>
                 ): Boolean {
                     return when (drawerItem.identifier) {
-                        NAVIGATION_TASKS -> if (!drawerItem.isSelected) {
-                            navigateTasks()
-                        } else {
-                            true
-                        }
                         NAVIGATION_CRASH -> sendCrashLog()
                         NAVIGATION_UUID -> copyDeviceId()
                         NAVIGATION_LOGOUT -> logout()
@@ -288,11 +283,6 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         return false
     }
 
-    private fun navigateTasks(): Boolean {
-        router.newRootScreen(RootScreen.Tasks(false))
-        return false
-    }
-
     private fun inflateNavigationHeader(): View {
         val header = LayoutInflater.from(this).inflate(R.layout.nav_header, null, false)
         header.text_container.setPadding(0, UIUtils.getStatusBarHeight(this), 0, 0)
@@ -301,10 +291,6 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
     private fun buildDrawerItems(): Array<IDrawerItem<*>> {
         return arrayOf(
-            buildDrawerItem(
-                NAVIGATION_TASKS,
-                R.string.menu_tasks
-            ),
             buildDrawerItem(
                 NAVIGATION_CRASH,
                 R.string.menu_info
@@ -357,10 +343,6 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
     fun onFragmentChanged(fragment: Fragment?) {
         hideKeyboard()
-
-        when (fragment) {
-            is TasksFragment -> setDrawerSelectedItem(NAVIGATION_TASKS)
-        }
     }
 
     fun updateAppBar(settings: AppBarSettings) {
@@ -382,10 +364,9 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     companion object {
         const val REQUEST_CODE_INSTALL_PACKAGE = 997
 
-        const val NAVIGATION_TASKS = 1L
-        const val NAVIGATION_CRASH = 2L
-        const val NAVIGATION_UUID = 3L
-        const val NAVIGATION_LOGOUT = 4L
+        const val NAVIGATION_CRASH = 1L
+        const val NAVIGATION_UUID = 2L
+        const val NAVIGATION_LOGOUT = 3L
 
         fun getIntent(parentContext: Context) = Intent(parentContext, HostActivity::class.java)
     }

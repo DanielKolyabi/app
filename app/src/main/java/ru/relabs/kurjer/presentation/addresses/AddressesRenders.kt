@@ -10,6 +10,7 @@ import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
+import ru.relabs.kurjer.utils.SearchUtils
 import ru.relabs.kurjer.utils.extensions.visible
 
 /**
@@ -47,7 +48,7 @@ object AddressesRenders {
 
         val taskItems = tasks.flatMap { task -> task.items.map { item -> task to item } }.let { items ->
             if (searchFilter.isNotEmpty()) {
-                items.filter { item -> item.second.address.name.toLowerCase().contains(searchFilter.toLowerCase()) }
+                items.filter { item -> SearchUtils.isMatches(item.second.address.name, searchFilter) }
             } else {
                 items
             }

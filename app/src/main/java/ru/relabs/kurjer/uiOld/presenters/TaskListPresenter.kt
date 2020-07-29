@@ -138,7 +138,7 @@ class TaskListPresenter(
                                         if (e.error.code == 3) {
                                             fragment.activity()?.showError(e.error.message, object : ErrorButtonsListener {
                                                 override fun positiveListener() {
-                                                    fragment.activity()?.showLoginScreen()
+//                                                    fragment.activity()?.showLoginScreen()
                                                 }
 
                                                 override fun negativeListener() {}

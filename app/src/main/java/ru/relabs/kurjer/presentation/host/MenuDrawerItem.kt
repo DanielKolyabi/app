@@ -22,7 +22,7 @@ class MenuDrawerItem(override val type: Int) :
         when {
             text != null -> holder.itemView.tv_title.text = holder.itemView.resources.getText(text)
         }
-        holder.itemView.selected_overlay.visible = isSelected
+//        holder.itemView.selected_overlay.visible = isSelected
     }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view)

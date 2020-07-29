@@ -45,6 +45,7 @@ import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.presentation.login.LoginFragment
 import ru.relabs.kurjer.uiOld.adapters.SearchInputAdapter
 import ru.relabs.kurjer.uiOld.fragments.*
 import ru.relabs.kurjer.uiOld.helpers.setVisible
@@ -340,7 +341,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (supportFragmentManager.backStackEntryCount == 0) {
-            showLoginScreen()
+//            showLoginScreen()
         } else {
             restoreApplicationUser()
         }
@@ -469,7 +470,7 @@ class MainActivity : AppCompatActivity() {
         val token = sharedPref.getString("token", "") ?: ""
         val login = sharedPref.getString("login", "") ?: ""
         if (token.isBlank() || login.isBlank()) {
-            showLoginScreen()
+//            showLoginScreen()
         } else {
             //TODO: Get rid of it
             application().user = User(UserLogin(login))
@@ -655,12 +656,12 @@ class MainActivity : AppCompatActivity() {
         return fragment
     }
 
-    fun showLoginScreen(): LoginFragment {
-        val fragment = LoginFragment()
-        navigateTo(fragment)
-        changeTitle("Авторизация")
-        return fragment
-    }
+//    fun showLoginScreen(): LoginFragment {
+////        val fragment = LoginFragment()
+////        navigateTo(fragment)
+////        changeTitle("Авторизация")
+////        return fragment
+//    }
 
     fun showYandexMap(taskItems: List<TaskItemModel>, onAddressClicked: (AddressModel) -> Unit): YandexMapFragment {
         val addresses = taskItems.groupBy { it.address.id }
@@ -789,7 +790,7 @@ class MainActivity : AppCompatActivity() {
             }.commit()
 
             val backVisible = when (fragment) {
-                is LoginFragment -> false
+//                is LoginFragment -> false
                 is TaskListFragment -> false
                 else -> true
             }

@@ -8,7 +8,7 @@ import ru.relabs.kurjer.presentation.login.LoginFragment
 import ru.relabs.kurjer.presentation.taskDetails.IExaminedConsumer
 import ru.relabs.kurjer.presentation.taskDetails.TaskDetailsFragment
 import ru.relabs.kurjer.presentation.tasks.TasksFragment
-import ru.relabs.kurjer.uiOld.fragments.TaskDetailsOldFragment
+//import ru.relabs.kurjer.uiOld.fragments.TaskDetailsOldFragment
 import ru.relabs.kurjer.uiOld.fragments.TaskItemExplanationFragment
 import ru.terrakok.cicerone.android.support.SupportAppScreen
 

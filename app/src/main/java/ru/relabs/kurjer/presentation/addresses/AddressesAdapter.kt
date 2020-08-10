@@ -4,7 +4,6 @@ import android.graphics.Color
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
-import androidx.core.view.doOnDetach
 import androidx.core.widget.addTextChangedListener
 import kotlinx.android.synthetic.main.holder_address_list_address.view.*
 import kotlinx.android.synthetic.main.holder_address_list_sorting.view.*
@@ -18,7 +17,6 @@ import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
 import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
 import ru.relabs.kurjer.presentation.base.recycler.delegateLoader
 import ru.relabs.kurjer.presentation.base.recycler.holderDefine
-import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.dpToPx
 import ru.relabs.kurjer.utils.extensions.getColorCompat
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
@@ -78,7 +76,7 @@ object AddressesAdapter {
                             btn_task.setTextColor(Color.parseColor("#ff000000"))
                         }
                     }
-                    if (taskItem.needPhoto) {
+                    if (taskItem.needPhoto || taskItem.entrancesData.any { it.photoRequired }) {
                         btn_task.setTextColor(resources.getColorCompat(R.color.colorFuchsia))
                     } else {
                         btn_task.setTextColor(Color.parseColor("#ff000000"))
@@ -141,7 +139,7 @@ object AddressesAdapter {
                     itemView.iv_clear.visible = text.isNotBlank()
                     onSearch(text)
                 }
-                if(itemView.et_search.text.isNotEmpty()){
+                if (itemView.et_search.text.isNotEmpty()) {
                     itemView.et_search.requestFocus()
 
                 }

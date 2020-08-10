@@ -2,7 +2,6 @@ package ru.relabs.kurjer.presentation.taskDetails
 
 import android.graphics.Color
 import android.view.View
-import android.widget.FrameLayout
 import kotlinx.android.synthetic.main.holder_task_details_list_info.view.*
 import kotlinx.android.synthetic.main.holder_task_details_list_info.view.tv_copies
 import kotlinx.android.synthetic.main.holder_task_details_list_item.view.*
@@ -12,7 +11,6 @@ import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
 import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
 import ru.relabs.kurjer.presentation.base.recycler.holderDefine
 import ru.relabs.kurjer.uiOld.helpers.formated
-import ru.relabs.kurjer.utils.extensions.dpToPx
 
 object TaskDetailsAdapter {
     fun pageHeaderAdapter(): IAdapterDelegate<TaskDetailsItem> = delegateDefine(
@@ -31,7 +29,7 @@ object TaskDetailsAdapter {
                     tv_remain.text = task.remain.toString()
                     tv_storage.text = task.storageAddress
 
-                    if (task.items.find { it.needPhoto } != null) {
+                    if (task.items.any { it.needPhoto || it.entrancesData.any { it.photoRequired } }) {
                         need_photo_label.visibility = View.VISIBLE
                     } else {
                         need_photo_label.visibility = View.GONE
@@ -54,7 +52,7 @@ object TaskDetailsAdapter {
         { it is TaskDetailsItem.ListItem },
         { p ->
             holderDefine(p, R.layout.holder_task_details_list_item, { it as TaskDetailsItem.ListItem }) { (taskItem) ->
-                with(itemView){
+                with(itemView) {
                     tv_bypass.text = resources.getString(R.string.task_details_address_bypass, taskItem.subarea, taskItem.bypass)
                     tv_address.text = taskItem.address.name
                     tv_copies.text = taskItem.copies.toString()
@@ -63,9 +61,9 @@ object TaskDetailsAdapter {
                         onInfoClicked(taskItem)
                     }
 
-                    if(taskItem.needPhoto){
+                    if (taskItem.needPhoto || taskItem.entrancesData.any { it.photoRequired }) {
                         tv_address.setTextColor(resources.getColor(R.color.colorFuchsia))
-                    }else{
+                    } else {
                         tv_address.setTextColor(Color.parseColor("#808080"))
                     }
                 }

@@ -7,10 +7,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
-import ru.relabs.kurjer.domain.mappers.database.DatabaseAddressMapper
-import ru.relabs.kurjer.domain.mappers.database.DatabaseEntranceDataMapper
-import ru.relabs.kurjer.domain.mappers.database.DatabaseTaskItemMapper
-import ru.relabs.kurjer.domain.mappers.database.DatabaseTaskMapper
+import ru.relabs.kurjer.domain.mappers.database.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.files.PathHelper
@@ -35,6 +32,13 @@ class DatabaseRepository(
     suspend fun removeTask(taskId: TaskId) = withContext(Dispatchers.IO) {
         //Remove all taskItems
         db.taskItemDao().getAllForTask(taskId.id).forEach { taskItem ->
+            db.photosDao().getByTaskItemId(taskItem.id).forEach { photo ->
+                //TODO: Remove PathHelper
+                val file = PathHelper.getTaskItemPhotoFileByID(photo.taskItemId, UUID.fromString(photo.UUID))
+                file.delete()
+                db.photosDao().delete(photo)
+            }
+
             db.taskItemResultsDao().getByTaskItemId(taskItem.id)?.let { taskItemResult ->
                 db.entrancesDao().getByTaskItemResultId(taskItemResult.id).forEach { entrance ->
                     db.entrancesDao().delete(entrance)
@@ -49,8 +53,14 @@ class DatabaseRepository(
             db.taskDao().delete(it)
         }
 
-        //TODO: Remove Task Photo
         PathHelper.getTaskRasterizeMapFileById(taskId).delete()
+    }
+
+    fun removePhoto(photo: TaskItemPhoto){
+        //TODO: Remove PathHelper
+        val file = PathHelper.getTaskItemPhotoFileByID(photo.taskItemId.id, UUID.fromString(photo.UUID))
+        file.delete()
+        db.photosDao().deleteById(photo.id.id)
     }
 
     suspend fun putSendQuery(sendData: SendQueryData): Either<Exception, SendQueryItemEntity> = withContext(Dispatchers.IO) {
@@ -121,7 +131,7 @@ class DatabaseRepository(
             db.taskDao().delete(it)
         }
         //Remove rast map
-        //TODO: Remove rast map
+        PathHelper.getTaskRasterizeMapFileById(TaskId(taskId)).delete()
     }
 
     suspend fun mergeTasks(tasks: List<Task>): Flow<MergeResult> = flow {
@@ -253,6 +263,16 @@ class DatabaseRepository(
         }
 
         task.copy(state = task.state.copy(state = TaskState.EXAMINED))
+    }
+
+    suspend fun getTaskItem(id: TaskItemId): TaskItem? = withContext(Dispatchers.IO) {
+        db.taskItemDao().getById(id.id)?.let { DatabaseTaskItemMapper.fromEntity(it, db) }
+    }
+
+    suspend fun getTaskItemPhotos(taskItem: TaskItem): List<TaskItemPhoto> = withContext(Dispatchers.IO) {
+        db.photosDao().getByTaskItemId(taskItem.id.id).map {
+            DatabasePhotoMapper.fromRaw(it)
+        }
     }
 }
 

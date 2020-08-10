@@ -21,7 +21,9 @@ object AddressesMessages {
     fun msgAddLoaders(i: Int): AddressesMessage =
         msgState { it.copy(loaders = it.loaders + i) }
 
-    fun msgTaskItemClicked(item: TaskItem, task: Task): AddressesMessage = msgEmpty() //Show report
+    fun msgTaskItemClicked(item: TaskItem, task: Task): AddressesMessage =
+        msgEffect(AddressesEffects.effectNavigateReport(task, item))
+
     fun msgTaskItemMapClicked(task: Task): AddressesMessage = msgEmpty() //Show rasterized map
     fun msgAddressMapClicked(task: Task): AddressesMessage = msgEmpty() //Show yandex map with ability to select address
 

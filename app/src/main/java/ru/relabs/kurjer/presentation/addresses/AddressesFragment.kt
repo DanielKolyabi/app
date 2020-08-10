@@ -17,7 +17,6 @@ import ru.relabs.kurjer.presentation.base.tea.debugCollector
 import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
-import ru.relabs.kurjer.presentation.host.HostActivity
 import ru.relabs.kurjer.utils.debug
 
 
@@ -47,7 +46,7 @@ class AddressesFragment : BaseFragment() {
         },
         AddressesAdapter.loaderAdapter(),
         AddressesAdapter.blankAdapter(),
-        AddressesAdapter.searchAdapter{
+        AddressesAdapter.searchAdapter {
             uiScope.sendMessage(controller, AddressesMessages.msgSearch(it))
         }
     )
@@ -55,7 +54,7 @@ class AddressesFragment : BaseFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val taskIds = arguments?.getParcelableArrayList<TaskId>(ARG_TASK_IDS)?.toList()
-        if(taskIds == null){
+        if (taskIds == null) {
             //TODO: Show error
             return
         }
@@ -66,7 +65,6 @@ class AddressesFragment : BaseFragment() {
         super.onDestroy()
         controller.stop()
     }
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,9 +77,7 @@ class AddressesFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val layoutManager =
-            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-        view.rv_list.layoutManager = layoutManager
+        view.rv_list.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
         view.rv_list.adapter = addressesAdapter
 
         bindControls(view)
@@ -116,7 +112,7 @@ class AddressesFragment : BaseFragment() {
     companion object {
         const val ARG_TASK_IDS = "task_ids"
         fun newInstance(taskIds: List<TaskId>) = AddressesFragment().apply {
-            arguments = Bundle().apply{
+            arguments = Bundle().apply {
                 putParcelableArrayList(ARG_TASK_IDS, ArrayList(taskIds))
             }
         }

@@ -48,13 +48,13 @@
         android:textAllCaps="false"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/btn_euro"
-        app:layout_constraintEnd_toStartOf="@+id/btn_pile"
+        app:layout_constraintEnd_toStartOf="@+id/btn_stack"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/btn_euro"
         app:layout_constraintTop_toTopOf="@+id/btn_euro" />
 
     <Button
-        android:id="@+id/btn_pile"
+        android:id="@+id/btn_stack"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:minWidth="66dp"
@@ -76,11 +76,11 @@
         android:text="@string/rejection"
         android:textAllCaps="false"
         android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="@+id/btn_pile"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_stack"
         app:layout_constraintEnd_toEndOf="@+id/iv_photo"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/btn_pile"
-        app:layout_constraintTop_toTopOf="@+id/btn_pile" />
+        app:layout_constraintStart_toEndOf="@+id/btn_stack"
+        app:layout_constraintTop_toTopOf="@+id/btn_stack" />
 
     <ImageView
         android:id="@+id/iv_photo"

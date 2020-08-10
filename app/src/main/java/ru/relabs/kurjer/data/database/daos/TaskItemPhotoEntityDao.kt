@@ -32,4 +32,7 @@ interface TaskItemPhotoEntityDao {
 
     @Query("DELETE FROM task_item_photos WHERE task_item_id = :taskItemId")
     fun deleteByTaskItemId(taskItemId: Int)
+
+    @Query("DELETE FROM task_item_photos WHERE id = :photoId")
+    fun deleteById(photoId: Int)
 }

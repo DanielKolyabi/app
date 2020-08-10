@@ -5,6 +5,7 @@ import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.presentation.addresses.AddressesFragment
 import ru.relabs.kurjer.presentation.login.LoginFragment
+import ru.relabs.kurjer.presentation.report.ReportFragment
 import ru.relabs.kurjer.presentation.taskDetails.IExaminedConsumer
 import ru.relabs.kurjer.presentation.taskDetails.TaskDetailsFragment
 import ru.relabs.kurjer.presentation.tasks.TasksFragment
@@ -24,4 +25,6 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
         RootScreen({ TaskDetailsFragment.newInstance(task, parent) }) where F : Fragment, F : IExaminedConsumer
 
     class TaskItemDetails(taskItem: TaskItem) : RootScreen({ TaskItemExplanationFragment.newInstance(taskItem) }) //TODO
+    class Report(items: List<Pair<Task, TaskItem>>, selectedTaskItem: TaskItem) :
+        RootScreen({ ReportFragment.newInstance(items, selectedTaskItem) })
 }

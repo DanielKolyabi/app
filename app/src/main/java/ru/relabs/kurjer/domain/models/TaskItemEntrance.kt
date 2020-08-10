@@ -3,6 +3,8 @@ package ru.relabs.kurjer.domain.models
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
+const val ENTRANCE_NUMBER_TASK_ITEM = -1
+
 @Parcelize
 data class EntranceNumber(val number: Int): Parcelable
 

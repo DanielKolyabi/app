@@ -40,5 +40,10 @@ object ReportMessages {
     )
 
     fun msgCoupleClicked(entrance: EntranceNumber): ReportMessage = msgEmpty() //TODO: Implement
-    fun msgEntranceSelectClicked(entrance: EntranceNumber, button: EntranceSelectionButton): ReportMessage = msgEmpty()
+
+    fun msgEntranceSelectClicked(entrance: EntranceNumber, button: EntranceSelectionButton): ReportMessage =
+        msgEffect(ReportEffects.effectEntranceSelectionChanged(entrance, button))
+
+    fun msgSavedResultLoaded(report: TaskItemResult): ReportMessage =
+        msgState { it.copy(selectedTaskReport = report) }
 }

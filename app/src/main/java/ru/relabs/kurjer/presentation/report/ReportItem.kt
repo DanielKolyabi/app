@@ -1,10 +1,9 @@
 package ru.relabs.kurjer.presentation.report
 
 import android.net.Uri
-import ru.relabs.kurjer.domain.models.EntranceNumber
-import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.domain.models.TaskItem
-import ru.relabs.kurjer.domain.models.TaskItemPhoto
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.models.TaskItemPhotoModel
 
 sealed class ReportPhotoItem {
@@ -21,10 +20,3 @@ data class ReportEntranceItem(
 )
 
 data class ReportTaskItem(val task: Task, val taskItem: TaskItem, val active: Boolean)
-
-data class ReportEntranceSelection(
-    val isEuro: Boolean,
-    val isWatch: Boolean,
-    val isStacked: Boolean,
-    val isRejected: Boolean
-)

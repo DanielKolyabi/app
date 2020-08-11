@@ -19,9 +19,9 @@ data class ReportState(
     val tasks: List<TaskWithItem> = emptyList(),
     val selectedTask: TaskWithItem? = null,
     val selectedTaskPhotos: List<TaskItemPhoto> = emptyList(),
+    val selectedTaskReport: TaskItemResult? = null,
     val loaders: Int = 0
-) {
-}
+)
 
 class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     ErrorContext by errorContext,

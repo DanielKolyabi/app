@@ -1,12 +1,15 @@
 package ru.relabs.kurjer.models
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 import java.util.*
 
+@Parcelize
 data class GPSCoordinatesModel(
         val lat: Double,
         val long: Double,
         val time: Date
-) {
+): Parcelable {
     val isEmpty: Boolean
         get() = lat == 0.0 || long == 0.0
 

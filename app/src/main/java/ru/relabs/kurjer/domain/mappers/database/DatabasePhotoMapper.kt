@@ -7,7 +7,7 @@ import ru.relabs.kurjer.domain.models.TaskItemId
 import ru.relabs.kurjer.domain.models.TaskItemPhoto
 
 object DatabasePhotoMapper {
-    fun fromRaw(entity: TaskItemPhotoEntity): TaskItemPhoto = TaskItemPhoto(
+    fun fromEntity(entity: TaskItemPhotoEntity): TaskItemPhoto = TaskItemPhoto(
         id = PhotoId(entity.id),
         UUID = entity.UUID,
         taskItemId = TaskItemId(entity.taskItemId),

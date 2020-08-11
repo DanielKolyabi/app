@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
+import ru.relabs.kurjer.domain.mappers.TaskItemEntranceResultMapper
+import ru.relabs.kurjer.domain.mappers.TaskItemResultMapper
 import ru.relabs.kurjer.domain.mappers.database.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
@@ -56,7 +58,7 @@ class DatabaseRepository(
         PathHelper.getTaskRasterizeMapFileById(taskId).delete()
     }
 
-    fun removePhoto(photo: TaskItemPhoto){
+    fun removePhoto(photo: TaskItemPhoto) {
         //TODO: Remove PathHelper
         val file = PathHelper.getTaskItemPhotoFileByID(photo.taskItemId.id, UUID.fromString(photo.UUID))
         file.delete()
@@ -271,8 +273,35 @@ class DatabaseRepository(
 
     suspend fun getTaskItemPhotos(taskItem: TaskItem): List<TaskItemPhoto> = withContext(Dispatchers.IO) {
         db.photosDao().getByTaskItemId(taskItem.id.id).map {
-            DatabasePhotoMapper.fromRaw(it)
+            DatabasePhotoMapper.fromEntity(it)
         }
+    }
+
+    suspend fun getTaskItemReport(taskItemId: TaskItemId): TaskItemResult? = withContext(Dispatchers.IO) {
+        db.taskItemResultsDao().getByTaskItemId(taskItemId.id)?.let {
+            TaskItemResultMapper.fromEntity(db, it)
+        }
+    }
+
+    suspend fun getTaskItemReport(taskItem: TaskItem): TaskItemResult? = withContext(Dispatchers.IO) {
+        getTaskItemReport(taskItem.id)
+    }
+
+    suspend fun updateTaskItemResult(updatedReport: TaskItemResult): TaskItemResult? = withContext(Dispatchers.IO) {
+        val newId = db.taskItemResultsDao().insert(TaskItemResultMapper.fromModel(updatedReport))
+        db.entrancesDao().insertAll(
+            updatedReport.entrances.map {
+                TaskItemEntranceResultMapper.fromModel(
+                    if (it.taskItemResultId.id == 0) {
+                        it.copy(taskItemResultId = TaskItemResultId(newId.toInt()))
+                    } else {
+                        it
+                    }
+                )
+            }
+        )
+
+        getTaskItemReport(updatedReport.taskItemId)
     }
 }
 

@@ -4,6 +4,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import ru.relabs.kurjer.domain.models.ENTRANCE_NUMBER_TASK_ITEM
+import ru.relabs.kurjer.domain.models.ReportEntranceSelection
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
@@ -19,11 +20,11 @@ object ReportRenders {
     )
 
     fun renderTitle(view: TextView): ReportRender = renderT(
-        {it.tasks.firstOrNull()?.taskItem?.address},
+        { it.tasks.firstOrNull()?.taskItem?.address },
         {
-            if(it == null){
+            if (it == null) {
                 view.text = "Неизвестно"
-            }else{
+            } else {
                 view.text = it.name
             }
         }
@@ -59,23 +60,24 @@ object ReportRenders {
     )
 
     fun renderEntrances(adapter: DelegateAdapter<ReportEntranceItem>): ReportRender = renderT(
-        { it.selectedTask?.taskItem to it.selectedTaskPhotos },
-        { (taskItem, photos) ->
+        { Triple(it.selectedTask?.taskItem, it.selectedTaskPhotos, it.selectedTaskReport) },
+        { (taskItem, photos, report) ->
             adapter.items.clear()
             if (taskItem != null) {
                 adapter.items.addAll(
-                    taskItem.entrancesData.map {
+                    taskItem.entrancesData.map { entrance ->
+                        val reportEntrance = report?.entrances?.firstOrNull { it.entranceNumber == entrance.number }
                         ReportEntranceItem(
                             taskItem,
-                            it.number,
-                            ReportEntranceSelection(
-                                it.isEuroBoxes,
-                                it.hasLookout,
-                                it.isStacked,
-                                it.isRefused
-                            ), //TODO: Use data from saved entrance
+                            entrance.number,
+                            reportEntrance?.selection ?: ReportEntranceSelection(
+                                entrance.isEuroBoxes,
+                                entrance.hasLookout,
+                                entrance.isStacked,
+                                entrance.isRefused
+                            ),
                             false, //TODO: Check if coupleEnabled
-                            photos.any { photo -> photo.entranceNumber == it.number }
+                            photos.any { photo -> photo.entranceNumber == entrance.number }
                         )
                     }
                 )

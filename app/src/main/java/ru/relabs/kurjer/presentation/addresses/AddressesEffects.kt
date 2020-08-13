@@ -29,8 +29,12 @@ object AddressesEffects {
     }
 
     fun effectNavigateReport(task: Task, item: TaskItem): AddressesEffect = { c, s ->
-        withContext(Dispatchers.Main){
-            c.router.navigateTo(RootScreen.Report(listOf(Pair(task, item)), item))
+        val sameAddressItems = s.tasks
+            .flatMap { it.items.map { taskItem -> it to taskItem } }
+            .filter { it.second.address.id == item.address.id }
+
+        withContext(Dispatchers.Main) {
+            c.router.navigateTo(RootScreen.Report(sameAddressItems, item))
         }
     }
 }

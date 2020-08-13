@@ -13,6 +13,8 @@ import ru.relabs.kurjer.domain.mappers.database.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.files.PathHelper
+import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.presentation.report.ReportMessages
 import ru.relabs.kurjer.utils.Either
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
@@ -277,14 +279,14 @@ class DatabaseRepository(
         }
     }
 
-    suspend fun getTaskItemReport(taskItemId: TaskItemId): TaskItemResult? = withContext(Dispatchers.IO) {
+    suspend fun getTaskItemResult(taskItemId: TaskItemId): TaskItemResult? = withContext(Dispatchers.IO) {
         db.taskItemResultsDao().getByTaskItemId(taskItemId.id)?.let {
             TaskItemResultMapper.fromEntity(db, it)
         }
     }
 
-    suspend fun getTaskItemReport(taskItem: TaskItem): TaskItemResult? = withContext(Dispatchers.IO) {
-        getTaskItemReport(taskItem.id)
+    suspend fun getTaskItemResult(taskItem: TaskItem): TaskItemResult? = withContext(Dispatchers.IO) {
+        getTaskItemResult(taskItem.id)
     }
 
     suspend fun updateTaskItemResult(updatedReport: TaskItemResult): TaskItemResult? = withContext(Dispatchers.IO) {
@@ -301,7 +303,7 @@ class DatabaseRepository(
             }
         )
 
-        getTaskItemReport(updatedReport.taskItemId)
+        getTaskItemResult(updatedReport.taskItemId)
     }
 }
 

@@ -3,6 +3,7 @@ package ru.relabs.kurjer.presentation.report
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import java.util.*
 
@@ -55,7 +56,7 @@ object ReportEffects {
             val photos = c.database.getTaskItemPhotos(taskItem)
             messages.send(ReportMessages.msgTaskSelectionLoaded(TaskWithItem(task, taskItem), photos))
 
-            val report = c.database.getTaskItemReport(taskItem)
+            val report = c.database.getTaskItemResult(taskItem)
             report?.let {
                 messages.send(ReportMessages.msgSavedResultLoaded(it))
             }
@@ -81,81 +82,79 @@ object ReportEffects {
 
         when (val selectedTask = s.selectedTask) {
             null -> Unit //TODO: Show error
-            else -> when (s.selectedTaskReport) {
-                null -> {
-                    val defaultEntranceData = selectedTask.taskItem.entrancesData.firstOrNull { it.number == entrance }
-                    val report = TaskItemResult(
-                        id = TaskItemResultId(0),
-                        taskItemId = selectedTask.taskItem.id,
-                        closeTime = null,
-                        description = "",
-                        entrances = listOf(
-                            TaskItemEntranceResult(
-                                id = TaskItemEntranceId(0),
-                                taskItemResultId = TaskItemResultId(0),
-                                entranceNumber = entrance,
-                                selection = applyButtonClick(
-                                    ReportEntranceSelection(
-                                        isEuro = defaultEntranceData?.isEuroBoxes ?: false,
-                                        isWatch = defaultEntranceData?.hasLookout ?: false,
-                                        isStacked = defaultEntranceData?.isStacked ?: false,
-                                        isRejected = defaultEntranceData?.isRefused ?: false
-                                    )
-                                )
-                            )
-                        ),
-                        gps = GPSCoordinatesModel(0.0, 0.0, Date())
-                    )
-
-                    c.database.updateTaskItemResult(report)?.let {
-                        messages.send(ReportMessages.msgSavedResultLoaded(it))
+            else -> {
+                val report = if (s.selectedTaskReport == null) {
+                    val result = createEmptyTaskResult(c.database, selectedTask.taskItem)
+                    result?.let { createEmptyEntranceResult(c.database, it, selectedTask.taskItem, entrance) }
+                } else {
+                    if (s.selectedTaskReport.entrances.none { it.entranceNumber == entrance }) {
+                        createEmptyEntranceResult(c.database, s.selectedTaskReport, selectedTask.taskItem, entrance)
+                    } else {
+                        s.selectedTaskReport
                     }
                 }
-                else -> {
-                    when (val reportEntrance = s.selectedTaskReport.entrances.firstOrNull { it.entranceNumber == entrance }) {
-                        null -> {
-                            val defaultEntranceData = selectedTask.taskItem.entrancesData.firstOrNull { it.number == entrance }
-                            val selection = ReportEntranceSelection(
-                                isEuro = defaultEntranceData?.isEuroBoxes ?: false,
-                                isWatch = defaultEntranceData?.hasLookout ?: false,
-                                isStacked = defaultEntranceData?.isStacked ?: false,
-                                isRejected = defaultEntranceData?.isRefused ?: false
-                            )
-                            val updatedReport = s.selectedTaskReport.copy(
-                                entrances = s.selectedTaskReport.entrances + listOf(
-                                    TaskItemEntranceResult(
-                                        TaskItemEntranceId(0),
-                                        s.selectedTaskReport.id,
-                                        entrance,
-                                        applyButtonClick(selection)
-                                    )
-                                )
-                            )
 
-                            c.database.updateTaskItemResult(updatedReport)?.let {
-                                messages.send(ReportMessages.msgSavedResultLoaded(it))
-                            }
-                        }
-                        else -> {
-                            val updatedEntranceSelection = applyButtonClick(reportEntrance.selection)
-                            val updatedEntrance = reportEntrance.copy(selection = updatedEntranceSelection)
-                            val updatedReport = s.selectedTaskReport.copy(
-                                entrances = s.selectedTaskReport.entrances.map {
-                                    if (it.id == updatedEntrance.id) {
-                                        updatedEntrance
-                                    } else {
-                                        it
-                                    }
+                when (val reportEntrance = report?.entrances?.firstOrNull { it.entranceNumber == entrance }) {
+                    null -> Unit //TODO: Show error
+                    else -> {
+                        val updatedEntranceSelection = applyButtonClick(reportEntrance.selection)
+                        val updatedEntrance = reportEntrance.copy(selection = updatedEntranceSelection)
+                        val updatedReport = report.copy(
+                            entrances = report.entrances.map {
+                                if (it.id == updatedEntrance.id) {
+                                    updatedEntrance
+                                } else {
+                                    it
                                 }
-                            )
-
-                            c.database.updateTaskItemResult(updatedReport)?.let {
-                                messages.send(ReportMessages.msgSavedResultLoaded(it))
                             }
+                        )
+
+                        c.database.updateTaskItemResult(updatedReport)?.let {
+                            messages.send(ReportMessages.msgSavedResultLoaded(it))
                         }
                     }
                 }
             }
         }
+    }
+
+    private suspend fun createEmptyTaskResult(database: DatabaseRepository, taskItem: TaskItem): TaskItemResult? {
+        val result = TaskItemResult(
+            id = TaskItemResultId(0),
+            taskItemId = taskItem.id,
+            closeTime = null,
+            description = "",
+            entrances = emptyList(),
+            gps = GPSCoordinatesModel(0.0, 0.0, Date())
+        )
+        return database.updateTaskItemResult(result)
+    }
+
+    private suspend fun createEmptyEntranceResult(
+        database: DatabaseRepository,
+        taskItemResult: TaskItemResult,
+        taskItem: TaskItem,
+        entrance: EntranceNumber
+    ): TaskItemResult? {
+        if (taskItemResult.entrances.any { it.entranceNumber == entrance }) {
+            return taskItemResult
+        }
+        val defaultEntranceData = taskItem.entrancesData.firstOrNull { it.number == entrance }
+        val updatedResult = taskItemResult.copy(
+            entrances = taskItemResult.entrances + listOf(
+                TaskItemEntranceResult(
+                    id = TaskItemEntranceId(0),
+                    taskItemResultId = taskItemResult.id,
+                    entranceNumber = entrance,
+                    selection = ReportEntranceSelection(
+                        isEuro = defaultEntranceData?.isEuroBoxes ?: false,
+                        isWatch = defaultEntranceData?.hasLookout ?: false,
+                        isStacked = defaultEntranceData?.isStacked ?: false,
+                        isRejected = defaultEntranceData?.isRefused ?: false
+                    )
+                )
+            )
+        )
+        return database.updateTaskItemResult(updatedResult)
     }
 }

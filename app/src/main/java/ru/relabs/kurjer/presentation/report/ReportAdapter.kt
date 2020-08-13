@@ -65,7 +65,7 @@ object ReportAdapter {
     fun task(onTaskClicked: (TaskItem) -> Unit): IAdapterDelegate<ReportTaskItem> = delegateDefine(
         { true },
         { p ->
-            holderDefine(p, R.layout.holder_report_photo, { it }) { (task, taskItem, active) ->
+            holderDefine(p, R.layout.holder_report_task, { it }) { (task, taskItem, active) ->
 
                 itemView.btn_task.text = "${task.name} №${task.edition}, ${task.copies}"
                 if (active) {

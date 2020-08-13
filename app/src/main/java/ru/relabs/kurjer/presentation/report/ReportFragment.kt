@@ -6,9 +6,11 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.parcel.Parcelize
@@ -21,6 +23,7 @@ import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.TaskItemId
+import ru.relabs.kurjer.presentation.base.TextChangeListener
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.debugCollector
@@ -28,6 +31,7 @@ import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.utils.debug
+import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
@@ -42,6 +46,10 @@ class ReportFragment : BaseFragment() {
 
     private val controller = defaultController(ReportState(), ReportContext())
     private var renderJob: Job? = null
+
+    private val descriptionTextWatcher = TextChangeListener {
+        uiScope.sendMessage(controller, ReportMessages.msgDescriptionChanged(it))
+    }
 
     private val tasksAdapter = DelegateAdapter(
         ReportAdapter.task {
@@ -118,13 +126,15 @@ class ReportFragment : BaseFragment() {
                 ReportRenders.renderTasks(tasksAdapter, view.rv_tasks),
                 ReportRenders.renderPhotos(photosAdapter),
                 ReportRenders.renderEntrances(entrancesAdapter),
-                ReportRenders.renderTitle(view.tv_title)
+                ReportRenders.renderTitle(view.tv_title),
+                ReportRenders.renderDescription(view.et_description, descriptionTextWatcher)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
         }
         controller.context.errorContext.attach(view)
         controller.context.requestPhoto = ::requestPhoto
+        controller.context.hideKeyboard = ::hideKeyboard
     }
 
     private fun requestPhoto(entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID) {
@@ -178,6 +188,8 @@ class ReportFragment : BaseFragment() {
     }
 
     private fun bindControls(view: View) {
+        view.et_description.addTextChangedListener(descriptionTextWatcher)
+
         view.iv_menu.setOnClickListener {
             uiScope.sendMessage(controller, ReportMessages.msgBackClicked())
         }
@@ -186,6 +198,7 @@ class ReportFragment : BaseFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         renderJob?.cancel()
+        controller.context.hideKeyboard = {}
         controller.context.requestPhoto = { _, _, _, _ -> }
         controller.context.errorContext.detach()
     }

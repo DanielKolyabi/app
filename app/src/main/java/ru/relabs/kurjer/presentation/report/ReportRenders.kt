@@ -1,6 +1,8 @@
 package ru.relabs.kurjer.presentation.report
 
+import android.text.TextWatcher
 import android.view.View
+import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import ru.relabs.kurjer.domain.models.ENTRANCE_NUMBER_TASK_ITEM
@@ -8,6 +10,7 @@ import ru.relabs.kurjer.domain.models.ReportEntranceSelection
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
+import ru.relabs.kurjer.utils.extensions.renderText
 import ru.relabs.kurjer.utils.extensions.visible
 
 /**
@@ -84,5 +87,10 @@ object ReportRenders {
             }
             adapter.notifyDataSetChanged()
         }
+    )
+
+    fun renderDescription(view: EditText, watcher: TextWatcher): ReportRender = renderT(
+        { it.selectedTaskReport },
+        { view.renderText(it?.description ?: "", watcher) }
     )
 }

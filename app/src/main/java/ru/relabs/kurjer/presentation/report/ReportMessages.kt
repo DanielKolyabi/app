@@ -28,8 +28,14 @@ object ReportMessages {
     fun msgTasksLoaded(tasks: List<TaskWithItem>): ReportMessage =
         msgState { it.copy(tasks = tasks) }
 
-    fun msgTaskSelected(id: TaskItemId): ReportMessage =
-        msgEffect(ReportEffects.effectLoadSelection(id))
+    fun msgTaskSelected(id: TaskItemId): ReportMessage = msgEffects(
+        { it },
+        { s ->
+            listOfNotNull(
+                ReportEffects.effectLoadSelection(id).takeIf { s.selectedTask?.taskItem?.id != id }
+            )
+        }
+    )
 
     fun msgTaskSelectionLoaded(taskWithItem: TaskWithItem, photos: List<TaskItemPhoto>): ReportMessage =
         msgState { it.copy(selectedTask = taskWithItem, selectedTaskPhotos = photos) }
@@ -47,7 +53,7 @@ object ReportMessages {
     fun msgEntranceSelectClicked(entrance: EntranceNumber, button: EntranceSelectionButton): ReportMessage =
         msgEffect(ReportEffects.effectEntranceSelectionChanged(entrance, button))
 
-    fun msgSavedResultLoaded(report: TaskItemResult): ReportMessage =
+    fun msgSavedResultLoaded(report: TaskItemResult?): ReportMessage =
         msgState { it.copy(selectedTaskReport = report) }
 
     fun msgPhotoError(errorCode: Int): ReportMessage = msgEmpty() //TODO: Show error
@@ -73,4 +79,7 @@ object ReportMessages {
 
     fun msgNewPhoto(newPhoto: TaskItemPhoto): ReportMessage =
         msgState { it.copy(selectedTaskPhotos = it.selectedTaskPhotos + listOf(newPhoto)) }
+
+    fun msgDescriptionChanged(text: String): ReportMessage =
+        msgEffect(ReportEffects.effectUpdateDescription(text))
 }

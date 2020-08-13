@@ -35,6 +35,7 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     val locationProvider: LocationProvider by inject()
 
     var requestPhoto: (entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID) -> Unit = { _, _, _, _ -> }
+    var hideKeyboard: () -> Unit = {}
 }
 
 enum class EntranceSelectionButton {

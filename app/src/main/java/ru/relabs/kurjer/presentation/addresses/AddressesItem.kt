@@ -11,6 +11,6 @@ sealed class AddressesItem {
 
     object Loading: AddressesItem()
     object Blank: AddressesItem()
-    object Search: AddressesItem()
+    data class Search(val filter: String): AddressesItem()
 }
 

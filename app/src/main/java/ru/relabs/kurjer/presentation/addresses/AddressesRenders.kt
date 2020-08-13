@@ -29,11 +29,17 @@ object AddressesRenders {
             val newItems =
                 listOfNotNull(
                     AddressesItem.Sorting(sorting).takeIf { tasks.size == 1 },
-                    AddressesItem.Search.takeIf { tasks.isNotEmpty() },
+                    AddressesItem.Search(searchFilter).takeIf { tasks.isNotEmpty() },
                     AddressesItem.Loading.takeIf { tasks.isEmpty() && loading }
                 ) + getSortedTasks(tasks, sorting, searchFilter) + listOfNotNull(AddressesItem.Blank.takeIf { tasks.isNotEmpty() })
 
-            val diff = DiffUtil.calculateDiff(DefaultListDiffCallback(adapter.items, newItems))
+            val diff = DiffUtil.calculateDiff(DefaultListDiffCallback(adapter.items, newItems) { o, n ->
+                if ((o is AddressesItem.Search && n is AddressesItem.Search) || (o is AddressesItem.Sorting && n is AddressesItem.Sorting)) {
+                    true
+                } else {
+                    null
+                }
+            })
 
             adapter.items.clear()
             adapter.items.addAll(newItems)

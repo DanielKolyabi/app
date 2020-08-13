@@ -133,7 +133,10 @@ object AddressesAdapter {
     fun searchAdapter(onSearch: (String) -> Unit): IAdapterDelegate<AddressesItem> = delegateDefine(
         { it is AddressesItem.Search },
         { p ->
-            holderDefine(p, R.layout.holder_search, { it as AddressesItem.Search }) {
+            holderDefine(p, R.layout.holder_search, { it as AddressesItem.Search }) { (filter) ->
+                itemView.et_search.setText(filter)
+                itemView.iv_clear.visible = filter.isNotBlank()
+
                 itemView.et_search.addTextChangedListener {
                     val text = (it?.toString() ?: "")
                     itemView.iv_clear.visible = text.isNotBlank()
@@ -141,7 +144,6 @@ object AddressesAdapter {
                 }
                 if (itemView.et_search.text.isNotEmpty()) {
                     itemView.et_search.requestFocus()
-
                 }
                 itemView.et_search.setOnEditorActionListener { _, actionId, event ->
                     if (actionId == EditorInfo.IME_ACTION_SEARCH ||

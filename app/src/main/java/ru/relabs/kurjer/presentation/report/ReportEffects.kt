@@ -55,6 +55,9 @@ object ReportEffects {
     }
 
     fun effectLoadSelection(id: TaskItemId): ReportEffect = { c, s ->
+        withContext(Dispatchers.Main) {
+            c.hideKeyboard()
+        }
         messages.send(ReportMessages.msgAddLoaders(1))
         val task = s.tasks.firstOrNull { it.taskItem.id == id }?.task
         val taskItem = c.database.getTaskItem(id)
@@ -65,9 +68,7 @@ object ReportEffects {
             messages.send(ReportMessages.msgTaskSelectionLoaded(TaskWithItem(task, taskItem), photos))
 
             val report = c.database.getTaskItemResult(taskItem)
-            report?.let {
-                messages.send(ReportMessages.msgSavedResultLoaded(it))
-            }
+            messages.send(ReportMessages.msgSavedResultLoaded(report))
         }
         messages.send(ReportMessages.msgAddLoaders(-1))
     }
@@ -163,6 +164,18 @@ object ReportEffects {
                         val location = c.locationProvider.lastReceivedLocation()
                         messages.send(ReportMessages.msgNewPhoto(c.database.savePhoto(entrance, task.taskItem, uuid, location)))
                     }
+                }
+            }
+        }
+    }
+
+    fun effectUpdateDescription(text: String): ReportEffect = { c, s ->
+        when (val selectedTask = s.selectedTask) {
+            null -> Unit //TODO: Show error
+            else -> when (val r = s.selectedTaskReport ?: createEmptyTaskResult(c.database, selectedTask.taskItem)) {
+                null -> Unit //TODO: Show error
+                else -> c.database.updateTaskItemResult(r.copy(description = text))?.let {
+                    messages.send(ReportMessages.msgSavedResultLoaded(it))
                 }
             }
         }

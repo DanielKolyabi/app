@@ -3,6 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
     android:background="?android:selectableItemBackgroundBorderless">
 
     <ImageView
@@ -11,8 +13,6 @@
         android:layout_height="48dp"
         android:layout_margin="8dp"
         android:adjustViewBounds="true"
-        android:clickable="true"
-        android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -461,7 +461,7 @@ class ReportPresenter(
             }
 
             try {
-                ImageUtils.saveImage(photo, photoFile, fragment.context?.contentResolver)
+                ImageUtils.saveImage(photo, photoFile)
             } catch (e: Exception) {
                 e.printStackTrace()
                 return null

@@ -24,7 +24,6 @@ object ReportAdapter {
         { it is ReportPhotoItem.Single },
         { p ->
             holderDefine(p, R.layout.holder_report_photo_single, { it as ReportPhotoItem.Single }) { (required, hasPhoto) ->
-
                 itemView.setOnClickListener {
                     onPhotoClicked()
                 }
@@ -56,7 +55,7 @@ object ReportAdapter {
 
                 itemView.tv_entrance_number.text = when (photo.entranceNumber.number) {
                     -1 -> "Д"
-                    else -> photo.entranceNumber.toString()
+                    else -> photo.entranceNumber.number.toString()
                 }
             }
         }

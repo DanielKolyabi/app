@@ -26,7 +26,7 @@ object ImageUtils {
         return Bitmap.createScaledBitmap(b, newWidth.toInt(), newHeight.toInt(), false)
     }
 
-    fun saveImage(b: Bitmap, f: File, contentResolver: ContentResolver? = null) {
+    fun saveImage(b: Bitmap, f: File) {
 
         val fos = FileOutputStream(f)
         b.compress(Bitmap.CompressFormat.JPEG, 75, fos)

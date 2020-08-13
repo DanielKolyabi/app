@@ -1,10 +1,18 @@
 package ru.relabs.kurjer.presentation.report
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
+import ru.relabs.kurjer.files.ImageUtils
+import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.utils.Either
+import ru.relabs.kurjer.utils.Left
+import ru.relabs.kurjer.utils.Right
+import java.io.File
 import java.util.*
 
 /**
@@ -64,8 +72,17 @@ object ReportEffects {
         messages.send(ReportMessages.msgAddLoaders(-1))
     }
 
-    fun effectCreatePhoto(entranceNumber: Int): ReportEffect = { c, s ->
-        //TODO: Create photo
+    fun effectCreatePhoto(entranceNumber: Int, multiplePhotos: Boolean): ReportEffect = { c, s ->
+        when (val selectedTask = s.selectedTask) {
+            null -> Unit //TODO: Show error
+            else -> {
+                val photoUUID = UUID.randomUUID()
+                val photoFile = PathHelper.getTaskItemPhotoFile(selectedTask.taskItem, photoUUID)
+                withContext(Dispatchers.Main) {
+                    c.requestPhoto(entranceNumber, multiplePhotos, photoFile, photoUUID)
+                }
+            }
+        }
     }
 
     fun effectRemovePhoto(it: TaskItemPhoto): ReportEffect = { c, s ->
@@ -129,6 +146,33 @@ object ReportEffects {
                 }
             }
         }
+    }
+
+    fun effectSavePhotoFromFile(entrance: Int, targetFile: File, uuid: UUID): ReportEffect = { c, s ->
+        val bmp = BitmapFactory.decodeFile(targetFile.path)
+        effectSavePhotoFromBitmap(entrance, bmp, targetFile, uuid)(c, s)
+    }
+
+    fun effectSavePhotoFromBitmap(entrance: Int, bitmap: Bitmap, targetFile: File, uuid: UUID): ReportEffect = { c, s ->
+        when (val task = s.selectedTask) {
+            null -> Unit //TODO: Show error
+            else -> {
+                when (savePhotoFromBitmapToFile(bitmap, targetFile)) {
+                    is Left -> messages.send(ReportMessages.msgPhotoError(6))
+                    is Right -> {
+                        val location = c.locationProvider.lastReceivedLocation()
+                        messages.send(ReportMessages.msgNewPhoto(c.database.savePhoto(entrance, task.taskItem, uuid, location)))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun savePhotoFromBitmapToFile(bitmap: Bitmap, targetFile: File): Either<Exception, File> = Either.of {
+        val resized = ImageUtils.resizeBitmap(bitmap, 1024f, 768f)
+        bitmap.recycle()
+        ImageUtils.saveImage(resized, targetFile)
+        targetFile
     }
 
     private suspend fun createEmptyTaskResult(database: DatabaseRepository, taskItem: TaskItem): TaskItemResult? {

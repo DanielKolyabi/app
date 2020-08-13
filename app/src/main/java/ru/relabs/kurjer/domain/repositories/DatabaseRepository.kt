@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.domain.repositories
 
+import android.location.Location
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -7,6 +8,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
+import ru.relabs.kurjer.data.database.entities.TaskItemPhotoEntity
 import ru.relabs.kurjer.domain.mappers.TaskItemEntranceResultMapper
 import ru.relabs.kurjer.domain.mappers.TaskItemResultMapper
 import ru.relabs.kurjer.domain.mappers.database.*
@@ -14,7 +16,6 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.GPSCoordinatesModel
-import ru.relabs.kurjer.presentation.report.ReportMessages
 import ru.relabs.kurjer.utils.Either
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
@@ -305,6 +306,20 @@ class DatabaseRepository(
 
         getTaskItemResult(updatedReport.taskItemId)
     }
+
+    suspend fun savePhoto(entrance: Int, taskItem: TaskItem, uuid: UUID, location: Location?): TaskItemPhoto =
+        withContext(Dispatchers.IO) {
+            val gps = GPSCoordinatesModel(
+                location?.latitude ?: 0.0,
+                location?.longitude ?: 0.0,
+                location?.time?.let { Date(it) } ?: Date(0)
+            )
+
+            val photoEntity = TaskItemPhotoEntity(0, uuid.toString(), gps, taskItem.id.id, entrance)
+
+            val id = db.photosDao().insert(photoEntity)
+            DatabasePhotoMapper.fromEntity(photoEntity.copy(id = id.toInt()))
+        }
 }
 
 sealed class SendQueryData {

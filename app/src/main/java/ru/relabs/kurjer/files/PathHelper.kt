@@ -4,6 +4,7 @@ import android.os.Environment
 import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import java.io.File
@@ -29,6 +30,10 @@ object PathHelper {
         val taskDir = File(photoDir, taskItemID.toString())
         if (!taskDir.exists()) taskDir.mkdirs()
         return taskDir
+    }
+
+    fun getTaskItemPhotoFile(taskItem: TaskItem, uuid: UUID): File {
+        return getTaskItemPhotoFileByID(taskItem.id.id, uuid)
     }
 
     fun getTaskItemPhotoFile(taskItem: TaskItemModel, uuid: UUID): File {

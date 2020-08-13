@@ -97,7 +97,20 @@ object ReportEffects {
                 when (val reportEntrance = report?.entrances?.firstOrNull { it.entranceNumber == entrance }) {
                     null -> Unit //TODO: Show error
                     else -> {
-                        val updatedEntranceSelection = applyButtonClick(reportEntrance.selection)
+                        val updatedEntranceSelection = applyButtonClick(reportEntrance.selection).let {
+                            if (button == EntranceSelectionButton.Euro && it.isEuro) {
+                                it.copy(isStacked = true)
+                            } else if (button == EntranceSelectionButton.Watch && it.isWatch) {
+                                it.copy(isStacked = true)
+                            } else if (
+                                (button == EntranceSelectionButton.Watch || button == EntranceSelectionButton.Euro)
+                                && (!it.isEuro && !it.isWatch)
+                            ) {
+                                it.copy(isStacked = false)
+                            } else {
+                                it
+                            }
+                        }
                         val updatedEntrance = reportEntrance.copy(selection = updatedEntranceSelection)
                         val updatedReport = report.copy(
                             entrances = report.entrances.map {

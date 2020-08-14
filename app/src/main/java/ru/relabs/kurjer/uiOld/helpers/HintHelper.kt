@@ -1,22 +1,32 @@
 package ru.relabs.kurjer.uiOld.helpers
 
+import android.app.Activity
+import android.content.Context
 import android.content.SharedPreferences
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.Transformation
 import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.android.synthetic.main.include_hint_container.view.*
+import ru.relabs.kurjer.BuildConfig
 
 /**
  * Created by ProOrange on 27.08.2018.
  */
 class HintHelper(
-        val hintContainer: View,
-        val text: String,
-        private var expanded: Boolean = false,
-        val preferences: SharedPreferences,
-        var maxHeight: Int = 200 * hintContainer.resources.displayMetrics.density.toInt()
+    val hintContainer: View,
+    val text: String,
+    private var expanded: Boolean = false,
+    val preferences: SharedPreferences,
+    var maxHeight: Int = 200 * hintContainer.resources.displayMetrics.density.toInt()
 ) {
+
+    constructor(
+        hintContainer: View,
+        text: String,
+        expanded: Boolean = false,
+        activity: Activity
+    ) : this(hintContainer, text, expanded, activity.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
 
     var expandedHeight = 0
 
@@ -38,7 +48,7 @@ class HintHelper(
     }
 
     private fun changeFont(spFontSize: Float) {
-        if(spFontSize < 12 || spFontSize > 26) return
+        if (spFontSize < 12 || spFontSize > 26) return
         preferences.edit().putFloat("hint_font_size", spFontSize).apply()
         hintContainer.hint_text.textSize = spFontSize
     }
@@ -67,8 +77,10 @@ class HintHelper(
     }
 
     private fun getExpandHintAnimation(): Animation {
-        hintContainer.measure(View.MeasureSpec.makeMeasureSpec(hintContainer.width, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+        hintContainer.measure(
+            View.MeasureSpec.makeMeasureSpec(hintContainer.width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
 
         val lp = (hintContainer.hint_icon.layoutParams as ConstraintLayout.LayoutParams)
         val collapsedHeight = hintContainer.hint_icon.height + lp.topMargin + lp.bottomMargin
@@ -92,8 +104,10 @@ class HintHelper(
     }
 
     private fun getCollapseHintAnimation(): Animation {
-        hintContainer.measure(View.MeasureSpec.makeMeasureSpec(hintContainer.width, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+        hintContainer.measure(
+            View.MeasureSpec.makeMeasureSpec(hintContainer.width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
 
         val lp = hintContainer.hint_icon.layoutParams as ConstraintLayout.LayoutParams
         val collapsedHeight = hintContainer.hint_icon.height + lp.topMargin + lp.bottomMargin

@@ -21,18 +21,17 @@ import kotlinx.android.synthetic.main.fragment_report_old.*
 import kotlinx.android.synthetic.main.include_hint_container.*
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
-import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.domain.providers.LocationProvider
+import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.domain.repositories.RadiusRepository
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.data.database.AppDatabase
-import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.uiOld.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.uiOld.delegates.*
 import ru.relabs.kurjer.uiOld.dialogs.GPSRequestTimeDialog
@@ -148,12 +147,7 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        hintHelper = HintHelper(
-            hint_container,
-            "",
-            false,
-            activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-        )
+        hintHelper = HintHelper(hint_container, "", false, requireActivity())
 
         hint_container.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
 
@@ -162,7 +156,7 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
 
                 updateHintHelperMaximumHeight()
             }
-        });
+        })
 
         tasksListAdapter.addDelegate(ReportTasksDelegate {
             presenter.changeCurrentTask(it)

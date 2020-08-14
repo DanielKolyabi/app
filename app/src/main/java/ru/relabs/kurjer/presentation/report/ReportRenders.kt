@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.presentation.report
 
+import android.text.Html
 import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
@@ -92,5 +93,16 @@ object ReportRenders {
     fun renderDescription(view: EditText, watcher: TextWatcher): ReportRender = renderT(
         { it.selectedTaskReport },
         { view.renderText(it?.description ?: "", watcher) }
+    )
+
+    fun renderNotes(hintText: TextView): ReportRender = renderT(
+        { it.selectedTask?.taskItem?.notes.orEmpty() },
+        { notes ->
+            hintText.text = Html.fromHtml(
+                (3 downTo 1)
+                    .map { notes.getOrElse(it - 1) { "" } }
+                    .joinToString("<br/>")
+            )
+        }
     )
 }

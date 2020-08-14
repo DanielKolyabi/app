@@ -6,15 +6,17 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
-import android.view.KeyEvent
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.inputmethod.EditorInfo
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.parcel.Parcelize
+import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.fragment_report.view.*
+import kotlinx.android.synthetic.main.fragment_report.view.rv_entrances
+import kotlinx.android.synthetic.main.fragment_report_old.*
+import kotlinx.android.synthetic.main.include_hint_container.*
+import kotlinx.android.synthetic.main.include_hint_container.view.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -30,6 +32,7 @@ import ru.relabs.kurjer.presentation.base.tea.debugCollector
 import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
+import ru.relabs.kurjer.uiOld.helpers.HintHelper
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import java.io.File
@@ -109,6 +112,14 @@ class ReportFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val hintHelper = HintHelper(hint_container, "", false, requireActivity())
+        hint_container.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                hint_container?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+                hintHelper.maxHeight = (rv_entrances?.height ?: 0) + (hint_container?.height ?: 0)
+            }
+        })
+
         view.rv_tasks.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
         view.rv_tasks.adapter = tasksAdapter
 
@@ -127,7 +138,8 @@ class ReportFragment : BaseFragment() {
                 ReportRenders.renderPhotos(photosAdapter),
                 ReportRenders.renderEntrances(entrancesAdapter),
                 ReportRenders.renderTitle(view.tv_title),
-                ReportRenders.renderDescription(view.et_description, descriptionTextWatcher)
+                ReportRenders.renderDescription(view.et_description, descriptionTextWatcher),
+                ReportRenders.renderNotes(view.hint_text)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }

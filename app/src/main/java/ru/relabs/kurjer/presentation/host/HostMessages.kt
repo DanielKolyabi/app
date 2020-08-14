@@ -2,6 +2,7 @@ package ru.relabs.kurjer.presentation.host
 
 import android.net.Uri
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
+import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
@@ -12,7 +13,10 @@ object HostMessages {
     fun msgInit(restored: Boolean): HostMessage = msgEffects(
         { it },
         {
-            listOf(HostEffects.effectInit(restored))
+            listOf(
+                HostEffects.effectInit(restored),
+                HostEffects.effectSubscribe()
+            )
         }
     )
 
@@ -71,4 +75,13 @@ object HostMessages {
 
     fun msgUpdateDialogShowed(b: Boolean): HostMessage =
         msgState { it.copy(isUpdateDialogShowed = b) }
+
+    fun msgPauseClicked(): HostMessage =
+        msgEffect(HostEffects.effectEnablePause())
+
+    fun msgPauseStart(type: PauseType): HostMessage =
+        msgEffect(HostEffects.effectPauseStart(type))
+
+    fun msgIsPaused(paused: Boolean): HostMessage =
+        msgState { it.copy(isPaused = paused) }
 }

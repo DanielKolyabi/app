@@ -3,11 +3,14 @@ package ru.relabs.kurjer.presentation.host
 import android.net.Uri
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
@@ -15,7 +18,6 @@ import ru.relabs.kurjer.presentation.host.featureCheckers.FeatureChecker
 import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
-import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.getFirebaseToken
 import java.io.File
 
@@ -165,5 +167,46 @@ object HostEffects {
 
     private fun isUpdateRequired(state: HostState): Boolean =
         state.appUpdates == null || ((state.appUpdates.required?.version ?: 0) > BuildConfig.VERSION_CODE && !state.isUpdateLoadingFailed)
+
+    fun effectEnablePause(): HostEffect = { c, s ->
+        if(c.pauseRepository.isPaused){
+            c.showErrorDialog(R.string.pause_already_paused)
+        }
+        val availablePauseTypes = listOfNotNull(
+            PauseType.Load.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Load) },
+            PauseType.Lunch.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Lunch) }
+        )
+        withContext(Dispatchers.Main){
+            c.showPauseDialog(availablePauseTypes)
+        }
+    }
+
+    fun effectPauseStart(type: PauseType): HostEffect = { c, s ->
+        messages.send(HostMessages.msgAddLoaders(1))
+        if (!c.pauseRepository.isPauseAvailable(type)) {
+            withContext(Dispatchers.Main){
+                c.showErrorDialog(R.string.error_pause_unavailable)
+            }
+        } else {
+            if (!c.pauseRepository.isPauseAvailableRemote(type)) {
+                withContext(Dispatchers.Main){
+                    c.showErrorDialog(R.string.error_pause_unavailable)
+                }
+            } else {
+                c.pauseRepository.startPause(type)
+            }
+        }
+        messages.send(HostMessages.msgAddLoaders(-1))
+    }
+
+    fun effectSubscribe(): HostEffect = {c,s ->
+        coroutineScope {
+            launch {
+                c.pauseRepository.isPausedChannel.asFlow().collect {
+                    messages.send(HostMessages.msgIsPaused(it))
+                }
+            }
+        }
+    }
 
 }

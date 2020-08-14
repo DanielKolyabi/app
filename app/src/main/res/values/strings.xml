@@ -82,4 +82,10 @@
     <string name="task_details_address_bypass">%d    %d</string>
     <string name="fatal_error_title">Произошла непредвиденная ошибка\nКод ошибки: %s</string>
     <string name="image_map_not_found">Файл карты не найден</string>
+    <string name="menu_pause">Пауза</string>
+    <string name="pause_lunch">Обед</string>
+    <string name="pause_load">Дозагрузка</string>
+    <string name="pause_cancel">Отмена</string>
+    <string name="error_pause_unavailable">Пауза недоступна</string>
+    <string name="pause_already_paused">Пауза уже запущена</string>
 </resources>

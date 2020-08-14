@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.presentation.host
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -9,6 +10,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -25,7 +27,7 @@ import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.AppUpdate
-import ru.relabs.kurjer.presentation.RootScreen
+import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.fragment.IFragmentStyleable
@@ -35,7 +37,6 @@ import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.presentation.customViews.drawables.NavDrawerBackgroundDrawable
 import ru.relabs.kurjer.presentation.host.featureCheckers.FeatureCheckersContainer
 import ru.relabs.kurjer.presentation.host.systemWatchers.SystemWatchersContainer
-import ru.relabs.kurjer.presentation.tasks.TasksFragment
 import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
@@ -95,8 +96,36 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.context.showUpdateDialog = ::showUpdateDialog
         controller.context.showErrorDialog = ::showErrorDialog
         controller.context.installUpdate = ::installUpdate
+        controller.context.showPauseDialog = ::showPauseDialog
 
         controller.context.featureCheckersContainer = featureCheckersContainer
+    }
+
+    private fun showPauseDialog(availablePauseTypes: List<PauseType>) {
+        var dialog: AlertDialog? = null
+
+        val adapter = ArrayAdapter<String>(this, android.R.layout.select_dialog_singlechoice).apply {
+            availablePauseTypes.map {
+                add(
+                    getString(
+                        when (it) {
+                            PauseType.Lunch -> R.string.pause_lunch
+                            PauseType.Load -> R.string.pause_load
+                        }
+                    )
+                )
+            }
+            add(getString(R.string.pause_cancel))
+        }
+
+        dialog = AlertDialog.Builder(this)
+            .setAdapter(adapter) { _, id ->
+                when (adapter.getItem(id)) {
+                    getString(R.string.pause_lunch) -> uiScope.sendMessage(controller, HostMessages.msgPauseStart(PauseType.Lunch))
+                    getString(R.string.pause_load) -> uiScope.sendMessage(controller, HostMessages.msgPauseStart(PauseType.Load))
+                    getString(R.string.pause_cancel) -> dialog?.dismiss()
+                }
+            }.show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -202,6 +231,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         supervisor.cancelChildren()
         controller.context.errorContext.detach()
         controller.context.showUpdateDialog = { false }
+        controller.context.showPauseDialog = {}
         controller.context.showErrorDialog = {}
         controller.context.installUpdate = {}
         navigationHolder.removeNavigator()
@@ -244,6 +274,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                         NAVIGATION_CRASH -> sendCrashLog()
                         NAVIGATION_UUID -> copyDeviceId()
                         NAVIGATION_LOGOUT -> logout()
+                        NAVIGATION_PAUSE -> pauseClicked()
                         else -> true
                     }
                 }
@@ -253,6 +284,11 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         }
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    private fun pauseClicked(): Boolean {
+        uiScope.sendMessage(controller, HostMessages.msgPauseClicked())
+        return false
     }
 
     private fun copyDeviceId(): Boolean {
@@ -291,6 +327,10 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
     private fun buildDrawerItems(): Array<IDrawerItem<*>> {
         return arrayOf(
+            buildDrawerItem(
+                NAVIGATION_PAUSE,
+                R.string.menu_pause
+            ),
             buildDrawerItem(
                 NAVIGATION_CRASH,
                 R.string.menu_info
@@ -364,9 +404,10 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     companion object {
         const val REQUEST_CODE_INSTALL_PACKAGE = 997
 
-        const val NAVIGATION_CRASH = 1L
-        const val NAVIGATION_UUID = 2L
-        const val NAVIGATION_LOGOUT = 3L
+        const val NAVIGATION_PAUSE = 1L
+        const val NAVIGATION_CRASH = 2L
+        const val NAVIGATION_UUID = 3L
+        const val NAVIGATION_LOGOUT = 4L
 
         fun getIntent(parentContext: Context) = Intent(parentContext, HostActivity::class.java)
     }

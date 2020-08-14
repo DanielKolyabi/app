@@ -3,6 +3,8 @@ package ru.relabs.kurjer.domain.repositories
 import android.content.SharedPreferences
 import android.util.Log
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
 import ru.relabs.kurjer.ReportService
 import ru.relabs.kurjer.data.models.common.DomainException
 import ru.relabs.kurjer.utils.*
@@ -32,12 +34,19 @@ class PauseRepository(
     private val sharedPreferences: SharedPreferences,
     private val db: DatabaseRepository
 ) {
+    val isPausedChannel = BroadcastChannel<Boolean>(Channel.CONFLATED)
+
     private var lunchDuration: Int = 20 * 60
     private var loadDuration: Int = 20 * 60
     private var currentPauseType: PauseType? = null
     private var pauseEndJob: Job? = null
-
-    var isPaused: Boolean = false
+    private var isPausedInternal: Boolean = false
+    var isPaused: Boolean
+        get() = isPausedInternal
+        set(value) {
+            isPausedChannel.offer(value)
+            isPausedInternal = value
+        }
 
     init {
         lunchDuration = sharedPreferences.getInt(LUNCH_KEY, lunchDuration)

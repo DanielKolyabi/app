@@ -40,7 +40,7 @@ class PauseRepository(
     private var loadDuration: Int = 20 * 60
     private var currentPauseType: PauseType? = null
     private var pauseEndJob: Job? = null
-    private var isPausedInternal: Boolean = false
+    private var isPausedInternal: Boolean = getActivePauseType() != null
     var isPaused: Boolean
         get() = isPausedInternal
         set(value) {

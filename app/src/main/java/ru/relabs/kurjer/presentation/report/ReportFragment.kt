@@ -1,18 +1,23 @@
 package ru.relabs.kurjer.presentation.report
 
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
+import android.location.Location
 import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.parcel.Parcelize
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.fragment_report.view.*
-import kotlinx.android.synthetic.main.fragment_report.view.rv_entrances
 import kotlinx.android.synthetic.main.include_hint_container.*
 import kotlinx.android.synthetic.main.include_hint_container.view.*
 import kotlinx.coroutines.Job
@@ -33,6 +38,7 @@ import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.uiOld.helpers.HintHelper
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
+import ru.relabs.kurjer.utils.extensions.showDialog
 import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
@@ -135,7 +141,7 @@ class ReportFragment : BaseFragment() {
 
         renderJob = uiScope.launch {
             val renders = listOf(
-                ReportRenders.renderLoading(view.loading),
+                ReportRenders.renderLoading(view.loading, view.tv_gps_loading),
                 ReportRenders.renderTasks(tasksAdapter, view.rv_tasks),
                 ReportRenders.renderPhotos(photosAdapter),
                 ReportRenders.renderEntrances(entrancesAdapter),
@@ -150,6 +156,56 @@ class ReportFragment : BaseFragment() {
         controller.context.errorContext.attach(view)
         controller.context.requestPhoto = ::requestPhoto
         controller.context.hideKeyboard = ::hideKeyboard
+        controller.context.showCloseError = ::showCloseError
+        controller.context.showPausedWarning = ::showPausedWarning
+        controller.context.showPhotosWarning = ::showPhotosWarning
+        controller.context.showPreCloseDialog = ::showPreCloseDialog
+        controller.context.getBatteryLevel = ::getBatteryLevel
+    }
+
+    private fun getBatteryLevel(): Float? {
+        val ifilter = IntentFilter("android.intent.action.BATTERY_CHANGED")
+        val battery = context?.registerReceiver(null as BroadcastReceiver?, ifilter)
+        return battery?.let { it ->
+            val level = it.getIntExtra("level", -1)
+            val scale = it.getIntExtra("scale", -1)
+            level.toFloat() / scale.toFloat()
+        }
+    }
+
+    private fun showPreCloseDialog(location: Location?) {
+        showDialog(
+            R.string.report_close_ask,
+            R.string.yes to { uiScope.sendMessage(controller, ReportMessages.msgPerformClose(location)) },
+            R.string.no to {},
+            style = R.style.RedAlertDialog
+        )
+    }
+
+    private fun showCloseError(msgRes: Int, withPreClose: Boolean, location: Location? = null) {
+        showDialog(
+            msgRes,
+            R.string.ok to {
+                if (withPreClose) {
+                    showPreCloseDialog(location)
+                }
+            }
+        )
+    }
+
+    private fun showPhotosWarning() {
+        showDialog(
+            R.string.report_close_no_photos,
+            R.string.ok to {}
+        )
+    }
+
+    private fun showPausedWarning() {
+        showDialog(
+            R.string.report_close_paused_warning,
+            R.string.ok to { uiScope.sendMessage(controller, ReportMessages.msgInterruptPause()) },
+            R.string.cancel to {}
+        )
     }
 
     private fun requestPhoto(entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID) {
@@ -208,6 +264,10 @@ class ReportFragment : BaseFragment() {
         view.iv_menu.setOnClickListener {
             uiScope.sendMessage(controller, ReportMessages.msgBackClicked())
         }
+
+        view.btn_close.setOnClickListener {
+            uiScope.sendMessage(controller, ReportMessages.msgCloseClicked())
+        }
     }
 
     override fun onDestroyView() {
@@ -215,6 +275,11 @@ class ReportFragment : BaseFragment() {
         renderJob?.cancel()
         controller.context.hideKeyboard = {}
         controller.context.requestPhoto = { _, _, _, _ -> }
+        controller.context.showCloseError = { _, _, _ -> }
+        controller.context.showPausedWarning = {}
+        controller.context.showPhotosWarning = {}
+        controller.context.showPreCloseDialog = {}
+        controller.context.getBatteryLevel = { null }
         controller.context.errorContext.detach()
     }
 

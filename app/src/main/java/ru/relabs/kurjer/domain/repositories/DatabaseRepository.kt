@@ -7,10 +7,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.AppDatabase
-import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
-import ru.relabs.kurjer.data.database.entities.TaskItemPhotoEntity
-import ru.relabs.kurjer.data.database.entities.TaskItemResultEntity
-import ru.relabs.kurjer.data.database.entities.TaskItemResultEntranceEntity
+import ru.relabs.kurjer.data.database.entities.*
 import ru.relabs.kurjer.domain.mappers.ReportEntranceSelectionMapper
 import ru.relabs.kurjer.domain.mappers.TaskItemEntranceResultMapper
 import ru.relabs.kurjer.domain.mappers.TaskItemResultMapper
@@ -19,6 +16,7 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.utils.Either
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
@@ -368,6 +366,25 @@ class DatabaseRepository(
             val id = db.photosDao().insert(photoEntity)
             DatabasePhotoMapper.fromEntity(photoEntity.copy(id = id.toInt()))
         }
+
+    suspend fun closeTaskItem(taskItem: TaskItem) = withContext(Dispatchers.IO) {
+        db.taskItemDao().getById(taskItem.id.id)
+            ?.copy(state = TaskItemEntity.STATE_CLOSED)
+            ?.let { db.taskItemDao().update(it) }
+
+        db.taskDao().getById(taskItem.taskId.id)?.let{ parentTask ->
+            if (parentTask.state and TaskModel.EXAMINED != 0) {
+                putSendQuery(SendQueryData.TaskAccepted(TaskId(parentTask.id)))
+            }
+
+            db.taskDao().update(parentTask.copy(state = TaskState.STARTED.toInt()))
+        }
+
+    }
+
+    suspend fun createTaskItemReport(reportItem: ReportQueryItemEntity) = withContext(Dispatchers.IO){
+        db.reportQueryDao().insert(reportItem)
+    }
 }
 
 sealed class SendQueryData {

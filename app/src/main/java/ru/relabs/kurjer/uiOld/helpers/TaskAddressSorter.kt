@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.uiOld.helpers
 
+import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.uiOld.models.AddressListModel
 
@@ -35,7 +36,7 @@ object TaskAddressSorter {
         ).groupBy {
             it.taskItem.address.id
         }.toList().sortedBy {
-            !it.second.any { it.taskItem.state != TaskItemModel.CLOSED }
+            !it.second.any { it.taskItem.state != TaskItemEntity.STATE_CLOSED }
         }.toMap().flatMap {
             it.value
         }
@@ -50,7 +51,7 @@ object TaskAddressSorter {
         ).groupBy {
             it.taskItem.address.id
         }.toList().sortedBy {
-            !it.second.any { it.taskItem.state != TaskItemModel.CLOSED }
+            !it.second.any { it.taskItem.state != TaskItemEntity.STATE_CLOSED }
         }.toMap().flatMap {
             it.value
         }

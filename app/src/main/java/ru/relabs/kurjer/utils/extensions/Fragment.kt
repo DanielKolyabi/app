@@ -52,28 +52,36 @@ fun Fragment.showDialog(
     messageId: Int,
     positiveButton: Pair<Int, () -> Unit>? = null,
     negativeButton: Pair<Int, () -> Unit>? = null,
-    cancelable: Boolean = false
+    cancelable: Boolean = false,
+    style: Int? = null
 ): AlertDialog = showDialog(
     resources.getString(messageId),
     positiveButton,
     negativeButton,
-    cancelable
+    cancelable,
+    style
 )
 
 fun Fragment.showDialog(
     message: String,
     positiveButton: Pair<Int, () -> Unit>? = null,
     negativeButton: Pair<Int, () -> Unit>? = null,
-    cancelable: Boolean = false
-): AlertDialog = AlertDialog.Builder(requireContext())
-    .setMessage(message)
-    .setCancelable(cancelable)
-    .apply {
-        if (positiveButton != null) {
-            setPositiveButton(positiveButton.first) { _, _ -> positiveButton.second() }
-        }
-        if (negativeButton != null) {
-            setNegativeButton(negativeButton.first) { _, _ -> negativeButton.second() }
-        }
+    cancelable: Boolean = false,
+    style: Int? = null
+): AlertDialog =
+    if (style == null) {
+        AlertDialog.Builder(requireContext())
+    } else {
+        AlertDialog.Builder(requireContext(), style)
     }
-    .show()
+        .setMessage(message)
+        .setCancelable(cancelable)
+        .apply {
+            if (positiveButton != null) {
+                setPositiveButton(positiveButton.first) { _, _ -> positiveButton.second() }
+            }
+            if (negativeButton != null) {
+                setNegativeButton(negativeButton.first) { _, _ -> negativeButton.second() }
+            }
+        }
+        .show()

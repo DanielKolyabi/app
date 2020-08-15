@@ -2,17 +2,17 @@ package ru.relabs.kurjer.presentation.report
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import android.location.Location
+import kotlinx.coroutines.*
+import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.GPSCoordinatesModel
-import ru.relabs.kurjer.utils.Either
-import ru.relabs.kurjer.utils.Left
-import ru.relabs.kurjer.utils.Right
+import ru.relabs.kurjer.presentation.base.tea.msgEffect
+import ru.relabs.kurjer.utils.*
+import ru.relabs.kurjer.utils.extensions.isLocationExpired
 import java.io.File
 import java.util.*
 
@@ -179,6 +179,122 @@ object ReportEffects {
         }
     }
 
+    fun effectCloseCheck(withLocationLoading: Boolean): ReportEffect = { c, s ->
+        messages.send(ReportMessages.msgAddLoaders(1))
+        when (val selected = s.selectedTask) {
+            null -> Unit //TODO: Show error
+            else -> {
+                val taskItemRequiredPhotoExists = if(selected.taskItem.needPhoto){
+                    s.selectedTaskPhotos.any { it.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM }
+                }else{
+                    true
+                }
+
+                val requiredEntrancesPhotos = selected.taskItem.entrancesData
+                        .filter { it.photoRequired }
+                        .map { false to it.number }
+
+                val entrancesRequiredPhotoExists = if(requiredEntrancesPhotos.isNotEmpty()){
+                    requiredEntrancesPhotos
+                        .reduce { entranceData, acc -> acc.copy(first = acc.first && s.selectedTaskPhotos.any { it.entranceNumber == entranceData.second }) }
+                        .first
+                }else{
+                    true
+                }
+
+                val location = c.locationProvider.lastReceivedLocation()
+
+                if (c.pauseRepository.isPaused) {
+                    withContext(Dispatchers.Main) {
+                        c.showPausedWarning()
+                    }
+                } else if (!taskItemRequiredPhotoExists || !entrancesRequiredPhotoExists) {
+                    withContext(Dispatchers.Main) {
+                        c.showPhotosWarning()
+                    }
+                } else if (withLocationLoading && (location == null || Date(location.time).isLocationExpired())) {
+                    coroutineScope {
+                        messages.send(ReportMessages.msgGPSLoading(true))
+                        val delayJob = async { delay(40 * 1000) }
+                        val gpsJob = async(Dispatchers.Default) {
+                            c.locationProvider.updatesChannel().apply{
+                                receive()
+                                cancel()
+                            }
+                        }
+                        listOf(delayJob, gpsJob).awaitFirst()
+                        messages.send(ReportMessages.msgGPSLoading(false))
+                        messages.send(msgEffect(effectCloseCheck(false)))
+                    }
+                } else {
+                    val distance = location?.let {
+                        calculateDistance(
+                            location.latitude,
+                            location.longitude,
+                            selected.taskItem.address.lat.toDouble(),
+                            selected.taskItem.address.long.toDouble()
+                        )
+                    } ?: Int.MAX_VALUE.toDouble()
+
+                    val shadowClose: Boolean = withContext(Dispatchers.Main) {
+                        when (val radius = c.radiusRepository.allowedCloseRadius) {
+                            is AllowedCloseRadius.Required -> when {
+                                location == null || Date(location.time).isLocationExpired() -> {
+                                    c.showCloseError(R.string.report_close_location_null_error, false, null)
+                                    true
+                                }
+                                distance > radius.distance -> {
+                                    c.showCloseError(R.string.report_close_location_far_error, false, null)
+                                    true
+                                }
+                                else -> {
+                                    false
+                                }
+                            }
+                            is AllowedCloseRadius.NotRequired -> when {
+                                location == null || Date(location.time).isLocationExpired() -> {
+                                    c.showCloseError(R.string.report_close_location_null_warning, true, location)
+                                    false
+                                }
+                                distance > radius.distance -> {
+                                    c.showCloseError(R.string.report_close_location_far_warning, true, location)
+                                    false
+                                }
+                                else -> {
+                                    withContext(Dispatchers.Main) {
+                                        c.showPreCloseDialog(location)
+                                    }
+                                    false
+                                }
+                            }
+                        }
+                    }
+                    if (shadowClose) {
+                        effectClosePerform(false, location)(c, s)
+                    }
+                }
+            }
+        }
+        messages.send(ReportMessages.msgAddLoaders(-1))
+    }
+
+    fun effectClosePerform(withRemove: Boolean, location: Location?): ReportEffect = { c, s ->
+        messages.send(ReportMessages.msgAddLoaders(1))
+        when (val selected = s.selectedTask) {
+            null -> Unit //TODO: Show error
+            else -> {
+                effectInterruptPause()(c,s)
+                if(withRemove){
+                    c.database.closeTaskItem(selected.taskItem)
+                }
+                c.reportUseCase.createReport(selected.task, selected.taskItem, location, c.getBatteryLevel() ?: 0f, withRemove)
+
+                messages.send(ReportMessages.msgTaskItemClosed(selected, withRemove))
+            }
+        }
+        messages.send(ReportMessages.msgAddLoaders(-1))
+    }
+
     private fun savePhotoFromBitmapToFile(bitmap: Bitmap, targetFile: File): Either<Exception, File> = Either.of {
         val resized = ImageUtils.resizeBitmap(bitmap, 1024f, 768f)
         bitmap.recycle()
@@ -196,5 +312,11 @@ object ReportEffects {
             gps = GPSCoordinatesModel(0.0, 0.0, Date())
         )
         return database.updateTaskItemResult(result)
+    }
+
+    fun effectInterruptPause(): ReportEffect = { c, s ->
+        if(c.pauseRepository.isPaused){
+            c.pauseRepository.stopPause(withNotify = true, withUpdate = true)
+        }
     }
 }

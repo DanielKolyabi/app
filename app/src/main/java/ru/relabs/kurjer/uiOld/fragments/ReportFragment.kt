@@ -24,6 +24,7 @@ import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
@@ -83,7 +84,7 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
             if (taskItemId != 0) {
                 for (taskItem in taskItems) {
                     if (taskItem.id == taskItemId) {
-                        taskItem.state = TaskItemModel.CLOSED
+                        taskItem.state = TaskItemEntity.STATE_CLOSED
                         presenter.changeCurrentTask(presenter.currentTask)
                         break
                     }
@@ -188,7 +189,7 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
             override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
 
             override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean =
-                taskItems[presenter.currentTask].state == TaskItemModel.CLOSED || !tasks[presenter.currentTask].isAvailableByDate(Date())
+                taskItems[presenter.currentTask].state == TaskItemEntity.STATE_CLOSED || !tasks[presenter.currentTask].isAvailableByDate(Date())
 
             override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
         }

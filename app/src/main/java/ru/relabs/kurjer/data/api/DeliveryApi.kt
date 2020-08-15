@@ -2,7 +2,8 @@ package ru.relabs.kurjer.data.api
 
 import okhttp3.MultipartBody
 import retrofit2.http.*
-import ru.relabs.kurjer.data.models.*
+import ru.relabs.kurjer.data.models.TaskItemReportRequest
+import ru.relabs.kurjer.data.models.UpdatesResponse
 import ru.relabs.kurjer.data.models.auth.AuthResponse
 import ru.relabs.kurjer.data.models.common.StatusResponse
 import ru.relabs.kurjer.data.models.pause.PauseTimeResponse
@@ -37,10 +38,10 @@ interface DeliveryApi {
     @POST("api/v1/tasks/{id}/report")
     @Multipart
     suspend fun sendTaskReport(
-        @Header("X-TOKEN") token: String,
         @Path("id") taskItemId: Int,
         @Part("data") data: TaskItemReportRequest,
-        @Part photos: List<MultipartBody.Part>
+        @Part photos: List<MultipartBody.Part>,
+        @Query("token") token: String
     )
 
     @GET("api/v1/update")

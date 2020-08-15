@@ -2,6 +2,7 @@ package ru.relabs.kurjer.domain.models
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
+import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 import ru.relabs.kurjer.domain.mappers.MappingException
 
 @Parcelize
@@ -27,12 +28,12 @@ enum class TaskItemState{
 }
 
 fun TaskItemState.toInt() = when(this){
-    TaskItemState.CREATED -> 0
-    TaskItemState.CLOSED -> 1
+    TaskItemState.CREATED -> TaskItemEntity.STATE_CREATED
+    TaskItemState.CLOSED -> TaskItemEntity.STATE_CLOSED
 }
 
 fun Int.toTaskItemState() = when(this){
-    0 -> TaskItemState.CREATED
-    1 -> TaskItemState.CLOSED
+    TaskItemEntity.STATE_CREATED -> TaskItemState.CREATED
+    TaskItemEntity.STATE_CLOSED -> TaskItemState.CLOSED
     else -> throw MappingException("state", this)
 }

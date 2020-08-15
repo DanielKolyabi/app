@@ -205,7 +205,7 @@ object PersistenceHelper {
 //
 //                        val reportForThisTask = db.reportQueryDao().getByTaskItemId(newTaskItem.id)
 //                        if (reportForThisTask != null) {
-//                            newTaskItem.state = TaskItemModel.CLOSED
+//                            newTaskItem.state = TaskItemEntity.STATE_CLOSED
 //                        }
 //                        db.taskItemDao().insert(newTaskItem.toTaskItemEntity(task.id))
 //                        db.entranceDataDao().insertAll(newTaskItem.entrancesData.map { enData -> enData.toEntity(newTaskItem.id) })

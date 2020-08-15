@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.view.View
 import kotlinx.android.synthetic.main.item_addr_list_address.view.*
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.uiOld.delegateAdapter.BaseViewHolder
 import ru.relabs.kurjer.uiOld.models.AddressListModel
@@ -20,7 +21,7 @@ class AddressListAddressHolder(private val onMapClick: (List<TaskItemModel>) -> 
             address = "${item.taskItems.first().subarea}-${item.taskItems.first().bypass} $address"
         }
         itemView.address_text.text = address
-        val isAddressClosed = !item.taskItems.any { it.state != TaskItemModel.CLOSED }
+        val isAddressClosed = !item.taskItems.any { it.state != TaskItemEntity.STATE_CLOSED }
 
         if (isAddressClosed) {
             itemView.address_text.setTextColor(Color.parseColor("#CCCCCC"))

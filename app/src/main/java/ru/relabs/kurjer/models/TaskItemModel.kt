@@ -22,17 +22,4 @@ data class TaskItemModel(
     var copies: Int,
     var needPhoto: Boolean,
     var entrancesData: List<EntranceDataModel>
-) : Parcelable {
-
-    fun toTaskItemEntity(parentTaskId: Int): TaskItemEntity {
-        return TaskItemEntity(
-            address.id, state, id, notes, entrances.map { it.num }, subarea, bypass, copies, parentTaskId, needPhoto
-        )
-    }
-
-
-    companion object {
-        val CREATED = 0
-        val CLOSED = 1
-    }
-}
+) : Parcelable

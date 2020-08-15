@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.presentation.report
 
 import android.graphics.Bitmap
+import android.location.Location
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
@@ -89,4 +90,51 @@ object ReportMessages {
 
     fun msgCouplingChanged(coupling: ReportCoupling): ReportMessage =
         msgState { it.copy(coupling = coupling) }
+
+    fun msgCloseClicked(): ReportMessage =
+        msgEffect(ReportEffects.effectCloseCheck(true))
+
+    fun msgPerformClose(location: Location?): ReportMessage =
+        msgEffect(ReportEffects.effectClosePerform(true, location))
+
+    fun msgInterruptPause(): ReportMessage =
+        msgEffect(ReportEffects.effectInterruptPause())
+
+    fun msgTaskItemClosed(task: TaskWithItem, withRemove: Boolean): ReportMessage = msgEffects(
+        {
+            if (withRemove) {
+                it.copy(
+                    tasks = it.tasks.map { t ->
+                        if (t.taskItem.id == task.taskItem.id) {
+                            t.copy(taskItem = t.taskItem.copy(state = TaskItemState.CLOSED))
+                        } else {
+                            t
+                        }
+                    },
+                    selectedTask = it.selectedTask?.copy(
+                        taskItem = it.selectedTask.taskItem.copy(
+                            state = TaskItemState.CLOSED
+                        )
+                    )
+                )
+            } else {
+                it
+            }
+        },
+        { s ->
+            listOfNotNull(
+                s.tasks
+                    .firstOrNull { it.taskItem.state == TaskItemState.CREATED && it.taskItem.id != task.taskItem.id }
+                    ?.let { ReportEffects.effectLoadSelection(it.taskItem.id) }
+                    ?.takeIf { withRemove },
+                ReportEffects.effectNavigateBack()
+                    .takeIf { s.tasks.none { it.taskItem.state == TaskItemState.CREATED && it.taskItem.id != task.taskItem.id } }
+                    .takeIf { withRemove }
+            )
+        }
+    )
+
+    fun msgGPSLoading(enabled: Boolean): ReportMessage =
+        msgState { it.copy(isGPSLoading = enabled) }
+
 }

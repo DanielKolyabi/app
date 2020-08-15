@@ -2,10 +2,13 @@ package ru.relabs.kurjer.utils.extensions
 
 import android.content.Context
 import android.content.res.Resources
+import android.util.TimeUtils
 import android.util.TypedValue
 import android.view.View
 import java.math.BigInteger
 import java.security.MessageDigest
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * Created by Daniil Kurchanov on 06.11.2019.
@@ -34,3 +37,6 @@ fun Resources.dip(dp: Number): Float {
 fun View.dip(dp: Number): Float {
     return resources.dip(dp)
 }
+
+fun Date.isLocationExpired() =
+    (time - Date().time) > TimeUnit.MINUTES.toMillis(3)

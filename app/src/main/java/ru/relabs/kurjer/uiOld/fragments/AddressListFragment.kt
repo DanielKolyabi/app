@@ -26,6 +26,7 @@ import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.uiOld.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.uiOld.delegates.AddressListAddressDelegate
@@ -104,7 +105,7 @@ class AddressListFragment : Fragment(), SearchableFragment {
                 mainLoop@ for (task in tasks) {
                     for (taskItem in task.items) {
                         if (taskItem.id == taskItemId) {
-                            taskItem.state = TaskItemModel.CLOSED
+                            taskItem.state = TaskItemEntity.STATE_CLOSED
                             presenter.updateStates()
                             break@mainLoop
                         }

@@ -81,8 +81,8 @@ class ReportPresenter(
 
         fragment.close_button?.isEnabled = fragment.tasks[currentTask].isAvailableByDate(Date())
 
-        fragment.close_button?.isEnabled = fragment.close_button.isEnabled && taskItem.state != TaskItemModel.CLOSED
-        fragment.user_explanation_input?.isEnabled = taskItem.state != TaskItemModel.CLOSED
+        fragment.close_button?.isEnabled = fragment.close_button.isEnabled && taskItem.state != TaskItemEntity.STATE_CLOSED
+        fragment.user_explanation_input?.isEnabled = taskItem.state != TaskItemEntity.STATE_CLOSED
 
         (fragment.context as? MainActivity)?.changeTitle(taskItem.address.name)
         CustomLog.writeToFile(
@@ -146,7 +146,7 @@ class ReportPresenter(
         val entrances = taskItem.entrances.map {
             it.coupleEnabled = it.coupleEnabled
                     && tasksWithSameCouple.size > 1
-                    && taskItem.state == TaskItemModel.CREATED
+                    && taskItem.state == TaskItemEntity.STATE_CREATED
 
             val hasPhoto = taskPhotos.any { photoModel ->
                 photoModel.taskItem.id == taskItem.id &&
@@ -228,7 +228,7 @@ class ReportPresenter(
         GlobalScope.launch(Dispatchers.Default) {
             if (data.coupleEnabled) {
                 for ((idx, taskItem) in fragment.taskItems.withIndex()) {
-                    if (taskItem == fragment.taskItems[currentTask] || taskItem.state == TaskItemModel.CLOSED) {
+                    if (taskItem == fragment.taskItems[currentTask] || taskItem.state == TaskItemEntity.STATE_CLOSED) {
                         continue
                     }
                     if (fragment.tasks[idx].coupleType != fragment.tasks[currentTask].coupleType) {
@@ -728,7 +728,7 @@ class ReportPresenter(
 
                 if (withRemove) {
                     database.taskItemDao().getById(fragment.taskItems[currentTask].id)?.apply {
-                        state = TaskItemModel.CLOSED
+                        state = TaskItemEntity.STATE_CLOSED
                     }?.let {
                         database.taskItemDao().update(it)
                     }
@@ -775,12 +775,12 @@ class ReportPresenter(
             CustomLog.writeToFile("${fragment.taskItems[currentTask].id} now closed")
 
             if (withRemove) {
-                fragment.taskItems[currentTask].state = TaskItemModel.CLOSED
+                fragment.taskItems[currentTask].state = TaskItemEntity.STATE_CLOSED
             }
             val dateNow = Date()
             val openedTasks = fragment.taskItems.filterIndexed { i, it ->
                 val parent = fragment.tasks[i]
-                it.state == TaskItemModel.CREATED && parent.isAvailableByDate(dateNow)
+                it.state == TaskItemEntity.STATE_CREATED && parent.isAvailableByDate(dateNow)
             }
             if (openedTasks.isNotEmpty()) {
                 val openedTaskPos = fragment.taskItems.indexOf(openedTasks.first())
@@ -816,7 +816,7 @@ class ReportPresenter(
         for ((idx, taskItem) in fragment.taskItems.withIndex()) {
             if (fragment.tasks[idx].coupleType == fragment.tasks[currentTask].coupleType)
                 taskItem.entrances[adapterPosition].coupleEnabled =
-                    entrance.coupleEnabled && entrance.taskItem.state == TaskItemModel.CREATED
+                    entrance.coupleEnabled && entrance.taskItem.state == TaskItemEntity.STATE_CREATED
         }
 
         fragment.entrancesListAdapter.notifyItemChanged(adapterPosition)

@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.utils
 
 import ru.relabs.kurjer.models.GPSCoordinatesModel
+import java.util.*
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -11,6 +12,13 @@ import kotlin.math.sqrt
  */
 
 fun Double.toRadians() = Math.toRadians(this)
+
+fun calculateDistance(fromLat: Double, fromLong: Double, toLat: Double, toLong: Double): Double {
+    return calculateDistance(
+        GPSCoordinatesModel(fromLat, fromLong, Date()),
+        GPSCoordinatesModel(toLat, toLong, Date())
+    )
+}
 
 fun calculateDistance(from: GPSCoordinatesModel, to: GPSCoordinatesModel): Double {
     val r = 6371e3

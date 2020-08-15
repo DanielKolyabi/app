@@ -25,10 +25,10 @@ object HostEffects {
     fun effectInit(restored: Boolean): HostEffect = { c, _ ->
         if (!restored) {
             if (c.repository.isAuthenticated() && c.loginUseCase.isAutologinEnabled()) {
+                c.loginUseCase.loginOffline()
                 withContext(Dispatchers.Main) {
                     c.router.newRootScreen(RootScreen.Tasks(false))
                 }
-
                 withContext(Dispatchers.IO) {
                     when (val result = FirebaseInstanceId.getInstance().getFirebaseToken()) {
                         is Right -> Unit //TODO: Upload c.repository.updateMe(firebaseToken = result.value)

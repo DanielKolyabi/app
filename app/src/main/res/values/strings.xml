@@ -88,4 +88,15 @@
     <string name="pause_cancel">Отмена</string>
     <string name="error_pause_unavailable">Пауза недоступна</string>
     <string name="pause_already_paused">Пауза уже запущена</string>
+    <string name="report_close_location_null_error">Не определились координаты отправь крэш лог! \nKoordinatalari aniqlanmadi, xato jurnalini yuborish!</string>
+    <string name="report_close_location_far_error">Ты не у дома! Подойди и попробуй еще \nSiz uyning yonida emassiz! Yaqinlashing va qaytadan urining</string>
+    <string name="report_close_location_null_warning">Не определились координаты. \nKoordinatalar yo\'q</string>
+    <string name="report_close_location_far_warning">Ты не у дома. \nSiz uyda emassiz</string>
+    <string name="report_close_paused_warning">Пауза будет прервана</string>
+    <string name="cancel">Отмена</string>
+    <string name="report_close_no_photos">Необходимо сделать фотографии</string>
+    <string name="report_close_ask">КНОПКИ НАЖАЛ?\nОТЧЁТ ОТПРАВЛЯЮ?\n(tugmachalari bosildi? hisobot yuboringmi?)</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="report_gps_loading">Ищем Вас по GPS</string>
 </resources>

@@ -6,11 +6,20 @@ import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import org.joda.time.DateTime
 import retrofit2.HttpException
 import retrofit2.Response
 import ru.relabs.kurjer.data.api.DeliveryApi
+import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
+import ru.relabs.kurjer.data.database.entities.TaskItemPhotoEntity
+import ru.relabs.kurjer.data.models.PhotoReportRequest
+import ru.relabs.kurjer.data.models.TaskItemReportRequest
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.data.models.common.ApiError
 import ru.relabs.kurjer.data.models.common.ApiErrorContainer
@@ -25,18 +34,19 @@ import ru.relabs.kurjer.domain.providers.FirebaseTokenProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.files.ImageUtils
 import ru.relabs.kurjer.files.PathHelper
-import ru.relabs.kurjer.utils.Either
-import ru.relabs.kurjer.utils.Left
-import ru.relabs.kurjer.utils.Right
-import ru.relabs.kurjer.utils.debug
+import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.utils.*
+import java.io.FileNotFoundException
 import java.net.URL
+import java.util.*
 
 class DeliveryRepository(
     private val deliveryApi: DeliveryApi,
     private val authTokenStorage: AuthTokenStorage,
     private val deviceIdProvider: DeviceUUIDProvider,
     private val deviceUniqueIdProvider: DeviceUniqueIdProvider,
-    private val firebaseTokenProvider: FirebaseTokenProvider
+    private val firebaseTokenProvider: FirebaseTokenProvider,
+    private val database: AppDatabase
 ) {
     fun isAuthenticated(): Boolean = authTokenStorage.getToken() != null
 
@@ -113,12 +123,51 @@ class DeliveryRepository(
     }
 
     //Reports
-    fun sendReport(item: ReportQueryItemEntity) {
-//        NetworkHelper.sendReport(
-//            item,
-//            db.photosDao().getByTaskItemId(item.taskItemId)
-//        )
-        TODO("Not yet implemented")
+    suspend fun sendReport(item: ReportQueryItemEntity): Either<Exception, Unit> = Either.of {
+        //TODO: Move into reports usecase
+        val photosMap = mutableMapOf<String, PhotoReportRequest>()
+        val photoParts = mutableListOf<MultipartBody.Part>()
+        val photos = database.photosDao().getByTaskItemId(item.taskItemId)
+
+        var imgCount = 0
+        photos.forEachIndexed { i, photo ->
+            try {
+                photoParts.add(photoEntityToPart("img_$imgCount", item, photo))
+                photosMap["img_$imgCount"] =
+                    PhotoReportRequest("", photo.gps, photo.entranceNumber)
+                imgCount++
+            } catch (e: Throwable) {
+                e.fillInStackTrace().log()
+            }
+        }
+
+        val reportObject = TaskItemReportRequest(
+            item.taskId, item.taskItemId, item.imageFolderId,
+            item.gps, item.closeTime, item.userDescription, item.entrances, photosMap,
+            item.batteryLevel, item.closeDistance, item.allowedDistance, item.radiusRequired
+        )
+
+        deliveryApi.sendTaskReport(
+            item.taskItemId,
+            reportObject,
+            photoParts,
+            item.token
+        )
+    }
+
+    private fun photoEntityToPart(partName: String, reportEnt: ReportQueryItemEntity, photoEnt: TaskItemPhotoEntity): MultipartBody.Part {
+        val photoFile = PathHelper.getTaskItemPhotoFileByID(
+            reportEnt.taskItemId,
+            UUID.fromString(photoEnt.UUID)
+        )
+        if (!photoFile.exists()) {
+            throw FileNotFoundException(photoFile.path)
+        }
+
+        val request =
+            RequestBody.run { photoFile.asRequestBody(MediaType.run { "image/jpeg".toMediaType() }) }
+
+        return MultipartBody.Part.createFormData(partName, photoFile.name, request)
     }
 
     //Pauses

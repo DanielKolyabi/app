@@ -21,6 +21,7 @@ import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.domain.useCases.LoginUseCase
+import ru.relabs.kurjer.domain.useCases.ReportUseCase
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
 import java.io.File
@@ -101,7 +102,8 @@ val repositoryModule = module {
             get<AuthTokenStorage>(),
             get<DeviceUUIDProvider>(),
             get<DeviceUniqueIdProvider>(),
-            get<FirebaseTokenProvider>()
+            get<FirebaseTokenProvider>(),
+            get<AppDatabase>()
         )
     }
     single<RadiusRepository> {
@@ -134,6 +136,15 @@ val useCasesModule = module {
     single<AppUpdateUseCase> {
         AppUpdateUseCase(
             get<DeliveryRepository>()
+        )
+    }
+
+    single<ReportUseCase> {
+        ReportUseCase(
+            get<DatabaseRepository>(),
+            get<PauseRepository>(),
+            get<AuthTokenStorage>(),
+            get<RadiusRepository>()
         )
     }
 }

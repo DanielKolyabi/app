@@ -16,6 +16,7 @@ import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.uiOld.fragments.AddressListFragment
 import ru.relabs.kurjer.uiOld.helpers.TaskAddressSorter
@@ -88,7 +89,7 @@ class AddressListPresenter(
     }
 
     private fun isAllTaskItemsClosed(task: TaskModel): Boolean {
-        return !task.items.any { it.state != TaskItemModel.CLOSED }
+        return !task.items.any { it.state != TaskItemEntity.STATE_CLOSED }
     }
 
     fun onItemClicked(task: AddressListModel.TaskItem) {

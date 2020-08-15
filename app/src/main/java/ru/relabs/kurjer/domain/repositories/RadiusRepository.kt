@@ -16,9 +16,6 @@ class RadiusRepository(
     val scope = CoroutineScope(Dispatchers.Main)
     var allowedCloseRadius: AllowedCloseRadius = loadSavedRadius()
 
-    val isRadiusRequired: Boolean
-        get() = allowedCloseRadius is AllowedCloseRadius.Required
-
     private var updateJob: Job? = null
 
     fun resetData() {

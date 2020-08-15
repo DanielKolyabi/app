@@ -13,6 +13,7 @@ import android.animation.ValueAnimator
 import android.animation.ArgbEvaluator
 import androidx.core.graphics.ColorUtils
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 
 
 /**
@@ -65,7 +66,7 @@ class AddressListTaskItemHolder(
         itemView.task_button.text = "${item.parentTask.name} №${item.parentTask.edition}, ${item.taskItem.copies}экз."
 
 
-        if (item.taskItem.state == TaskItemModel.CLOSED) {
+        if (item.taskItem.state == TaskItemEntity.STATE_CLOSED) {
             //itemView.task_button.isEnabled = false
             itemView.map_icon.alpha = 0.4f
             itemView.map_icon.isClickable = false

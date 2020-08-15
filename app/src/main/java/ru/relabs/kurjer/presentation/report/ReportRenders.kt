@@ -21,9 +21,12 @@ import java.util.*
  * Created by Daniil Kurchanov on 06.04.2020.
  */
 object ReportRenders {
-    fun renderLoading(view: View): ReportRender = renderT(
-        { it.loaders > 0 },
-        { view.visible = it }
+    fun renderLoading(view: View, gpsLoadingLabel: View): ReportRender = renderT(
+        { (it.loaders > 0) to it.isGPSLoading },
+        { (loading, isGPSLoading) ->
+            view.visible = loading
+            gpsLoadingLabel.visible = isGPSLoading && loading
+        }
     )
 
     fun renderTitle(view: TextView): ReportRender = renderT(

@@ -25,6 +25,7 @@ import ru.relabs.kurjer.data.models.PhotoReportRequest
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.TaskItemPhotoEntity
+import ru.relabs.kurjer.data.models.TaskItemReportRequest
 import ru.relabs.kurjer.utils.log
 import java.io.File
 import java.io.FileNotFoundException
@@ -137,11 +138,11 @@ object NetworkHelper {
             }
         }
 
-//        val reportObject = TaskItemReportRequest(
-//            data.taskId, data.taskItemId, data.imageFolderId,
-//            data.gps, data.closeTime, data.userDescription, data.entrances, photosMap,
-//            data.batteryLevel, data.closeDistance, data.allowedDistance, data.radiusRequired
-//        )
+        val reportObject = TaskItemReportRequest(
+            data.taskId, data.taskItemId, data.imageFolderId,
+            data.gps, data.closeTime, data.userDescription, data.entrances, photosMap,
+            data.batteryLevel, data.closeDistance, data.allowedDistance, data.radiusRequired
+        )
 
         return TODO("Use new api")//api.sendTaskReport(data.taskItemId, data.token, reportObject, photoParts).status
     }

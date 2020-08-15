@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 import org.joda.time.DateTime
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.models.TaskItem
@@ -144,7 +145,7 @@ class MainActivity : AppCompatActivity() {
                 run {
                     GlobalScope.launch {
                         database.taskItemDao().getById(intent.getIntExtra("task_item_closed", 0))?.let {
-                            it.state = TaskItemModel.CLOSED
+                            it.state = TaskItemEntity.STATE_CLOSED
                             database.taskItemDao().update(it)
                         }
                     }
@@ -667,13 +668,13 @@ class MainActivity : AppCompatActivity() {
         val addresses = taskItems.groupBy { it.address.id }
             .mapValues { entry ->
                 entry.value.firstOrNull { it.needPhoto }
-                    ?: (entry.value.firstOrNull { it.state == TaskItemModel.CLOSED }
+                    ?: (entry.value.firstOrNull { it.state == TaskItemEntity.STATE_CLOSED }
                         ?: entry.value.firstOrNull())
             }
             .mapNotNull { entry ->
                 val value = entry.value
                 if (value is TaskItemModel) {
-                    val color = if (value.state == TaskItemModel.CLOSED) {
+                    val color = if (value.state == TaskItemEntity.STATE_CLOSED) {
                         //Gray
                         Color.GRAY
                     } else if (value.needPhoto) {

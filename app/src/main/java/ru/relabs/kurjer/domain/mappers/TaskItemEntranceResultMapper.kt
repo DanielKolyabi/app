@@ -8,21 +8,28 @@ object TaskItemEntranceResultMapper {
         id = TaskItemEntranceId(entity.id),
         taskItemResultId = TaskItemResultId(entity.taskItemResultId),
         entranceNumber = EntranceNumber(entity.entrance),
-        selection = ReportEntranceSelection(
-            isEuro = entity.state and 0x0001 > 0,
-            isWatch = entity.state and 0x0010 > 0,
-            isStacked = entity.state and 0x0100 > 0,
-            isRejected = entity.state and 0x1000 > 0
-        )
+        selection = ReportEntranceSelectionMapper.fromBits(entity.state)
     )
 
     fun fromModel(model: TaskItemEntranceResult): TaskItemResultEntranceEntity = TaskItemResultEntranceEntity(
         id = model.id.id,
         taskItemResultId = model.taskItemResultId.id,
         entrance = model.entranceNumber.number,
-        state = takeBitIf(0x0001, model.selection.isEuro) or takeBitIf(0x0010, model.selection.isWatch) or
-                takeBitIf(0x0100, model.selection.isStacked) or takeBitIf(0x1000, model.selection.isRejected)
+        state = ReportEntranceSelectionMapper.toBits(model.selection)
     )
+}
+
+object ReportEntranceSelectionMapper{
+    fun fromBits(bits: Int) = ReportEntranceSelection(
+        isEuro = bits and 0x0001 > 0,
+        isWatch = bits and 0x0010 > 0,
+        isStacked = bits and 0x0100 > 0,
+        isRejected = bits and 0x1000 > 0
+    )
+
+    fun toBits(selection: ReportEntranceSelection): Int =
+        takeBitIf(0x0001, selection.isEuro) or takeBitIf(0x0010, selection.isWatch) or
+            takeBitIf(0x0100, selection.isStacked) or takeBitIf(0x1000, selection.isRejected)
 
     private fun takeBitIf(bit: Int, condition: Boolean): Int {
         return if (condition) {

@@ -110,7 +110,7 @@ object ReportAdapter {
                     onCoupleClicked(entrance.entranceNumber)
                 }
 
-                if (!entrance.coupleEnabled) {
+                if (entrance.coupleEnabled) {
                     itemView.tv_entrance.setBackgroundResource(R.drawable.bg_entrance_couple_enabled)
                 } else {
                     itemView.tv_entrance.setBackgroundColor(Color.parseColor("#000000ff"))

@@ -64,8 +64,10 @@ object ReportRenders {
     )
 
     fun renderEntrances(adapter: DelegateAdapter<ReportEntranceItem>): ReportRender = renderT(
-        { Triple(it.selectedTask?.taskItem, it.selectedTaskPhotos, it.selectedTaskReport) },
-        { (taskItem, photos, report) ->
+        { Triple(it.selectedTask?.taskItem to it.selectedTask?.task, it.selectedTaskPhotos, it.selectedTaskReport) to it.coupling },
+        { (data, coupling) ->
+            val (taskData, photos, report) = data
+            val (taskItem, task) = taskData
             adapter.items.clear()
             if (taskItem != null) {
                 adapter.items.addAll(
@@ -80,7 +82,7 @@ object ReportRenders {
                                 entrance.isStacked,
                                 entrance.isRefused
                             ),
-                            false, //TODO: Check if coupleEnabled
+                            task?.let { coupling.isCouplingEnabled(task, entrance.number) } ?: false,
                             photos.any { photo -> photo.entranceNumber == entrance.number }
                         )
                     }

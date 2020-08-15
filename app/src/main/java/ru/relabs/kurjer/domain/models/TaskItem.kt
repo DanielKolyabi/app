@@ -13,7 +13,7 @@ data class TaskItem(
     val address: Address,
     val state: TaskItemState,
     val notes: List<String>,
-    val entrances: List<Int>,
+    val entrances: List<Int>, //TODO: Remove
     val subarea: Int,
     val bypass: Int,
     val copies: Int,

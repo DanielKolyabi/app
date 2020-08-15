@@ -10,6 +10,9 @@ import java.util.*
 data class TaskId(val id: Int) : Parcelable
 
 @Parcelize
+data class CoupleType(val type: Int): Parcelable
+
+@Parcelize
 data class Task(
     val id: TaskId,
     val state: State,
@@ -29,7 +32,7 @@ data class Task(
     val storageAddress: String?,
     val iteration: Int,
     val items: List<TaskItem>,
-    val coupleType: Int
+    val coupleType: CoupleType
 ) : Parcelable {
 
     val listName: String

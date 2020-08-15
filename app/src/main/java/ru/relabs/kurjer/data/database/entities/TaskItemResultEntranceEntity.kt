@@ -4,6 +4,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import ru.relabs.kurjer.domain.models.EntranceNumber
+import ru.relabs.kurjer.domain.models.TaskItemResultId
 import ru.relabs.kurjer.models.TaskItemResultEntranceModel
 
 /**
@@ -28,6 +30,12 @@ data class TaskItemResultEntranceEntity(
         return TaskItemResultEntranceModel(
                 id,
                 entrance, state
+        )
+    }
+
+    companion object {
+        fun empty(taskItemResultId: TaskItemResultId, entrance: EntranceNumber) = TaskItemResultEntranceEntity(
+            0, taskItemResultId.id, entrance.number, 0
         )
     }
 }

@@ -3,6 +3,7 @@ package ru.relabs.kurjer.presentation.report
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
@@ -42,13 +43,27 @@ object ReportEffects {
             //TODO: Selected taskItem not found, report
         }
 
+        //Default coupling
+        val activeTaskWithItems = tasks.filter { it.taskItem.state == TaskItemState.CREATED }
+        messages.send(
+            ReportMessages.msgCouplingChanged(
+                tasks
+                    .distinctBy { it.task.coupleType }
+                    .flatMap { taskWithItem ->
+                        taskWithItem.taskItem.entrancesData.map {
+                            (it.number to taskWithItem.task.coupleType) to (activeTaskWithItems.count { taskWithItem.task.coupleType == it.task.coupleType } > 1)
+                        }
+                    }
+                    .toMap()
+            )
+        )
+
         messages.send(ReportMessages.msgTasksLoaded(tasks))
         messages.send(ReportMessages.msgTaskSelected(selectedTaskItemId))
         messages.send(ReportMessages.msgAddLoaders(-1))
     }
 
     fun effectNavigateBack(): ReportEffect = { c, s ->
-        //TODO: Save report
         withContext(Dispatchers.Main) {
             c.router.exit()
         }
@@ -98,52 +113,22 @@ object ReportEffects {
             EntranceSelectionButton.Reject -> selection.copy(isRejected = !selection.isRejected)
         }
 
-        when (val selectedTask = s.selectedTask) {
+        when (val affectedTask = s.selectedTask) {
             null -> Unit //TODO: Show error
             else -> {
-                val report = if (s.selectedTaskReport == null) {
-                    val result = createEmptyTaskResult(c.database, selectedTask.taskItem)
-                    result?.let { createEmptyEntranceResult(c.database, it, selectedTask.taskItem, entrance) }
-                } else {
-                    if (s.selectedTaskReport.entrances.none { it.entranceNumber == entrance }) {
-                        createEmptyEntranceResult(c.database, s.selectedTaskReport, selectedTask.taskItem, entrance)
-                    } else {
-                        s.selectedTaskReport
-                    }
+                val newResult =
+                    c.database.createOrUpdateTaskItemEntranceResultSelection(entrance, affectedTask.taskItem, ::applyButtonClick)
+
+                //Coupling
+                val newSelection = newResult?.entrances?.firstOrNull { it.entranceNumber == entrance }?.selection
+                if (newSelection != null && s.coupling.isCouplingEnabled(affectedTask.task, entrance)) {
+                    s.tasks
+                        .filter { it.task.coupleType == affectedTask.task.coupleType && it.taskItem.state == TaskItemState.CREATED }
+                        .forEach { c.database.createOrUpdateTaskItemEntranceResultSelection(entrance, it.taskItem, newSelection) }
                 }
 
-                when (val reportEntrance = report?.entrances?.firstOrNull { it.entranceNumber == entrance }) {
-                    null -> Unit //TODO: Show error
-                    else -> {
-                        val updatedEntranceSelection = applyButtonClick(reportEntrance.selection).let {
-                            if (button == EntranceSelectionButton.Euro && it.isEuro) {
-                                it.copy(isStacked = true)
-                            } else if (button == EntranceSelectionButton.Watch && it.isWatch) {
-                                it.copy(isStacked = true)
-                            } else if (
-                                (button == EntranceSelectionButton.Watch || button == EntranceSelectionButton.Euro)
-                                && (!it.isEuro && !it.isWatch)
-                            ) {
-                                it.copy(isStacked = false)
-                            } else {
-                                it
-                            }
-                        }
-                        val updatedEntrance = reportEntrance.copy(selection = updatedEntranceSelection)
-                        val updatedReport = report.copy(
-                            entrances = report.entrances.map {
-                                if (it.id == updatedEntrance.id) {
-                                    updatedEntrance
-                                } else {
-                                    it
-                                }
-                            }
-                        )
-
-                        c.database.updateTaskItemResult(updatedReport)?.let {
-                            messages.send(ReportMessages.msgSavedResultLoaded(it))
-                        }
-                    }
+                newResult?.let {
+                    messages.send(ReportMessages.msgSavedResultLoaded(it))
                 }
             }
         }
@@ -181,6 +166,19 @@ object ReportEffects {
         }
     }
 
+    fun effectChangeCoupleState(entrance: EntranceNumber): ReportEffect = { c, s ->
+        when (val selected = s.selectedTask) {
+            null -> Unit //TODO: Show error
+            else -> {
+                val taskCoupleType = selected.task.coupleType
+                val currentCoupleState = s.coupling.isCouplingEnabled(selected.task, entrance)
+                if (s.tasks.filter { it.taskItem.state == TaskItemState.CREATED && it.task.coupleType == taskCoupleType }.size > 1) {
+                    messages.send(ReportMessages.msgCouplingChanged(taskCoupleType, entrance, !currentCoupleState))
+                }
+            }
+        }
+    }
+
     private fun savePhotoFromBitmapToFile(bitmap: Bitmap, targetFile: File): Either<Exception, File> = Either.of {
         val resized = ImageUtils.resizeBitmap(bitmap, 1024f, 768f)
         bitmap.recycle()
@@ -198,33 +196,5 @@ object ReportEffects {
             gps = GPSCoordinatesModel(0.0, 0.0, Date())
         )
         return database.updateTaskItemResult(result)
-    }
-
-    private suspend fun createEmptyEntranceResult(
-        database: DatabaseRepository,
-        taskItemResult: TaskItemResult,
-        taskItem: TaskItem,
-        entrance: EntranceNumber
-    ): TaskItemResult? {
-        if (taskItemResult.entrances.any { it.entranceNumber == entrance }) {
-            return taskItemResult
-        }
-        val defaultEntranceData = taskItem.entrancesData.firstOrNull { it.number == entrance }
-        val updatedResult = taskItemResult.copy(
-            entrances = taskItemResult.entrances + listOf(
-                TaskItemEntranceResult(
-                    id = TaskItemEntranceId(0),
-                    taskItemResultId = taskItemResult.id,
-                    entranceNumber = entrance,
-                    selection = ReportEntranceSelection(
-                        isEuro = defaultEntranceData?.isEuroBoxes ?: false,
-                        isWatch = defaultEntranceData?.hasLookout ?: false,
-                        isStacked = defaultEntranceData?.isStacked ?: false,
-                        isRejected = defaultEntranceData?.isRefused ?: false
-                    )
-                )
-            )
-        )
-        return database.updateTaskItemResult(updatedResult)
     }
 }

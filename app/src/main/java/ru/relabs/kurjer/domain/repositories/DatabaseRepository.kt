@@ -9,6 +9,9 @@ import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.TaskItemPhotoEntity
+import ru.relabs.kurjer.data.database.entities.TaskItemResultEntity
+import ru.relabs.kurjer.data.database.entities.TaskItemResultEntranceEntity
+import ru.relabs.kurjer.domain.mappers.ReportEntranceSelectionMapper
 import ru.relabs.kurjer.domain.mappers.TaskItemEntranceResultMapper
 import ru.relabs.kurjer.domain.mappers.TaskItemResultMapper
 import ru.relabs.kurjer.domain.mappers.database.*
@@ -305,6 +308,51 @@ class DatabaseRepository(
         )
 
         getTaskItemResult(updatedReport.taskItemId)
+    }
+
+    suspend fun createOrUpdateTaskItemEntranceResultSelection(
+        entrance: EntranceNumber,
+        taskItem: TaskItem,
+        selectionUpdater: (ReportEntranceSelection) -> ReportEntranceSelection
+    ): TaskItemResult? = withContext(Dispatchers.IO) {
+        val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItem.id.id) ?: createEmptyTaskItemResult(taskItem.id)
+        val entranceResult = db.entrancesDao().getByTaskItemResultId(taskItemResult.id).firstOrNull { it.entrance == entrance.number }
+            ?: createEmptyTaskItemEntranceResult(TaskItemResultId(taskItemResult.id), entrance)
+
+        db.entrancesDao().update(
+            entranceResult.copy(
+                state = ReportEntranceSelectionMapper.toBits(
+                    selectionUpdater(ReportEntranceSelectionMapper.fromBits(entranceResult.state))
+                )
+            )
+        )
+
+        getTaskItemResult(taskItem)
+    }
+
+    suspend fun createOrUpdateTaskItemEntranceResultSelection(
+        entrance: EntranceNumber,
+        taskItem: TaskItem,
+        selection: ReportEntranceSelection
+    ): TaskItemResult? = withContext(Dispatchers.IO) {
+        createOrUpdateTaskItemEntranceResultSelection(entrance, taskItem) { selection }
+    }
+
+    private suspend fun createEmptyTaskItemEntranceResult(
+        taskItemResultId: TaskItemResultId,
+        entranceNumber: EntranceNumber
+    ): TaskItemResultEntranceEntity = withContext(Dispatchers.IO) {
+        val empty = TaskItemResultEntranceEntity.empty(taskItemResultId, entranceNumber)
+        val id = db.entrancesDao().insert(empty)
+
+        empty.copy(id = id.toInt())
+    }
+
+    private suspend fun createEmptyTaskItemResult(taskItemId: TaskItemId): TaskItemResultEntity = withContext(Dispatchers.IO) {
+        val empty = TaskItemResultEntity.empty(taskItemId)
+        val id = db.taskItemResultsDao().insert(empty)
+
+        empty.copy(id = id.toInt())
     }
 
     suspend fun savePhoto(entrance: Int, taskItem: TaskItem, uuid: UUID, location: Location?): TaskItemPhoto =

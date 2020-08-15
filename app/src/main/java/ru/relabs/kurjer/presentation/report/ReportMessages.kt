@@ -48,7 +48,8 @@ object ReportMessages {
         { listOf(ReportEffects.effectRemovePhoto(removedPhoto)) }
     )
 
-    fun msgCoupleClicked(entrance: EntranceNumber): ReportMessage = msgEmpty() //TODO: Implement
+    fun msgCoupleClicked(entrance: EntranceNumber): ReportMessage =
+        msgEffect(ReportEffects.effectChangeCoupleState(entrance))
 
     fun msgEntranceSelectClicked(entrance: EntranceNumber, button: EntranceSelectionButton): ReportMessage =
         msgEffect(ReportEffects.effectEntranceSelectionChanged(entrance, button))
@@ -82,4 +83,10 @@ object ReportMessages {
 
     fun msgDescriptionChanged(text: String): ReportMessage =
         msgEffect(ReportEffects.effectUpdateDescription(text))
+
+    fun msgCouplingChanged(taskCoupleType: CoupleType, entrance: EntranceNumber, enabled: Boolean): ReportMessage =
+        msgState { it.copy(coupling = it.coupling + mapOf(Pair(entrance, taskCoupleType) to enabled)) }
+
+    fun msgCouplingChanged(coupling: ReportCoupling): ReportMessage =
+        msgState { it.copy(coupling = coupling) }
 }

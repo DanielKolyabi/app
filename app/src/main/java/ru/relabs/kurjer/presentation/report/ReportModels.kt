@@ -23,7 +23,9 @@ data class ReportState(
     val selectedTask: TaskWithItem? = null,
     val selectedTaskPhotos: List<TaskItemPhoto> = emptyList(),
     val selectedTaskReport: TaskItemResult? = null,
-    val loaders: Int = 0
+    val loaders: Int = 0,
+
+    val coupling: ReportCoupling = emptyMap()
 )
 
 class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
@@ -42,6 +44,11 @@ enum class EntranceSelectionButton {
     Euro, Watch, Stack, Reject
 }
 
+typealias ReportCoupling = Map<Pair<EntranceNumber, CoupleType>, Boolean>
 typealias ReportMessage = ElmMessage<ReportContext, ReportState>
 typealias ReportEffect = ElmEffect<ReportContext, ReportState>
 typealias ReportRender = ElmRender<ReportState>
+
+fun ReportCoupling.isCouplingEnabled(task: Task, entranceNumber: EntranceNumber): Boolean {
+    return this.getOrElse(entranceNumber to task.coupleType) { false }
+}

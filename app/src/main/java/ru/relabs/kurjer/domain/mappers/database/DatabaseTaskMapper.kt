@@ -2,6 +2,7 @@ package ru.relabs.kurjer.domain.mappers.database
 
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.TaskEntity
+import ru.relabs.kurjer.domain.models.CoupleType
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.toTaskState
@@ -31,7 +32,7 @@ object DatabaseTaskMapper {
         items = db.taskItemDao().getAllForTask(taskEntity.id).map {
             DatabaseTaskItemMapper.fromEntity(it, db)
         },
-        coupleType = taskEntity.coupleType
+        coupleType = CoupleType(taskEntity.coupleType)
     )
 
     fun toEntity(task: Task): TaskEntity = TaskEntity(
@@ -52,7 +53,7 @@ object DatabaseTaskMapper {
         city = task.city,
         storageAddress = task.storageAddress ?: "",
         iteration = task.iteration,
-        coupleType = task.coupleType,
+        coupleType = task.coupleType.type,
         byOtherUser = task.state.byOtherUser
     )
 }

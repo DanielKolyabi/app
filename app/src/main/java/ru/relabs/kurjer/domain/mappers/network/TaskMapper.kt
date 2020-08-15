@@ -1,10 +1,7 @@
 package ru.relabs.kurjer.domain.mappers.network
 
 import ru.relabs.kurjer.data.models.tasks.TaskResponse
-import ru.relabs.kurjer.domain.models.DeviceId
-import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.domain.models.TaskId
-import ru.relabs.kurjer.domain.models.TaskState
+import ru.relabs.kurjer.domain.models.*
 
 object TaskMapper {
     fun fromRaw(raw: TaskResponse, deviceId: DeviceId): Task = Task(
@@ -38,6 +35,6 @@ object TaskMapper {
         items = raw.items.map {
             TaskItemMapper.fromRaw(it)
         },
-        coupleType = raw.coupleType
+        coupleType = CoupleType(raw.coupleType)
     )
 }

@@ -4,19 +4,18 @@ import android.graphics.Color
 import android.widget.Button
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.holder_report_entrance.view.*
-import kotlinx.android.synthetic.main.holder_report_photo.view.iv_remove
-import kotlinx.android.synthetic.main.holder_report_photo.view.tv_entrance_number
-import kotlinx.android.synthetic.main.holder_report_photo.view.iv_photo as photo
-import kotlinx.android.synthetic.main.holder_report_photo_single.view.iv_photo as singlePhoto
+import kotlinx.android.synthetic.main.holder_report_photo.view.*
 import kotlinx.android.synthetic.main.holder_report_task.view.*
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.EntranceNumber
-import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.TaskItemPhoto
+import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
 import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
 import ru.relabs.kurjer.presentation.base.recycler.holderDefine
+import kotlinx.android.synthetic.main.holder_report_photo.view.iv_photo as photo
+import kotlinx.android.synthetic.main.holder_report_photo_single.view.iv_photo as singlePhoto
 
 object ReportAdapter {
 
@@ -71,6 +70,10 @@ object ReportAdapter {
                     itemView.btn_task.setBackgroundResource(R.drawable.abc_btn_colored_material)
                 } else {
                     itemView.btn_task.setBackgroundResource(R.drawable.abc_btn_default_mtrl_shape)
+                }
+                when (taskItem.state) {
+                    TaskItemState.CREATED -> itemView.btn_task.setTextColor(Color.parseColor("#ff000000"))
+                    TaskItemState.CLOSED -> itemView.btn_task.setTextColor(Color.parseColor("#66000000"))
                 }
 
                 itemView.btn_task.setOnClickListener {

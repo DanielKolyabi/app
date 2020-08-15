@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
+import androidx.core.graphics.ColorUtils
 import androidx.core.widget.addTextChangedListener
 import kotlinx.android.synthetic.main.holder_address_list_address.view.*
 import kotlinx.android.synthetic.main.holder_address_list_sorting.view.*
@@ -64,22 +65,32 @@ object AddressesAdapter {
             holderDefine(p, R.layout.holder_address_list_task, { it as AddressesItem.AddressItem }) { (taskItem, task) ->
                 with(itemView) {
                     btn_task.text = "${task.name} №${task.edition}, ${task.copies}экз."
-                    when (taskItem.state == TaskItemState.CLOSED) {
-                        true -> {
-                            iv_item_map.alpha = 0.4f
-                            iv_item_map.isClickable = false
-                            btn_task.setTextColor(Color.parseColor("#66000000"))
-                        }
-                        else -> {
-                            iv_item_map.alpha = 1f
-                            iv_item_map.isClickable = true
-                            btn_task.setTextColor(Color.parseColor("#ff000000"))
-                        }
-                    }
                     if (taskItem.needPhoto || taskItem.entrancesData.any { it.photoRequired }) {
-                        btn_task.setTextColor(resources.getColorCompat(R.color.colorFuchsia))
+                        when (taskItem.state) {
+                            TaskItemState.CLOSED -> {
+                                iv_item_map.alpha = 0.4f
+                                iv_item_map.isClickable = false
+                                btn_task.setTextColor(ColorUtils.setAlphaComponent(resources.getColorCompat(R.color.colorFuchsia), 128))
+                            }
+                            TaskItemState.CREATED -> {
+                                iv_item_map.alpha = 1f
+                                iv_item_map.isClickable = true
+                                btn_task.setTextColor(resources.getColorCompat(R.color.colorFuchsia))
+                            }
+                        }
                     } else {
-                        btn_task.setTextColor(Color.parseColor("#ff000000"))
+                        when (taskItem.state) {
+                            TaskItemState.CLOSED -> {
+                                iv_item_map.alpha = 0.4f
+                                iv_item_map.isClickable = false
+                                btn_task.setTextColor(Color.parseColor("#66000000"))
+                            }
+                            TaskItemState.CREATED -> {
+                                iv_item_map.alpha = 1f
+                                iv_item_map.isClickable = true
+                                btn_task.setTextColor(Color.parseColor("#ff000000"))
+                            }
+                        }
                     }
 
                     btn_task.setOnClickListener { onItemClicked(taskItem, task) }

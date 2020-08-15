@@ -3,7 +3,6 @@ package ru.relabs.kurjer.presentation.report
 import android.text.Html
 import android.text.TextWatcher
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
@@ -44,9 +43,13 @@ object ReportRenders {
         { it.tasks to it.selectedTask },
         { (available, selected) ->
             adapter.items.clear()
-            adapter.items.addAll(available.map {
-                ReportTaskItem(it.task, it.taskItem, it == selected)
-            })
+            adapter.items.addAll(
+                available
+                    .sortedBy { it.taskItem.state }
+                    .map {
+                        ReportTaskItem(it.task, it.taskItem, it == selected)
+                    }
+            )
             adapter.notifyDataSetChanged()
             view.visible = available.size > 1
         }

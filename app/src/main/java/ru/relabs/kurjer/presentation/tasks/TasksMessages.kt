@@ -32,7 +32,7 @@ object TasksMessages {
         msgEffect(TasksEffects.effectNavigateTaskInfo(task))
 
     fun msgTaskSelected(task: Task): TasksMessage =
-        msgState { it.copy(selectedTasks = it.selectedTasks + listOf(task)) }
+        msgState { it.copy(selectedTasks = (it.selectedTasks + listOf(task)).distinct()) }
 
     fun msgTaskUnselected(task: Task): TasksMessage =
         msgState { it.copy(selectedTasks = it.selectedTasks.filter { it != task }) }

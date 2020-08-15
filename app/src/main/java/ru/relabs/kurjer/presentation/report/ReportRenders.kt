@@ -3,16 +3,19 @@ package ru.relabs.kurjer.presentation.report
 import android.text.Html
 import android.text.TextWatcher
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import ru.relabs.kurjer.domain.models.ENTRANCE_NUMBER_TASK_ITEM
 import ru.relabs.kurjer.domain.models.ReportEntranceSelection
+import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
 import ru.relabs.kurjer.utils.extensions.renderText
 import ru.relabs.kurjer.utils.extensions.visible
+import java.util.*
 
 /**
  * Created by Daniil Kurchanov on 06.04.2020.
@@ -105,6 +108,20 @@ object ReportRenders {
                     .map { notes.getOrElse(it - 1) { "" } }
                     .joinToString("<br/>")
             )
+        }
+    )
+
+    fun renderTaskItemAvailability(
+        listInterceptor: ListClickInterceptor,
+        descriptionEdit: View,
+        closeButton: View
+    ): ReportRender = renderT(
+        { it.selectedTask },
+        {
+            val available = it != null && it.taskItem.state == TaskItemState.CREATED && it.task.startTime < Date()
+            listInterceptor.enabled = available
+            descriptionEdit.isEnabled = available
+            closeButton.isEnabled = available
         }
     )
 }

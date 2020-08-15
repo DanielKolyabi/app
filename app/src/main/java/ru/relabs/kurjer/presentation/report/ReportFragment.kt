@@ -7,14 +7,12 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
 import android.view.*
-import android.view.inputmethod.EditorInfo
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.parcel.Parcelize
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.fragment_report.view.*
 import kotlinx.android.synthetic.main.fragment_report.view.rv_entrances
-import kotlinx.android.synthetic.main.fragment_report_old.*
 import kotlinx.android.synthetic.main.include_hint_container.*
 import kotlinx.android.synthetic.main.include_hint_container.view.*
 import kotlinx.coroutines.Job
@@ -120,14 +118,18 @@ class ReportFragment : BaseFragment() {
             }
         })
 
+        val listInterceptor = ListClickInterceptor()
+
         view.rv_tasks.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
         view.rv_tasks.adapter = tasksAdapter
 
         view.rv_entrances.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
         view.rv_entrances.adapter = entrancesAdapter
+        view.rv_entrances.addOnItemTouchListener(listInterceptor)
 
         view.rv_photos.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
         view.rv_photos.adapter = photosAdapter
+        view.rv_photos.addOnItemTouchListener(listInterceptor)
 
         bindControls(view)
 
@@ -139,7 +141,8 @@ class ReportFragment : BaseFragment() {
                 ReportRenders.renderEntrances(entrancesAdapter),
                 ReportRenders.renderTitle(view.tv_title),
                 ReportRenders.renderDescription(view.et_description, descriptionTextWatcher),
-                ReportRenders.renderNotes(view.hint_text)
+                ReportRenders.renderNotes(view.hint_text),
+                ReportRenders.renderTaskItemAvailability(listInterceptor, view.et_description, view.btn_close)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }

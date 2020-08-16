@@ -36,11 +36,13 @@ class PauseRepository(
 ) {
     val isPausedChannel = BroadcastChannel<Boolean>(Channel.CONFLATED)
 
+    private val scope = CoroutineScope(Dispatchers.Default)
+
     private var lunchDuration: Int = 20 * 60
     private var loadDuration: Int = 20 * 60
     private var currentPauseType: PauseType? = null
     private var pauseEndJob: Job? = null
-    private var isPausedInternal: Boolean = getActivePauseType() != null
+    private var isPausedInternal: Boolean = false
     var isPaused: Boolean
         get() = isPausedInternal
         set(value) {
@@ -51,6 +53,22 @@ class PauseRepository(
     init {
         lunchDuration = sharedPreferences.getInt(LUNCH_KEY, lunchDuration)
         loadDuration = sharedPreferences.getInt(LOAD_KEY, loadDuration)
+
+        val activePauseType = getActivePauseType()
+
+        if(activePauseType != null){
+            isPaused = true
+            val currentTime = currentTimestamp()
+            val pauseEndTime = getPauseStartTime(activePauseType) + getPauseLength(activePauseType)
+
+            ReportService.instance?.pauseTimer(getPauseStartTime(activePauseType), pauseEndTime)
+
+            debug("Start pause timer: $activePauseType, delay: ${pauseEndTime - currentTime + 10}s")
+            pauseEndJob = scope.launch {
+                delay((pauseEndTime - currentTime + 10) * 1000)
+                updatePauseState()
+            }
+        }
     }
 
     suspend fun loadPauseDurations() = withContext(Dispatchers.Default) {
@@ -175,7 +193,7 @@ class PauseRepository(
         }
 
         pauseEndJob?.cancel()
-        pauseEndJob = GlobalScope.launch(Dispatchers.Default) {
+        pauseEndJob = scope.launch {
             delay((pauseEndTime - currentTime + 10) * 1000)
             updatePauseState()
         }

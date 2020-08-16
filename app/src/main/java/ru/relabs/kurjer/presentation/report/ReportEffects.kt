@@ -36,13 +36,13 @@ object ReportEffects {
         }
 
         if (tasks.size != itemIds.size) {
-            //TODO: Not all tasks found, report somehow
+            c.showError("re:108", true)
         }
 
         val selectedTaskWithItem = tasks.firstOrNull { it.taskItem.id == selectedTaskItemId }
 
         if (selectedTaskWithItem == null) {
-            //TODO: Selected taskItem not found, report
+            c.showError("re:109", true)
         }
 
         //Default coupling
@@ -79,7 +79,7 @@ object ReportEffects {
         val task = s.tasks.firstOrNull { it.taskItem.id == id }?.task
         val taskItem = c.database.getTaskItem(id)
         if (task == null || taskItem == null) {
-            //TODO: Show error
+            c.showError("re:110", true)
         } else {
             val photos = c.database.getTaskItemPhotos(taskItem)
             messages.send(ReportMessages.msgTaskSelectionLoaded(TaskWithItem(task, taskItem), photos))
@@ -92,7 +92,7 @@ object ReportEffects {
 
     fun effectCreatePhoto(entranceNumber: Int, multiplePhotos: Boolean): ReportEffect = { c, s ->
         when (val selectedTask = s.selectedTask) {
-            null -> Unit //TODO: Show error
+            null -> c.showError("re:100", true)
             else -> {
                 val photoUUID = UUID.randomUUID()
                 val photoFile = PathHelper.getTaskItemPhotoFile(selectedTask.taskItem, photoUUID)
@@ -116,10 +116,25 @@ object ReportEffects {
         }
 
         when (val affectedTask = s.selectedTask) {
-            null -> Unit //TODO: Show error
+            null -> c.showError("re:101", true)
             else -> {
                 val newResult =
-                    c.database.createOrUpdateTaskItemEntranceResultSelection(entrance, affectedTask.taskItem, ::applyButtonClick)
+                    c.database.createOrUpdateTaskItemEntranceResultSelection(entrance, affectedTask.taskItem) { selection ->
+                        applyButtonClick(selection).let { applied ->
+                            if (button == EntranceSelectionButton.Euro && applied.isEuro) {
+                                applied.copy(isStacked = true)
+                            } else if (button == EntranceSelectionButton.Watch && applied.isWatch) {
+                                applied.copy(isStacked = true)
+                            } else if (
+                                (button == EntranceSelectionButton.Watch || button == EntranceSelectionButton.Euro)
+                                && (!applied.isEuro && !applied.isWatch)
+                            ) {
+                                applied.copy(isStacked = false)
+                            } else {
+                                applied
+                            }
+                        }
+                    }
 
                 //Coupling
                 val newSelection = newResult?.entrances?.firstOrNull { it.entranceNumber == entrance }?.selection
@@ -136,6 +151,7 @@ object ReportEffects {
         }
     }
 
+
     fun effectSavePhotoFromFile(entrance: Int, targetFile: File, uuid: UUID): ReportEffect = { c, s ->
         val bmp = BitmapFactory.decodeFile(targetFile.path)
         effectSavePhotoFromBitmap(entrance, bmp, targetFile, uuid)(c, s)
@@ -143,7 +159,7 @@ object ReportEffects {
 
     fun effectSavePhotoFromBitmap(entrance: Int, bitmap: Bitmap, targetFile: File, uuid: UUID): ReportEffect = { c, s ->
         when (val task = s.selectedTask) {
-            null -> Unit //TODO: Show error
+            null -> c.showError("re:102", true)
             else -> {
                 when (savePhotoFromBitmapToFile(bitmap, targetFile)) {
                     is Left -> messages.send(ReportMessages.msgPhotoError(6))
@@ -158,9 +174,9 @@ object ReportEffects {
 
     fun effectUpdateDescription(text: String): ReportEffect = { c, s ->
         when (val selectedTask = s.selectedTask) {
-            null -> Unit //TODO: Show error
+            null -> c.showError("re:103", true)
             else -> when (val r = s.selectedTaskReport ?: createEmptyTaskResult(c.database, selectedTask.taskItem)) {
-                null -> Unit //TODO: Show error
+                null -> c.showError("re:104", true)
                 else -> c.database.updateTaskItemResult(r.copy(description = text))?.let {
                     messages.send(ReportMessages.msgSavedResultLoaded(it))
                 }
@@ -170,7 +186,7 @@ object ReportEffects {
 
     fun effectChangeCoupleState(entrance: EntranceNumber): ReportEffect = { c, s ->
         when (val selected = s.selectedTask) {
-            null -> Unit //TODO: Show error
+            null -> c.showError("re:105", true)
             else -> {
                 val taskCoupleType = selected.task.coupleType
                 val currentCoupleState = s.coupling.isCouplingEnabled(selected.task, entrance)
@@ -184,7 +200,7 @@ object ReportEffects {
     fun effectCloseCheck(withLocationLoading: Boolean): ReportEffect = { c, s ->
         messages.send(ReportMessages.msgAddLoaders(1))
         when (val selected = s.selectedTask) {
-            null -> Unit //TODO: Show error
+            null -> c.showError("re:106", true)
             else -> {
                 val taskItemRequiredPhotoExists = if (selected.taskItem.needPhoto) {
                     s.selectedTaskPhotos.any { it.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM }
@@ -283,7 +299,7 @@ object ReportEffects {
     fun effectClosePerform(withRemove: Boolean, location: Location?): ReportEffect = { c, s ->
         messages.send(ReportMessages.msgAddLoaders(1))
         when (val selected = s.selectedTask) {
-            null -> Unit //TODO: Show error
+            null -> c.showError("re:107", true)
             else -> {
                 effectInterruptPause()(c, s)
                 if (withRemove) {
@@ -340,5 +356,9 @@ object ReportEffects {
                 }
             }
         }
+    }
+
+    fun effectShowPhotoError(errorCode: Int): ReportEffect = { c, s ->
+        c.showError("Не удалось сделать фотографию: re:photo:$errorCode", false)
     }
 }

@@ -20,9 +20,11 @@ import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.fragment_report.view.*
 import kotlinx.android.synthetic.main.include_hint_container.*
 import kotlinx.android.synthetic.main.include_hint_container.view.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
@@ -31,10 +33,7 @@ import ru.relabs.kurjer.domain.models.TaskItemId
 import ru.relabs.kurjer.presentation.base.TextChangeListener
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
-import ru.relabs.kurjer.presentation.base.tea.debugCollector
-import ru.relabs.kurjer.presentation.base.tea.defaultController
-import ru.relabs.kurjer.presentation.base.tea.rendersCollector
-import ru.relabs.kurjer.presentation.base.tea.sendMessage
+import ru.relabs.kurjer.presentation.base.tea.*
 import ru.relabs.kurjer.uiOld.helpers.HintHelper
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
@@ -92,11 +91,15 @@ class ReportFragment : BaseFragment() {
             ?.let { TaskItemId(it) }
 
         if (itemIds == null || selectedItemId == null) {
-            //TODO: Show error
-            return
+            showDialog(
+                getString(R.string.unknown_runtime_error_code, "rf:100"),
+                R.string.ok to { uiScope.sendMessage(controller, ReportMessages.msgBackClicked()) }
+            )
+            controller.start(msgEmpty())
+        } else {
+            controller.start(ReportMessages.msgInit(itemIds, selectedItemId))
         }
 
-        controller.start(ReportMessages.msgInit(itemIds, selectedItemId))
     }
 
     override fun onDestroy() {
@@ -161,6 +164,21 @@ class ReportFragment : BaseFragment() {
         controller.context.showPhotosWarning = ::showPhotosWarning
         controller.context.showPreCloseDialog = ::showPreCloseDialog
         controller.context.getBatteryLevel = ::getBatteryLevel
+        controller.context.showError = ::showFatalError
+    }
+
+    private suspend fun showFatalError(code: String, isFatal: Boolean) = withContext(Dispatchers.Main) {
+        //TODO: Report to crashlytics
+        showDialog(
+            getString(R.string.unknown_runtime_error_code, code),
+            R.string.ok to {
+                if (isFatal) {
+                    uiScope.sendMessage(controller, ReportMessages.msgBackClicked())
+                }
+            }
+        )
+
+        Unit
     }
 
     private fun getBatteryLevel(): Float? {
@@ -273,6 +291,7 @@ class ReportFragment : BaseFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         renderJob?.cancel()
+        controller.context.showError = { _, _ -> }
         controller.context.hideKeyboard = {}
         controller.context.requestPhoto = { _, _, _, _ -> }
         controller.context.showCloseError = { _, _, _ -> }

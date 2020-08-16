@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_addresses.view.*
-import kotlinx.android.synthetic.main.holder_search.view.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -14,11 +13,9 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
-import ru.relabs.kurjer.presentation.base.tea.debugCollector
-import ru.relabs.kurjer.presentation.base.tea.defaultController
-import ru.relabs.kurjer.presentation.base.tea.rendersCollector
-import ru.relabs.kurjer.presentation.base.tea.sendMessage
+import ru.relabs.kurjer.presentation.base.tea.*
 import ru.relabs.kurjer.utils.debug
+import ru.relabs.kurjer.utils.extensions.showDialog
 
 
 /**
@@ -55,11 +52,16 @@ class AddressesFragment : BaseFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val taskIds = arguments?.getParcelableArrayList<TaskId>(ARG_TASK_IDS)?.toList()
-        if (taskIds == null) {
-            //TODO: Show error
-            return
+
+        if (taskIds != null) {
+            controller.start(AddressesMessages.msgInit(taskIds))
+        } else {
+            controller.start(msgEmpty())
+            showDialog(
+                getString(R.string.unknown_runtime_error_code, "af:100"),
+                R.string.ok to { uiScope.sendMessage(controller, AddressesMessages.msgNavigateBack()) }
+            )
         }
-        controller.start(AddressesMessages.msgInit(taskIds))
     }
 
     override fun onDestroy() {

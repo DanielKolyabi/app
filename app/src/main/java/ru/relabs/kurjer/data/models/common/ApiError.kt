@@ -26,7 +26,6 @@ data class ApiError(
     val details: Map<String, Any>
         get() = dataInternal ?: emptyMap()
 
-    //TODO: Add error codes
     companion object {
         const val ERROR_INVALID_DATE_TIME = 5
 

@@ -222,7 +222,12 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     }
 
     private fun sendDeviceUUID(text: String) {
-        //TODO: Implement share text feature
+        startActivity(
+            Intent.createChooser(
+                IntentUtils.getShareTextIntent(getString(R.string.share_device_uuid_subject), text),
+                getString(R.string.share_device_uuid_title)
+            )
+        )
     }
 
     override fun onDestroy() {

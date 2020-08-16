@@ -63,7 +63,9 @@ object ReportMessages {
     fun msgSavedResultLoaded(report: TaskItemResult?): ReportMessage =
         msgState { it.copy(selectedTaskReport = report) }
 
-    fun msgPhotoError(errorCode: Int): ReportMessage = msgEmpty() //TODO: Show error
+    fun msgPhotoError(errorCode: Int): ReportMessage =
+        msgEffect(ReportEffects.effectShowPhotoError(errorCode))
+
     fun msgPhotoCaptured(entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID): ReportMessage = msgEffects(
         { it },
         {

@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.providers.FirebaseToken
 import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.presentation.RootScreen
@@ -31,8 +32,8 @@ object HostEffects {
                 }
                 withContext(Dispatchers.IO) {
                     when (val result = FirebaseInstanceId.getInstance().getFirebaseToken()) {
-                        is Right -> Unit //TODO: Upload c.repository.updateMe(firebaseToken = result.value)
-                        is Left -> Unit//FirebaseCrashlytics.getInstance().log("Can't get firebase token")
+                        is Right -> c.repository.updatePushToken(FirebaseToken(result.value))
+                        is Left -> Unit//TODO: FirebaseCrashlytics.getInstance().log("Can't get firebase token")
                     }
                 }
             } else {

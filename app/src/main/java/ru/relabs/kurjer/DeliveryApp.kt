@@ -107,32 +107,6 @@ class DeliveryApp : Application() {
     }
 
     @SuppressLint("HardwareIds")
-    fun getDeviceUniqueId(): String {
-        val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        val imei = try {
-            when {
-                Build.VERSION.SDK_INT >= 29 -> {
-                    val WIDEVINE_UUID = UUID(-0x121074568629b532L, -0x5c37d8232ae2de13L)
-                    val id =
-                        MediaDrm(WIDEVINE_UUID).getPropertyByteArray(MediaDrm.PROPERTY_DEVICE_UNIQUE_ID)
-                    Base64.getEncoder().encodeToString(id)
-                }
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ->
-                    telephonyManager.getImei(0) ?: telephonyManager.getImei(1) ?: ""
-
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ->
-                    telephonyManager.getDeviceId(0) ?: (telephonyManager.getDeviceId(1) ?: "")
-
-                else ->
-                    telephonyManager.deviceId
-            }
-        } catch (e: SecurityException) {
-            CustomLog.writeToFile("IMEI: Stack \n" + CustomLog.getStacktraceAsString(e))
-            ""
-        }
-
-        return imei
-    }
 
     private suspend fun initTrueTime(): Boolean {
         try {
@@ -178,97 +152,6 @@ class DeliveryApp : Application() {
         locationManager?.requestLocationUpdates(req, listener, mainLooper)
 
         return true
-    }
-
-    fun storeUserCredentials() {
-        val ctxUser = user ?: return
-        getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-            .edit()
-            .putString("login", ctxUser.login.login)
-            //.putString("token", (user as UserModel.Authorized).token)
-            .apply()
-    }
-
-    fun getUserCredentials(): UserModel.Authorized? {
-        val login = getSharedPreferences(
-            BuildConfig.APPLICATION_ID,
-            Context.MODE_PRIVATE
-        ).getString("login", "-unknw") ?: "-unknw"
-        val token = getSharedPreferences(
-            BuildConfig.APPLICATION_ID,
-            Context.MODE_PRIVATE
-        ).getString("token", "-unknw") ?: "-unknw"
-        if (token == "-unknw") {
-            return null
-        }
-        return UserModel.Authorized(login = login, token = token)
-    }
-
-    fun restoreUserCredentials() {
-        getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-            .edit()
-            .remove("login")
-            .remove("token")
-            .apply()
-    }
-
-
-    fun getOrGenerateDeviceUUID(): String {
-        val sharedPreferences =
-            getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-        var deviceUUID = sharedPreferences.getString("device_uuid", "unknown") ?: "unknown"
-
-        if (deviceUUID == "unknown") {
-            deviceUUID = UUID.randomUUID().toString()
-            sharedPreferences.edit()
-                .putString("device_uuid", deviceUUID)
-                .apply()
-        }
-        return deviceUUID
-    }
-
-    fun savePushToken(pushToken: String) {
-        getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-            .edit()
-            .putString("firebase_token", pushToken)
-            .apply()
-
-    }
-
-    suspend fun sendDeviceInfo(pushToken: String?, shouldSendImei: Boolean = true) {
-        if (user == null) return
-
-        TODO("Refactor")
-//        if (shouldSendImei) {
-//            tryOrLogAsync {
-//                DeliveryServerAPI.api.sendDeviceImei(
-//                    (user as UserModel.Authorized).token,
-//                    getDeviceUniqueId()
-//                )
-//            }
-//        }
-//
-//        if (pushToken != null) {
-//            tryOrLogAsync {
-//                DeliveryServerAPI.api.sendPushToken((user as UserModel.Authorized).token, pushToken)
-//
-//            }
-//        } else {
-//            val token = getSharedPreferences(
-//                BuildConfig.APPLICATION_ID,
-//                Context.MODE_PRIVATE
-//            ).getString("firebase_token", "notoken")
-//            if (token != "notoken") {
-//                sendDeviceInfo(token)
-//                return
-//            }
-//
-//            tryOrLogAsync {
-//                val token = FirebaseInstanceId.getInstance().instanceIdAsync().token
-//                savePushToken(token)
-//                sendDeviceInfo(token, false)
-//            }
-//        }
     }
 
     companion object {

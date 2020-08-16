@@ -460,12 +460,6 @@ class MainActivity : AppCompatActivity() {
         val sharedPref = application().getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
         val token = sharedPref.getString("token", "") ?: ""
         val login = sharedPref.getString("login", "") ?: ""
-        if (token.isBlank() || login.isBlank()) {
-//            showLoginScreen()
-        } else {
-            //TODO: Get rid of it
-            application().user = User(UserLogin(login))
-        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

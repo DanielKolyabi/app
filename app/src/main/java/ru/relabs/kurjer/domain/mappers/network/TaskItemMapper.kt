@@ -17,7 +17,6 @@ object TaskItemMapper {
             else -> throw MappingException("state", raw.state)
         },
         notes = raw.notes,
-        entrances = raw.entrances,
         subarea = raw.subarea,
         bypass = raw.bypass,
         copies = raw.copies,

@@ -121,32 +121,6 @@ object NetworkHelper {
         return status ?: false
     }
 
-    suspend fun sendReport(data: ReportQueryItemEntity, photos: List<TaskItemPhotoEntity>): Boolean {
-
-        val photosMap = mutableMapOf<String, PhotoReportRequest>()
-        val photoParts = mutableListOf<MultipartBody.Part>()
-
-        var imgCount = 0
-        photos.forEachIndexed { i, photo ->
-            try {
-                photoParts.add(photoEntityToPart("img_$imgCount", data, photo))
-                photosMap["img_$imgCount"] =
-                    PhotoReportRequest("", photo.gps, photo.entranceNumber)
-                imgCount++
-            } catch (e: Throwable) {
-                e.fillInStackTrace().log()
-            }
-        }
-
-        val reportObject = TaskItemReportRequest(
-            data.taskId, data.taskItemId, data.imageFolderId,
-            data.gps, data.closeTime, data.userDescription, data.entrances, photosMap,
-            data.batteryLevel, data.closeDistance, data.allowedDistance, data.radiusRequired
-        )
-
-        return TODO("Use new api")//api.sendTaskReport(data.taskItemId, data.token, reportObject, photoParts).status
-    }
-
     private fun photoEntityToPart(partName: String, reportEnt: ReportQueryItemEntity, photoEnt: TaskItemPhotoEntity): MultipartBody.Part {
         val photoFile = PathHelper.getTaskItemPhotoFileByID(
                 reportEnt.taskItemId,

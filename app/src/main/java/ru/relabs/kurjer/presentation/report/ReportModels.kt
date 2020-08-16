@@ -46,6 +46,7 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     val reportUseCase: ReportUseCase by inject()
     val taskEventController: TaskEventController by inject()
 
+    var showError: suspend (code: String, isFatal: Boolean) -> Unit = { _, _ -> }
     var requestPhoto: (entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID) -> Unit = { _, _, _, _ -> }
     var hideKeyboard: () -> Unit = {}
     var showCloseError: (msgRes: Int, showNext: Boolean, location: Location?) -> Unit = { _, _, _ -> }

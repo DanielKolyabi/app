@@ -14,4 +14,11 @@ object IntentUtils {
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         return intent
     }
+
+    fun getShareTextIntent(title: String, text: String): Intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_SUBJECT, title)
+        putExtra(Intent.EXTRA_TEXT, text)
+    }
+
 }

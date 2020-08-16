@@ -14,7 +14,6 @@ object DatabaseTaskItemMapper {
         },
         state = taskItem.state.toTaskItemState(),
         notes = taskItem.notes,
-        entrances = taskItem.entrances.map { it.toInt() },
         subarea = taskItem.subarea,
         bypass = taskItem.bypass,
         copies = taskItem.copies,
@@ -30,11 +29,11 @@ object DatabaseTaskItemMapper {
         addressId = taskItem.address.id.id,
         state = taskItem.state.toInt(),
         notes = taskItem.notes,
-        entrances = taskItem.entrances,
         subarea = taskItem.subarea,
         bypass = taskItem.bypass,
         copies = taskItem.copies,
         taskId = taskItem.taskId.id,
-        needPhoto = taskItem.needPhoto
+        needPhoto = taskItem.needPhoto,
+        entrances = emptyList() //TODO: Remove with migration
     )
 }

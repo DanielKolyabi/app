@@ -53,8 +53,6 @@ class ReportUseCase(
         )
 
         databaseRepository.createTaskItemReport(reportItem)
-
-        //TODO: Send event to channel
     }
 
     private fun getReportLocation(location: Location?) = when (location) {

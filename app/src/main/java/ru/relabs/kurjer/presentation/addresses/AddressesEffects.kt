@@ -26,7 +26,7 @@ object AddressesEffects {
     }
 
     fun effectNavigateBack(stopTimer: Boolean = false): AddressesEffect = { c, s ->
-        if (!s.isExited) {
+        if (s.exits == 1) {
             if (stopTimer) {
                 ReportService.instance?.stopTimer()
             }

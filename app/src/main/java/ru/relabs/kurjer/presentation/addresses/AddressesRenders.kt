@@ -42,7 +42,7 @@ object AddressesRenders {
                 ) + getSortedTasks(tasks, sorting, searchFilter) + listOfNotNull(AddressesItem.Blank.takeIf { tasks.isNotEmpty() })
 
             val diff = DiffUtil.calculateDiff(DefaultListDiffCallback(adapter.items, newItems) { o, n ->
-                if ((o is AddressesItem.Search && n is AddressesItem.Search) || (o is AddressesItem.Sorting && n is AddressesItem.Sorting)) {
+                if ((o is AddressesItem.Search && n is AddressesItem.Search) || (o is AddressesItem.Sorting && n is AddressesItem.Sorting && o.sorting == n.sorting)) {
                     true
                 } else {
                     null

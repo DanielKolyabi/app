@@ -19,7 +19,7 @@ data class AddressesState(
     val tasks: List<Task> = emptyList(),
     val sorting: AddressesSortingMethod = AddressesSortingMethod.STANDARD,
     val searchFilter: String = "",
-    val isExited: Boolean = false,
+    val exits: Int = 0,
     val selectedListAddress: Address? = null
 )
 

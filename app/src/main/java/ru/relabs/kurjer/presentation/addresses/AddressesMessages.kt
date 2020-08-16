@@ -39,7 +39,7 @@ object AddressesMessages {
         msgState { it.copy(tasks = tasks) }
 
     fun msgNavigateBack(): AddressesMessage = msgEffects(
-        { it.copy(isExited = true) },
+        { it.copy(exits = it.exits + 1) },
         { listOf(AddressesEffects.effectNavigateBack()) }
     )
 
@@ -72,7 +72,7 @@ object AddressesMessages {
     fun msgRemoveTask(id: TaskId): AddressesMessage = msgEffects(
         { s ->
             val newTasks = s.tasks.filter { it.id != id }
-            s.copy(tasks = newTasks, isExited = newTasks.isEmpty())
+            s.copy(tasks = newTasks, exits = if(newTasks.isEmpty()) s.exits.inc() else s.exits)
         },
         { s ->
             listOfNotNull(

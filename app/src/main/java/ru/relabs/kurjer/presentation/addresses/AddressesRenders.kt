@@ -1,8 +1,15 @@
 package ru.relabs.kurjer.presentation.addresses
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.view.View
+import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
 import okhttp3.internal.toImmutableList
+import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.AddressId
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskItem
@@ -11,6 +18,7 @@ import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
 import ru.relabs.kurjer.utils.SearchUtils
+import ru.relabs.kurjer.utils.extensions.getColorCompat
 import ru.relabs.kurjer.utils.extensions.visible
 
 /**
@@ -46,6 +54,60 @@ object AddressesRenders {
             diff.dispatchUpdatesTo(adapter)
         }
     )
+
+    fun renderTargetListAddress(adapter: DelegateAdapter<AddressesItem>, list: RecyclerView): AddressesRender = renderT(
+        { it.selectedListAddress },
+        {
+            it?.let { a ->
+                adapter.items
+                    .indexOfFirst { item -> item is AddressesItem.AddressItem && item.taskItem.address.id == a.id }
+                    .takeIf { idx -> idx > 0 }
+                    ?.let { idx ->
+                        list.scrollToPosition(idx)
+                        list.post {
+                            list?.findViewHolderForAdapterPosition(idx)?.itemView?.let {
+                                flashSelectedColor(it)
+                            }
+                        }
+                    }
+            }
+        }
+    )
+
+    private fun flashSelectedColor(itemView: View) {
+        startFlashValueAnimator(itemView) {
+            startFlashValueAnimator(itemView)
+        }
+    }
+
+    private fun startFlashValueAnimator(view: View, onAnimationEnd: (() -> Unit)? = null) {
+        val targetColor = view.resources.getColorCompat(R.color.colorAccent)
+        val colorFrom = ColorUtils.setAlphaComponent(targetColor, 0)
+
+        val colorAnimationTo = getValueAnimator(colorFrom, targetColor, view, 500)
+        val colorAnimationFrom = getValueAnimator(targetColor, colorFrom, view, 500)
+        onAnimationEnd?.let {
+            colorAnimationFrom.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator?) {
+                    it()
+                }
+            })
+        }
+        colorAnimationTo.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator?) {
+                colorAnimationFrom.start()
+            }
+        })
+
+        colorAnimationTo.start()
+    }
+
+    private fun getValueAnimator(from: Int, to: Int, view: View?, duration: Int = 250): ValueAnimator {
+        return ValueAnimator.ofObject(ArgbEvaluator(), from, to).apply {
+            setDuration(duration.toLong())
+            addUpdateListener { animator -> view?.setBackgroundColor(animator.animatedValue as Int) }
+        }
+    }
 
     private fun getSortedTasks(tasks: List<Task>, sorting: AddressesSortingMethod, searchFilter: String): List<AddressesItem> {
         if (tasks.isEmpty()) {

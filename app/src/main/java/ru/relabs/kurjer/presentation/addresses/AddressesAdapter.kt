@@ -25,7 +25,7 @@ import ru.relabs.kurjer.utils.extensions.visible
 
 object AddressesAdapter {
     fun addressDelegate(
-        onMapClicked: (task: Task) -> Unit
+        onMapClicked: (addressTaskItems: List<TaskItem>) -> Unit
     ): IAdapterDelegate<AddressesItem> = delegateDefine(
         { it is AddressesItem.GroupHeader },
         { p ->
@@ -50,7 +50,7 @@ object AddressesAdapter {
                         }
                     }
 
-                    iv_task_map.setOnClickListener { onMapClicked(task) }
+                    iv_task_map.setOnClickListener { onMapClicked(items) }
                 }
             }
         }

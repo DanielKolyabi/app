@@ -120,17 +120,17 @@ class AddressListFragment : Fragment(), SearchableFragment {
         hintHelper = HintHelper(hint_container, resources.getString(R.string.address_list_hint_text), false, activity!!.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
 
         map_button?.setOnClickListener {
-            activity()?.showYandexMap(adapter.data.mapNotNull { (it as? AddressListModel.TaskItem)?.taskItem }) {
-                presenter.onMapAddressClicked(it)
-            }
+//            activity()?.showYandexMap(adapter.data.mapNotNull { (it as? AddressListModel.TaskItem)?.taskItem }) {
+//                presenter.onMapAddressClicked(it)
+//            }
         }
 
         adapter.apply {
             addDelegate(AddressListAddressDelegate(
                     {
-                        this@AddressListFragment.activity()?.showYandexMap(it) {
-                            presenter.onMapAddressClicked(it)
-                        }
+//                        this@AddressListFragment.activity()?.showYandexMap(it) {
+//                            presenter.onMapAddressClicked(it)
+//                        }
                     },
                     tasks.size == 1
             ))

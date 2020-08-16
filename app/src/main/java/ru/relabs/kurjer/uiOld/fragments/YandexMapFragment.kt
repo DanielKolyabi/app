@@ -7,31 +7,47 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.os.Parcelable
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.graphics.ColorUtils
+import androidx.fragment.app.Fragment
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Circle
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
+import com.yandex.mapkit.map.MapObject
+import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.android.parcel.Parcelize
 import kotlinx.android.synthetic.main.fragment_yandex_map.*
+import kotlinx.android.synthetic.main.fragment_yandex_map.view.*
+import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.models.Address
+import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.utils.application
-import ru.relabs.kurjer.models.AddressModel
+import ru.terrakok.cicerone.Router
 
 
 class YandexMapFragment : Fragment() {
+    private val router: Router by inject()
+    private val locationProvider: LocationProvider by inject()
     private lateinit var userLocationLayer: UserLocationLayer
     private var addresses: List<AddressWithColor> = listOf()
+    private val clickListener = MapObjectTapListener { obj, point ->
+        val udata = obj.userData
+        if(udata is Address){
+            onAddressClicked?.invoke(udata)
+            router.exit()
+            true
+        }
+        false
+    }
 
-
-    var onAddressClicked: ((AddressModel) -> Unit)? = null
+    var onAddressClicked: ((Address) -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,8 +59,10 @@ class YandexMapFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_yandex_map, container, false)
     }
 
@@ -53,23 +71,25 @@ class YandexMapFragment : Fragment() {
 
         MapKitFactory.initialize(this.context)
 
-        val point = Point(application().currentLocation.lat, application().currentLocation.long)
+        val point = locationProvider.lastReceivedLocation()?.let {
+            Point(it.latitude, it.longitude)
+        } ?: Point(0.0, 0.0)
+
         mapview.map.isRotateGesturesEnabled = false
 
-        mapview.map.move(
-                CameraPosition(point, 14f, 0f, 0f)
-        )
+        mapview.map.move(CameraPosition(point, 14f, 0f, 0f))
         userLocationLayer = mapview.map.userLocationLayer
         userLocationLayer.isEnabled = true
-//        userLocationLayer.isHeadingEnabled = true
 
         my_position.setOnClickListener {
             mapview.map.move(
-                    userLocationLayer.cameraPosition() ?: CameraPosition(
-                            Point(application().currentLocation.lat, application().currentLocation.long),
-                            14f, 0f, 0f
-                    )
+                userLocationLayer.cameraPosition()
+                    ?: CameraPosition(Point(application().currentLocation.lat, application().currentLocation.long), 14f, 0f, 0f)
             )
+        }
+
+        view.iv_menu.setOnClickListener {
+            router.exit()
         }
 
 
@@ -82,29 +102,29 @@ class YandexMapFragment : Fragment() {
         when {
             coloredAddresses.isEmpty() -> {
                 return CameraPosition(
-                        Point(application().currentLocation.lat, application().currentLocation.long),
-                        14f, 0f, 0f
+                    Point(application().currentLocation.lat, application().currentLocation.long),
+                    14f, 0f, 0f
                 )
             }
             coloredAddresses.size == 1 -> {
                 val address = coloredAddresses.first().address
                 return CameraPosition(
-                        Point(address.lat, address.long),
-                        14f, 0f, 0f
+                    Point(address.lat.toDouble(), address.long.toDouble()),
+                    14f, 0f, 0f
                 )
             }
             else -> {
-                val filtered = coloredAddresses.filter { it.address.lat != 0.0 && it.address.long != 0.0 }
-                val minLat = filtered.minBy { it.address.lat }?.address?.lat
-                val maxLat = filtered.maxBy { it.address.lat }?.address?.lat
-                val minLong = filtered.minBy { it.address.long }?.address?.long
-                val maxLong = filtered.maxBy { it.address.long }?.address?.long
+                val filtered = coloredAddresses.filter { it.address.lat != 0f && it.address.long != 0f }
+                val minLat = filtered.minBy { it.address.lat }?.address?.lat?.toDouble()
+                val maxLat = filtered.maxBy { it.address.lat }?.address?.lat?.toDouble()
+                val minLong = filtered.minBy { it.address.long }?.address?.long?.toDouble()
+                val maxLong = filtered.maxBy { it.address.long }?.address?.long?.toDouble()
                 if (minLat == null || maxLat == null || minLong == null || maxLong == null) {
                     return getCameraPosition(listOfNotNull(coloredAddresses.firstOrNull()))
 
                 }
                 return mapview?.map?.cameraPosition(BoundingBox(Point(minLat, minLong), Point(maxLat, maxLong)))
-                        ?: getCameraPosition(listOfNotNull(coloredAddresses.firstOrNull()))
+                    ?: getCameraPosition(listOfNotNull(coloredAddresses.firstOrNull()))
             }
         }
     }
@@ -119,24 +139,22 @@ class YandexMapFragment : Fragment() {
 
     private fun showAddress(coloredAddress: AddressWithColor) {
         val address = coloredAddress.address
-        if (address.lat != 0.0 && address.long != 0.0) {
+        if (address.lat != 0f && address.long != 0f) {
             val ctx = context ?: return
-            val point = Point(address.lat, address.long)
-
+            val point = Point(address.lat.toDouble(), address.long.toDouble())
 
             mapview.map.mapObjects
-                    .addPlacemark(point, ColoredIconProvider(ctx, coloredAddress.color))
-                    .addTapListener { _, _ ->
-                        onAddressClicked?.invoke(address)
-                        activity?.onBackPressed()
-                        true
-                    }
+                .addPlacemark(point, ColoredIconProvider(ctx, coloredAddress.color))
+                .apply{
+                    userData = address
+                    addTapListener(clickListener)
+                }
 
             mapview.map.mapObjects.addCircle(
-                    Circle(point, 7.5f),
-                    R.color.colorPrimary,
-                    2f,
-                    ColorUtils.setAlphaComponent(coloredAddress.color, 125)
+                Circle(point, 7.5f),
+                R.color.colorPrimary,
+                2f,
+                ColorUtils.setAlphaComponent(coloredAddress.color, 125)
             )
         }
     }
@@ -167,17 +185,17 @@ class YandexMapFragment : Fragment() {
 
         @JvmStatic
         fun newInstance(address: List<AddressWithColor>) =
-                YandexMapFragment().apply {
-                    arguments = Bundle().apply {
-                        putParcelableArrayList("addresses", ArrayList(address))
-                    }
+            YandexMapFragment().apply {
+                arguments = Bundle().apply {
+                    putParcelableArrayList("addresses", ArrayList(address))
                 }
+            }
     }
 
     @Parcelize
     data class AddressWithColor(
-            val address: AddressModel,
-            val color: Int
+        val address: Address,
+        val color: Int
     ) : Parcelable
 }
 

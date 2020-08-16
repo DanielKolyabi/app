@@ -648,37 +648,37 @@ class MainActivity : AppCompatActivity() {
 ////        return fragment
 //    }
 
-    fun showYandexMap(taskItems: List<TaskItemModel>, onAddressClicked: (AddressModel) -> Unit): YandexMapFragment {
-        val addresses = taskItems.groupBy { it.address.id }
-            .mapValues { entry ->
-                entry.value.firstOrNull { it.needPhoto }
-                    ?: (entry.value.firstOrNull { it.state == TaskItemEntity.STATE_CLOSED }
-                        ?: entry.value.firstOrNull())
-            }
-            .mapNotNull { entry ->
-                val value = entry.value
-                if (value is TaskItemModel) {
-                    val color = if (value.state == TaskItemEntity.STATE_CLOSED) {
-                        //Gray
-                        Color.GRAY
-                    } else if (value.needPhoto) {
-                        //Red
-                        resources.getColor(R.color.colorAccent)
-                    } else {
-                        //Orange
-                        Color.argb(255, 255, 165, 0)
-                    }
-                    YandexMapFragment.AddressWithColor(value.address, color)
-                } else {
-                    null
-                }
-            }
-        val fragment = YandexMapFragment.newInstance(addresses)
-        fragment.onAddressClicked = onAddressClicked
-        navigateTo(fragment, true)
-        changeTitle("Карта")
-        return fragment
-    }
+//    fun showYandexMap(taskItems: List<TaskItemModel>, onAddressClicked: (AddressModel) -> Unit): YandexMapFragment {
+//        val addresses = taskItems.groupBy { it.address.id }
+//            .mapValues { entry ->
+//                entry.value.firstOrNull { it.needPhoto }
+//                    ?: (entry.value.firstOrNull { it.state == TaskItemEntity.STATE_CLOSED }
+//                        ?: entry.value.firstOrNull())
+//            }
+//            .mapNotNull { entry ->
+//                val value = entry.value
+//                if (value is TaskItemModel) {
+//                    val color = if (value.state == TaskItemEntity.STATE_CLOSED) {
+//                        //Gray
+//                        Color.GRAY
+//                    } else if (value.needPhoto) {
+//                        //Red
+//                        resources.getColor(R.color.colorAccent)
+//                    } else {
+//                        //Orange
+//                        Color.argb(255, 255, 165, 0)
+//                    }
+//                    null//YandexMapFragment.AddressWithColor(value.address, color)
+//                } else {
+//                    null
+//                }
+//            }
+//        val fragment = YandexMapFragment.newInstance(addresses)
+//        fragment.onAddressClicked = onAddressClicked
+//        navigateTo(fragment, true)
+//        changeTitle("Карта")
+//        return fragment
+//    }
 
     fun showAddressListScreen(tasks: List<TaskModel>): AddressListFragment {
         if (tasks.isEmpty()) {

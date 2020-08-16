@@ -23,6 +23,7 @@ import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.presentation.host.HostActivity
 import ru.relabs.kurjer.presentation.taskDetails.IExaminedConsumer
+import ru.relabs.kurjer.uiOld.fragments.YandexMapFragment
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.showSnackbar
 
@@ -49,6 +50,11 @@ class TasksFragment : BaseFragment(),
             uiScope.sendMessage(controller, TasksMessages.msgSearch(it))
         }
     )
+
+    override fun onResume() {
+        super.onResume()
+        YandexMapFragment.savedCameraPosition = null //TODO: Remove after yandex map refactor
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

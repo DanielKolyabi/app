@@ -102,4 +102,5 @@
     <string name="unknown_runtime_error_code">Неизвестная ошибка (code: %s)</string>
     <string name="share_device_uuid_subject">Мой ID:</string>
     <string name="share_device_uuid_title">Отправить ID устройства</string>
+    <string name="yandex_map_title">Карта</string>
 </resources>

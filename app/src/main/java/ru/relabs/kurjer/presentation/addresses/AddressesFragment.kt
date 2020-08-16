@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_addresses.view.*
+import kotlinx.android.synthetic.main.fragment_addresses.view.rv_list
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -14,8 +16,10 @@ import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.*
+import ru.relabs.kurjer.utils.IntentUtils
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.showDialog
+import ru.relabs.kurjer.utils.extensions.showSnackbar
 
 
 /**
@@ -88,11 +92,16 @@ class AddressesFragment : BaseFragment() {
         renderJob = uiScope.launch {
             val renders = listOf(
                 AddressesRenders.renderLoading(view.loading),
-                AddressesRenders.renderList(addressesAdapter)
+                AddressesRenders.renderList(addressesAdapter),
+                AddressesRenders.renderTargetListAddress(addressesAdapter, view.rv_list)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
         }
+        controller.context.showImagePreview = {
+            ContextCompat.startActivity(requireContext(), IntentUtils.getImageViewIntent(it, requireContext()), null)
+        }
+        controller.context.showSnackbar = { showSnackbar(getString(it)) }
         controller.context.errorContext.attach(view)
     }
 
@@ -100,10 +109,16 @@ class AddressesFragment : BaseFragment() {
         view.iv_menu.setOnClickListener {
             uiScope.sendMessage(controller, AddressesMessages.msgNavigateBack())
         }
+
+        view.btn_map.setOnClickListener {
+            uiScope.sendMessage(controller, AddressesMessages.msgGlobalMapClicked())
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        controller.context.showSnackbar = {}
+        controller.context.showImagePreview = {}
         renderJob?.cancel()
         controller.context.errorContext.detach()
     }

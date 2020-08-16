@@ -3,7 +3,6 @@ package ru.relabs.kurjer.presentation.addresses
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
-import ru.relabs.kurjer.presentation.base.tea.msgEmpty
 import ru.relabs.kurjer.presentation.base.tea.msgState
 
 /**
@@ -27,8 +26,11 @@ object AddressesMessages {
     fun msgTaskItemClicked(item: TaskItem, task: Task): AddressesMessage =
         msgEffect(AddressesEffects.effectNavigateReport(task, item))
 
-    fun msgTaskItemMapClicked(task: Task): AddressesMessage = msgEmpty() //Show rasterized map
-    fun msgAddressMapClicked(task: Task): AddressesMessage = msgEmpty() //Show yandex map with ability to select address
+    fun msgTaskItemMapClicked(task: Task): AddressesMessage =
+        msgEffect(AddressesEffects.effectOpenImageMap(task))
+
+    fun msgAddressMapClicked(addressTaskItems: List<TaskItem>): AddressesMessage =
+        msgEffect(AddressesEffects.effectOpenYandexMap(addressTaskItems))
 
     fun msgSortingChanged(sorting: AddressesSortingMethod): AddressesMessage =
         msgState { it.copy(sorting = sorting) }
@@ -76,6 +78,16 @@ object AddressesMessages {
             listOfNotNull(
                 AddressesEffects.effectNavigateBack(true).takeIf { s.tasks.isEmpty() }
             )
+        }
+    )
+
+    fun msgSelectedListAddress(address: Address?): AddressesMessage =
+        msgState { it.copy(selectedListAddress = address) }
+
+    fun msgGlobalMapClicked(): AddressesMessage = msgEffects(
+        { it },
+        { s ->
+            listOf(AddressesEffects.effectOpenYandexMap(s.tasks.flatMap { t -> t.items }))
         }
     )
 }

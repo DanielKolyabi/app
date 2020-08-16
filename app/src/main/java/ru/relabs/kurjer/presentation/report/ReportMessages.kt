@@ -17,7 +17,12 @@ import java.util.*
 object ReportMessages {
     fun msgInit(itemIds: List<Pair<TaskId, TaskItemId>>, selectedTaskItemId: TaskItemId): ReportMessage = msgEffects(
         { it.copy() },
-        { listOf(ReportEffects.effectLoadData(itemIds, selectedTaskItemId)) }
+        {
+            listOf(
+                ReportEffects.effectLoadData(itemIds, selectedTaskItemId),
+                ReportEffects.effectLaunchEventConsumers()
+            )
+        }
     )
 
     fun msgAddLoaders(i: Int): ReportMessage =
@@ -136,5 +141,31 @@ object ReportMessages {
 
     fun msgGPSLoading(enabled: Boolean): ReportMessage =
         msgState { it.copy(isGPSLoading = enabled) }
+
+    fun msgTaskClosed(taskId: TaskId): ReportMessage = msgEffects(
+        { s ->
+            s.copy(
+                tasks = s.tasks.map { t ->
+                    if (t.task.id == taskId) {
+                        t.copy(
+                            task = t.task.copy(state = t.task.state.copy(state = TaskState.COMPLETED)),
+                            taskItem = t.taskItem.copy(state = TaskItemState.CLOSED)
+                        )
+                    }else{
+                        t
+                    }
+                }
+            )
+        },
+        { s ->
+            listOfNotNull(
+                s.tasks
+                    .firstOrNull { it.taskItem.state == TaskItemState.CREATED && it.task.id != taskId }
+                    ?.let { ReportEffects.effectLoadSelection(it.taskItem.id) },
+                ReportEffects.effectNavigateBack()
+                    .takeIf { s.tasks.none { it.taskItem.state == TaskItemState.CREATED && it.task.id != taskId } }
+            )
+        }
+    )
 
 }

@@ -4,7 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.files.ImageUtils
@@ -184,21 +186,21 @@ object ReportEffects {
         when (val selected = s.selectedTask) {
             null -> Unit //TODO: Show error
             else -> {
-                val taskItemRequiredPhotoExists = if(selected.taskItem.needPhoto){
+                val taskItemRequiredPhotoExists = if (selected.taskItem.needPhoto) {
                     s.selectedTaskPhotos.any { it.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM }
-                }else{
+                } else {
                     true
                 }
 
                 val requiredEntrancesPhotos = selected.taskItem.entrancesData
-                        .filter { it.photoRequired }
-                        .map { false to it.number }
+                    .filter { it.photoRequired }
+                    .map { false to it.number }
 
-                val entrancesRequiredPhotoExists = if(requiredEntrancesPhotos.isNotEmpty()){
+                val entrancesRequiredPhotoExists = if (requiredEntrancesPhotos.isNotEmpty()) {
                     requiredEntrancesPhotos
                         .reduce { entranceData, acc -> acc.copy(first = acc.first && s.selectedTaskPhotos.any { it.entranceNumber == entranceData.second }) }
                         .first
-                }else{
+                } else {
                     true
                 }
 
@@ -217,7 +219,7 @@ object ReportEffects {
                         messages.send(ReportMessages.msgGPSLoading(true))
                         val delayJob = async { delay(40 * 1000) }
                         val gpsJob = async(Dispatchers.Default) {
-                            c.locationProvider.updatesChannel().apply{
+                            c.locationProvider.updatesChannel().apply {
                                 receive()
                                 cancel()
                             }
@@ -283,9 +285,10 @@ object ReportEffects {
         when (val selected = s.selectedTask) {
             null -> Unit //TODO: Show error
             else -> {
-                effectInterruptPause()(c,s)
-                if(withRemove){
+                effectInterruptPause()(c, s)
+                if (withRemove) {
                     c.database.closeTaskItem(selected.taskItem)
+                    c.taskEventController.send(TaskEvent.TaskItemClosed(selected.taskItem.id))
                 }
                 c.reportUseCase.createReport(selected.task, selected.taskItem, location, c.getBatteryLevel() ?: 0f, withRemove)
 
@@ -315,8 +318,27 @@ object ReportEffects {
     }
 
     fun effectInterruptPause(): ReportEffect = { c, s ->
-        if(c.pauseRepository.isPaused){
+        if (c.pauseRepository.isPaused) {
             c.pauseRepository.stopPause(withNotify = true, withUpdate = true)
+        }
+    }
+
+    fun effectLaunchEventConsumers(): ReportEffect = { c, s ->
+        coroutineScope {
+            launch {
+                c.taskEventController.subscribe().collect { event ->
+                    when (event) {
+                        is TaskEvent.TaskClosed ->
+                            messages.send(ReportMessages.msgTaskClosed(event.taskId))
+                        is TaskEvent.TaskItemClosed ->
+                            s.tasks
+                                .firstOrNull { t -> t.taskItem.id == event.taskItemId }
+                                ?.let {
+                                    messages.send(ReportMessages.msgTaskItemClosed(it, true))
+                                }
+                    }
+                }
+            }
         }
     }
 }

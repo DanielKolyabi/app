@@ -19,7 +19,10 @@ fun <EffectCtx, State> msgState(update: (State) -> State): ElmMessage<EffectCtx,
 fun <EffectCtx, State> msgEffects(
     update: (State) -> State,
     effects: (State) -> List<ElmEffect<EffectCtx, State>>
-): ElmMessage<EffectCtx, State> = { update(it) to effects(it) }
+): ElmMessage<EffectCtx, State> = {
+    val updated = update(it)
+    updated to effects(updated)
+}
 
 fun <EffectCtx, State> msgEffect(effect: ElmEffect<EffectCtx, State>) =
     msgEffects<EffectCtx, State>({ it }, { listOf(effect) })

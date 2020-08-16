@@ -16,7 +16,6 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.GPSCoordinatesModel
-import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.utils.Either
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
@@ -367,22 +366,34 @@ class DatabaseRepository(
             DatabasePhotoMapper.fromEntity(photoEntity.copy(id = id.toInt()))
         }
 
-    suspend fun closeTaskItem(taskItem: TaskItem) = withContext(Dispatchers.IO) {
-        db.taskItemDao().getById(taskItem.id.id)
+    suspend fun closeTaskItem(taskItemId: TaskItemId, fromRemote: Boolean = false) = withContext(Dispatchers.IO) {
+        val taskItemEntity = db.taskItemDao().getById(taskItemId.id)
+        val parentTaskId = taskItemEntity?.taskId
+
+        taskItemEntity
             ?.copy(state = TaskItemEntity.STATE_CLOSED)
             ?.let { db.taskItemDao().update(it) }
 
-        db.taskDao().getById(taskItem.taskId.id)?.let{ parentTask ->
-            if (parentTask.state and TaskModel.EXAMINED != 0) {
-                putSendQuery(SendQueryData.TaskAccepted(TaskId(parentTask.id)))
+
+        parentTaskId?.let { taskId ->
+            db.taskDao().getById(taskId)?.let { parentTask ->
+                val state = parentTask.state.toTaskState()
+                if (state == TaskState.EXAMINED || state == TaskState.CREATED) {
+                    if (!fromRemote) {
+                        putSendQuery(SendQueryData.TaskAccepted(TaskId(parentTask.id)))
+                    }
+                    db.taskDao().update(parentTask.copy(state = TaskState.STARTED.toInt()))
+                }
             }
-
-            db.taskDao().update(parentTask.copy(state = TaskState.STARTED.toInt()))
         }
-
     }
 
-    suspend fun createTaskItemReport(reportItem: ReportQueryItemEntity) = withContext(Dispatchers.IO){
+    suspend fun closeTaskItem(taskItem: TaskItem, fromRemote: Boolean = false) = withContext(Dispatchers.IO) {
+        closeTaskItem(taskItem.id, fromRemote)
+    }
+
+
+    suspend fun createTaskItemReport(reportItem: ReportQueryItemEntity) = withContext(Dispatchers.IO) {
         db.reportQueryDao().insert(reportItem)
     }
 }

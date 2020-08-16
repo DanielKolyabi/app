@@ -78,7 +78,17 @@ class DeliveryApp : Application() {
 
         startKoin {
             androidContext(this@DeliveryApp)
-            modules(listOf(constModule, navigationModule, fileSystemModule, storagesModule, repositoryModule, useCasesModule))
+            modules(
+                listOf(
+                    constModule,
+                    navigationModule,
+                    fileSystemModule,
+                    storagesModule,
+                    repositoryModule,
+                    useCasesModule,
+                    eventControllers
+                )
+            )
         }
         //All below is a trash
 

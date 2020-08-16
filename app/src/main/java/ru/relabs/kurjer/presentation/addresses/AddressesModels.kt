@@ -2,6 +2,7 @@ package ru.relabs.kurjer.presentation.addresses
 
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
@@ -24,6 +25,7 @@ class AddressesContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) 
     KoinComponent {
 
     val databaseRepository: DatabaseRepository by inject()
+    val taskEventController: TaskEventController by inject()
 }
 
 typealias AddressesMessage = ElmMessage<AddressesContext, AddressesState>

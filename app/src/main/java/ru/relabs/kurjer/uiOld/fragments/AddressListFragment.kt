@@ -97,25 +97,6 @@ class AddressListFragment : Fragment(), SearchableFragment {
 
     private var needLoadFromDatabse = false
 
-    private val broadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            intent ?: return
-            val taskItemId = intent.getIntExtra("task_item_closed", 0)
-            if (taskItemId != 0) {
-                mainLoop@ for (task in tasks) {
-                    for (taskItem in task.items) {
-                        if (taskItem.id == taskItemId) {
-                            taskItem.state = TaskItemEntity.STATE_CLOSED
-                            presenter.updateStates()
-                            break@mainLoop
-                        }
-                    }
-                }
-            }
-        }
-    }
-    private val intentFilter = IntentFilter("NOW")
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -123,11 +104,9 @@ class AddressListFragment : Fragment(), SearchableFragment {
             taskIds = it.getIntegerArrayList("task_ids")?.toList() ?: listOf()
             needLoadFromDatabse = true
         }
-        activity?.registerReceiver(broadcastReceiver, intentFilter)
     }
 
     override fun onDestroy() {
-        activity?.unregisterReceiver(broadcastReceiver)
         super.onDestroy()
     }
 

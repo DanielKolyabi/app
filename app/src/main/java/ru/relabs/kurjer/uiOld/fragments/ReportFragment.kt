@@ -77,23 +77,6 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
         databaseRepository
     )
 
-    private val broadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            intent ?: return
-            val taskItemId = intent.getIntExtra("task_item_closed", 0)
-            if (taskItemId != 0) {
-                for (taskItem in taskItems) {
-                    if (taskItem.id == taskItemId) {
-                        taskItem.state = TaskItemEntity.STATE_CLOSED
-                        presenter.changeCurrentTask(presenter.currentTask)
-                        break
-                    }
-                }
-            }
-        }
-    }
-    private val intentFilter = IntentFilter("NOW")
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -101,7 +84,6 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
             taskItems = it.getParcelableArrayList<TaskItemModel>("task_items")?.toMutableList() ?: mutableListOf()
             selectedTaskItemId = it.getInt("selected_task_id")
         }
-        activity?.registerReceiver(broadcastReceiver, intentFilter)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -113,7 +95,6 @@ class ReportFragment : Fragment(), MainActivity.IBackPressedInterceptor {
     }
 
     override fun onDestroy() {
-        activity?.unregisterReceiver(broadcastReceiver)
         super.onDestroy()
     }
 

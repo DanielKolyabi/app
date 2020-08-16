@@ -141,16 +141,6 @@ class MainActivity : AppCompatActivity() {
                 needRefreshShowed = true
                 showTasksRefreshDialog(true)
             }
-            if (intent.getIntExtra("task_item_closed", 0) != 0) {
-                run {
-                    GlobalScope.launch {
-                        database.taskItemDao().getById(intent.getIntExtra("task_item_closed", 0))?.let {
-                            it.state = TaskItemEntity.STATE_CLOSED
-                            database.taskItemDao().update(it)
-                        }
-                    }
-                }
-            }
         }
     }
 

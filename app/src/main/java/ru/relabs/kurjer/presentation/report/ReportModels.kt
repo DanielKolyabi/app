@@ -3,6 +3,7 @@ package ru.relabs.kurjer.presentation.report
 import android.location.Location
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
@@ -43,6 +44,7 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     val pauseRepository: PauseRepository by inject()
     val radiusRepository: RadiusRepository by inject()
     val reportUseCase: ReportUseCase by inject()
+    val taskEventController: TaskEventController by inject()
 
     var requestPhoto: (entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID) -> Unit = { _, _, _, _ -> }
     var hideKeyboard: () -> Unit = {}

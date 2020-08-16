@@ -11,6 +11,7 @@ import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.data.api.ApiProvider
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.migrations.Migrations
+import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.providers.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
@@ -146,6 +147,12 @@ val useCasesModule = module {
             get<AuthTokenStorage>(),
             get<RadiusRepository>()
         )
+    }
+}
+
+val eventControllers = module {
+    single<TaskEventController> {
+        TaskEventController()
     }
 }
 

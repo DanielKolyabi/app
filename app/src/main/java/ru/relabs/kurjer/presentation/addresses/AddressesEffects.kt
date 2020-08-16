@@ -1,7 +1,11 @@
 package ru.relabs.kurjer.presentation.addresses
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.TaskItem
@@ -35,6 +39,21 @@ object AddressesEffects {
 
         withContext(Dispatchers.Main) {
             c.router.navigateTo(RootScreen.Report(sameAddressItems, item))
+        }
+    }
+
+    fun effectLaunchEventConsumer(): AddressesEffect = { c, s ->
+        coroutineScope {
+            launch {
+                c.taskEventController.subscribe().collect {
+                    when(it){
+                        is TaskEvent.TaskClosed ->
+                            messages.send(AddressesMessages.msgTaskClosed(it.taskId))
+                        is TaskEvent.TaskItemClosed ->
+                            messages.send(AddressesMessages.msgTaskItemClosed(it.taskItemId))
+                    }
+                }
+            }
         }
     }
 }

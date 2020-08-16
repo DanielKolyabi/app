@@ -174,13 +174,14 @@ object HostEffects {
             withContext(Dispatchers.Main){
                 c.showErrorDialog(R.string.pause_already_paused)
             }
-        }
-        val availablePauseTypes = listOfNotNull(
-            PauseType.Load.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Load) },
-            PauseType.Lunch.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Lunch) }
-        )
-        withContext(Dispatchers.Main){
-            c.showPauseDialog(availablePauseTypes)
+        }else{
+            val availablePauseTypes = listOfNotNull(
+                PauseType.Load.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Load) },
+                PauseType.Lunch.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Lunch) }
+            )
+            withContext(Dispatchers.Main){
+                c.showPauseDialog(availablePauseTypes)
+            }
         }
     }
 

@@ -3,6 +3,7 @@ package ru.relabs.kurjer.presentation.tasks
 import androidx.fragment.app.Fragment
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
@@ -27,6 +28,7 @@ class TasksContext(val examinedConsumer: TasksFragment, val errorContext: ErrorC
 
     val deliveryRepository: DeliveryRepository by inject()
     val databaseRepository: DatabaseRepository by inject()
+    val taskEventController: TaskEventController by inject()
 
     var showSnackbar: suspend (Int) -> Unit = {}
 }

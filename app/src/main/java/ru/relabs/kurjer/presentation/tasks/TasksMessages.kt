@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.presentation.tasks
 
 import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.presentation.base.tea.msgState
@@ -12,7 +13,12 @@ import ru.relabs.kurjer.presentation.base.tea.msgState
 object TasksMessages {
     fun msgInit(refreshTasks: Boolean): TasksMessage = msgEffects(
         { it },
-        { listOf(TasksEffects.effectLoadTasks(refreshTasks)) }
+        {
+            listOf(
+                TasksEffects.effectLoadTasks(refreshTasks),
+                TasksEffects.effectLaunchEventConsumers()
+            )
+        }
     )
 
     fun msgTaskSelectClick(task: Task): TasksMessage = msgEffects(
@@ -44,7 +50,7 @@ object TasksMessages {
         msgState { it.copy(loaders = it.loaders + i) }
 
     fun msgTasksLoaded(tasks: List<Task>): TasksMessage =
-        msgState { it.copy(tasks = tasks) }
+        msgState { it.copy(tasks = tasks, selectedTasks = listOf()) }
 
     fun msgRefresh(): TasksMessage =
         msgEffect(TasksEffects.effectRefresh())
@@ -61,5 +67,13 @@ object TasksMessages {
                     stateTask
                 }
             })
+        }
+
+    fun msgTaskClosed(taskId: TaskId): TasksMessage =
+        msgState { s ->
+            s.copy(
+                tasks = s.tasks.filter { it.id != taskId },
+                selectedTasks = s.selectedTasks.filter { it.id != taskId }
+            )
         }
 }

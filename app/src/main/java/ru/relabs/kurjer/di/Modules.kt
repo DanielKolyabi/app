@@ -145,7 +145,8 @@ val useCasesModule = module {
             get<DatabaseRepository>(),
             get<PauseRepository>(),
             get<AuthTokenStorage>(),
-            get<RadiusRepository>()
+            get<RadiusRepository>(),
+            get<TaskEventController>()
         )
     }
 }

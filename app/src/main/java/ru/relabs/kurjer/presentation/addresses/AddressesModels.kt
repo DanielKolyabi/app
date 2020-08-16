@@ -16,7 +16,8 @@ data class AddressesState(
     val loaders: Int = 0,
     val tasks: List<Task> = emptyList(),
     val sorting: AddressesSortingMethod = AddressesSortingMethod.STANDARD,
-    val searchFilter: String = ""
+    val searchFilter: String = "",
+    val isExited: Boolean = false
 )
 
 class AddressesContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :

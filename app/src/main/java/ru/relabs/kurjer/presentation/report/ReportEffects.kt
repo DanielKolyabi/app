@@ -302,13 +302,7 @@ object ReportEffects {
             null -> c.showError("re:107", true)
             else -> {
                 effectInterruptPause()(c, s)
-                if (withRemove) {
-                    c.database.closeTaskItem(selected.taskItem)
-                    c.taskEventController.send(TaskEvent.TaskItemClosed(selected.taskItem.id))
-                }
                 c.reportUseCase.createReport(selected.task, selected.taskItem, location, c.getBatteryLevel() ?: 0f, withRemove)
-
-                messages.send(ReportMessages.msgTaskItemClosed(selected, withRemove))
             }
         }
         messages.send(ReportMessages.msgAddLoaders(-1))
@@ -347,15 +341,17 @@ object ReportEffects {
                         is TaskEvent.TaskClosed ->
                             messages.send(ReportMessages.msgTaskClosed(event.taskId))
                         is TaskEvent.TaskItemClosed ->
-                            s.tasks
-                                .firstOrNull { t -> t.taskItem.id == event.taskItemId }
-                                ?.let {
-                                    messages.send(ReportMessages.msgTaskItemClosed(it, true))
-                                }
+                            messages.send(msgEffect(effectEventTaskItemClosed(event.taskItemId)))
                     }
                 }
             }
         }
+    }
+
+    private fun effectEventTaskItemClosed(taskItemId: TaskItemId): ReportEffect = { c, s ->
+        s.tasks
+            .firstOrNull { t -> t.taskItem.id == taskItemId }
+            ?.let { messages.send(ReportMessages.msgTaskItemClosed(it, true)) }
     }
 
     fun effectShowPhotoError(errorCode: Int): ReportEffect = { c, s ->

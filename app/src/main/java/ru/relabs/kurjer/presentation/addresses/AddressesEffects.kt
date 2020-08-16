@@ -5,10 +5,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ru.relabs.kurjer.ReportService
 import ru.relabs.kurjer.domain.controllers.TaskEvent
-import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.domain.models.TaskId
-import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.RootScreen
 
 /**
@@ -26,9 +25,14 @@ object AddressesEffects {
         messages.send(AddressesMessages.msgAddLoaders(-1))
     }
 
-    fun effectNavigateBack(): AddressesEffect = { c, s ->
-        withContext(Dispatchers.Main) {
-            c.router.exit()
+    fun effectNavigateBack(stopTimer: Boolean = false): AddressesEffect = { c, s ->
+        if(!s.isExited){
+            if(stopTimer){
+                ReportService.instance?.stopTimer()
+            }
+            withContext(Dispatchers.Main) {
+                c.router.exit()
+            }
         }
     }
 
@@ -48,12 +52,26 @@ object AddressesEffects {
                 c.taskEventController.subscribe().collect {
                     when(it){
                         is TaskEvent.TaskClosed ->
-                            messages.send(AddressesMessages.msgTaskClosed(it.taskId))
+                            messages.send(AddressesMessages.msgRemoveTask(it.taskId))
                         is TaskEvent.TaskItemClosed ->
                             messages.send(AddressesMessages.msgTaskItemClosed(it.taskItemId))
                     }
                 }
             }
         }
+    }
+
+    fun effectValidateTasks(): AddressesEffect = {c,s ->
+        messages.send(AddressesMessages.msgAddLoaders(1))
+        s.tasks.forEach { t->
+            val updatedTask = c.databaseRepository.getTask(t.id) ?: return@forEach
+            if(updatedTask.items.none{it.state == TaskItemState.CREATED}){
+                c.databaseRepository.closeTaskById(updatedTask.id, true)
+            }
+            if(!(updatedTask.state.state == TaskState.EXAMINED || updatedTask.state.state == TaskState.STARTED)){
+                messages.send(AddressesMessages.msgRemoveTask(updatedTask.id))
+            }
+        }
+        messages.send(AddressesMessages.msgAddLoaders(-1))
     }
 }

@@ -83,10 +83,10 @@ class DeliveryApp : Application() {
                     constModule,
                     navigationModule,
                     fileSystemModule,
+                    eventControllers,
                     storagesModule,
                     repositoryModule,
-                    useCasesModule,
-                    eventControllers
+                    useCasesModule
                 )
             )
         }

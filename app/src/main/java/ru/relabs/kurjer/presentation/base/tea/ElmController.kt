@@ -59,7 +59,7 @@ fun <S> rendersCollector(renders: List<ElmRender<S>>): suspend (S) -> Unit {
 }
 
 fun <S> debugCollector(log: (String) -> Unit): suspend (S) -> Unit =
-    { withContext(Dispatchers.Default) { log("New state is $it") } }
+    { withContext(Dispatchers.Default) { Unit } } //log("New state is $it") } }
 
 //suspend fun <S> watchState(controller: ElmController<*, S>, watchers: List<suspend (S) -> Unit>) {
 //    withContext(Dispatchers.Default) {

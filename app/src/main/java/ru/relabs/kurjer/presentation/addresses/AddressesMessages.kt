@@ -36,14 +36,16 @@ object AddressesMessages {
     fun msgTasksLoaded(tasks: List<Task>): AddressesMessage =
         msgState { it.copy(tasks = tasks) }
 
-    fun msgNavigateBack(): AddressesMessage =
-        msgEffect(AddressesEffects.effectNavigateBack())
+    fun msgNavigateBack(): AddressesMessage = msgEffects(
+        { it.copy(isExited = true) },
+        { listOf(AddressesEffects.effectNavigateBack()) }
+    )
 
     fun msgSearch(searchText: String): AddressesMessage =
         msgState { it.copy(searchFilter = searchText) }
 
-    fun msgTaskItemClosed(taskItemId: TaskItemId): AddressesMessage =
-        msgState { s -> //TODO: Check if have opened items, if no - stop timer | closeTask in database
+    fun msgTaskItemClosed(taskItemId: TaskItemId): AddressesMessage = msgEffects(
+        { s ->
             s.copy(
                 tasks = s.tasks.map { t ->
                     t.copy(
@@ -57,23 +59,22 @@ object AddressesMessages {
                     )
                 }
             )
-        }
-
-    fun msgTaskClosed(taskId: TaskId): AddressesMessage = msgEffects(
-        { s ->
-            s.copy(
-                tasks = s.tasks.map { t ->
-                    if (t.id == taskId) {
-                        t.copy(state = t.state.copy(state = TaskState.COMPLETED))
-                    } else {
-                        t
-                    }
-                }
+        },
+        {
+            listOf(
+                AddressesEffects.effectValidateTasks()
             )
+        }
+    )
+
+    fun msgRemoveTask(id: TaskId): AddressesMessage = msgEffects(
+        { s ->
+            val newTasks = s.tasks.filter { it.id != id }
+            s.copy(tasks = newTasks, isExited = newTasks.isEmpty())
         },
         { s ->
             listOfNotNull(
-                AddressesEffects.effectNavigateBack().takeIf { s.tasks.none { it.state.state == TaskState.STARTED } }
+                AddressesEffects.effectNavigateBack(true).takeIf { s.tasks.isEmpty() }
             )
         }
     )

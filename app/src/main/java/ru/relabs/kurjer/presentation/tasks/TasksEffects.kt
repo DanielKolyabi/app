@@ -1,19 +1,20 @@
 package ru.relabs.kurjer.presentation.tasks
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskState
 import ru.relabs.kurjer.domain.repositories.MergeResult
-import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.CommonMessages
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
-import ru.relabs.kurjer.utils.log
 import java.util.*
 
 /**
@@ -87,6 +88,19 @@ object TasksEffects {
         when (s.loaders > 0) {
             true -> c.showSnackbar(R.string.task_list_update_in_progress)
             false -> messages.send(msgEffect(effectLoadTasks(true)))
+        }
+    }
+
+    fun effectLaunchEventConsumers(): TasksEffect = { c, s ->
+        coroutineScope {
+            launch {
+                c.taskEventController.subscribe().collect { event ->
+                    when(event){
+                        is TaskEvent.TaskClosed ->
+                            messages.send(TasksMessages.msgTaskClosed(event.taskId))
+                    }
+                }
+            }
         }
     }
 }

@@ -119,7 +119,9 @@ class DatabaseRepository(
             .filter { it.items.isNotEmpty() && Date() <= it.endTime }
     }
 
-    fun closeTaskById(db: AppDatabase, taskId: Int) {
+    suspend fun closeTaskById(taskId: TaskId, sendClosed: Boolean) = closeTaskById(taskId.id, sendClosed)
+
+    suspend fun closeTaskById(taskId: Int, sendClosed: Boolean) = withContext(Dispatchers.IO) {
         //Remove all taskItems
         db.taskItemDao().getAllForTask(taskId).forEach { taskItem ->
             db.taskItemResultsDao().getByTaskItemId(taskItem.id)?.let { taskItemResult ->
@@ -145,7 +147,7 @@ class DatabaseRepository(
 
         //Задача отсутствует в ответе от сервера (удалено)
         db.taskDao().all.filter { it.id !in newTasksIDs }.forEach { task ->
-            closeTaskById(db, task.id)
+            closeTaskById(task.id, false)
             emit(MergeResult.TaskRemoved(TaskId(task.id)))
         }
 
@@ -175,7 +177,7 @@ class DatabaseRepository(
                 debug("Add taskItem ID: ${item.id.id}")
             }
             if (openedTaskItems <= 0) {
-                closeTaskById(db, newTaskId.toInt())
+                closeTaskById(newTaskId.toInt(), false)
             } else {
                 putSendQuery(SendQueryData.TaskReceived(task.id))
                 emit(MergeResult.TaskCreated(task))
@@ -195,11 +197,11 @@ class DatabaseRepository(
                     putSendQuery(SendQueryData.TaskAccepted(TaskId(savedTask.id)))
                 } else {
                     emit(MergeResult.TaskRemoved(TaskId(savedTask.id)))
-                    closeTaskById(db, savedTask.id)
+                    closeTaskById(savedTask.id, false)
                 }
             } else if (task.state.state == TaskState.COMPLETED) {
                 emit(MergeResult.TaskRemoved(TaskId(savedTask.id)))
-                closeTaskById(db, savedTask.id)
+                closeTaskById(savedTask.id, false)
                 return@forEach
             } else if (
                 (savedTask.iteration < task.iteration)
@@ -374,7 +376,6 @@ class DatabaseRepository(
             ?.copy(state = TaskItemEntity.STATE_CLOSED)
             ?.let { db.taskItemDao().update(it) }
 
-
         parentTaskId?.let { taskId ->
             db.taskDao().getById(taskId)?.let { parentTask ->
                 val state = parentTask.state.toTaskState()
@@ -395,6 +396,10 @@ class DatabaseRepository(
 
     suspend fun createTaskItemReport(reportItem: ReportQueryItemEntity) = withContext(Dispatchers.IO) {
         db.reportQueryDao().insert(reportItem)
+    }
+
+    suspend fun isTaskCloseRequired(taskId: TaskId): Boolean = withContext(Dispatchers.IO) {
+        db.taskItemDao().getAllForTask(taskId.id).none { it.state == TaskItemEntity.STATE_CREATED }
     }
 }
 

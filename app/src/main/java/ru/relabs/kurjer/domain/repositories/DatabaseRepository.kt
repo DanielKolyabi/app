@@ -263,13 +263,17 @@ class DatabaseRepository(
     }
 
     suspend fun examineTask(task: Task): Task = withContext(Dispatchers.IO) {
+        if(task.state.state != TaskState.CREATED){
+            return@withContext task
+        }
+
         db.taskDao().getById(task.id.id)?.let {
-            db.taskDao().update(it.copy(state = TaskState.EXAMINED.toInt()))
+            db.taskDao().update(it.copy(state = TaskState.EXAMINED.toInt(), byOtherUser = false))
 
             putSendQuery(SendQueryData.TaskExamined(task.id))
         }
 
-        task.copy(state = task.state.copy(state = TaskState.EXAMINED))
+        task.copy(state = Task.State(TaskState.EXAMINED, false))
     }
 
     suspend fun getTaskItem(id: TaskItemId): TaskItem? = withContext(Dispatchers.IO) {

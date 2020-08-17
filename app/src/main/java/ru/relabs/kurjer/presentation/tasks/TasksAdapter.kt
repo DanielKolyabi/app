@@ -10,7 +10,6 @@ import kotlinx.android.synthetic.main.holder_task.view.*
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskState
-import ru.relabs.kurjer.presentation.addresses.AddressesItem
 import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
 import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
 import ru.relabs.kurjer.presentation.base.recycler.delegateLoader
@@ -65,13 +64,16 @@ object TasksAdapter {
     fun searchAdapter(onSearch: (String) -> Unit): IAdapterDelegate<TasksItem> = delegateDefine(
         { it is TasksItem.Search },
         { p ->
-            holderDefine(p, R.layout.holder_search, { it as TasksItem.Search }) {
+            holderDefine(p, R.layout.holder_search, { it as TasksItem.Search }) { (filter) ->
+                itemView.et_search.setText(filter)
+                itemView.iv_clear.visible = filter.isNotBlank()
+
                 itemView.et_search.addTextChangedListener {
                     val text = (it?.toString() ?: "")
                     itemView.iv_clear.visible = text.isNotBlank()
                     onSearch(text)
                 }
-                if(itemView.et_search.text.isNotEmpty()){
+                if (itemView.et_search.text.isNotEmpty()) {
                     itemView.et_search.requestFocus()
                 }
                 itemView.et_search.setOnEditorActionListener { _, actionId, event ->

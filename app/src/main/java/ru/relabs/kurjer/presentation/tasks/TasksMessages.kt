@@ -5,6 +5,7 @@ import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.presentation.base.tea.msgState
+import ru.relabs.kurjer.utils.SearchUtils
 
 /**
  * Created by Daniil Kurchanov on 02.04.2020.
@@ -56,7 +57,12 @@ object TasksMessages {
         msgEffect(TasksEffects.effectRefresh())
 
     fun msgSearch(searchText: String): TasksMessage =
-        msgState { it.copy(searchFilter = searchText) }
+        msgState {
+            it.copy(
+                searchFilter = searchText,
+                selectedTasks = it.selectedTasks.filter { t -> SearchUtils.isMatches(t.listName, searchText) }
+            )
+        }
 
     fun msgTaskExamined(task: Task): TasksMessage =
         msgState { state ->

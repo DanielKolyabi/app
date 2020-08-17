@@ -21,7 +21,7 @@ object TasksRenders {
             val newItems = if (tasks.isEmpty() && loaders > 0) {
                 listOf(TasksItem.Loader)
             } else {
-                listOf(TasksItem.Search) + tasks.filter {
+                listOf(TasksItem.Search(filter)) + tasks.filter {
                     if (filter.isNotEmpty()) {
                         SearchUtils.isMatches(it.listName, filter)
                     } else {
@@ -32,7 +32,13 @@ object TasksRenders {
                 } + listOfNotNull(TasksItem.Blank.takeIf { selectedTasks.isNotEmpty() })
             }
 
-            val diff = DiffUtil.calculateDiff(DefaultListDiffCallback(adapter.items, newItems))
+            val diff = DiffUtil.calculateDiff(DefaultListDiffCallback(adapter.items, newItems) { o, n ->
+                if (o is TasksItem.Search && n is TasksItem.Search) {
+                    true
+                } else {
+                    null
+                }
+            })
 
             adapter.items.clear()
             adapter.items.addAll(newItems)

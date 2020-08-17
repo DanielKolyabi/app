@@ -31,6 +31,8 @@ data class ReportState(
     val loaders: Int = 0,
     val isGPSLoading: Boolean = false,
 
+    val isEntranceSelectionChanged: Boolean = false,
+
     val coupling: ReportCoupling = emptyMap()
 )
 

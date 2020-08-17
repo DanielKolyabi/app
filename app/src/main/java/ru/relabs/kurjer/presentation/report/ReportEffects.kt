@@ -87,6 +87,10 @@ object ReportEffects {
 
             val report = c.database.getTaskItemResult(taskItem)
             messages.send(ReportMessages.msgSavedResultLoaded(report))
+
+            if(s.isEntranceSelectionChanged){
+                messages.send(ReportMessages.msgDisableCouplingForType(task.coupleType))
+            }
         }
         messages.send(ReportMessages.msgAddLoaders(-1))
     }

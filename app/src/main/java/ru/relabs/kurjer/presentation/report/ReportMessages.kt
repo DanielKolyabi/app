@@ -5,7 +5,6 @@ import android.location.Location
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
-import ru.relabs.kurjer.presentation.base.tea.msgEmpty
 import ru.relabs.kurjer.presentation.base.tea.msgState
 import java.io.File
 import java.util.*
@@ -44,7 +43,7 @@ object ReportMessages {
     )
 
     fun msgTaskSelectionLoaded(taskWithItem: TaskWithItem, photos: List<TaskItemPhoto>): ReportMessage =
-        msgState { it.copy(selectedTask = taskWithItem, selectedTaskPhotos = photos) }
+        msgState { it.copy(selectedTask = taskWithItem, selectedTaskPhotos = photos, isEntranceSelectionChanged = false) }
 
     fun msgPhotoClicked(entranceNumber: EntranceNumber? = null, multiplePhoto: Boolean): ReportMessage =
         msgEffect(ReportEffects.effectCreatePhoto(entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM, multiplePhoto))
@@ -57,8 +56,12 @@ object ReportMessages {
     fun msgCoupleClicked(entrance: EntranceNumber): ReportMessage =
         msgEffect(ReportEffects.effectChangeCoupleState(entrance))
 
-    fun msgEntranceSelectClicked(entrance: EntranceNumber, button: EntranceSelectionButton): ReportMessage =
-        msgEffect(ReportEffects.effectEntranceSelectionChanged(entrance, button))
+    fun msgEntranceSelectClicked(entrance: EntranceNumber, button: EntranceSelectionButton): ReportMessage = msgEffects(
+        { it.copy(isEntranceSelectionChanged = true) },
+        {
+            listOf(ReportEffects.effectEntranceSelectionChanged(entrance, button))
+        }
+    )
 
     fun msgSavedResultLoaded(report: TaskItemResult?): ReportMessage =
         msgState { it.copy(selectedTaskReport = report) }
@@ -153,7 +156,7 @@ object ReportMessages {
                             task = t.task.copy(state = t.task.state.copy(state = TaskState.COMPLETED)),
                             taskItem = t.taskItem.copy(state = TaskItemState.CLOSED)
                         )
-                    }else{
+                    } else {
                         t
                     }
                 }
@@ -169,5 +172,8 @@ object ReportMessages {
             )
         }
     )
+
+    fun msgDisableCouplingForType(coupleType: CoupleType): ReportMessage =
+        msgState { it.copy(coupling = it.coupling.filter { e -> e.key.second != coupleType }) }
 
 }

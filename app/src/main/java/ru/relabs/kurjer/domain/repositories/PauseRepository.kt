@@ -56,15 +56,16 @@ class PauseRepository(
 
         val activePauseType = getActivePauseType()
 
-        if(activePauseType != null){
+        if (activePauseType != null) {
             isPaused = true
+            currentPauseType = activePauseType
             val currentTime = currentTimestamp()
             val pauseEndTime = getPauseStartTime(activePauseType) + getPauseLength(activePauseType)
 
             ReportService.instance?.pauseTimer(getPauseStartTime(activePauseType), pauseEndTime)
 
             pauseEndJob = scope.launch {
-                debug("Start pause timer: $activePauseType, delay: ${pauseEndTime - currentTime + 10}s")
+                debug("Start pause timer: $currentPauseType, delay: ${pauseEndTime - currentTime + 10}s")
                 delay((pauseEndTime - currentTime + 10) * 1000)
                 updatePauseState()
             }

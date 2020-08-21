@@ -63,8 +63,8 @@ class PauseRepository(
 
             ReportService.instance?.pauseTimer(getPauseStartTime(activePauseType), pauseEndTime)
 
-            debug("Start pause timer: $activePauseType, delay: ${pauseEndTime - currentTime + 10}s")
             pauseEndJob = scope.launch {
+                debug("Start pause timer: $activePauseType, delay: ${pauseEndTime - currentTime + 10}s")
                 delay((pauseEndTime - currentTime + 10) * 1000)
                 updatePauseState()
             }
@@ -194,6 +194,7 @@ class PauseRepository(
 
         pauseEndJob?.cancel()
         pauseEndJob = scope.launch {
+            debug("Start pause timer: $type, delay: ${pauseEndTime - currentTime + 10}s")
             delay((pauseEndTime - currentTime + 10) * 1000)
             updatePauseState()
         }

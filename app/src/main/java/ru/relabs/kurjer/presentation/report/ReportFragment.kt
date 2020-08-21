@@ -252,6 +252,10 @@ class ReportFragment : BaseFragment() {
             uiScope.sendMessage(controller, ReportMessages.msgPhotoError(2))
             return
         }
+        if (resultCode == Activity.RESULT_CANCELED) {
+            return
+        }
+
         if (photoData == null) {
             uiScope.sendMessage(controller, ReportMessages.msgPhotoError(3))
             return
@@ -262,6 +266,7 @@ class ReportFragment : BaseFragment() {
                 controller,
                 ReportMessages.msgPhotoCaptured(photoData.entrance, photoData.multiplePhoto, photoData.targetFile, photoData.uuid)
             )
+            return
         }
         //Find photo in result data
         if (data != null) {

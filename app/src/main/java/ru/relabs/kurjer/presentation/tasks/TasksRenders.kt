@@ -67,7 +67,7 @@ object TasksRenders {
         tasks.forEach { task ->
             selectedTasks.forEach { selectedTask ->
                 val isSelectedTaskContainsTaskAddress = task.items.any { taskItem ->
-                    selectedTask.items.any { selectedTaskItem -> selectedTaskItem.address.id == taskItem.address.id }
+                    selectedTask.items.any { selectedTaskItem -> selectedTaskItem.address.id == taskItem.address.id && selectedTaskItem.id != taskItem.id }
                 }
 
                 if (isSelectedTaskContainsTaskAddress) {

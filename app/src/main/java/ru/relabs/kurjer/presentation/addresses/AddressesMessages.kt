@@ -4,6 +4,7 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.presentation.base.tea.msgState
+import ru.relabs.kurjer.utils.SearchUtils
 
 /**
  * Created by Daniil Kurchanov on 02.04.2020.
@@ -48,17 +49,29 @@ object AddressesMessages {
 
     fun msgTaskItemClosed(taskItemId: TaskItemId): AddressesMessage = msgEffects(
         { s ->
-            s.copy(
-                tasks = s.tasks.map { t ->
-                    t.copy(
-                        items = t.items.map { ti ->
-                            if (ti.id == taskItemId) {
-                                ti.copy(state = TaskItemState.CLOSED)
-                            } else {
-                                ti
-                            }
+            val newTasks = s.tasks.map { t ->
+                t.copy(
+                    items = t.items.map { ti ->
+                        if (ti.id == taskItemId) {
+                            ti.copy(state = TaskItemState.CLOSED)
+                        } else {
+                            ti
                         }
-                    )
+                    }
+                )
+            }
+            val visibleOpenedTaskItemsCount = newTasks.map { t ->
+                t.items.filter {
+                    SearchUtils.isMatches(it.address.name, s.searchFilter) && it.state == TaskItemState.CREATED
+                }.size
+            }.sum()
+
+            s.copy(
+                tasks = newTasks,
+                searchFilter = if (visibleOpenedTaskItemsCount == 0) {
+                    ""
+                } else {
+                    s.searchFilter
                 }
             )
         },
@@ -72,7 +85,7 @@ object AddressesMessages {
     fun msgRemoveTask(id: TaskId): AddressesMessage = msgEffects(
         { s ->
             val newTasks = s.tasks.filter { it.id != id }
-            s.copy(tasks = newTasks, exits = if(newTasks.isEmpty()) s.exits.inc() else s.exits)
+            s.copy(tasks = newTasks, exits = if (newTasks.isEmpty()) s.exits.inc() else s.exits)
         },
         { s ->
             listOfNotNull(

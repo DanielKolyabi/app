@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_addresses.view.*
-import kotlinx.android.synthetic.main.fragment_addresses.view.rv_list
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -50,6 +49,9 @@ class AddressesFragment : BaseFragment() {
         AddressesAdapter.blankAdapter(),
         AddressesAdapter.searchAdapter {
             uiScope.sendMessage(controller, AddressesMessages.msgSearch(it))
+        },
+        AddressesAdapter.otherAddressesAdapter {
+            uiScope.sendMessage(controller, AddressesMessages.msgSearch(""))
         }
     )
 

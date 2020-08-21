@@ -34,15 +34,27 @@ object AddressesRenders {
         { Triple(it.tasks, it.sorting, it.loaders > 0) to it.searchFilter },
         { (data, searchFilter) ->
             val (tasks, sorting, loading) = data
-            val newItems =
-                listOfNotNull(
-                    AddressesItem.Sorting(sorting).takeIf { tasks.size == 1 },
-                    AddressesItem.Search(searchFilter).takeIf { tasks.isNotEmpty() },
-                    AddressesItem.Loading.takeIf { tasks.isEmpty() && loading }
-                ) + getSortedTasks(tasks, sorting, searchFilter) + listOfNotNull(AddressesItem.Blank.takeIf { tasks.isNotEmpty() })
+            val filteredTasks = getSortedTasks(tasks, sorting, searchFilter)
+            val allTaskItemsCount = tasks.map { it.items.size }.sum()
+            val filteredTaskItemsCount = if (searchFilter.isNotEmpty()) {
+                tasks.map { it.items.filter { ti -> SearchUtils.isMatches(ti.address.name, searchFilter) }.size }.sum()
+            } else {
+                allTaskItemsCount
+            }
+
+            val newItems = listOfNotNull(
+                AddressesItem.Sorting(sorting).takeIf { tasks.size == 1 },
+                AddressesItem.Search(searchFilter).takeIf { tasks.isNotEmpty() },
+                AddressesItem.Loading.takeIf { tasks.isEmpty() && loading }
+            ) +
+                    filteredTasks +
+                    listOfNotNull(
+                        AddressesItem.OtherAddresses(allTaskItemsCount - filteredTaskItemsCount).takeIf { searchFilter.isNotEmpty() },
+                        AddressesItem.Blank.takeIf { tasks.isNotEmpty() }
+                    )
 
             val diff = DiffUtil.calculateDiff(DefaultListDiffCallback(adapter.items, newItems) { o, n ->
-                if ((o is AddressesItem.Search && n is AddressesItem.Search) || (o is AddressesItem.Sorting && n is AddressesItem.Sorting && o.sorting == n.sorting)) {
+                if ((o is AddressesItem.Search && n is AddressesItem.Search && searchFilter.isNotEmpty()) || (o is AddressesItem.Sorting && n is AddressesItem.Sorting && o.sorting == n.sorting)) {
                     true
                 } else {
                     null

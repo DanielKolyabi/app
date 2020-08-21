@@ -7,6 +7,7 @@ import android.widget.FrameLayout
 import androidx.core.graphics.ColorUtils
 import androidx.core.widget.addTextChangedListener
 import kotlinx.android.synthetic.main.holder_address_list_address.view.*
+import kotlinx.android.synthetic.main.holder_address_list_other_addresses.view.*
 import kotlinx.android.synthetic.main.holder_address_list_sorting.view.*
 import kotlinx.android.synthetic.main.holder_address_list_task.view.*
 import kotlinx.android.synthetic.main.holder_search.view.*
@@ -137,6 +138,18 @@ object AddressesAdapter {
         { p ->
             holderDefine(p, R.layout.holder_empty, { it as AddressesItem.Blank }) {
                 itemView.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, itemView.context.dpToPx(56).toInt())
+            }
+        }
+    )
+
+    fun otherAddressesAdapter(onClick: () -> Unit): IAdapterDelegate<AddressesItem> = delegateDefine(
+        { it is AddressesItem.OtherAddresses },
+        { p ->
+            holderDefine(p, R.layout.holder_address_list_other_addresses, { it as AddressesItem.OtherAddresses }) { (count) ->
+                itemView.tv_more.text = itemView.resources.getString(R.string.addresses_more, count)
+                itemView.setOnClickListener {
+                    onClick()
+                }
             }
         }
     )

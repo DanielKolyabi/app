@@ -67,6 +67,7 @@ class PauseRepository(
             pauseEndJob = scope.launch {
                 debug("Start pause timer: $currentPauseType, delay: ${pauseEndTime - currentTime + 10}s")
                 delay((pauseEndTime - currentTime + 10) * 1000)
+                debug("Pause: Delay finished")
                 updatePauseState()
             }
         }
@@ -197,6 +198,7 @@ class PauseRepository(
         pauseEndJob = scope.launch {
             debug("Start pause timer: $type, delay: ${pauseEndTime - currentTime + 10}s")
             delay((pauseEndTime - currentTime + 10) * 1000)
+            debug("Pause: Delay finished")
             updatePauseState()
         }
 
@@ -218,18 +220,19 @@ class PauseRepository(
         }
 
         val type = type ?: getActivePauseType() ?: return
-        pauseEndJob?.cancel()
 
         val pauseTime = time ?: currentTimestamp()
-        if (withNotify) {
-            db.putSendQuery(SendQueryData.PauseStop(type, pauseTime))
-        }
         isPaused = false
         currentPauseType = null
         putPauseEndTime(type, pauseTime)
         if (withUpdate) {
             updatePauseState()
         }
+        if (withNotify) {
+            val r = db.putSendQuery(SendQueryData.PauseStop(type, pauseTime))
+            debug("$r")
+        }
+        pauseEndJob?.cancel()
     }
 
     private suspend fun updatePauseState() {
@@ -304,8 +307,8 @@ class PauseRepository(
             .remove(LOAD_LAST_END_TIME_KEY)
             .apply()
         currentPauseType = null
-        pauseEndJob?.cancel()
         isPaused = false
+        pauseEndJob?.cancel()
     }
 
     companion object {

@@ -23,6 +23,7 @@ import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
 import ru.relabs.kurjer.utils.Right
+import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.log
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
@@ -264,6 +265,8 @@ class ReportService : Service(), KoinComponent {
     private fun sendSendQuery(item: SendQueryItemEntity) {
         val urlConnection = URL(item.url)
         with(urlConnection.openConnection() as HttpURLConnection) {
+            debug("Send SendQuery item: ${item.url}, data: ${item.post_data}")
+
             requestMethod = "POST"
 
             val wr = OutputStreamWriter(outputStream)

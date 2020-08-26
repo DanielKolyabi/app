@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 
 
 class ApiProvider(deliveryUrl: String) {
-    private val httpClient: OkHttpClient
+    val httpClient: OkHttpClient
     val practisApi: DeliveryApi
 
     private val timeoutInterceptor: Interceptor = object : Interceptor {

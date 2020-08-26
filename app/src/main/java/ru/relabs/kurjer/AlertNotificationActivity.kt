@@ -62,7 +62,7 @@ class AlertNotificationActivity: AppCompatActivity() {
 
     fun onCanceled(){
         disableNotification()
-        startService(Intent(this@AlertNotificationActivity, ReportService::class.java).apply { putExtra("start_closing_timer", true) })
+        ReportService.restartTaskClosingTimerSync()
     }
 
     fun enableNotification(){

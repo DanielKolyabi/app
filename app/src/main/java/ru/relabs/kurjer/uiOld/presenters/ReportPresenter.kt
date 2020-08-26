@@ -684,7 +684,7 @@ class ReportPresenter(
                     if (!status) {
                         (fragment?.context as? MainActivity)?.showError("Произошла ошибка")
                     } else {
-                        fragment.activity()?.restartTaskClosingTimer()
+//                        fragment.activity()?.restartTaskClosingTimer()
                         if (!NetworkHelper.isNetworkEnabled(fragment.context)) {
                             (fragment.activity as? MainActivity)?.showNetworkDisabledError()
                         }

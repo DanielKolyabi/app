@@ -104,7 +104,8 @@ val repositoryModule = module {
             get<DeviceUUIDProvider>(),
             get<DeviceUniqueIdProvider>(),
             get<FirebaseTokenProvider>(),
-            get<AppDatabase>()
+            get<AppDatabase>(),
+            get<ApiProvider>().httpClient
         )
     }
     single<RadiusRepository> {

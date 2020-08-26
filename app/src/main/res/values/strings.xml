@@ -104,4 +104,6 @@
     <string name="share_device_uuid_title">Отправить ID устройства</string>
     <string name="yandex_map_title">Карта</string>
     <string name="addresses_more">Ещё %d адресов</string>
+    <string name="report_service_query_size">Сервис. В очереди: %d. </string>
+    <string name="report_service_network_disabled">Сеть недоступна.</string>
 </resources>

@@ -6,17 +6,17 @@ import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.joda.time.DateTime
 import retrofit2.HttpException
 import retrofit2.Response
 import ru.relabs.kurjer.data.api.DeliveryApi
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
+import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.TaskItemPhotoEntity
 import ru.relabs.kurjer.data.models.PhotoReportRequest
 import ru.relabs.kurjer.data.models.TaskItemReportRequest
@@ -37,6 +37,8 @@ import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.network.NetworkHelper
 import ru.relabs.kurjer.utils.*
 import java.io.FileNotFoundException
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
 
@@ -46,7 +48,8 @@ class DeliveryRepository(
     private val deviceIdProvider: DeviceUUIDProvider,
     private val deviceUniqueIdProvider: DeviceUniqueIdProvider,
     private val firebaseTokenProvider: FirebaseTokenProvider,
-    private val database: AppDatabase
+    private val database: AppDatabase,
+    private val networkClient: OkHttpClient
 ) {
     fun isAuthenticated(): Boolean = authTokenStorage.getToken() != null
 
@@ -194,6 +197,17 @@ class DeliveryRepository(
         val mapFile = PathHelper.getTaskRasterizeMapFile(task)
         ImageUtils.saveImage(bmp, mapFile)
         bmp.recycle()
+    }
+
+    suspend fun sendQuery(item: SendQueryItemEntity): Either<java.lang.Exception, Unit> = Either.of{
+        val request = Request.Builder()
+            .url(item.url)
+            .post(item.post_data.toRequestBody())
+            .build()
+        val client = networkClient.newCall(request).execute()
+        if(client.code != 200){
+            throw Exception("Wrong response code.")
+        }
     }
 
     //Could be sended in other user session

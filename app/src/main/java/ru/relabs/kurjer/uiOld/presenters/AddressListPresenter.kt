@@ -74,18 +74,18 @@ class AddressListPresenter(
         if (tasks.isEmpty())
             return
 
-        try {
-            tasks.removeAll {
-                if (isAllTaskItemsClosed(it)) {
-                    ReportService.instance?.stopTimer()
-                    PersistenceHelper.closeTask(db, it)
-                    return@removeAll true
-                }
-                return@removeAll false
-            }
-        } catch (e: Exception) {
-            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
-        }
+//        try {
+//            tasks.removeAll {
+//                if (isAllTaskItemsClosed(it)) {
+//                    ReportService.instance?.stopTimer()
+//                    PersistenceHelper.closeTask(db, it)
+//                    return@removeAll true
+//                }
+//                return@removeAll false
+//            }
+//        } catch (e: Exception) {
+//            CustomLog.writeToFile(CustomLog.getStacktraceAsString(e))
+//        }
     }
 
     private fun isAllTaskItemsClosed(task: TaskModel): Boolean {

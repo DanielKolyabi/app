@@ -160,34 +160,34 @@ class TaskListPresenter(
                     if (newTasks != null) {
                         val token = authTokenStorage.getToken() ?: ""
 
-                        val mergeResult = PersistenceHelper.merge(
-                            database,
-                            newTasks,
-                            {
-                                dbRep.putSendQuery(SendQueryData.TaskReceived(it.id))
-
-                                try {
-                                    NetworkHelper.loadTaskRasterizeMap(it)
-                                } catch (e: Exception) {
-                                    e.log()
-                                }
-                            },
-                            { oldTask, newTask ->
-                                try {
-                                    NetworkHelper.loadTaskRasterizeMap(newTask)
-                                } catch (e: Exception) {
-                                    e.log()
-                                }
-                            },
-                            dbRep
-                        )
-                        if (mergeResult.isTasksChanged) {
-                            fragment.activity()?.showError("Задания были обновлены.")
-                        } else if (mergeResult.isNewTasksAdded) {
-                            fragment.activity()?.showError("Обновление прошло успешно.")
-                        } else {
-                            fragment.activity()?.showError("Нет новых заданий.")
-                        }
+//                        val mergeResult = PersistenceHelper.merge(
+//                            database,
+//                            newTasks,
+//                            {
+//                                dbRep.putSendQuery(SendQueryData.TaskReceived(it.id))
+//
+//                                try {
+//                                    NetworkHelper.loadTaskRasterizeMap(it)
+//                                } catch (e: Exception) {
+//                                    e.log()
+//                                }
+//                            },
+//                            { oldTask, newTask ->
+//                                try {
+//                                    NetworkHelper.loadTaskRasterizeMap(newTask)
+//                                } catch (e: Exception) {
+//                                    e.log()
+//                                }
+//                            },
+//                            dbRep
+//                        )
+//                        if (mergeResult.isTasksChanged) {
+//                            fragment.activity()?.showError("Задания были обновлены.")
+//                        } else if (mergeResult.isNewTasksAdded) {
+//                            fragment.activity()?.showError("Обновление прошло успешно.")
+//                        } else {
+//                            fragment.activity()?.showError("Нет новых заданий.")
+//                        }
                     }
                 } else {
                     fragment.activity()?.showError("Отсутствует соединение с интернетом.\nНевозможно обновить данные.")

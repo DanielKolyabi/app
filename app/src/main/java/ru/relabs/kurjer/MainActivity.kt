@@ -129,9 +129,6 @@ class MainActivity : AppCompatActivity() {
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent ?: return
-            if (intent.getBooleanExtra("force_finish", false)) {
-                finish()
-            }
             if (intent.getBooleanExtra("network_disabled", false)) {
                 showNetworkDisabledError()
             }
@@ -160,7 +157,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun restartTaskClosingTimer() {
-        startService(Intent(this, ReportService::class.java).apply { putExtra("start_closing_timer", true) })
+//        startService(Intent(this, ReportService::class.java).apply { putExtra("start_closing_timer", true) })
     }
 
 

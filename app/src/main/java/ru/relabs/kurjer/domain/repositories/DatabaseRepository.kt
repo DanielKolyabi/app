@@ -16,6 +16,7 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.utils.Either
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
@@ -27,6 +28,19 @@ class DatabaseRepository(
     private val authTokenStorage: AuthTokenStorage,
     private val baseUrl: String
 ) {
+
+    suspend fun removeReport(report: ReportQueryItemEntity) {
+        db.reportQueryDao().delete(report)
+        if (report.removeAfterSend) {
+            db.photosDao().getByTaskItemId(report.taskItemId).forEach {
+                //Delete photo
+                val file = PathHelper.getTaskItemPhotoFileByID(report.taskItemId, UUID.fromString(it.UUID))
+                file.delete()
+                db.photosDao().delete(it)
+            }
+            PathHelper.getTaskItemPhotoFolderById(report.taskItemId).delete()
+        }
+    }
 
     suspend fun clearTasks() = withContext(Dispatchers.IO) {
         db.taskDao().all.forEach {
@@ -263,7 +277,7 @@ class DatabaseRepository(
     }
 
     suspend fun examineTask(task: Task): Task = withContext(Dispatchers.IO) {
-        if(task.state.state != TaskState.CREATED){
+        if (task.state.state != TaskState.CREATED) {
             return@withContext task
         }
 
@@ -404,6 +418,50 @@ class DatabaseRepository(
 
     suspend fun isTaskCloseRequired(taskId: TaskId): Boolean = withContext(Dispatchers.IO) {
         db.taskItemDao().getAllForTask(taskId.id).none { it.state == TaskItemEntity.STATE_CREATED }
+    }
+
+    suspend fun getNextSendQuery(): SendQueryItemEntity? = withContext(Dispatchers.IO) {
+        db.sendQueryDao().all.firstOrNull()
+    }
+
+    suspend fun getNextReportQuery(): ReportQueryItemEntity? = withContext(Dispatchers.IO) {
+        db.reportQueryDao().all.firstOrNull()
+    }
+
+    suspend fun getQueryItemsCount(): Int = withContext(Dispatchers.IO) {
+        db.reportQueryDao().all.size + db.sendQueryDao().all.size
+    }
+
+    suspend fun removeSendQuery(sendQuery: SendQueryItemEntity) = withContext(Dispatchers.IO){
+        db.sendQueryDao().delete(sendQuery)
+    }
+
+    suspend fun isOpenedTasksExists(): Boolean = withContext(Dispatchers.IO){
+        db.taskDao().allOpened.isNotEmpty()
+    }
+
+    suspend fun isMergeNeeded(newTasks: List<Task>): Boolean = withContext(Dispatchers.IO){
+        val savedTasksIDs = db.taskDao().all.map { it.id }
+
+        newTasks.filter { it.id.id !in savedTasksIDs }.forEach { task ->
+            return@withContext true
+        }
+
+        newTasks.filter { it.id.id in savedTasksIDs }.forEach { task ->
+            val savedTask = db.taskDao().getById(task.id.id)!!
+            if (task.state.state == TaskState.CANCELED) {
+                return@withContext true
+            } else if (task.state.state == TaskState.COMPLETED) {
+                return@withContext true
+            } else if (
+                (savedTask.iteration < task.iteration)
+                || (task.state.state.toInt() != savedTask.state && savedTask.state != TaskModel.STARTED)
+                || (task.endTime != savedTask.endTime || task.startTime != savedTask.startTime && savedTask.state != TaskModel.STARTED)
+            ) {
+                return@withContext true
+            }
+        }
+        return@withContext false
     }
 }
 

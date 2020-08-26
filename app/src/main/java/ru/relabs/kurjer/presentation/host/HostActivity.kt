@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.collect
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.ReportService
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
@@ -45,6 +46,7 @@ import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
 import java.io.File
 import java.io.FileNotFoundException
+import java.lang.ref.WeakReference
 
 
 class HostActivity : AppCompatActivity(), IFragmentHolder {
@@ -364,6 +366,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         onFragmentChanged(currentFragment)
         navigationHolder.setNavigator(navigator)
         uiScope.sendMessage(controller, HostMessages.msgResume())
+        ReportService.isAppPaused = false
     }
 
     override fun onPause() {
@@ -371,6 +374,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         systemWatchersContainer.onPause()
         navigationHolder.removeNavigator()
         uiScope.sendMessage(controller, HostMessages.msgPause())
+        ReportService.isAppPaused = true
     }
 
 

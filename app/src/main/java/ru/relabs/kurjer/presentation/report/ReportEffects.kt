@@ -6,6 +6,7 @@ import android.location.Location
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.ReportService
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
@@ -309,6 +310,9 @@ object ReportEffects {
             else -> {
                 effectInterruptPause()(c, s)
                 c.reportUseCase.createReport(selected.task, selected.taskItem, location, c.getBatteryLevel() ?: 0f, withRemove)
+                if(withRemove){
+                    ReportService.restartTaskClosingTimer()
+                }
             }
         }
         messages.send(ReportMessages.msgAddLoaders(-1))

@@ -109,11 +109,11 @@ class DeliveryApp : Application() {
     @SuppressLint("HardwareIds")
 
     private suspend fun initTrueTime(): Boolean {
-        try {
+        return try {
             TrueTime.build().withSharedPreferencesCache(this@DeliveryApp).initialize()
-            return true
+            true
         } catch (e: Exception) {
-            return false
+            false
         }
     }
 

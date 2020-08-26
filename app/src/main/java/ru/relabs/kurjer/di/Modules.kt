@@ -85,6 +85,12 @@ val storagesModule = module {
     single<ApiProvider> {
         ApiProvider(get<String>(Modules.DELIVERY_URL))
     }
+
+    single<PathsProvider>{
+        PathsProvider(
+            get<File>(Modules.FILES_DIR)
+        )
+    }
 }
 
 
@@ -94,7 +100,8 @@ val repositoryModule = module {
         DatabaseRepository(
             get<AppDatabase>(),
             get<AuthTokenStorage>(),
-            get<String>(Modules.DELIVERY_URL)
+            get<String>(Modules.DELIVERY_URL),
+            get<PathsProvider>()
         )
     }
     single<DeliveryRepository> {
@@ -105,7 +112,8 @@ val repositoryModule = module {
             get<DeviceUniqueIdProvider>(),
             get<FirebaseTokenProvider>(),
             get<AppDatabase>(),
-            get<ApiProvider>().httpClient
+            get<ApiProvider>().httpClient,
+            get<PathsProvider>()
         )
     }
     single<RadiusRepository> {
@@ -137,7 +145,8 @@ val useCasesModule = module {
 
     single<AppUpdateUseCase> {
         AppUpdateUseCase(
-            get<DeliveryRepository>()
+            get<DeliveryRepository>(),
+            get<PathsProvider>()
         )
     }
 

@@ -16,7 +16,7 @@ import org.koin.android.ext.android.get
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.ReportService
+import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.utils.activity
 import ru.relabs.kurjer.uiOld.delegateAdapter.DelegateAdapter
 import ru.relabs.kurjer.uiOld.delegates.TaskListLoaderDelegate

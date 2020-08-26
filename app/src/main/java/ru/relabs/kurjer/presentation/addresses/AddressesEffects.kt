@@ -3,10 +3,10 @@ package ru.relabs.kurjer.presentation.addresses
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.ReportService
+import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.*
-import ru.relabs.kurjer.files.PathHelper
+
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 
@@ -18,7 +18,6 @@ object AddressesEffects {
     fun effectLoadTasks(taskIds: List<TaskId>): AddressesEffect = { c, s ->
         messages.send(AddressesMessages.msgAddLoaders(1))
         val tasks = taskIds.mapNotNull {
-            //TODO: Log if null
             c.databaseRepository.getTask(it)
         }
         messages.send(AddressesMessages.msgTasksLoaded(tasks))
@@ -77,7 +76,7 @@ object AddressesEffects {
 
     fun effectOpenImageMap(task: Task): AddressesEffect = { c, s ->
         messages.send(AddressesMessages.msgAddLoaders(1))
-        val file = PathHelper.getTaskRasterizeMapFile(task)
+        val file = c.pathsProvider.getTaskRasterizeMapFile(task)
         withContext(Dispatchers.Main) {
             when (file.exists()) {
                 true -> c.showImagePreview(file)

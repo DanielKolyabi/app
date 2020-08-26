@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.flowOn
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.data.models.common.EitherE
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
+import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
-import ru.relabs.kurjer.files.PathHelper
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.debug
 import java.io.File
@@ -18,7 +18,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class AppUpdateUseCase(
-    private val deliveryRepository: DeliveryRepository
+    private val deliveryRepository: DeliveryRepository,
+    private val pathsProvider: PathsProvider
 ) {
     private var requiredAppVersion: Int? = null
     private var updateDownloadingFails: Boolean = false
@@ -39,7 +40,7 @@ class AppUpdateUseCase(
 
     suspend fun downloadUpdate(uri: Uri): Flow<DownloadState> = flow {
         val url = URL(uri.toString())
-        val file = PathHelper.getUpdateFile()
+        val file = pathsProvider.getUpdateFile()
         val connection = url.openConnection() as HttpURLConnection
         val stream = url.openStream()
         val fos = FileOutputStream(file)

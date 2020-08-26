@@ -1,7 +1,7 @@
 package ru.relabs.kurjer.models
 
 import android.net.Uri
-import ru.relabs.kurjer.files.PathHelper
+
 import java.util.*
 
 /**
@@ -15,5 +15,5 @@ data class TaskItemPhotoModel(
         val entranceNumber: Int
 ) {
 
-    fun getPhotoURI(): Uri = Uri.fromFile(PathHelper.getTaskItemPhotoFile(taskItem, UUID.fromString(uuid)))
+//    fun getPhotoURI(): Uri = Uri.parse("/path")
 }

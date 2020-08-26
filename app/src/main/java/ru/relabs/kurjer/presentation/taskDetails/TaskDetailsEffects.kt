@@ -4,7 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.TaskItem
-import ru.relabs.kurjer.files.PathHelper
+
 import ru.relabs.kurjer.presentation.RootScreen
 
 /**
@@ -43,7 +43,7 @@ object TaskDetailsEffects {
         when(val t = s.task){
             null -> c.showFatalError("tde:102")
             else -> {
-                val file = PathHelper.getTaskRasterizeMapFile(t)
+                val file = c.pathsProvider.getTaskRasterizeMapFile(t)
                 when(file.exists()){
                     true -> c.showImagePreview(file)
                     else -> c.showSnackbar(R.string.image_map_not_found)

@@ -42,14 +42,14 @@ object ReportMessages {
         }
     )
 
-    fun msgTaskSelectionLoaded(taskWithItem: TaskWithItem, photos: List<TaskItemPhoto>): ReportMessage =
+    fun msgTaskSelectionLoaded(taskWithItem: TaskWithItem, photos: List<PhotoWithUri>): ReportMessage =
         msgState { it.copy(selectedTask = taskWithItem, selectedTaskPhotos = photos, isEntranceSelectionChanged = false) }
 
     fun msgPhotoClicked(entranceNumber: EntranceNumber? = null, multiplePhoto: Boolean): ReportMessage =
         msgEffect(ReportEffects.effectCreatePhoto(entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM, multiplePhoto))
 
     fun msgRemovePhotoClicked(removedPhoto: TaskItemPhoto): ReportMessage = msgEffects(
-        { state -> state.copy(selectedTaskPhotos = state.selectedTaskPhotos.filter { photo -> photo != removedPhoto }) },
+        { state -> state.copy(selectedTaskPhotos = state.selectedTaskPhotos.filter { photo -> photo.photo != removedPhoto }) },
         { listOf(ReportEffects.effectRemovePhoto(removedPhoto)) }
     )
 
@@ -89,7 +89,7 @@ object ReportMessages {
         }
     )
 
-    fun msgNewPhoto(newPhoto: TaskItemPhoto): ReportMessage =
+    fun msgNewPhoto(newPhoto: PhotoWithUri): ReportMessage =
         msgState { it.copy(selectedTaskPhotos = it.selectedTaskPhotos + listOf(newPhoto)) }
 
     fun msgDescriptionChanged(text: String): ReportMessage =

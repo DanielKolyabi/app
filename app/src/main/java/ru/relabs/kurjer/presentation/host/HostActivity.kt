@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.collect
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.ReportService
+import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
@@ -46,7 +46,6 @@ import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
 import java.io.File
 import java.io.FileNotFoundException
-import java.lang.ref.WeakReference
 
 
 class HostActivity : AppCompatActivity(), IFragmentHolder {

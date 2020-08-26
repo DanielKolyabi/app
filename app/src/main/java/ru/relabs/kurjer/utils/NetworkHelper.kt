@@ -1,8 +1,6 @@
-package ru.relabs.kurjer.network
+package ru.relabs.kurjer.utils
 
-import android.content.ContentResolver
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.location.LocationManager
 import android.location.LocationManager.GPS_PROVIDER
 import android.net.ConnectivityManager
@@ -14,25 +12,13 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
-import okhttp3.MediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.REQUEST_LOCATION
-import ru.relabs.kurjer.files.ImageUtils
-import ru.relabs.kurjer.files.PathHelper
-import ru.relabs.kurjer.data.models.PhotoReportRequest
-import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
-import ru.relabs.kurjer.data.database.entities.TaskItemPhotoEntity
-import ru.relabs.kurjer.data.models.TaskItemReportRequest
-import ru.relabs.kurjer.utils.log
+
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.*
 
 
 /**
@@ -79,7 +65,11 @@ object NetworkHelper {
     }
 
     fun isNetworkEnabled(context: Context?): Boolean {
-        return ((isWifiEnabled(context) && isWifiConnected(context)) || isMobileDataEnabled(context)) && !isAirplaneModeEnabled(context)
+        return ((isWifiEnabled(context) && isWifiConnected(
+            context
+        )) || isMobileDataEnabled(context)) && !isAirplaneModeEnabled(
+            context
+        )
     }
 
     fun isGPSEnabled(context: Context?): Boolean {
@@ -121,31 +111,8 @@ object NetworkHelper {
         return status ?: false
     }
 
-    private fun photoEntityToPart(partName: String, reportEnt: ReportQueryItemEntity, photoEnt: TaskItemPhotoEntity): MultipartBody.Part {
-        val photoFile = PathHelper.getTaskItemPhotoFileByID(
-                reportEnt.taskItemId,
-                UUID.fromString(photoEnt.UUID)
-        )
-        if (!photoFile.exists()) {
-            throw FileNotFoundException(photoFile.path)
-        }
-
-        val request =
-            RequestBody.run { photoFile.asRequestBody(MediaType.run { "image/jpeg".toMediaType() }) }
-
-        return MultipartBody.Part.createFormData(partName, photoFile.name, request)
-    }
-
-    fun loadTaskRasterizeMap(task: Task) {
-        val url = URL(task.rastMapUrl)
-        val bmp = BitmapFactory.decodeStream(url.openStream())
-        val mapFile = PathHelper.getTaskRasterizeMapFile(task)
-        ImageUtils.saveImage(bmp, mapFile)
-        bmp.recycle()
-    }
-
     fun loadUpdateFile(url: URL, onDownloadUpdate: (current: Int, total: Int) -> Unit): File {
-        val file = PathHelper.getUpdateFile()
+        val file = File("test")//PathHelper.getUpdateFile()
         val connection = url.openConnection() as HttpURLConnection
         val stream = url.openStream()
         val fos = FileOutputStream(file)

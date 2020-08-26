@@ -1,4 +1,4 @@
-package ru.relabs.kurjer
+package ru.relabs.kurjer.services
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -16,11 +16,14 @@ import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.*
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import ru.relabs.kurjer.AlertNotificationActivity
+import ru.relabs.kurjer.DeliveryApp
+import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
-import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.utils.NetworkHelper
 import ru.relabs.kurjer.utils.Either
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
@@ -42,7 +45,8 @@ class ReportService : Service(), KoinComponent {
     private var pauseDisableJob: Job? = null
     private var looperJob: Job? = null
     private var currentIconBitmap: Bitmap? = null
-    private var lastState: ServiceState = ServiceState.IDLE
+    private var lastState: ServiceState =
+        ServiceState.IDLE
     private var lastActivityResumeTime = 0L
     private var lastActivityRunningState = false
     private var timelimitNotificationStartTime: Long? = null
@@ -63,7 +67,9 @@ class ReportService : Service(), KoinComponent {
 
         instance = this
 
-        startForeground(1, notification("Сервис отправки данных.", ServiceState.IDLE))
+        startForeground(1, notification("Сервис отправки данных.",
+            ServiceState.IDLE
+        ))
         isRunning = true
 
         var lastTasksChecking = System.currentTimeMillis()
@@ -221,7 +227,10 @@ class ReportService : Service(), KoinComponent {
     private fun notification(body: String, status: ServiceState, update: Boolean = false): Notification {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(CHANNEL_ID, getString(R.string.app_name), NotificationManager.IMPORTANCE_HIGH)
+            val notificationChannel = NotificationChannel(
+                CHANNEL_ID, getString(
+                    R.string.app_name
+                ), NotificationManager.IMPORTANCE_HIGH)
             (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(notificationChannel)
         }
 
@@ -231,7 +240,6 @@ class ReportService : Service(), KoinComponent {
             ServiceState.UNAVAILABLE -> R.drawable.ic_service_error
         }
         if (lastState != status) {
-
             currentIconBitmap?.recycle()
             currentIconBitmap = BitmapFactory.decodeResource(application.resources, ic)
             lastState = status

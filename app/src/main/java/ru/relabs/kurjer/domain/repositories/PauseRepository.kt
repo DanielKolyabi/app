@@ -5,7 +5,7 @@ import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
-import ru.relabs.kurjer.ReportService
+import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.data.models.common.DomainException
 import ru.relabs.kurjer.utils.*
 import java.util.*

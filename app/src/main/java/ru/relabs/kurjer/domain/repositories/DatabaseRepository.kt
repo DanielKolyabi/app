@@ -13,8 +13,9 @@ import ru.relabs.kurjer.domain.mappers.TaskItemEntranceResultMapper
 import ru.relabs.kurjer.domain.mappers.TaskItemResultMapper
 import ru.relabs.kurjer.domain.mappers.database.*
 import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
-import ru.relabs.kurjer.files.PathHelper
+
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.utils.Either
@@ -26,7 +27,8 @@ import java.util.*
 class DatabaseRepository(
     private val db: AppDatabase,
     private val authTokenStorage: AuthTokenStorage,
-    private val baseUrl: String
+    private val baseUrl: String,
+    private val pathsProvider: PathsProvider
 ) {
 
     suspend fun removeReport(report: ReportQueryItemEntity) {
@@ -34,11 +36,11 @@ class DatabaseRepository(
         if (report.removeAfterSend) {
             db.photosDao().getByTaskItemId(report.taskItemId).forEach {
                 //Delete photo
-                val file = PathHelper.getTaskItemPhotoFileByID(report.taskItemId, UUID.fromString(it.UUID))
+                val file = pathsProvider.getTaskItemPhotoFileByID(report.taskItemId, UUID.fromString(it.UUID))
                 file.delete()
                 db.photosDao().delete(it)
             }
-            PathHelper.getTaskItemPhotoFolderById(report.taskItemId).delete()
+            pathsProvider.getTaskItemPhotoFolderById(report.taskItemId).delete()
         }
     }
 
@@ -52,8 +54,7 @@ class DatabaseRepository(
         //Remove all taskItems
         db.taskItemDao().getAllForTask(taskId.id).forEach { taskItem ->
             db.photosDao().getByTaskItemId(taskItem.id).forEach { photo ->
-                //TODO: Remove PathHelper
-                val file = PathHelper.getTaskItemPhotoFileByID(photo.taskItemId, UUID.fromString(photo.UUID))
+                val file = pathsProvider.getTaskItemPhotoFileByID(photo.taskItemId, UUID.fromString(photo.UUID))
                 file.delete()
                 db.photosDao().delete(photo)
             }
@@ -72,12 +73,11 @@ class DatabaseRepository(
             db.taskDao().delete(it)
         }
 
-        PathHelper.getTaskRasterizeMapFileById(taskId).delete()
+        pathsProvider.getTaskRasterizeMapFileById(taskId).delete()
     }
 
     fun removePhoto(photo: TaskItemPhoto) {
-        //TODO: Remove PathHelper
-        val file = PathHelper.getTaskItemPhotoFileByID(photo.taskItemId.id, UUID.fromString(photo.UUID))
+        val file = pathsProvider.getTaskItemPhotoFileByID(photo.taskItemId.id, UUID.fromString(photo.UUID))
         file.delete()
         db.photosDao().deleteById(photo.id.id)
     }
@@ -152,7 +152,7 @@ class DatabaseRepository(
             db.taskDao().delete(it)
         }
         //Remove rast map
-        PathHelper.getTaskRasterizeMapFileById(TaskId(taskId)).delete()
+        pathsProvider.getTaskRasterizeMapFileById(TaskId(taskId)).delete()
     }
 
     suspend fun mergeTasks(tasks: List<Task>): Flow<MergeResult> = flow {

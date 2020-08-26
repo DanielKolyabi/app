@@ -1,11 +1,13 @@
 package ru.relabs.kurjer.presentation.report
 
 import android.location.Location
+import android.net.Uri
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.LocationProvider
+import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.RadiusRepository
@@ -26,7 +28,7 @@ data class TaskWithItem(
 data class ReportState(
     val tasks: List<TaskWithItem> = emptyList(),
     val selectedTask: TaskWithItem? = null,
-    val selectedTaskPhotos: List<TaskItemPhoto> = emptyList(),
+    val selectedTaskPhotos: List<PhotoWithUri> = emptyList(),
     val selectedTaskReport: TaskItemResult? = null,
     val loaders: Int = 0,
     val isGPSLoading: Boolean = false,
@@ -35,6 +37,8 @@ data class ReportState(
 
     val coupling: ReportCoupling = emptyMap()
 )
+
+data class PhotoWithUri(val photo: TaskItemPhoto, val uri: Uri)
 
 class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     ErrorContext by errorContext,
@@ -47,6 +51,7 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     val radiusRepository: RadiusRepository by inject()
     val reportUseCase: ReportUseCase by inject()
     val taskEventController: TaskEventController by inject()
+    val pathsProvider: PathsProvider by inject()
 
     var showError: suspend (code: String, isFatal: Boolean) -> Unit = { _, _ -> }
     var requestPhoto: (entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID) -> Unit = { _, _, _, _ -> }

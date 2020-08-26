@@ -2,7 +2,7 @@ package ru.relabs.kurjer.presentation.host.featureCheckers
 
 import android.app.Activity
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.utils.NetworkHelper
 import ru.relabs.kurjer.utils.extensions.showDialog
 
 class NetworkFeatureChecker(a: Activity) : FeatureChecker(a) {

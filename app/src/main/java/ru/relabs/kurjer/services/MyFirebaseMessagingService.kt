@@ -1,4 +1,4 @@
-package ru.relabs.kurjer.utils
+package ru.relabs.kurjer.services
 
 import android.content.Intent
 import com.google.firebase.messaging.FirebaseMessagingService

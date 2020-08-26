@@ -3,13 +3,11 @@ package ru.relabs.kurjer
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import android.view.Window
 import kotlinx.coroutines.*
 import org.koin.android.ext.android.inject
-import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.presentation.host.HostActivity
-import ru.relabs.kurjer.utils.debug
+import ru.relabs.kurjer.services.ReportService
 
 class SplashActivity : AppCompatActivity() {
     private val supervisor = SupervisorJob()

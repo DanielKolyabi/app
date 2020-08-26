@@ -1,27 +1,20 @@
 package ru.relabs.kurjer.uiOld.presenters
 
-import android.content.Intent
-import android.widget.Toast
-import androidx.core.content.ContextCompat.startActivity
-import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.ErrorButtonsListener
 import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.ReportService
-import ru.relabs.kurjer.files.PathHelper
+
 import ru.relabs.kurjer.models.AddressModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.TaskItemEntity
-import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.uiOld.fragments.AddressListFragment
 import ru.relabs.kurjer.uiOld.helpers.TaskAddressSorter
 import ru.relabs.kurjer.uiOld.models.AddressListModel
-import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.activity
 import java.util.*
 

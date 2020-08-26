@@ -7,7 +7,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import ru.relabs.kurjer.REQUEST_LOCATION
-import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.utils.NetworkHelper
 import ru.relabs.kurjer.utils.debug
 
 class GPSFeatureChecker(a: Activity) : FeatureChecker(a) {

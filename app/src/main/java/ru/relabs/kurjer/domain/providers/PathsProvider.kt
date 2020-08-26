@@ -1,30 +1,26 @@
-package ru.relabs.kurjer.files
+package ru.relabs.kurjer.domain.providers
 
-import android.os.Environment
-import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.TaskItem
+
 import ru.relabs.kurjer.models.TaskItemModel
-import ru.relabs.kurjer.models.TaskModel
 import java.io.File
 import java.util.*
 
-/**
- * Created by ProOrange on 03.09.2018.
- */
+class PathsProvider(
+    private val filesRootDir: File
+){
+    private val updatesPath = File(filesRootDir, "updates").apply {
+        mkdirs()
+    }
+    private val photoDir = File(filesRootDir, "photos").apply {
+        mkdirs()
+    }
+    private val mapDir = File(filesRootDir, "maps").apply {
+        mkdirs()
+    }
 
-object PathHelper {
-    private val dataRootDir = DeliveryApp.appContext.applicationContext.filesDir
-    private val updatesPath = File(dataRootDir, "updates").apply {
-        mkdirs()
-    }
-    private val photoDir = File(dataRootDir, "photos").apply {
-        mkdirs()
-    }
-    private val mapDir = File(dataRootDir, "maps").apply {
-        mkdirs()
-    }
 
     fun getTaskItemPhotoFolderById(taskItemID: Int): File {
         val taskDir = File(photoDir, taskItemID.toString())

@@ -59,10 +59,10 @@ object ReportRenders {
         { it.selectedTaskPhotos to it.selectedTask },
         { (photos, task) ->
             val photoRequired = task?.taskItem?.needPhoto ?: false
-            val hasPhoto = photos.any { it.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM }
+            val hasPhoto = photos.any { it.photo.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM }
             val newItems =
                 listOf(ReportPhotoItem.Single(photoRequired, hasPhoto)) +
-                        photos.map { ReportPhotoItem.Photo(it) }
+                        photos.map { ReportPhotoItem.Photo(it.photo, it.uri) }
 
             val diff = DiffUtil.calculateDiff(DefaultListDiffCallback(adapter.items, newItems))
 
@@ -92,7 +92,7 @@ object ReportRenders {
                                 entrance.isRefused
                             ),
                             task?.let { coupling.isCouplingEnabled(task, entrance.number) } ?: false,
-                            photos.any { photo -> photo.entranceNumber == entrance.number }
+                            photos.any { photo -> photo.photo.entranceNumber == entrance.number }
                         )
                     }
                 )

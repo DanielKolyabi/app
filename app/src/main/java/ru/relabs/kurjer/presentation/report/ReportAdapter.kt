@@ -43,13 +43,13 @@ object ReportAdapter {
     fun photo(onRemoveClicked: (TaskItemPhoto) -> Unit): IAdapterDelegate<ReportPhotoItem> = delegateDefine(
         { it is ReportPhotoItem.Photo },
         { p ->
-            holderDefine(p, R.layout.holder_report_photo, { it as ReportPhotoItem.Photo }) { (photo) ->
+            holderDefine(p, R.layout.holder_report_photo, { it as ReportPhotoItem.Photo }) { (photo, uri) ->
                 itemView.iv_remove.setOnClickListener {
                     onRemoveClicked(photo)
                 }
 
                 Glide.with(itemView)
-                    .load(photo.uri)
+                    .load(uri)
                     .into(itemView.photo)
 
                 itemView.tv_entrance_number.text = when (photo.entranceNumber.number) {

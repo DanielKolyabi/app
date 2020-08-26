@@ -20,12 +20,11 @@ import ru.relabs.kurjer.*
 import ru.relabs.kurjer.domain.models.AllowedCloseRadius
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
-import ru.relabs.kurjer.files.ImageUtils
-import ru.relabs.kurjer.files.PathHelper.getTaskItemPhotoFile
+import ru.relabs.kurjer.utils.ImageUtils
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.models.TaskItemModel
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.utils.NetworkHelper
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.*
 import ru.relabs.kurjer.domain.models.TaskId
@@ -195,7 +194,7 @@ class ReportPresenter(
                     taskPhotos.any { it.entranceNumber == -1 })
             )
             taskPhotos.forEach {
-                fragment.photosListAdapter.data.add(ReportPhotosListModel.TaskItemPhoto(it, it.getPhotoURI()))
+//                fragment.photosListAdapter.data.add(ReportPhotosListModel.TaskItemPhoto(it, it.getPhotoURI()))
             }
             fragment.photosListAdapter.notifyDataSetChanged()
         }
@@ -369,10 +368,7 @@ class ReportPresenter(
         photoUUID = UUID.randomUUID()
         photoMultiMode = multiPhoto
 
-        val photoFile = getTaskItemPhotoFile(
-            fragment.taskItems[currentTask], photoUUID
-                ?: UUID.randomUUID()
-        )
+        val photoFile = File.createTempFile("te", "mp")
 
         val photoUri = FileProvider.getUriForFile(
             fragment.requireContext(),
@@ -403,10 +399,7 @@ class ReportPresenter(
                 }
                 return false
             }
-            val photoFile = getTaskItemPhotoFile(
-                fragment.taskItems[currentTask], photoUUID
-                    ?: UUID.randomUUID()
-            )
+            val photoFile = File.createTempFile("te", "mp")
             if (photoFile.exists()) {
                 saveNewPhoto(photoFile.absolutePath, requestEntrance ?: -1)
                 requestEntrance = null
@@ -444,10 +437,7 @@ class ReportPresenter(
     }
 
     private fun saveNewPhoto(bmp: Bitmap?, entranceNumber: Int): File? {
-        val photoFile = getTaskItemPhotoFile(
-            fragment.taskItems[currentTask], photoUUID
-                ?: UUID.randomUUID()
-        )
+        val photoFile = File.createTempFile("te", "mp")
         if (bmp != null) {
             val photo: Bitmap
             try {

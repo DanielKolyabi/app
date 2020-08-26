@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.models.auth.UserLogin
-import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.utils.NetworkHelper
 import ru.relabs.kurjer.presentation.base.TextChangeListener
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.tea.debugCollector

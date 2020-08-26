@@ -1,8 +1,6 @@
 package ru.relabs.kurjer
 
-import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
@@ -13,6 +11,7 @@ import android.view.Window
 import android.view.WindowManager
 import kotlinx.android.synthetic.main.alert_activity.*
 import kotlinx.coroutines.*
+import ru.relabs.kurjer.services.ReportService
 
 /**
  * Created by Daniil Kurchanov on 06.08.2019.

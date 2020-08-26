@@ -6,6 +6,7 @@ import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.Address
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.presentation.base.tea.*
 import java.io.File
@@ -30,6 +31,7 @@ class AddressesContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) 
 
     val databaseRepository: DatabaseRepository by inject()
     val taskEventController: TaskEventController by inject()
+    val pathsProvider: PathsProvider by inject()
 
     var showImagePreview: (File) -> Unit = {}
     var showSnackbar: (msgRes: Int) -> Unit = {}

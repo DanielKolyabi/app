@@ -3,15 +3,16 @@ package ru.relabs.kurjer.presentation.report
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
+import androidx.core.net.toUri
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.ReportService
+import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
-import ru.relabs.kurjer.files.ImageUtils
-import ru.relabs.kurjer.files.PathHelper
+import ru.relabs.kurjer.utils.ImageUtils
+
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.utils.*
@@ -82,7 +83,9 @@ object ReportEffects {
         if (task == null || taskItem == null) {
             c.showError("re:110", true)
         } else {
-            val photos = c.database.getTaskItemPhotos(taskItem)
+            val photos = c.database.getTaskItemPhotos(taskItem).map {
+                PhotoWithUri(it, c.pathsProvider.getTaskItemPhotoFile(taskItem, UUID.fromString(it.UUID)).toUri())
+            }
             messages.send(ReportMessages.msgTaskSelectionLoaded(TaskWithItem(task, taskItem), photos))
 
             val report = c.database.getTaskItemResult(taskItem)
@@ -102,7 +105,7 @@ object ReportEffects {
             null -> c.showError("re:100", true)
             else -> {
                 val photoUUID = UUID.randomUUID()
-                val photoFile = PathHelper.getTaskItemPhotoFile(selectedTask.taskItem, photoUUID)
+                val photoFile = c.pathsProvider.getTaskItemPhotoFile(selectedTask.taskItem, photoUUID)
                 withContext(Dispatchers.Main) {
                     c.requestPhoto(entranceNumber, multiplePhotos, photoFile, photoUUID)
                 }
@@ -172,7 +175,9 @@ object ReportEffects {
                     is Left -> messages.send(ReportMessages.msgPhotoError(6))
                     is Right -> {
                         val location = c.locationProvider.lastReceivedLocation()
-                        messages.send(ReportMessages.msgNewPhoto(c.database.savePhoto(entrance, task.taskItem, uuid, location)))
+                        val photo = c.database.savePhoto(entrance, task.taskItem, uuid, location)
+                        val path = c.pathsProvider.getTaskItemPhotoFile(task.taskItem, uuid)
+                        messages.send(ReportMessages.msgNewPhoto(PhotoWithUri(photo, path.toUri())))
                     }
                 }
             }
@@ -210,7 +215,7 @@ object ReportEffects {
             null -> c.showError("re:106", true)
             else -> {
                 val taskItemRequiredPhotoExists = if (selected.taskItem.needPhoto) {
-                    s.selectedTaskPhotos.any { it.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM }
+                    s.selectedTaskPhotos.any { it.photo.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM }
                 } else {
                     true
                 }
@@ -221,7 +226,7 @@ object ReportEffects {
 
                 val entrancesRequiredPhotoExists = if (requiredEntrancesPhotos.isNotEmpty()) {
                     requiredEntrancesPhotos
-                        .reduce { entranceData, acc -> acc.copy(first = acc.first && s.selectedTaskPhotos.any { it.entranceNumber == entranceData.second }) }
+                        .reduce { entranceData, acc -> acc.copy(first = acc.first && s.selectedTaskPhotos.any { it.photo.entranceNumber == entranceData.second }) }
                         .first
                 } else {
                     true
@@ -310,7 +315,7 @@ object ReportEffects {
             else -> {
                 effectInterruptPause()(c, s)
                 c.reportUseCase.createReport(selected.task, selected.taskItem, location, c.getBatteryLevel() ?: 0f, withRemove)
-                if(withRemove){
+                if (withRemove) {
                     ReportService.restartTaskClosingTimer()
                 }
             }

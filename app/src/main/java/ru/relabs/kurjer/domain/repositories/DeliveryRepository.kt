@@ -7,8 +7,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.joda.time.DateTime
 import retrofit2.HttpException
@@ -27,18 +25,12 @@ import ru.relabs.kurjer.data.models.common.DomainException
 import ru.relabs.kurjer.data.models.common.EitherE
 import ru.relabs.kurjer.domain.mappers.network.*
 import ru.relabs.kurjer.domain.models.*
-import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
-import ru.relabs.kurjer.domain.providers.DeviceUniqueIdProvider
-import ru.relabs.kurjer.domain.providers.FirebaseToken
-import ru.relabs.kurjer.domain.providers.FirebaseTokenProvider
+import ru.relabs.kurjer.domain.providers.*
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
-import ru.relabs.kurjer.files.ImageUtils
-import ru.relabs.kurjer.files.PathHelper
-import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.utils.ImageUtils
+
 import ru.relabs.kurjer.utils.*
 import java.io.FileNotFoundException
-import java.io.OutputStreamWriter
-import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
 
@@ -49,7 +41,8 @@ class DeliveryRepository(
     private val deviceUniqueIdProvider: DeviceUniqueIdProvider,
     private val firebaseTokenProvider: FirebaseTokenProvider,
     private val database: AppDatabase,
-    private val networkClient: OkHttpClient
+    private val networkClient: OkHttpClient,
+    private val pathsProvider: PathsProvider
 ) {
     fun isAuthenticated(): Boolean = authTokenStorage.getToken() != null
 
@@ -127,7 +120,6 @@ class DeliveryRepository(
 
     //Reports
     suspend fun sendReport(item: ReportQueryItemEntity): Either<Exception, Unit> = Either.of {
-        //TODO: Move into reports usecase
         val photosMap = mutableMapOf<String, PhotoReportRequest>()
         val photoParts = mutableListOf<MultipartBody.Part>()
         val photos = database.photosDao().getByTaskItemId(item.taskItemId)
@@ -159,7 +151,7 @@ class DeliveryRepository(
     }
 
     private fun photoEntityToPart(partName: String, reportEnt: ReportQueryItemEntity, photoEnt: TaskItemPhotoEntity): MultipartBody.Part {
-        val photoFile = PathHelper.getTaskItemPhotoFileByID(
+        val photoFile = pathsProvider.getTaskItemPhotoFileByID(
             reportEnt.taskItemId,
             UUID.fromString(photoEnt.UUID)
         )
@@ -193,8 +185,7 @@ class DeliveryRepository(
     suspend fun loadTaskMap(task: Task): Either<Exception, Unit> = Either.of {
         val url = URL(task.rastMapUrl)
         val bmp = BitmapFactory.decodeStream(url.openStream())
-        //TODO: Remove path helper
-        val mapFile = PathHelper.getTaskRasterizeMapFile(task)
+        val mapFile = pathsProvider.getTaskRasterizeMapFile(task)
         ImageUtils.saveImage(bmp, mapFile)
         bmp.recycle()
     }

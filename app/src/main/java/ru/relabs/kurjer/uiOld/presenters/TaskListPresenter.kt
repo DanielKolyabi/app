@@ -7,17 +7,15 @@ import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.models.common.DomainException
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
-import ru.relabs.kurjer.domain.repositories.SendQueryData
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.network.NetworkHelper
+import ru.relabs.kurjer.utils.NetworkHelper
 import ru.relabs.kurjer.persistence.PersistenceHelper
 import ru.relabs.kurjer.uiOld.fragments.TaskListFragment
 import ru.relabs.kurjer.uiOld.models.TaskListModel
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.activity
-import ru.relabs.kurjer.utils.log
 import java.util.*
 
 /**

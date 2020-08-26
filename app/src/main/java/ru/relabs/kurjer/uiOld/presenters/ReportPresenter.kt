@@ -350,14 +350,14 @@ class ReportPresenter(
     fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (permissions[0] == android.Manifest.permission.WRITE_EXTERNAL_STORAGE) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                fragment.activity()
-                    ?.showError("Необходимо разрешить приложению записывать данные на карту.", object : ErrorButtonsListener {
-                        override fun positiveListener() {
-                            fragment.requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
-                        }
-
-                        override fun negativeListener() {}
-                    }, "Ок", "Отмена")
+//                fragment.activity()
+//                    ?.showError("Необходимо разрешить приложению записывать данные на карту.", object : ErrorButtonsListener {
+//                        override fun positiveListener() {
+//                            fragment.requestPermissions(arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
+//                        }
+//
+//                        override fun negativeListener() {}
+//                    }, "Ок", "Отмена")
             } else {
                 requestPhoto(true, -1)
             }
@@ -460,9 +460,9 @@ class ReportPresenter(
             photo.recycle()
         }
         GlobalScope.launch(Dispatchers.Main) {
-            var currentGPS = application().currentLocation
+//            var currentGPS = application().currentLocation
 
-            val photoEntity = TaskItemPhotoEntity(0, photoUUID.toString(), currentGPS, fragment.taskItems[currentTask].id, entranceNumber)
+            val photoEntity = TaskItemPhotoEntity(0, photoUUID.toString(), GPSCoordinatesModel(0.0, 0.0, Date()), fragment.taskItems[currentTask].id, entranceNumber)
             val photoModel = withContext(Dispatchers.Default) {
                 val id = database.photosDao().insert(photoEntity)
                 database.photosDao().getById(id.toInt()).toTaskItemPhotoModel(database)
@@ -511,14 +511,14 @@ class ReportPresenter(
             }
         }
         if (!fragment.tasks[currentTask].canShowedByDate(Date())) {
-            fragment.activity()?.showError("Задание больше недоступно.", object : ErrorButtonsListener {
-                override fun positiveListener() {
-                    fragment?.activity()?.showTaskListScreen()
-                }
-
-                override fun negativeListener() {
-                }
-            })
+//            fragment.activity()?.showError("Задание больше недоступно.", object : ErrorButtonsListener {
+//                override fun positiveListener() {
+//                    fragment?.activity()?.showTaskListScreen()
+//                }
+//
+//                override fun negativeListener() {
+//                }
+//            })
             return@launch
         }
 
@@ -549,7 +549,7 @@ class ReportPresenter(
 
     private suspend fun closeClickedCheck(withTryReload: Boolean = true) {
         val radius = radiusRepository.allowedCloseRadius
-        val currentPosition = application().currentLocation
+        val currentPosition = GPSCoordinatesModel(0.0,0.0,Date())
         val distance = getGPSDistance(currentPosition)
         val description = getDescription()
         if (radius is AllowedCloseRadius.Required) {
@@ -652,7 +652,7 @@ class ReportPresenter(
         locationProvider.updatesChannel(true).apply {
             withTimeoutOrNull(40 * 1000) {
                 val loc = receive()
-                (DeliveryApp.appContext as DeliveryApp).currentLocation = GPSCoordinatesModel(loc.latitude, loc.longitude, Date(loc.time))
+//                (DeliveryApp.appContext as DeliveryApp).currentLocation = GPSCoordinatesModel(loc.latitude, loc.longitude, Date(loc.time))
             }
             cancel()
         }

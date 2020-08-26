@@ -134,21 +134,21 @@ class TaskListPresenter(
                                 is Left -> when (val e = tasks.value) {
                                     is DomainException.ApiException -> {
                                         if (e.error.code == 3) {
-                                            fragment.activity()?.showError(e.error.message, object : ErrorButtonsListener {
-                                                override fun positiveListener() {
-//                                                    fragment.activity()?.showLoginScreen()
-                                                }
-
-                                                override fun negativeListener() {}
-                                            })
+//                                            fragment.activity()?.showError(e.error.message, object : ErrorButtonsListener {
+//                                                override fun positiveListener() {
+////                                                    fragment.activity()?.showLoginScreen()
+//                                                }
+//
+//                                                override fun negativeListener() {}
+//                                            })
                                         } else {
-                                            fragment.activity()
-                                                ?.showError("Задания не были обновлены. Возможна ошибка дат. Обратитесь к бригадиру.\nОшибка №${e.error.code}.")
+//                                            fragment.activity()
+//                                                ?.showError("Задания не были обновлены. Возможна ошибка дат. Обратитесь к бригадиру.\nОшибка №${e.error.code}.")
                                         }
                                         null
                                     }
                                     else -> {
-                                        fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить позже.")
+//                                        fragment.activity()?.showError("Задания не были обновлены. Попробуйте обновить позже.")
                                         null
                                     }
                                 }
@@ -188,7 +188,7 @@ class TaskListPresenter(
 //                        }
                     }
                 } else {
-                    fragment.activity()?.showError("Отсутствует соединение с интернетом.\nНевозможно обновить данные.")
+//                    fragment.activity()?.showError("Отсутствует соединение с интернетом.\nНевозможно обновить данные.")
                 }
             }
 

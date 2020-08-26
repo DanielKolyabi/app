@@ -81,10 +81,12 @@ class YandexMapFragment : Fragment() {
         userLocationLayer = mapview.map.userLocationLayer
         userLocationLayer.isEnabled = true
 
+        val userLocation = locationProvider.lastReceivedLocation()
+
         my_position.setOnClickListener {
             mapview.map.move(
                 userLocationLayer.cameraPosition()
-                    ?: CameraPosition(Point(application().currentLocation.lat, application().currentLocation.long), 14f, 0f, 0f)
+                    ?: CameraPosition(Point(userLocation?.latitude ?: 0.0, userLocation?.longitude ?: 0.0), 14f, 0f, 0f)
             )
         }
 
@@ -99,12 +101,10 @@ class YandexMapFragment : Fragment() {
 
 
     private fun getCameraPosition(coloredAddresses: List<AddressWithColor>): CameraPosition {
+        val userLocation = locationProvider.lastReceivedLocation()
         when {
             coloredAddresses.isEmpty() -> {
-                return CameraPosition(
-                    Point(application().currentLocation.lat, application().currentLocation.long),
-                    14f, 0f, 0f
-                )
+                return CameraPosition(Point(userLocation?.latitude ?: 0.0, userLocation?.longitude ?: 0.0), 14f, 0f, 0f)
             }
             coloredAddresses.size == 1 -> {
                 val address = coloredAddresses.first().address

@@ -86,20 +86,20 @@ class AddressListPresenter(
     }
 
     fun onItemClicked(task: AddressListModel.TaskItem) {
-        if (!task.parentTask.canShowedByDate(Date())) {
-            fragment.activity()?.showError("Задание больше недоступно.", object : ErrorButtonsListener {
-                override fun positiveListener() {
-                    fragment?.activity()?.showTaskListScreen()
-                }
-
-                override fun negativeListener() {}
-            })
-        }
-        fragment.activity()?.showTasksReportScreen(fragment.adapter.data.filter {
-            (it is AddressListModel.TaskItem) && it.taskItem.address.id == task.taskItem.address.id
-        }.map {
-            it as AddressListModel.TaskItem
-        }, task.parentTask.id)?.setTargetFragment(fragment, 1)
+//        if (!task.parentTask.canShowedByDate(Date())) {
+//            fragment.activity()?.showError("Задание больше недоступно.", object : ErrorButtonsListener {
+//                override fun positiveListener() {
+//                    fragment?.activity()?.showTaskListScreen()
+//                }
+//
+//                override fun negativeListener() {}
+//            })
+//        }
+//        fragment.activity()?.showTasksReportScreen(fragment.adapter.data.filter {
+//            (it is AddressListModel.TaskItem) && it.taskItem.address.id == task.taskItem.address.id
+//        }.map {
+//            it as AddressListModel.TaskItem
+//        }, task.parentTask.id)?.setTargetFragment(fragment, 1)
     }
 
     fun updateStates() {

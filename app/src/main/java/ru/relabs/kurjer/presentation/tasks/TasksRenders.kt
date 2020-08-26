@@ -62,7 +62,6 @@ object TasksRenders {
         tasks: List<Task>,
         selectedTasks: List<Task>
     ): Map<Task, Boolean> {
-        //TODO: May be optimize :/
         val result = mutableMapOf<Task, Boolean>()
         tasks.forEach { task ->
             selectedTasks.forEach { selectedTask ->

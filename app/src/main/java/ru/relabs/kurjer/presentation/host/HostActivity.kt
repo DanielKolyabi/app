@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.collect
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
@@ -38,6 +37,7 @@ import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.presentation.customViews.drawables.NavDrawerBackgroundDrawable
 import ru.relabs.kurjer.presentation.host.featureCheckers.FeatureCheckersContainer
 import ru.relabs.kurjer.presentation.host.systemWatchers.SystemWatchersContainer
+import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
@@ -98,8 +98,17 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.context.showErrorDialog = ::showErrorDialog
         controller.context.installUpdate = ::installUpdate
         controller.context.showPauseDialog = ::showPauseDialog
+        controller.context.showTaskUpdateRequired = ::showTaskUpdateRequiredDialog
 
         controller.context.featureCheckersContainer = featureCheckersContainer
+    }
+
+    private fun showTaskUpdateRequiredDialog() {
+        showDialog(
+            R.string.task_update_required,
+            R.string.ok to { uiScope.sendMessage(controller, HostMessages.msgRequiredUpdateOk()) },
+            R.string.later to { uiScope.sendMessage(controller, HostMessages.msgRequiredUpdateLater()) }
+        )
     }
 
     private fun showPauseDialog(availablePauseTypes: List<PauseType>) {
@@ -240,6 +249,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.context.showPauseDialog = {}
         controller.context.showErrorDialog = {}
         controller.context.installUpdate = {}
+        controller.context.showTaskUpdateRequired = {}
         navigationHolder.removeNavigator()
         featureCheckersContainer.onDestroy()
         systemWatchersContainer.onDestroy()

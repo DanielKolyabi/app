@@ -2,6 +2,7 @@ package ru.relabs.kurjer.presentation.host
 
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
@@ -42,12 +43,14 @@ class HostContext(
     val deviceUUIDProvider: DeviceUUIDProvider by inject()
     val locationProvider: LocationProvider by inject()
     val pauseRepository: PauseRepository by inject()
+    val taskEventController: TaskEventController by inject()
 
     var copyToClipboard: (String) -> Unit = {}
     var showUpdateDialog: (AppUpdate) -> Boolean = { false }
     var showErrorDialog: (id: Int) -> Unit = {}
     var installUpdate: (updateFile: File) -> Unit = {}
     var showPauseDialog: (availablePauseTypes: List<PauseType>) -> Unit = {}
+    var showTaskUpdateRequired: () -> Unit = {}
 
     var featureCheckersContainer: FeatureCheckersContainer? = null
 }

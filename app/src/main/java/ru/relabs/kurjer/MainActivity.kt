@@ -74,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == LocationManager.PROVIDERS_CHANGED_ACTION) {
                 if (!NetworkHelper.isGPSEnabled(applicationContext)) {
-                    NetworkHelper.displayLocationSettingsRequest(applicationContext, this@MainActivity)
+//                    NetworkHelper.displayLocationSettingsRequest(applicationContext, this@MainActivity)
                 }
             }
         }
@@ -105,7 +105,7 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_LOCATION) {
             if (resultCode == Activity.RESULT_OK) {
-                application().enableLocationListening()
+//                application().enableLocationListening()
             }
         } else if (requestCode == REQUEST_CODE_INSTALL_PACKAGE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (resultCode == Activity.RESULT_OK && packageManager.canRequestPackageInstalls()) {
@@ -165,7 +165,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (!NetworkHelper.isGPSEnabled(applicationContext)) {
-            NetworkHelper.displayLocationSettingsRequest(applicationContext, this)
+//            NetworkHelper.displayLocationSettingsRequest(applicationContext, this)
         }
 
         if (!NetworkHelper.isNetworkEnabled(applicationContext)) {
@@ -177,7 +177,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         registerReceiver(gpsSwitchStateReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
-        (DeliveryApp.appContext as DeliveryApp).enableLocationListening()
+//        (DeliveryApp.appContext as DeliveryApp).enableLocationListening()
 
         serviceCheckingJob?.cancel()
         serviceCheckingJob = GlobalScope.launch(Default) {
@@ -456,9 +456,9 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (requestCode == 1) {
             permissions.indexOfFirst { it == android.Manifest.permission.ACCESS_FINE_LOCATION }.let {
-                if (it >= 0 && grantResults[it] == PackageManager.PERMISSION_GRANTED && !(DeliveryApp.appContext as DeliveryApp).enableLocationListening()) {
-                    showError("Невозможно включить геолокацию")
-                }
+//                if (it >= 0 && grantResults[it] == PackageManager.PERMISSION_GRANTED && !(DeliveryApp.appContext as DeliveryApp).enableLocationListening()) {
+//                    showError("Невозможно включить геолокацию")
+//                }
             }
             val deniedPermission = permissions.filterIndexed { index, _ ->
                 grantResults[index] != PackageManager.PERMISSION_GRANTED
@@ -596,7 +596,7 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch(Main) {
             when (val updateInfo = repository.getAppUpdatesInfo()) {
                 is Right -> {
-                    application().lastRequiredAppVersion = updateInfo.value.required?.version ?: 0
+//                    application().lastRequiredAppVersion = updateInfo.value.required?.version ?: 0
                     val requiredVersion = updateInfo.value.required?.version ?: 0
                     val optionalVersion = updateInfo.value.optional?.version ?: 0
 

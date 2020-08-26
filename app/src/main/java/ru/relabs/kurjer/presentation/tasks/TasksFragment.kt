@@ -25,6 +25,7 @@ import ru.relabs.kurjer.presentation.host.HostActivity
 import ru.relabs.kurjer.presentation.taskDetails.IExaminedConsumer
 import ru.relabs.kurjer.uiOld.fragments.YandexMapFragment
 import ru.relabs.kurjer.utils.debug
+import ru.relabs.kurjer.utils.extensions.showDialog
 import ru.relabs.kurjer.utils.extensions.showSnackbar
 
 
@@ -38,6 +39,7 @@ class TasksFragment : BaseFragment(),
 
     private val controller = defaultController(TasksState(), TasksContext(this))
     private var renderJob: Job? = null
+    private var shouldShowUpdateRequiredOnResume: Boolean = false
 
     private val tasksAdapter = DelegateAdapter(
         TasksAdapter.loaderAdapter(),
@@ -46,7 +48,7 @@ class TasksFragment : BaseFragment(),
             { uiScope.sendMessage(controller, TasksMessages.msgTaskClicked(it)) }
         ),
         TasksAdapter.blankAdapter(),
-        TasksAdapter.searchAdapter{
+        TasksAdapter.searchAdapter {
             uiScope.sendMessage(controller, TasksMessages.msgSearch(it))
         }
     )
@@ -54,6 +56,9 @@ class TasksFragment : BaseFragment(),
     override fun onResume() {
         super.onResume()
         YandexMapFragment.savedCameraPosition = null //TODO: Remove after yandex map refactor
+        if(shouldShowUpdateRequiredOnResume){
+            showUpdateRequiredOnVisible()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,6 +101,20 @@ class TasksFragment : BaseFragment(),
         }
         controller.context.errorContext.attach(view)
         controller.context.showSnackbar = { withContext(Dispatchers.Main) { showSnackbar(resources.getString(it)) } }
+        controller.context.showUpdateRequiredOnVisible = ::showUpdateRequiredOnVisible
+    }
+
+    private fun showUpdateRequiredOnVisible() {
+        if (isVisible) {
+            showDialog(
+                R.string.task_update_required,
+                R.string.ok to {
+                    uiScope.sendMessage(controller, TasksMessages.msgRefresh())
+                    shouldShowUpdateRequiredOnResume = false
+                },
+                R.string.later to { shouldShowUpdateRequiredOnResume = true }
+            )
+        }
     }
 
     private fun bindControls(view: View) {

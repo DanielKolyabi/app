@@ -7,13 +7,6 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.provider.Settings
 import android.util.Log
-import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.LocationSettingsRequest
-import com.google.android.gms.location.LocationSettingsStatusCodes
-import ru.relabs.kurjer.MainActivity
-import ru.relabs.kurjer.REQUEST_LOCATION
 
 import java.io.File
 import java.io.FileOutputStream
@@ -75,34 +68,6 @@ object NetworkHelper {
     fun isGPSEnabled(context: Context?): Boolean {
         return ((context?.getSystemService(Context.LOCATION_SERVICE) as? LocationManager)?.isProviderEnabled(GPS_PROVIDER)
                 ?: false) && !isAirplaneModeEnabled(context)
-    }
-
-    fun displayLocationSettingsRequest(context: Context, activity: MainActivity) {
-        val googleApiClient = GoogleApiClient.Builder(context)
-                .addApi(LocationServices.API).build()
-        googleApiClient.connect()
-
-        val locationRequest = LocationRequest.create()
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        locationRequest.interval = 30000
-        locationRequest.fastestInterval = 15000
-        locationRequest.smallestDisplacement = 10f
-
-        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
-        builder.setAlwaysShow(true)
-
-        val result = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build())
-        result.setResultCallback { result ->
-            val status = result.status
-            when (status.statusCode) {
-                LocationSettingsStatusCodes.SUCCESS -> Log.i("NetworkHelper", "All location settings are satisfied.")
-                LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
-                    Log.i("NetworkHelper", "Location settings are not satisfied. Show the user a dialog to upgrade location settings ")
-                    status.startResolutionForResult(activity, REQUEST_LOCATION)
-                }
-                LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> Log.i("NetworkHelper", "Location settings are inadequate, and cannot be fixed here. Dialog not created.")
-            }
-        }
     }
 
     fun isNetworkAvailable(context: Context?): Boolean {

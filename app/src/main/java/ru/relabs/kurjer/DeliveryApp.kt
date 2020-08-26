@@ -47,26 +47,6 @@ class DeliveryApp : Application() {
     val navigatorHolder: NavigatorHolder
         get() = cicerone.navigatorHolder
 
-
-    var user: User? = null
-    var locationManager: FusedLocationProviderClient? = null
-    var currentLocation = GPSCoordinatesModel(0.0, 0.0, Date(0))
-
-    var lastRequiredAppVersion = 0
-
-    val listener = object : LocationCallback() {
-
-        override fun onLocationResult(location: LocationResult?) {
-            location?.let {
-                currentLocation = GPSCoordinatesModel(
-                    it.lastLocation.latitude,
-                    it.lastLocation.longitude,
-                    Date(it.lastLocation.time)
-                )
-            }
-        }
-    }
-
     override fun onCreate() {
         super.onCreate()
         appContext = this
@@ -90,9 +70,6 @@ class DeliveryApp : Application() {
                 )
             )
         }
-        //All below is a trash
-
-        locationManager = FusedLocationProviderClient(applicationContext)
 
         StrictMode.setVmPolicy(StrictMode.VmPolicy.Builder().build())
     }
@@ -107,8 +84,7 @@ class DeliveryApp : Application() {
     }
 
     @SuppressLint("HardwareIds")
-
-    private suspend fun initTrueTime(): Boolean {
+    private fun initTrueTime(): Boolean {
         return try {
             TrueTime.build().withSharedPreferencesCache(this@DeliveryApp).initialize()
             true
@@ -116,44 +92,6 @@ class DeliveryApp : Application() {
             false
         }
     }
-
-    fun requestLocation() {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
-
-        locationManager?.lastLocation?.addOnSuccessListener { location ->
-            location?.let {
-                currentLocation = GPSCoordinatesModel(it.latitude, it.longitude, Date(it.time))
-            }
-        }
-    }
-
-    fun enableLocationListening(time: Long = 60 * 1000, distance: Float = 10f): Boolean {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            return false
-        }
-
-        val req = LocationRequest().apply {
-            fastestInterval = 10 * 1000
-            interval = time
-
-            priority = PRIORITY_HIGH_ACCURACY
-        }
-
-        locationManager?.requestLocationUpdates(req, listener, mainLooper)
-
-        return true
-    }
-
     companion object {
         lateinit var appContext: Context
     }

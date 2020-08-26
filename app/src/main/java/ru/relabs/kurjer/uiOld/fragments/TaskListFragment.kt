@@ -110,7 +110,7 @@ class TaskListFragment : Fragment(), SearchableFragment {
         if (shouldCheckTasks) {
             shouldCheckTasks = false
             context?.apply {
-                startService(Intent(this, ReportService::class.java).apply { putExtra("force_check_updates", true) })
+//                startService(Intent(this, ReportService::class.java).apply { putExtra("force_check_updates", true) })
             }
         }
         presenter.updateStartButton()

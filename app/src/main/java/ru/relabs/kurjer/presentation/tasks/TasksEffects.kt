@@ -95,9 +95,12 @@ object TasksEffects {
         coroutineScope {
             launch {
                 c.taskEventController.subscribe().collect { event ->
-                    when(event){
+                    when (event) {
                         is TaskEvent.TaskClosed ->
                             messages.send(TasksMessages.msgTaskClosed(event.taskId))
+                        is TaskEvent.TasksUpdateRequired -> withContext(Dispatchers.Main) {
+                            c.showUpdateRequiredOnVisible()
+                        }
                     }
                 }
             }

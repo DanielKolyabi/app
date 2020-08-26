@@ -21,6 +21,8 @@ import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
+import ru.relabs.kurjer.domain.controllers.TaskEvent
+import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.utils.NetworkHelper
@@ -38,6 +40,7 @@ const val TASK_CHECK_DELAY = 10 * 60 * 1000
 class ReportService : Service(), KoinComponent {
     private val repository: DeliveryRepository by inject()
     private val databaseRepository: DatabaseRepository by inject()
+    private val taskEventController: TaskEventController by inject()
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
@@ -73,9 +76,6 @@ class ReportService : Service(), KoinComponent {
         isRunning = true
 
         var lastTasksChecking = System.currentTimeMillis()
-        if (intent?.getBooleanExtra("force_check_updates", false) == true) {
-            lastTasksChecking -= TASK_CHECK_DELAY
-        }
 
         looperJob?.cancel()
         looperJob = scope.launch {
@@ -108,12 +108,7 @@ class ReportService : Service(), KoinComponent {
                         System.currentTimeMillis() - lastTasksChecking > TASK_CHECK_DELAY -> {
                             when (val tasks = repository.getTasks()) {
                                 is Right -> if (databaseRepository.isMergeNeeded(tasks.value)) {
-                                    //TODO: Move to events channel
-                                    val int = Intent().apply {
-                                        putExtra("tasks_changed", true)
-                                        action = "NOW"
-                                    }
-                                    sendBroadcast(int)
+                                    taskEventController.send(TaskEvent.TasksUpdateRequired(false))
                                 }
                             }
                             lastTasksChecking = System.currentTimeMillis()

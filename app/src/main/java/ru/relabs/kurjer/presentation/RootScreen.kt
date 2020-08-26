@@ -32,7 +32,7 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
     class TaskInfo<F>(task: Task, parent: F) :
         RootScreen({ TaskDetailsFragment.newInstance(task, parent) }) where F : Fragment, F : IExaminedConsumer
 
-    class TaskItemDetails(taskItem: TaskItem) : RootScreen({ TaskItemExplanationFragment.newInstance(taskItem) }) //TODO
+    class TaskItemDetails(taskItem: TaskItem) : RootScreen({ TaskItemExplanationFragment.newInstance(taskItem) })
     class Report(items: List<Pair<Task, TaskItem>>, selectedTaskItem: TaskItem) :
         RootScreen({ ReportFragment.newInstance(items, selectedTaskItem) })
 

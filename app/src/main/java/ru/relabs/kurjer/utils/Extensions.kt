@@ -4,8 +4,8 @@ import androidx.fragment.app.Fragment
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.selects.select
-import ru.relabs.kurjer.MainActivity
 import ru.relabs.kurjer.DeliveryApp
+import ru.relabs.kurjer.presentation.host.HostActivity
 
 
 /**
@@ -17,8 +17,8 @@ fun application(): DeliveryApp {
     return DeliveryApp.appContext as DeliveryApp
 }
 
-fun Fragment.activity(): MainActivity? {
-    return this.context as? MainActivity
+fun Fragment.activity(): HostActivity? {
+    return this.context as? HostActivity
 }
 
 fun Throwable.log() {

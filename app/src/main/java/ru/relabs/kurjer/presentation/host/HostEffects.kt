@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.providers.FirebaseToken
 import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
@@ -170,16 +171,16 @@ object HostEffects {
         state.appUpdates == null || ((state.appUpdates.required?.version ?: 0) > BuildConfig.VERSION_CODE && !state.isUpdateLoadingFailed)
 
     fun effectEnablePause(): HostEffect = { c, s ->
-        if(c.pauseRepository.isPaused){
-            withContext(Dispatchers.Main){
+        if (c.pauseRepository.isPaused) {
+            withContext(Dispatchers.Main) {
                 c.showErrorDialog(R.string.pause_already_paused)
             }
-        }else{
+        } else {
             val availablePauseTypes = listOfNotNull(
                 PauseType.Load.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Load) },
                 PauseType.Lunch.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Lunch) }
             )
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 c.showPauseDialog(availablePauseTypes)
             }
         }
@@ -188,12 +189,12 @@ object HostEffects {
     fun effectPauseStart(type: PauseType): HostEffect = { c, s ->
         messages.send(HostMessages.msgAddLoaders(1))
         if (!c.pauseRepository.isPauseAvailable(type)) {
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 c.showErrorDialog(R.string.error_pause_unavailable)
             }
         } else {
             if (!c.pauseRepository.isPauseAvailableRemote(type)) {
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     c.showErrorDialog(R.string.error_pause_unavailable)
                 }
             } else {
@@ -203,14 +204,32 @@ object HostEffects {
         messages.send(HostMessages.msgAddLoaders(-1))
     }
 
-    fun effectSubscribe(): HostEffect = {c,s ->
+    fun effectSubscribe(): HostEffect = { c, s ->
         coroutineScope {
             launch {
                 c.pauseRepository.isPausedChannel.asFlow().collect {
                     messages.send(HostMessages.msgIsPaused(it))
                 }
             }
+            launch {
+                c.taskEventController.subscribe().collect {
+                    when (it) {
+                        is TaskEvent.TasksUpdateRequired -> withContext(Dispatchers.Main) {
+                            c.showTaskUpdateRequired()
+                        }
+                    }
+                }
+            }
         }
     }
 
+    fun effectNavigateUpdateTaskList(): HostEffect = { c, s ->
+        withContext(Dispatchers.Main) {
+            c.router.newRootScreen(RootScreen.Tasks(true))
+        }
+    }
+
+    fun effectNotifyUpdateRequiredOnTasksOpen(): HostEffect = { c, s ->
+        c.taskEventController.send(TaskEvent.TasksUpdateRequired(true))
+    }
 }

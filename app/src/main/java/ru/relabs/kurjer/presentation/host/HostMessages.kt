@@ -84,4 +84,10 @@ object HostMessages {
 
     fun msgIsPaused(paused: Boolean): HostMessage =
         msgState { it.copy(isPaused = paused) }
+
+    fun msgRequiredUpdateOk(): HostMessage =
+        msgEffect(HostEffects.effectNavigateUpdateTaskList())
+
+    fun msgRequiredUpdateLater(): HostMessage =
+        msgEffect(HostEffects.effectNotifyUpdateRequiredOnTasksOpen())
 }

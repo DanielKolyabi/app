@@ -25,11 +25,7 @@ import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
-import ru.relabs.kurjer.utils.NetworkHelper
-import ru.relabs.kurjer.utils.Either
-import ru.relabs.kurjer.utils.Left
-import ru.relabs.kurjer.utils.Right
-import ru.relabs.kurjer.utils.log
+import ru.relabs.kurjer.utils.*
 
 
 const val CHANNEL_ID = "notification_channel"
@@ -70,9 +66,12 @@ class ReportService : Service(), KoinComponent {
 
         instance = this
 
-        startForeground(1, notification("Сервис отправки данных.",
-            ServiceState.IDLE
-        ))
+        startForeground(
+            1, notification(
+                "Сервис отправки данных.",
+                ServiceState.IDLE
+            )
+        )
         isRunning = true
 
         var lastTasksChecking = System.currentTimeMillis()
@@ -181,7 +180,8 @@ class ReportService : Service(), KoinComponent {
         }
 
         val text = resources.getString(R.string.report_service_query_size, count) +
-                resources.getString(R.string.report_service_network_disabled)
+                (resources.getString(R.string.report_service_network_disabled)
+                    .takeIf { !NetworkHelper.isNetworkAvailable(this) } ?: "")
 
         NotificationManagerCompat
             .from(this)
@@ -225,7 +225,8 @@ class ReportService : Service(), KoinComponent {
             val notificationChannel = NotificationChannel(
                 CHANNEL_ID, getString(
                     R.string.app_name
-                ), NotificationManager.IMPORTANCE_HIGH)
+                ), NotificationManager.IMPORTANCE_HIGH
+            )
             (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(notificationChannel)
         }
 

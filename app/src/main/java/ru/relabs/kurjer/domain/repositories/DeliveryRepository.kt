@@ -7,7 +7,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.*
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.joda.time.DateTime
 import retrofit2.HttpException
 import retrofit2.Response
@@ -27,8 +26,6 @@ import ru.relabs.kurjer.domain.mappers.network.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.*
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
-import ru.relabs.kurjer.utils.ImageUtils
-
 import ru.relabs.kurjer.utils.*
 import java.io.FileNotFoundException
 import java.net.URL
@@ -190,13 +187,29 @@ class DeliveryRepository(
         bmp.recycle()
     }
 
-    suspend fun sendQuery(item: SendQueryItemEntity): Either<java.lang.Exception, Unit> = Either.of{
+    suspend fun sendQuery(item: SendQueryItemEntity): Either<java.lang.Exception, Unit> = Either.of {
+        val postDataBuilder = FormBody.Builder()
+        item.post_data.split("&").forEach {
+            it.split("=")
+                .let {
+                    val left = it.getOrNull(0)
+                    val right = it.getOrNull(1)
+                    if (left != null && right != null) {
+                        left to right
+                    } else {
+                        null
+                    }
+                }
+                ?.let {
+                    postDataBuilder.add(it.first, it.second)
+                }
+        }
         val request = Request.Builder()
             .url(item.url)
-            .post(item.post_data.toRequestBody())
+            .post(postDataBuilder.build())
             .build()
         val client = networkClient.newCall(request).execute()
-        if(client.code != 200){
+        if (client.code != 200) {
             throw Exception("Wrong response code.")
         }
     }

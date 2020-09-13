@@ -76,7 +76,7 @@ class ReportFragment : BaseFragment() {
         ReportAdapter.entrance(
             { entrance, button -> uiScope.sendMessage(controller, ReportMessages.msgEntranceSelectClicked(entrance, button)) },
             { uiScope.sendMessage(controller, ReportMessages.msgCoupleClicked(it)) },
-            { uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(it, true)) }
+            { uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(it, false)) }
         )
     )
 

@@ -65,7 +65,8 @@ class LoginFragment : BaseFragment() {
                 LoginRenders.renderLogin(view.et_login, loginTextWatcher),
                 LoginRenders.renderPassword(view.et_password, passwordTextWatcher),
                 LoginRenders.renderCheckbox(view.cb_remember),
-                LoginRenders.renderVersion(view.tv_version)
+                LoginRenders.renderVersion(view.tv_version),
+                LoginRenders.renderLoading(view.loading)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }

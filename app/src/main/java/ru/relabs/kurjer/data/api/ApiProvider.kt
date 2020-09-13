@@ -9,7 +9,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
-import ru.relabs.kurjer.utils.debug
+import ru.relabs.kurjer.BuildConfig
 import java.util.concurrent.TimeUnit
 
 
@@ -59,7 +59,11 @@ class ApiProvider(deliveryUrl: String) {
     }
 
     private fun buildClient() = OkHttpClient.Builder()
-        //.addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
+        .apply {
+            if(BuildConfig.DEBUG){
+                addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC })
+            }
+        }
         .addInterceptor(timeoutInterceptor)
         .build()
 }

@@ -8,12 +8,20 @@ import org.joda.time.DateTime
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.utils.extensions.showDialog
 import ru.relabs.kurjer.utils.log
+import java.util.*
 import kotlin.math.abs
 
 class TimeFeatureChecker(a: Activity) : FeatureChecker(a) {
     private var dialogShowed: Boolean = false
 
     override fun isFeatureEnabled(): Boolean {
+        val currentTimeZoneOffset = Calendar.getInstance().let {
+            it.time = Date()
+            it.get(Calendar.ZONE_OFFSET) + it.get(Calendar.DST_OFFSET)
+        }
+        if (currentTimeZoneOffset != TimeZone.getTimeZone("Europe/Moscow").getOffset(0)) {
+            return false
+        }
         return try {
             abs(TrueTime.now().time - DateTime.now().millis) < 10 * 60 * 1000
         } catch (e: Exception) {

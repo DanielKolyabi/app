@@ -75,6 +75,7 @@ class DeliveryApp : Application() {
     }
 
     private fun launchTrueTimeInit() {
+        TrueTime.clearCachedInfo()
         scope.launch(Dispatchers.IO) {
             while (!initTrueTime()) {
                 delay(500)
@@ -86,7 +87,9 @@ class DeliveryApp : Application() {
     @SuppressLint("HardwareIds")
     private fun initTrueTime(): Boolean {
         return try {
-            TrueTime.build().withSharedPreferencesCache(this@DeliveryApp).initialize()
+            TrueTime
+                .build()
+                .initialize()
             true
         } catch (e: Exception) {
             false

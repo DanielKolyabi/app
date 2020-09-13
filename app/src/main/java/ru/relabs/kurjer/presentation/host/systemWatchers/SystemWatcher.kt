@@ -15,7 +15,7 @@ abstract class SystemWatcher(
         job?.cancel()
         if(delay != null){
             job = scope.launch {
-                while (isActive) {
+                while(isActive){
                     delay(delay)
                     onWatcherTick()
                 }

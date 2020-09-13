@@ -58,11 +58,7 @@ object NetworkHelper {
     }
 
     fun isNetworkEnabled(context: Context?): Boolean {
-        return ((isWifiEnabled(context) && isWifiConnected(
-            context
-        )) || isMobileDataEnabled(context)) && !isAirplaneModeEnabled(
-            context
-        )
+        return ((isWifiEnabled(context) && isWifiConnected(context)) || isMobileDataEnabled(context)) && !isAirplaneModeEnabled(context)
     }
 
     fun isGPSEnabled(context: Context?): Boolean {

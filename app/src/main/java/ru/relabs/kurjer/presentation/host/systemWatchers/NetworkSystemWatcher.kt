@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 class NetworkSystemWatcher(
     a: Activity,
     private val networkFeatureChecker: NetworkFeatureChecker
-) : SystemWatcher(a, TimeUnit.MINUTES.toMillis(10)) {
+) : SystemWatcher(a, TimeUnit.SECONDS.toMillis(10)) {
 
     override suspend fun onWatcherTick() {
         super.onWatcherTick()

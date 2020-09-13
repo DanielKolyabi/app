@@ -62,7 +62,7 @@ class PauseRepository(
             val currentTime = currentTimestamp()
             val pauseEndTime = getPauseStartTime(activePauseType) + getPauseLength(activePauseType)
 
-            ReportService.instance?.pauseTimer(getPauseStartTime(activePauseType), pauseEndTime)
+            ReportService.instance?.pauseTaskClosingTimer(getPauseStartTime(activePauseType), pauseEndTime)
 
             pauseEndJob = scope.launch {
                 debug("Start pause timer: $currentPauseType, delay: ${pauseEndTime - currentTime + 10}s")
@@ -205,7 +205,7 @@ class PauseRepository(
         isPaused = true
         currentPauseType = type
 
-        ReportService.instance?.pauseTimer(pauseTime, pauseEndTime)
+        ReportService.instance?.pauseTaskClosingTimer(pauseTime, pauseEndTime)
         putPauseStartTime(type, pauseTime)
         if (withNotify) {
             db.putSendQuery(SendQueryData.PauseStart(type, pauseTime))

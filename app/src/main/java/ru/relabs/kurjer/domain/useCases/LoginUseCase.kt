@@ -12,6 +12,7 @@ import ru.relabs.kurjer.domain.repositories.RadiusRepository
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
+import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.utils.fmap
 
 class LoginUseCase(
@@ -69,5 +70,6 @@ class LoginUseCase(
         appPreferences.setUserAutologinEnabled(false)
         authTokenStorage.resetToken()
         currentUserStorage.resetCurrentUserLogin()
+        ReportService.instance?.stopTaskClosingTimer()
     }
 }

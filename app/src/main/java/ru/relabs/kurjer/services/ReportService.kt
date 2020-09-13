@@ -44,8 +44,7 @@ class ReportService : Service(), KoinComponent {
     private var pauseDisableJob: Job? = null
     private var looperJob: Job? = null
     private var currentIconBitmap: Bitmap? = null
-    private var lastState: ServiceState =
-        ServiceState.IDLE
+    private var lastState: ServiceState = ServiceState.IDLE
     private var lastActivityResumeTime = 0L
     private var lastActivityRunningState = false
     private var timelimitNotificationStartTime: Long? = null
@@ -66,12 +65,7 @@ class ReportService : Service(), KoinComponent {
 
         instance = this
 
-        startForeground(
-            1, notification(
-                "Сервис отправки данных.",
-                ServiceState.IDLE
-            )
-        )
+        startForeground(1, notification("Сервис отправки данных.", ServiceState.IDLE))
         isRunning = true
 
         var lastTasksChecking = System.currentTimeMillis()
@@ -196,11 +190,11 @@ class ReportService : Service(), KoinComponent {
         return repository.sendQuery(item)
     }
 
-    fun stopTimer() {
+    fun stopTaskClosingTimer() {
         timelimitNotificationStartTime = null
     }
 
-    fun pauseTimer(startTime: Long, endTime: Long) {
+    fun pauseTaskClosingTimer(startTime: Long, endTime: Long) {
         val timeLimitStart = timelimitNotificationStartTime ?: return
         timelimitNotificationStartTime = null
         timeUntilRun = (timeLimitStart + TIMELIMIT_NOTIFICATION_TIMEOUT - System.currentTimeMillis()).toInt()

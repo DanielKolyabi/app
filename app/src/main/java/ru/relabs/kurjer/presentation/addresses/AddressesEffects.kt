@@ -27,7 +27,7 @@ object AddressesEffects {
     fun effectNavigateBack(stopTimer: Boolean = false): AddressesEffect = { c, s ->
         if (s.exits == 1) {
             if (stopTimer) {
-                ReportService.instance?.stopTimer()
+                ReportService.instance?.stopTaskClosingTimer()
             }
             withContext(Dispatchers.Main) {
                 c.router.exit()

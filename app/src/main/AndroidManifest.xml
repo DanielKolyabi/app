@@ -29,7 +29,8 @@
         android:roundIcon="@drawable/ic_launcher"
         android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme"
-        tools:ignore="GoogleAppIndexingWarning">
+        tools:ignore="GoogleAppIndexingWarning"
+        android:largeHeap="true">
 
         <activity
             android:name=".SplashActivity"

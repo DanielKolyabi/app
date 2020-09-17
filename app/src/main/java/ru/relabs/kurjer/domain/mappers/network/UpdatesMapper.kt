@@ -11,14 +11,14 @@ object UpdatesMapper {
             AppUpdate(
                 version = it.version,
                 url = Uri.parse(it.url),
-                isRequired = it.isRequired
+                isRequired = true
             )
         },
         optional = raw.optional?.let {
             AppUpdate(
                 version = it.version,
                 url = Uri.parse(it.url),
-                isRequired = it.isRequired
+                isRequired = false
             )
         }
     )

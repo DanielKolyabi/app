@@ -258,6 +258,7 @@ class PauseRepository(
         }
 
         //Pause ended from device time
+        Log.d("PauseRepository", "currentTime: $currentTime currentPauseType: $currentPauseType isPaused: $isPaused")
         if (currentTime - lastPauseStartTime > duration) {
             if (isPaused && currentPauseType == type) {
                 stopPause(type, withNotify = true, withUpdate = false)

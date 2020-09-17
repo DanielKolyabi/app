@@ -29,7 +29,7 @@ object HostEffects {
             if (c.repository.isAuthenticated() && c.loginUseCase.isAutologinEnabled()) {
                 c.loginUseCase.loginOffline()
                 withContext(Dispatchers.Main) {
-                    c.router.newRootScreen(RootScreen.Tasks(false))
+                    c.router.newRootScreen(RootScreen.Tasks(true))
                 }
                 withContext(Dispatchers.IO) {
                     when (val result = FirebaseInstanceId.getInstance().getFirebaseToken()) {

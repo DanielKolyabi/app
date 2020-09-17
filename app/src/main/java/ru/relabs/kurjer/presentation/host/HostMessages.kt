@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.presentation.host
 
 import android.net.Uri
+import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
 import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
@@ -90,4 +91,7 @@ object HostMessages {
 
     fun msgRequiredUpdateLater(): HostMessage =
         msgEffect(HostEffects.effectNotifyUpdateRequiredOnTasksOpen())
+
+    fun msgUserLoaded(user: UserLogin?): HostMessage =
+        msgState { it.copy(userLogin = user) }
 }

@@ -82,11 +82,14 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler())
         controller.start(HostMessages.msgInit(savedInstanceState != null))
         uiScope.launch {
-            val renders = listOf(
+            val renders = listOfNotNull(
                 HostRenders.renderDrawer(navigationDrawer),
                 HostRenders.renderFullScreen(window),
                 HostRenders.renderLoader(loading_overlay),
-                HostRenders.renderUpdateLoading(loading_overlay, pb_loading, tv_loader)
+                HostRenders.renderUpdateLoading(loading_overlay, pb_loading, tv_loader),
+                (navigationDrawer.drawerItems.first { it.identifier == NAVIGATION_INFO } as? MenuDrawerItem)?.let {
+                    HostRenders.renderAppInfo(it, resources, navigationDrawer)
+                }
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             //launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
@@ -358,6 +361,11 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
             buildDrawerItem(
                 NAVIGATION_LOGOUT,
                 R.string.menu_logout
+            ),
+            buildDrawerItem(
+                NAVIGATION_INFO,
+                resources.getString(R.string.menu_bottom_info, BuildConfig.VERSION_CODE, "-"),
+                false
             )
         )
     }
@@ -366,6 +374,13 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         return MenuDrawerItem(0)
             .withIdentifier(id)
             .withName(stringResId)
+    }
+
+    private fun buildDrawerItem(id: Long, string: String, selectable: Boolean = true): IDrawerItem<*> {
+        return MenuDrawerItem(0)
+            .withIdentifier(id)
+            .withName(string)
+            .withSelectable(selectable)
     }
 
     override fun onResume() {
@@ -426,6 +441,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         const val NAVIGATION_CRASH = 2L
         const val NAVIGATION_UUID = 3L
         const val NAVIGATION_LOGOUT = 4L
+        const val NAVIGATION_INFO = 999L
 
         fun getIntent(parentContext: Context) = Intent(parentContext, HostActivity::class.java)
     }

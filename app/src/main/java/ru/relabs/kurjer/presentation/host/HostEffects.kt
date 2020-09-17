@@ -220,6 +220,11 @@ object HostEffects {
                     }
                 }
             }
+            launch {
+                for (user in c.userRepository.currentUser.openSubscription()) {
+                    messages.send(HostMessages.msgUserLoaded(user))
+                }
+            }
         }
     }
 

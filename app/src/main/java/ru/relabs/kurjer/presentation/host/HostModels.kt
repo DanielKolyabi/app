@@ -2,6 +2,7 @@ package ru.relabs.kurjer.presentation.host
 
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
@@ -10,6 +11,7 @@ import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.PauseType
+import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.tea.*
@@ -22,6 +24,7 @@ import java.io.File
 data class HostState(
     val settings: AppBarSettings = AppBarSettings(),
     val loaders: Int = 0,
+    val userLogin: UserLogin? = null,
 
     val isPaused: Boolean = false,
 
@@ -44,6 +47,7 @@ class HostContext(
     val locationProvider: LocationProvider by inject()
     val pauseRepository: PauseRepository by inject()
     val taskEventController: TaskEventController by inject()
+    val userRepository: CurrentUserStorage by inject()
 
     var copyToClipboard: (String) -> Unit = {}
     var showUpdateDialog: (AppUpdate) -> Boolean = { false }

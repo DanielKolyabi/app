@@ -7,7 +7,6 @@ import com.mikepenz.materialdrawer.model.BaseDrawerItem
 import com.mikepenz.materialdrawer.model.interfaces.Badgeable
 import kotlinx.android.synthetic.main.holder_nav_drawer_item.view.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.utils.extensions.visible
 
 /**
  * Created by Daniil Kurchanov on 27.03.2020.
@@ -18,9 +17,11 @@ class MenuDrawerItem(override val type: Int) :
     override fun bindView(holder: RecyclerView.ViewHolder, payloads: MutableList<Any>) {
         super.bindView(holder, payloads)
 
-        val text = name?.textRes
+        val textRes = name?.textRes
+        val text = name?.text
         when {
-            text != null -> holder.itemView.tv_title.text = holder.itemView.resources.getText(text)
+            textRes != null && textRes != -1 -> holder.itemView.tv_title.text = holder.itemView.resources.getText(textRes)
+            text != null && text.isNotBlank() -> holder.itemView.tv_title.text = text
         }
 //        holder.itemView.selected_overlay.visible = isSelected
     }

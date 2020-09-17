@@ -215,7 +215,9 @@ object HostEffects {
                 c.taskEventController.subscribe().collect {
                     when (it) {
                         is TaskEvent.TasksUpdateRequired -> withContext(Dispatchers.Main) {
-                            c.showTaskUpdateRequired()
+                            if(!it.showDialogInTasks){
+                                c.showTaskUpdateRequired()
+                            }
                         }
                     }
                 }

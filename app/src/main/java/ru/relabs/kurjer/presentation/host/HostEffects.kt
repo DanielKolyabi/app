@@ -83,13 +83,13 @@ object HostEffects {
         when (val r = s.appUpdates?.let { Right(it) } ?: c.updatesUseCase.getAppUpdatesInfo()) {
             is Right -> {
                 messages.send(HostMessages.msgUpdatesInfo(r.value))
-                if (r.value.required != null) {
+                if (r.value.required != null && r.value.required.version > BuildConfig.VERSION_CODE) {
                     withContext(Dispatchers.Main) {
                         if (c.showUpdateDialog(r.value.required)) {
                             messages.send(HostMessages.msgUpdateDialogShowed(true))
                         }
                     }
-                } else if (r.value.optional != null) {
+                } else if (r.value.optional != null && r.value.optional.version > BuildConfig.VERSION_CODE) {
                     withContext(Dispatchers.Main) {
                         if (c.showUpdateDialog(r.value.optional)) {
                             messages.send(HostMessages.msgUpdateDialogShowed(true))

@@ -41,8 +41,8 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
             val addresses = taskItems
                 .groupBy { it.address.id }
                 .mapValues { entry ->
-                    entry.value.firstOrNull { it.needPhoto }
-                        ?: (entry.value.firstOrNull { it.state == TaskItemState.CLOSED }
+                    entry.value.firstOrNull { it.needPhoto && it.state != TaskItemState.CLOSED }
+                        ?: (entry.value.firstOrNull { it.state != TaskItemState.CLOSED }
                             ?: entry.value.firstOrNull())
                 }
                 .mapNotNull { entry ->

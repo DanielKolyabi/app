@@ -28,7 +28,7 @@ class AppUpdateUseCase(
         get() = updateDownloadingFails
 
     val isAppUpdated: Boolean
-        get() = requiredAppVersion?.let { it < BuildConfig.VERSION_CODE } ?: true
+        get() = requiredAppVersion?.let { it <= BuildConfig.VERSION_CODE } ?: true
 
     suspend fun getAppUpdatesInfo(): EitherE<AppUpdatesInfo> {
         val result = deliveryRepository.getAppUpdatesInfo()

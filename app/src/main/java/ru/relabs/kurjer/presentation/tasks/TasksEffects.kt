@@ -99,7 +99,7 @@ object TasksEffects {
                         is TaskEvent.TaskClosed ->
                             messages.send(TasksMessages.msgTaskClosed(event.taskId))
                         is TaskEvent.TasksUpdateRequired -> withContext(Dispatchers.Main) {
-                            if(event.showDialogInTasks){
+                            if(event.showDialogInTasks && s.loaders == 0){
                                 c.showUpdateRequiredOnVisible()
                             }
                         }

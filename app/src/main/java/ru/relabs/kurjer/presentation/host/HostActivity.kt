@@ -63,6 +63,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     private val featureCheckersContainer = FeatureCheckersContainer(this)
     private val systemWatchersContainer = SystemWatchersContainer(this, featureCheckersContainer.network, featureCheckersContainer.gps)
 
+    private var taskUpdateRequiredDialogShowed: Boolean = false
+
     override fun onFragmentAttached(fragment: Fragment) {
         when (fragment) {
             is IFragmentStyleable -> updateAppBar(
@@ -107,10 +109,20 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     }
 
     private fun showTaskUpdateRequiredDialog() {
+        if(taskUpdateRequiredDialogShowed){
+            return
+        }
+        taskUpdateRequiredDialogShowed = true
         showDialog(
             R.string.task_update_required,
-            R.string.ok to { uiScope.sendMessage(controller, HostMessages.msgRequiredUpdateOk()) },
-            R.string.later to { uiScope.sendMessage(controller, HostMessages.msgRequiredUpdateLater()) }
+            R.string.ok to {
+                uiScope.sendMessage(controller, HostMessages.msgRequiredUpdateOk())
+                taskUpdateRequiredDialogShowed = false
+            },
+            R.string.later to {
+                uiScope.sendMessage(controller, HostMessages.msgRequiredUpdateLater())
+                taskUpdateRequiredDialogShowed = false
+            }
         )
     }
 

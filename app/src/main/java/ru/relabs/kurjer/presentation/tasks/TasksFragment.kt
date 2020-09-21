@@ -40,6 +40,7 @@ class TasksFragment : BaseFragment(),
     private val controller = defaultController(TasksState(), TasksContext(this))
     private var renderJob: Job? = null
     private var shouldShowUpdateRequiredOnResume: Boolean = false
+    private var taskUpdateRequiredDialogShowed: Boolean = false
 
     private val tasksAdapter = DelegateAdapter(
         TasksAdapter.loaderAdapter(),
@@ -104,15 +105,28 @@ class TasksFragment : BaseFragment(),
         controller.context.showUpdateRequiredOnVisible = ::showUpdateRequiredOnVisible
     }
 
+    override fun onPause() {
+        super.onPause()
+        taskUpdateRequiredDialogShowed = false
+    }
+
     private fun showUpdateRequiredOnVisible() {
+        if(taskUpdateRequiredDialogShowed){
+            return
+        }
         if (isVisible) {
+            taskUpdateRequiredDialogShowed = true
             showDialog(
                 R.string.task_update_required,
                 R.string.ok to {
                     uiScope.sendMessage(controller, TasksMessages.msgRefresh())
                     shouldShowUpdateRequiredOnResume = false
+                    taskUpdateRequiredDialogShowed = false
                 },
-                R.string.later to { shouldShowUpdateRequiredOnResume = true }
+                R.string.later to {
+                    shouldShowUpdateRequiredOnResume = true
+                    taskUpdateRequiredDialogShowed = false
+                }
             )
         }
     }

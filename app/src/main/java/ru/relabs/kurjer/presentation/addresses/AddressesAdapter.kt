@@ -30,7 +30,7 @@ object AddressesAdapter {
     ): IAdapterDelegate<AddressesItem> = delegateDefine(
         { it is AddressesItem.GroupHeader },
         { p ->
-            holderDefine(p, R.layout.holder_address_list_address, { it as AddressesItem.GroupHeader }) { (task, items, showBypass) ->
+            holderDefine(p, R.layout.holder_address_list_address, { it as AddressesItem.GroupHeader }) { (items, showBypass) ->
                 with(itemView) {
                     val address = if (showBypass) {
                         "${items.firstOrNull()?.subarea ?: "?"}-${items.firstOrNull()?.bypass ?: "?"} "

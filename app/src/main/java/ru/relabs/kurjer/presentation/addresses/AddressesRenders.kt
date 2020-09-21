@@ -167,24 +167,14 @@ object AddressesRenders {
             }
         }
 
-        var lastAddressId: AddressId? = sortedItems.first().second.address.id
-        var lastAddressModel: MutableList<TaskItem> = mutableListOf(sortedItems.first().second)
-        val result = mutableListOf<AddressesItem>(
-            AddressesItem.GroupHeader(
-                sortedItems.first().first,
-                lastAddressModel.toImmutableList(),
-                tasks.size == 1
-            )
-        )
-        sortedItems.forEach {
-            if (lastAddressId != it.second.address.id) {
-                lastAddressId = it.second.address.id
-                lastAddressModel = mutableListOf(it.second)
-                result.add(AddressesItem.GroupHeader(it.first, lastAddressModel.toImmutableList(), tasks.size == 1))
+        val groups = sortedItems
+            .groupBy { it.second.address.id }
+            .map {
+                listOf(AddressesItem.GroupHeader(it.value.map { it.second }, tasks.size == 1)) +
+                        it.value.map { AddressesItem.AddressItem(it.second, it.first) }
             }
-            lastAddressModel.add(it.second)
-            result.add(AddressesItem.AddressItem(it.second, it.first))
-        }
-        return result
+            .flatten()
+
+        return groups
     }
 }

@@ -7,14 +7,12 @@ import androidx.core.net.toUri
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
-import ru.relabs.kurjer.utils.ImageUtils
-
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
+import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.extensions.isLocationExpired
 import java.io.File
@@ -55,7 +53,10 @@ object ReportEffects {
                     .distinctBy { it.task.coupleType }
                     .flatMap { taskWithItem ->
                         taskWithItem.taskItem.entrancesData.map {
-                            (it.number to taskWithItem.task.coupleType) to (activeTaskWithItems.count { taskWithItem.task.coupleType == it.task.coupleType } > 1)
+                            val isCouplingEnabled = activeTaskWithItems.count { taskWithItem.task.coupleType == it.task.coupleType } > 1 &&
+                                    c.database.getTaskItemResult(taskWithItem.taskItem) == null
+
+                            (it.number to taskWithItem.task.coupleType) to isCouplingEnabled
                         }
                     }
                     .toMap()

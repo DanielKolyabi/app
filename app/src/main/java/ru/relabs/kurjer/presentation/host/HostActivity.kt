@@ -64,6 +64,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     private val systemWatchersContainer = SystemWatchersContainer(this, featureCheckersContainer.network, featureCheckersContainer.gps)
 
     private var taskUpdateRequiredDialogShowed: Boolean = false
+    private var isUpdateAppDialogShowed: Boolean = false
 
     override fun onFragmentAttached(fragment: Fragment) {
         when (fragment) {
@@ -193,16 +194,23 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     }
 
     private fun showUpdateDialog(appUpdate: AppUpdate): Boolean {
+        if(isUpdateAppDialogShowed){
+            return true
+        }
         if (appUpdate.version > BuildConfig.VERSION_CODE) {
+            isUpdateAppDialogShowed = true
+
             showDialog(
                 R.string.update_new_available,
 
                 R.string.update_install to {
+                    isUpdateAppDialogShowed = false
                     checkUpdateRequirements(appUpdate.url)
                     uiScope.sendMessage(controller, HostMessages.msgUpdateDialogShowed(false))
                 },
 
                 (R.string.update_later to {
+                    isUpdateAppDialogShowed = false
                     uiScope.sendMessage(
                         controller,
                         HostMessages.msgUpdateDialogShowed(false)

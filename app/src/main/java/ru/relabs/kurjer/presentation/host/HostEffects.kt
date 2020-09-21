@@ -2,12 +2,9 @@ package ru.relabs.kurjer.presentation.host
 
 import android.net.Uri
 import com.google.firebase.iid.FirebaseInstanceId
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.controllers.TaskEvent
@@ -225,6 +222,14 @@ object HostEffects {
             launch {
                 for (user in c.userRepository.currentUser.openSubscription()) {
                     messages.send(HostMessages.msgUserLoaded(user))
+                }
+            }
+            launch {
+                while(isActive){
+                    delay(5000)
+                    if(!c.updatesUseCase.isAppUpdated){
+                        messages.send(HostMessages.msgRequestUpdates())
+                    }
                 }
             }
         }

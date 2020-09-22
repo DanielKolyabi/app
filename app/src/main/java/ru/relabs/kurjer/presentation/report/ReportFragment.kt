@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.android.parcel.Parcelize
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.fragment_report.view.*
@@ -168,7 +169,7 @@ class ReportFragment : BaseFragment() {
     }
 
     private suspend fun showFatalError(code: String, isFatal: Boolean) = withContext(Dispatchers.Main) {
-        //TODO: Report to crashlytics
+        FirebaseCrashlytics.getInstance().log("fatal error $isFatal $code")
         showDialog(
             getString(R.string.unknown_runtime_error_code, code),
             R.string.ok to {

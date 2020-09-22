@@ -5,7 +5,7 @@ plugins {
     kotlin("android")
     kotlin("android.extensions")
     kotlin("kapt")
-    //id("com.google.firebase.crashlytics")
+    id("com.google.firebase.crashlytics")
     id("com.google.gms.google-services")
 }
 
@@ -111,7 +111,7 @@ dependencies {
 
     // Firebase
     implementation("com.google.firebase:firebase-messaging:20.2.0")
-    //implementation("com.google.firebase:firebase-crashlytics:17.0.1")
+    implementation("com.google.firebase:firebase-crashlytics:17.2.1")
 
     //Various
     implementation("com.yandex.android:mapkit:3.3.1")

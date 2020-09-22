@@ -49,6 +49,7 @@ class DeliveryApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
         appContext = this
         MapKitFactory.setApiKey(BuildConfig.YA_KEY)
 

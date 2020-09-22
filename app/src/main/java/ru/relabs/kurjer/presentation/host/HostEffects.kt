@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.presentation.host
 
 import android.net.Uri
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.asFlow
@@ -31,7 +32,7 @@ object HostEffects {
                 withContext(Dispatchers.IO) {
                     when (val result = FirebaseInstanceId.getInstance().getFirebaseToken()) {
                         is Right -> c.repository.updatePushToken(FirebaseToken(result.value))
-                        is Left -> Unit//TODO: FirebaseCrashlytics.getInstance().log("Can't get firebase token")
+                        is Left -> FirebaseCrashlytics.getInstance().log("Can't get firebase token")
                     }
                 }
             } else {

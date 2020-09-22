@@ -223,12 +223,10 @@ object ReportEffects {
 
                 val requiredEntrancesPhotos = selected.taskItem.entrancesData
                     .filter { it.photoRequired }
-                    .map { false to it.number }
+                    .map { it.number }
 
                 val entrancesRequiredPhotoExists = if (requiredEntrancesPhotos.isNotEmpty()) {
-                    requiredEntrancesPhotos
-                        .reduce { entranceData, acc -> acc.copy(first = acc.first && s.selectedTaskPhotos.any { it.photo.entranceNumber == entranceData.second }) }
-                        .first
+                    requiredEntrancesPhotos.all { entranceNumber -> s.selectedTaskPhotos.any { it.photo.entranceNumber == entranceNumber } }
                 } else {
                     true
                 }

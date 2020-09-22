@@ -224,6 +224,8 @@ class DatabaseRepository(
             ) {
                 emit(MergeResult.TaskUpdated(task))
 
+                putSendQuery(SendQueryData.TaskReceived(TaskId(savedTask.id)))
+
                 db.taskDao().update(DatabaseTaskMapper.toEntity(task))
 
                 val currentTasks = db.taskItemDao().getAllForTask(task.id.id).toMutableList()

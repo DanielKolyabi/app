@@ -3,6 +3,7 @@ package ru.relabs.kurjer.presentation.host
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import ru.relabs.kurjer.data.models.auth.UserLogin
+import ru.relabs.kurjer.domain.controllers.ServiceEventController
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
@@ -47,6 +48,7 @@ class HostContext(
     val locationProvider: LocationProvider by inject()
     val pauseRepository: PauseRepository by inject()
     val taskEventController: TaskEventController by inject()
+    val serviceEventController: ServiceEventController by inject()
     val userRepository: CurrentUserStorage by inject()
 
     var copyToClipboard: (String) -> Unit = {}
@@ -57,6 +59,8 @@ class HostContext(
     var showTaskUpdateRequired: () -> Unit = {}
 
     var featureCheckersContainer: FeatureCheckersContainer? = null
+
+    var finishApp: () -> Unit = {}
 }
 
 typealias HostRender = ElmRender<HostState>

@@ -21,6 +21,8 @@ import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
+import ru.relabs.kurjer.domain.controllers.ServiceEvent
+import ru.relabs.kurjer.domain.controllers.ServiceEventController
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
@@ -29,7 +31,7 @@ import ru.relabs.kurjer.utils.*
 
 
 const val CHANNEL_ID = "notification_channel"
-const val CLOSE_SERVICE_TIMEOUT = 80 * 60 * 1000
+const val CLOSE_SERVICE_TIMEOUT = 1 * 60 * 1000
 const val TIMELIMIT_NOTIFICATION_TIMEOUT = 30 * 60 * 1000
 const val TASK_CHECK_DELAY = 10 * 60 * 1000
 
@@ -37,6 +39,7 @@ class ReportService : Service(), KoinComponent {
     private val repository: DeliveryRepository by inject()
     private val databaseRepository: DatabaseRepository by inject()
     private val taskEventController: TaskEventController by inject()
+    private val serviceEventController: ServiceEventController by inject()
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
@@ -126,6 +129,7 @@ class ReportService : Service(), KoinComponent {
         }
 
         if (isAppPaused && (System.currentTimeMillis() - lastActivityResumeTime) > CLOSE_SERVICE_TIMEOUT) {
+            serviceEventController.send(ServiceEvent.Stop)
             stopSelf()
             stopForeground(true)
         }

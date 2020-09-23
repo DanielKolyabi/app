@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.controllers.ServiceEvent
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.providers.FirebaseToken
 import ru.relabs.kurjer.domain.repositories.PauseType
@@ -230,6 +231,15 @@ object HostEffects {
                     delay(5000)
                     if(!c.updatesUseCase.isAppUpdated){
                         messages.send(HostMessages.msgRequestUpdates())
+                    }
+                }
+            }
+            launch {
+                c.serviceEventController.subscribe().collect {
+                    if(it == ServiceEvent.Stop){
+                        withContext(Dispatchers.Main){
+                            c.finishApp()
+                        }
                     }
                 }
             }

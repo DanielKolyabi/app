@@ -105,12 +105,13 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.context.installUpdate = ::installUpdate
         controller.context.showPauseDialog = ::showPauseDialog
         controller.context.showTaskUpdateRequired = ::showTaskUpdateRequiredDialog
+        controller.context.finishApp = { finish() }
 
         controller.context.featureCheckersContainer = featureCheckersContainer
     }
 
     private fun showTaskUpdateRequiredDialog() {
-        if(taskUpdateRequiredDialogShowed){
+        if (taskUpdateRequiredDialogShowed) {
             return
         }
         taskUpdateRequiredDialogShowed = true
@@ -194,7 +195,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     }
 
     private fun showUpdateDialog(appUpdate: AppUpdate): Boolean {
-        if(isUpdateAppDialogShowed){
+        if (isUpdateAppDialogShowed) {
             return true
         }
         if (appUpdate.version > BuildConfig.VERSION_CODE) {
@@ -273,6 +274,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.context.showErrorDialog = {}
         controller.context.installUpdate = {}
         controller.context.showTaskUpdateRequired = {}
+        controller.context.finishApp = {}
         navigationHolder.removeNavigator()
         featureCheckersContainer.onDestroy()
         systemWatchersContainer.onDestroy()

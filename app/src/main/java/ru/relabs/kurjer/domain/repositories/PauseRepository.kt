@@ -212,16 +212,16 @@ class PauseRepository(
         }
     }
 
-    suspend fun stopPause(type: PauseType? = null, time: Long? = null, withNotify: Boolean, withUpdate: Boolean) {
-        CustomLog.writeToFile("Stop pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
-        debug("Stop pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
+    suspend fun stopPause(type: PauseType? = null, withNotify: Boolean, withUpdate: Boolean) {
+        CustomLog.writeToFile("Stop pause: $type, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
+        debug("Stop pause: $type, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
         if (!isPaused) {
             return
         }
 
         val type = type ?: getActivePauseType() ?: return
 
-        val pauseTime = time ?: currentTimestamp()
+        val pauseTime = currentTimestamp()
         isPaused = false
         currentPauseType = null
         putPauseEndTime(type, pauseTime)

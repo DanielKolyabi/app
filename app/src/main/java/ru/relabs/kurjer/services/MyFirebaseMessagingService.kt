@@ -8,7 +8,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.KoinComponent
 import org.koin.core.inject
-import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.TaskItemId
@@ -86,8 +85,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
                     else -> return@withContext
                 }
 
-                pauseRepository.putPauseStartTime(pauseType, startTime)
-                pauseRepository.updatePauseState(pauseType)
+                pauseRepository.startPause(pauseType, startTime, false)
             }
         }
         if (data.containsKey("pause_stop")) {
@@ -105,8 +103,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
                     else -> return@run
                 }
 
-                pauseRepository.putPauseEndTime(pauseType, stopTime)
-                pauseRepository.updatePauseState(pauseType)
+                pauseRepository.stopPause(pauseType, false)
             }
         }
     }

@@ -127,7 +127,8 @@ val repositoryModule = module {
         PauseRepository(
             get<DeliveryRepository>(),
             get<SharedPreferences>(),
-            get<DatabaseRepository>()
+            get<DatabaseRepository>(),
+            get<CurrentUserStorage>()
         )
     }
 }

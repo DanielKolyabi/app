@@ -1,13 +1,16 @@
 package ru.relabs.kurjer.domain.repositories
 
 import android.content.SharedPreferences
-import android.util.Log
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
-import ru.relabs.kurjer.services.ReportService
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.models.common.DomainException
-import ru.relabs.kurjer.utils.*
+import ru.relabs.kurjer.domain.storage.CurrentUserStorage
+import ru.relabs.kurjer.services.ReportService
+import ru.relabs.kurjer.utils.Left
+import ru.relabs.kurjer.utils.Right
+import ru.relabs.kurjer.utils.currentTimestamp
+import ru.relabs.kurjer.utils.debug
 import java.util.*
 
 /**
@@ -23,32 +26,18 @@ fun PauseType.toInt() = when (this) {
     PauseType.Load -> 1
 }
 
-fun Int.toPauseType() = when (this) {
-    0 -> PauseType.Lunch
-    1 -> PauseType.Load
-    else -> throw RuntimeException("Unknown pause type")
-}
-
 class PauseRepository(
     private val api: DeliveryRepository,
     private val sharedPreferences: SharedPreferences,
-    private val db: DatabaseRepository
+    private val db: DatabaseRepository,
+    private val userStorage: CurrentUserStorage
 ) {
-    val isPausedChannel = BroadcastChannel<Boolean>(Channel.CONFLATED)
-
-    private val scope = CoroutineScope(Dispatchers.Default)
 
     private var lunchDuration: Int = 20 * 60
     private var loadDuration: Int = 20 * 60
-    private var currentPauseType: PauseType? = null
-    private var pauseEndJob: Job? = null
-    private var isPausedInternal: Boolean = false
-    var isPaused: Boolean
-        get() = isPausedInternal
-        set(value) {
-            isPausedChannel.offer(value)
-            isPausedInternal = value
-        }
+
+    val isPaused
+        get() = getActivePauseType() != null
 
     init {
         lunchDuration = sharedPreferences.getInt(LUNCH_KEY, lunchDuration)
@@ -57,24 +46,12 @@ class PauseRepository(
         val activePauseType = getActivePauseType()
 
         if (activePauseType != null) {
-            isPaused = true
-            currentPauseType = activePauseType
-            val currentTime = currentTimestamp()
             val pauseEndTime = getPauseStartTime(activePauseType) + getPauseLength(activePauseType)
-
             ReportService.instance?.pauseTaskClosingTimer(getPauseStartTime(activePauseType), pauseEndTime)
-
-            pauseEndJob = scope.launch {
-                debug("Start pause timer: $currentPauseType, delay: ${pauseEndTime - currentTime + 10}s")
-                delay((pauseEndTime - currentTime + 10) * 1000)
-                debug("Pause: Delay finished")
-                updatePauseState()
-            }
         }
     }
 
     suspend fun loadPauseDurations() = withContext(Dispatchers.Default) {
-        debug("Load durations")
         when (val r = api.getPauseDurations()) {
             is Right -> {
                 sharedPreferences.edit()
@@ -180,10 +157,9 @@ class PauseRepository(
     }
 
     suspend fun startPause(type: PauseType, time: Long? = null, withNotify: Boolean = true) {
-        CustomLog.writeToFile("Start pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
-        debug("Start pause: $type, time: $time, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
         if (isPaused) {
-            return
+            FirebaseCrashlytics.getInstance()
+                .log("Pause started while paused ${userStorage.getCurrentUserLogin()}, withNotify: $withNotify")
         }
 
         val currentTime = currentTimestamp()
@@ -194,17 +170,6 @@ class PauseRepository(
             PauseType.Load -> loadDuration
         }
 
-        pauseEndJob?.cancel()
-        pauseEndJob = scope.launch {
-            debug("Start pause timer: $type, delay: ${pauseEndTime - currentTime + 10}s")
-            delay((pauseEndTime - currentTime + 10) * 1000)
-            debug("Pause: Delay finished")
-            updatePauseState()
-        }
-
-        isPaused = true
-        currentPauseType = type
-
         ReportService.instance?.pauseTaskClosingTimer(pauseTime, pauseEndTime)
         putPauseStartTime(type, pauseTime)
         if (withNotify) {
@@ -212,76 +177,33 @@ class PauseRepository(
         }
     }
 
-    suspend fun stopPause(type: PauseType? = null, withNotify: Boolean, withUpdate: Boolean) {
-        CustomLog.writeToFile("Stop pause: $type, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
-        debug("Stop pause: $type, isPaused: $isPaused, currentPauseType: $currentPauseType, withNotify: $withNotify")
+    suspend fun stopPause(type: PauseType? = null, withNotify: Boolean) {
         if (!isPaused) {
-            return
+            FirebaseCrashlytics.getInstance()
+                .log("Pause stopped while not paused ${userStorage.getCurrentUserLogin()}, withNotify: $withNotify")
         }
 
         val type = type ?: getActivePauseType() ?: return
 
         val pauseTime = currentTimestamp()
-        isPaused = false
-        currentPauseType = null
         putPauseEndTime(type, pauseTime)
-        if (withUpdate) {
-            updatePauseState()
-        }
+        ReportService.instance?.startTaskClosingTimer(true)
         if (withNotify) {
             val r = db.putSendQuery(SendQueryData.PauseStop(type, pauseTime))
             debug("$r")
         }
-        pauseEndJob?.cancel()
-    }
-
-    private suspend fun updatePauseState() {
-        updatePauseState(PauseType.Lunch)
-        updatePauseState(PauseType.Load)
-    }
-
-    suspend fun updatePauseState(type: PauseType) {
-        val currentTime = currentTimestamp()
-        val lastPauseStartTime = getPauseStartTime(type)
-        val lastPauseEndTime = getPauseEndTime(type)
-        val duration = when (type) {
-            PauseType.Lunch -> lunchDuration
-            PauseType.Load -> loadDuration
-        }
-        Log.d("PauseRepository", "type: $type, lastStart: $lastPauseStartTime, lastEnd: $lastPauseEndTime, dur: $duration")
-        //Pause already ended from BE
-        if (lastPauseEndTime > lastPauseStartTime) {
-            if (isPaused && currentPauseType == type) {
-                stopPause(type, withNotify = false, withUpdate = false)
-            }
-            return
-        }
-
-        //Pause ended from device time
-        Log.d("PauseRepository", "currentTime: $currentTime currentPauseType: $currentPauseType isPaused: $isPaused")
-        if (currentTime - lastPauseStartTime > duration) {
-            if (isPaused && currentPauseType == type) {
-                stopPause(type, withNotify = true, withUpdate = false)
-            }
-            return
-        }
-
-        if (!isPaused) {
-            startPause(type, lastPauseStartTime, withNotify = false)
-        }
     }
 
     private fun getActivePauseType(): PauseType? {
-        currentPauseType?.let {
-            return currentPauseType
-        }
-
         val currentTime = currentTimestamp()
         listOf(
             PauseType.Lunch,
             PauseType.Load
         ).forEach {
-            if (getPauseStartTime(it) + getPauseLength(it) > currentTime) {
+            val start = getPauseStartTime(it)
+            val end = getPauseEndTime(it)
+            val duration = getPauseLength(it)
+            if (start + duration > currentTime && end < getPauseStartTime(it)) {
                 return it
             }
         }
@@ -295,7 +217,6 @@ class PauseRepository(
                 putPauseStartTime(PauseType.Lunch, r.value.lunch.start)
                 putPauseEndTime(PauseType.Load, r.value.loading.end)
                 putPauseEndTime(PauseType.Lunch, r.value.lunch.end)
-                updatePauseState()
             }
         }
     }
@@ -307,9 +228,6 @@ class PauseRepository(
             .remove(LUNCH_LAST_END_TIME_KEY)
             .remove(LOAD_LAST_END_TIME_KEY)
             .apply()
-        currentPauseType = null
-        isPaused = false
-        pauseEndJob?.cancel()
     }
 
     companion object {

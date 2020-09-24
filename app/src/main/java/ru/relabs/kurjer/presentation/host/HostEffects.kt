@@ -206,11 +206,6 @@ object HostEffects {
     fun effectSubscribe(): HostEffect = { c, s ->
         coroutineScope {
             launch {
-                c.pauseRepository.isPausedChannel.asFlow().collect {
-                    messages.send(HostMessages.msgIsPaused(it))
-                }
-            }
-            launch {
                 c.taskEventController.subscribe().collect {
                     when (it) {
                         is TaskEvent.TasksUpdateRequired -> withContext(Dispatchers.Main) {

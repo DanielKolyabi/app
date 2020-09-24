@@ -343,7 +343,7 @@ object ReportEffects {
 
     fun effectInterruptPause(): ReportEffect = { c, s ->
         if (c.pauseRepository.isPaused) {
-            c.pauseRepository.stopPause(withNotify = true, withUpdate = true)
+            c.pauseRepository.stopPause(withNotify = true)
         }
     }
 

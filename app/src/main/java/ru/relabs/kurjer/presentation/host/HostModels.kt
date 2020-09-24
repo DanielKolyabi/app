@@ -27,8 +27,6 @@ data class HostState(
     val loaders: Int = 0,
     val userLogin: UserLogin? = null,
 
-    val isPaused: Boolean = false,
-
     val updateLoadProgress: Int? = null,
     val appUpdates: AppUpdatesInfo? = null,
     val isUpdateLoadingFailed: Boolean = false,

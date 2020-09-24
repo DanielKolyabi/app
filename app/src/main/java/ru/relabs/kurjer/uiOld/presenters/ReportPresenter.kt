@@ -695,7 +695,7 @@ class ReportPresenter(
         val app = application()
         if (pauseRepository.isPaused) {
             GlobalScope.launch(Dispatchers.Default) {
-                pauseRepository.stopPause(withNotify = true, withUpdate = true)
+                pauseRepository.stopPause(withNotify = true)
             }
         }
         GlobalScope.launch(Dispatchers.Default) {

@@ -126,65 +126,11 @@ object Migrations {
     }
     private val migration_35_36 = object : Migration(35, 36) {
         override fun migrate(database: SupportSQLiteDatabase) {
-            val cursor = database.query("SELECT * FROM tasks")
-            cursor.moveToFirst()
-            val entities = mutableListOf<TaskEntity>()
-            while (!cursor.isAfterLast) {
-                entities.add(
-                    TaskEntity(
-                        id = cursor.getInt(cursor.getColumnIndex("id")),
-                        name = cursor.getString(cursor.getColumnIndex("name")),
-                        edition = cursor.getInt(cursor.getColumnIndex("edition")),
-                        copies = cursor.getInt(cursor.getColumnIndex("copies")),
-                        packs = cursor.getInt(cursor.getColumnIndex("packs")),
-                        remain = cursor.getInt(cursor.getColumnIndex("remain")),
-                        area = cursor.getInt(cursor.getColumnIndex("area")),
-                        state = cursor.getInt(cursor.getColumnIndex("state")),
-                        startTime = Date(cursor.getLong(cursor.getColumnIndex("start_time"))),
-                        endTime = Date(cursor.getLong(cursor.getColumnIndex("end_time"))),
-                        brigade = cursor.getInt(cursor.getColumnIndex("brigade")),
-                        brigadier = cursor.getString(cursor.getColumnIndex("brigadier")),
-                        rastMapUrl = cursor.getString(cursor.getColumnIndex("rast_map_url")),
-                        userId = cursor.getInt(cursor.getColumnIndex("user_id")),
-                        city = cursor.getString(cursor.getColumnIndex("city")),
-                        storageAddress = cursor.getString(cursor.getColumnIndex("storage_address")),
-                        iteration = cursor.getInt(cursor.getColumnIndex("iteration")),
-                        coupleType = cursor.getInt(cursor.getColumnIndex("couple_type")),
-                        byOtherUser = false
-                    )
-                )
-            }
-            cursor.close()
-            //Old states
-            val CREATED = 0
-            val EXAMINED = 1
-            val STARTED = 2
-            val COMPLETED = 4
-            val CANCELED = 16
-            val BY_OTHER_USER = 8
-            val TASK_STATE_MASK = 7
-
-            entities.map {
-                it.copy(
-                    state = when {
-                        it.state and CREATED == 1 -> 1
-                        it.state and EXAMINED == 1 -> 2
-                        it.state and STARTED == 1 -> 3
-                        it.state and COMPLETED == 1 -> 4
-                        it.state and CANCELED == 1 -> 5
-                        else -> 0
-                    },
-                    byOtherUser = it.state and BY_OTHER_USER == 1
-                )
-            }
+            database.execSQL("DELETE FROM task_items")
+            database.execSQL("DELETE FROM addresses")
+            database.execSQL("DELETE FROM tasks")
 
             database.execSQL("ALTER TABLE tasks ADD COLUMN by_other_user INTEGER NOT NULL DEFAULT 0")
-
-            entities.forEach {
-                database.beginTransaction()
-                database.execSQL("UPDATE tasks SET state = ${it.state}, by_other_user = ${if (it.byOtherUser) 1 else 0}")
-                database.endTransaction()
-            }
         }
     }
 }

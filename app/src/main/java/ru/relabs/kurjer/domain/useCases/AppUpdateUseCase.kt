@@ -42,29 +42,35 @@ class AppUpdateUseCase(
         val url = URL(uri.toString())
         val file = pathsProvider.getUpdateFile()
         val connection = url.openConnection() as HttpURLConnection
-        val stream = url.openStream()
-        val fos = FileOutputStream(file)
         try {
-            val fileSize = connection.contentLength
-            val b = ByteArray(2048)
-            var read = stream.read(b)
-            var total = read
-            while (read != -1) {
-                fos.write(b, 0, read)
-                read = stream.read(b)
-                total += read
-                debug("Load update file $total/$fileSize")
-                emit(DownloadState.Progress(total, fileSize))
+            val stream = url.openStream()
+            val fos = FileOutputStream(file)
+            try {
+                val fileSize = connection.contentLength
+                val b = ByteArray(2048)
+                var read = stream.read(b)
+                var total = read
+                while (read != -1) {
+                    fos.write(b, 0, read)
+                    read = stream.read(b)
+                    total += read
+                    debug("Load update file $total/$fileSize")
+                    emit(DownloadState.Progress(total, fileSize))
+                }
+                emit(DownloadState.Success(file))
+            } catch (e: Exception) {
+                emit(DownloadState.Failed)
+                updateDownloadingFails = true
+                debug("Loading error", e)
+            } finally {
+                stream.close()
+                connection.disconnect()
+                fos.close()
             }
-            emit(DownloadState.Success(file))
         } catch (e: Exception) {
             emit(DownloadState.Failed)
             updateDownloadingFails = true
             debug("Loading error", e)
-        } finally {
-            stream.close()
-            connection.disconnect()
-            fos.close()
         }
     }.flowOn(Dispatchers.IO)
 

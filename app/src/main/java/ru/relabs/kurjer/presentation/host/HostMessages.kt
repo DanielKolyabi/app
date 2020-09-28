@@ -60,7 +60,7 @@ object HostMessages {
             { state ->
                 listOfNotNull(
                     HostEffects.effectCheckUpdates()
-                        .takeIf { !state.isUpdateDialogShowed }
+                        .takeIf { !state.isUpdateDialogShowed && state.updateLoadProgress == null}
                 )
             }
         )

@@ -204,7 +204,7 @@ class ReportService : Service(), KoinComponent {
         timeUntilRun = (timeLimitStart + TIMELIMIT_NOTIFICATION_TIMEOUT - System.currentTimeMillis()).toInt()
         pauseDisableJob?.cancel()
         pauseDisableJob = scope.launch {
-            delay((endTime - startTime) * 1000)
+            delay((endTime - currentTimestamp()) * 1000)
             if (!isActive) return@launch
             startTaskClosingTimer(true)
         }

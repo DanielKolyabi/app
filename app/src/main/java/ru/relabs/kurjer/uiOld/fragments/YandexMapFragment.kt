@@ -151,7 +151,7 @@ class YandexMapFragment : Fragment() {
                 }
 
             mapview.map.mapObjects.addCircle(
-                Circle(point, 7.5f),
+                Circle(point, 20f),
                 R.color.colorPrimary,
                 2f,
                 ColorUtils.setAlphaComponent(coloredAddress.color, 125)

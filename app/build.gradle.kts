@@ -23,16 +23,16 @@ android {
         applicationId = "abix.kurjer"
         minSdkVersion(21)
         targetSdkVersion(29)
-        versionCode = 107
-        versionName = "107"
+        versionCode = 108
+        versionName = "108"
     }
     flavorDimensions("server")
     productFlavors {
         create("productServer") {
-            buildConfigField("String", "API_URL", "\"https://courrmobileapi.courr.ru\"")
+            buildConfigField("String", "API_URL", "\"https://courrmobileapi.courdm.ru\"")
         }
         create("debugServer") {
-            buildConfigField("String", "API_URL", "\"http://warp.courr.ru:8084\"")
+            buildConfigField("String", "API_URL", "\"http://warp.courdm.ru:8084\"")
         }
         create("localServer") {
             buildConfigField("String", "API_URL", "\"http://192.168.31.18:8090\"")

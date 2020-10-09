@@ -87,10 +87,8 @@ val storagesModule = module {
         ApiProvider(get<String>(Modules.DELIVERY_URL))
     }
 
-    single<PathsProvider>{
-        PathsProvider(
-            get<File>(Modules.FILES_DIR)
-        )
+    single<PathsProvider> {
+        PathsProvider(get<File>(Modules.FILES_DIR))
     }
 }
 

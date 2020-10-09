@@ -186,13 +186,11 @@ class ReportService : Service(), KoinComponent {
             .notify(1, notification(text, state))
     }
 
-    private suspend fun sendReportQuery(item: ReportQueryItemEntity): Either<java.lang.Exception, Unit> {
-        return repository.sendReport(item)
-    }
+    private suspend fun sendReportQuery(item: ReportQueryItemEntity): Either<java.lang.Exception, Unit> =
+        repository.sendReport(item)
 
-    private suspend fun sendSendQuery(item: SendQueryItemEntity): Either<java.lang.Exception, Unit> = Either.of {
-        return repository.sendQuery(item)
-    }
+    private suspend fun sendSendQuery(item: SendQueryItemEntity): Either<java.lang.Exception, Unit> =
+        repository.sendQuery(item)
 
     fun stopTaskClosingTimer() {
         timelimitNotificationStartTime = null

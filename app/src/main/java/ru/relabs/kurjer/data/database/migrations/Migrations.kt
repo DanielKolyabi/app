@@ -133,4 +133,14 @@ object Migrations {
             database.execSQL("ALTER TABLE tasks ADD COLUMN by_other_user INTEGER NOT NULL DEFAULT 0")
         }
     }
+    private val migration_36_37 =object : Migration(36, 37) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("DELETE FROM task_items")
+            database.execSQL("DELETE FROM entrances")
+            database.execSQL("DELETE FROM addresses")
+            database.execSQL("DELETE FROM tasks")
+
+            database.execSQL("ALTER TABLE tasks ADD COLUMN by_other_user INTEGER NOT NULL DEFAULT 0")
+        }
+    }
 }

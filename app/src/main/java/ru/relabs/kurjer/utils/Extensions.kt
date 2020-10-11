@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.utils
 
 import androidx.fragment.app.Fragment
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.selects.select
@@ -24,7 +25,7 @@ fun Fragment.activity(): HostActivity? {
 fun Throwable.log() {
     this.printStackTrace()
 
-    //FirebaseCrashlytics.getInstance().recordException(this)
+    FirebaseCrashlytics.getInstance().recordException(this)
     val stacktrace = CustomLog.getStacktraceAsString(this)
     CustomLog.writeToFile(stacktrace)
 }

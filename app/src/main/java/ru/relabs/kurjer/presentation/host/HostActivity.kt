@@ -413,6 +413,10 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         navigationHolder.setNavigator(navigator)
         uiScope.sendMessage(controller, HostMessages.msgResume())
         ReportService.isAppPaused = false
+
+        if(!ReportService.isRunning){
+            startService(Intent(this, ReportService::class.java))
+        }
     }
 
     override fun onPause() {

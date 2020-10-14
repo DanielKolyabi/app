@@ -243,6 +243,7 @@ object ReportEffects {
                     }
                 } else if (withLocationLoading && (location == null || Date(location.time).isLocationExpired())) {
                     coroutineScope {
+                        messages.send(ReportMessages.msgAddLoaders(1))
                         messages.send(ReportMessages.msgGPSLoading(true))
                         val delayJob = async { delay(40 * 1000) }
                         val gpsJob = async(Dispatchers.Default) {
@@ -253,6 +254,7 @@ object ReportEffects {
                         }
                         listOf(delayJob, gpsJob).awaitFirst()
                         messages.send(ReportMessages.msgGPSLoading(false))
+                        messages.send(ReportMessages.msgAddLoaders(-1))
                         messages.send(msgEffect(effectCloseCheck(false)))
                     }
                 } else {
@@ -277,6 +279,9 @@ object ReportEffects {
                                     true
                                 }
                                 else -> {
+                                    withContext(Dispatchers.Main) {
+                                        c.showPreCloseDialog(location)
+                                    }
                                     false
                                 }
                             }

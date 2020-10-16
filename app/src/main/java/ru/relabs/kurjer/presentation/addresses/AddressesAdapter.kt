@@ -65,7 +65,7 @@ object AddressesAdapter {
         { p ->
             holderDefine(p, R.layout.holder_address_list_task, { it as AddressesItem.AddressItem }) { (taskItem, task) ->
                 with(itemView) {
-                    btn_task.text = "${task.name} №${task.edition}, ${task.copies}экз."
+                    btn_task.text = "${task.name} №${task.edition}, ${taskItem.copies}экз."
                     if (taskItem.needPhoto || taskItem.entrancesData.any { it.photoRequired }) {
                         when (taskItem.state) {
                             TaskItemState.CLOSED -> {

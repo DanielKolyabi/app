@@ -28,7 +28,10 @@ object ReportMessages {
         msgState { it.copy(loaders = it.loaders + i) }
 
     fun msgBackClicked(): ReportMessage =
-        msgEffect(ReportEffects.effectNavigateBack())
+        msgEffects(
+            { it.copy(exits = it.exits.inc()) },
+            { listOf(ReportEffects.effectNavigateBack(it.exits)) }
+        )
 
     fun msgTasksLoaded(tasks: List<TaskWithItem>): ReportMessage =
         msgState { it.copy(tasks = tasks) }
@@ -125,7 +128,12 @@ object ReportMessages {
                         taskItem = it.selectedTask.taskItem.copy(
                             state = TaskItemState.CLOSED
                         )
-                    )
+                    ),
+                    exits = if (withRemove && it.tasks.none { it.taskItem.state == TaskItemState.CREATED && it.taskItem.id != task.taskItem.id }) {
+                        it.exits.inc()
+                    } else {
+                        it.exits
+                    }
                 )
             } else {
                 it
@@ -137,9 +145,8 @@ object ReportMessages {
                     .firstOrNull { it.taskItem.state == TaskItemState.CREATED && it.taskItem.id != task.taskItem.id }
                     ?.let { ReportEffects.effectLoadSelection(it.taskItem.id) }
                     ?.takeIf { withRemove },
-                ReportEffects.effectNavigateBack()
-                    .takeIf { s.tasks.none { it.taskItem.state == TaskItemState.CREATED && it.taskItem.id != task.taskItem.id } }
-                    .takeIf { withRemove }
+                ReportEffects.effectNavigateBack(s.exits)
+                    .takeIf { s.tasks.none { it.taskItem.state == TaskItemState.CREATED && it.taskItem.id != task.taskItem.id } && withRemove }
             )
         }
     )
@@ -159,6 +166,11 @@ object ReportMessages {
                     } else {
                         t
                     }
+                },
+                exits = if(s.tasks.none { it.taskItem.state == TaskItemState.CREATED && it.task.id != taskId }){
+                    s.exits.inc()
+                }else{
+                    s.exits
                 }
             )
         },
@@ -167,7 +179,7 @@ object ReportMessages {
                 s.tasks
                     .firstOrNull { it.taskItem.state == TaskItemState.CREATED && it.task.id != taskId }
                     ?.let { ReportEffects.effectLoadSelection(it.taskItem.id) },
-                ReportEffects.effectNavigateBack()
+                ReportEffects.effectNavigateBack(s.exits)
                     .takeIf { s.tasks.none { it.taskItem.state == TaskItemState.CREATED && it.task.id != taskId } }
             )
         }

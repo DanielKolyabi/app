@@ -24,8 +24,8 @@ object AddressesEffects {
         messages.send(AddressesMessages.msgAddLoaders(-1))
     }
 
-    fun effectNavigateBack(stopTimer: Boolean = false): AddressesEffect = { c, s ->
-        if (s.exits == 1) {
+    fun effectNavigateBack(stopTimer: Boolean = false, exits: Int): AddressesEffect = { c, s ->
+        if (exits == 1) {
             if (stopTimer) {
                 ReportService.instance?.stopTaskClosingTimer()
             }

@@ -32,7 +32,7 @@ data class ReportState(
     val selectedTaskReport: TaskItemResult? = null,
     val loaders: Int = 0,
     val isGPSLoading: Boolean = false,
-
+    val exits: Int = 0,
     val isEntranceSelectionChanged: Boolean = false,
 
     val coupling: ReportCoupling = emptyMap()

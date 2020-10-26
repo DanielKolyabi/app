@@ -68,9 +68,11 @@ object ReportEffects {
         messages.send(ReportMessages.msgAddLoaders(-1))
     }
 
-    fun effectNavigateBack(): ReportEffect = { c, s ->
-        withContext(Dispatchers.Main) {
-            c.router.exit()
+    fun effectNavigateBack(exits: Int): ReportEffect = { c, s ->
+        if(exits == 1){
+            withContext(Dispatchers.Main) {
+                c.router.exit()
+            }
         }
     }
 

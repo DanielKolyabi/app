@@ -40,8 +40,8 @@ object AddressesMessages {
         msgState { it.copy(tasks = tasks) }
 
     fun msgNavigateBack(): AddressesMessage = msgEffects(
-        { it.copy(exits = it.exits + 1) },
-        { listOf(AddressesEffects.effectNavigateBack()) }
+        { it.copy(exits = it.exits.inc()) },
+        { listOf(AddressesEffects.effectNavigateBack(exits = it.exits)) }
     )
 
     fun msgSearch(searchText: String): AddressesMessage =
@@ -89,7 +89,7 @@ object AddressesMessages {
         },
         { s ->
             listOfNotNull(
-                AddressesEffects.effectNavigateBack(true).takeIf { s.tasks.isEmpty() }
+                AddressesEffects.effectNavigateBack(true, s.exits).takeIf { s.tasks.isEmpty() }
             )
         }
     )

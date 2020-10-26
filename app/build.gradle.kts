@@ -23,8 +23,8 @@ android {
         applicationId = "abix.kurjer"
         minSdkVersion(21)
         targetSdkVersion(29)
-        versionCode = 113
-        versionName = "113"
+        versionCode = 114
+        versionName = "114"
     }
     flavorDimensions("server")
     productFlavors {

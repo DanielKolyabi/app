@@ -65,6 +65,11 @@ class ReportService : Service(), KoinComponent {
             startTaskClosingTimer()
             return START_STICKY
         }
+        if (intent?.getBooleanExtra(KEY_STOP_CLOSING_TIMER, false) == true) {
+            stopTaskClosingTimer()
+            return START_STICKY
+        }
+
 
         instance = this
 
@@ -192,7 +197,7 @@ class ReportService : Service(), KoinComponent {
     private suspend fun sendSendQuery(item: SendQueryItemEntity): Either<java.lang.Exception, Unit> =
         repository.sendQuery(item)
 
-    fun stopTaskClosingTimer() {
+    private fun stopTaskClosingTimer() {
         timelimitNotificationStartTime = null
     }
 
@@ -269,14 +274,24 @@ class ReportService : Service(), KoinComponent {
         private val appCtx: Context = DeliveryApp.appContext
 
         const val KEY_START_CLOSING_TIMER = "start_closing_timer"
+        const val KEY_STOP_CLOSING_TIMER = "stop_closing_timer"
 
         suspend fun restartTaskClosingTimer() = withContext(Dispatchers.Main) {
             restartTaskClosingTimerSync()
         }
 
+        suspend fun stopTaskClosingTimer() = withContext(Dispatchers.Main) {
+            stopTaskClosingTimerSync()
+        }
+
         fun restartTaskClosingTimerSync() =
             appCtx.startService(Intent(appCtx, ReportService::class.java).apply {
                 putExtra(KEY_START_CLOSING_TIMER, true)
+            })
+
+        fun stopTaskClosingTimerSync() =
+            appCtx.startService(Intent(appCtx, ReportService::class.java).apply {
+                putExtra(KEY_STOP_CLOSING_TIMER, true)
             })
     }
 }

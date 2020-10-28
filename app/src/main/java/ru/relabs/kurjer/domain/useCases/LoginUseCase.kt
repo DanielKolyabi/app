@@ -66,10 +66,10 @@ class LoginUseCase(
         deliveryRepository.updatePushToken()
     }
 
-    fun logout() {
+    suspend fun logout() {
         appPreferences.setUserAutologinEnabled(false)
         authTokenStorage.resetToken()
         currentUserStorage.resetCurrentUserLogin()
-        ReportService.instance?.stopTaskClosingTimer()
+        ReportService.stopTaskClosingTimer()
     }
 }

@@ -33,7 +33,7 @@ import ru.relabs.kurjer.utils.*
 const val CHANNEL_ID = "notification_channel"
 const val CLOSE_SERVICE_TIMEOUT = 80 * 60 * 1000
 const val TIMELIMIT_NOTIFICATION_TIMEOUT = 30 * 60 * 1000
-const val TASK_CHECK_DELAY = 30 * 1000
+const val TASK_CHECK_DELAY = 10 * 60 * 1000
 
 class ReportService : Service(), KoinComponent {
     private val repository: DeliveryRepository by inject()

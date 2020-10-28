@@ -6,7 +6,6 @@ import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.domain.models.TaskState
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
-import ru.relabs.kurjer.uiOld.models.DetailsListModel
 import ru.relabs.kurjer.utils.extensions.visible
 
 /**

@@ -6,7 +6,6 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
-import ru.relabs.kurjer.REQUEST_LOCATION
 import ru.relabs.kurjer.utils.NetworkHelper
 import ru.relabs.kurjer.utils.debug
 
@@ -49,7 +48,7 @@ class GPSFeatureChecker(a: Activity) : FeatureChecker(a) {
 
                 LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
                     debug("Location settings are not satisfied. Show the user a dialog to upgrade location settings ")
-                    status.startResolutionForResult(activity, REQUEST_LOCATION)
+                    status.startResolutionForResult(activity, 999)
                 }
 
                 LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE ->

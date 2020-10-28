@@ -457,8 +457,8 @@ class DatabaseRepository(
                 return@withContext true
             } else if (
                 (savedTask.iteration < task.iteration)
-                || (task.state.state.toInt() != savedTask.state && savedTask.state != TaskModel.STARTED)
-                || (task.endTime != savedTask.endTime || task.startTime != savedTask.startTime && savedTask.state != TaskModel.STARTED)
+                || (task.state.state.toInt() != savedTask.state && savedTask.state != TaskState.STARTED.toInt())
+                || (task.endTime != savedTask.endTime || task.startTime != savedTask.startTime && savedTask.state != TaskState.STARTED.toInt())
             ) {
                 return@withContext true
             }

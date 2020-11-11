@@ -109,6 +109,7 @@ class ReportService : Service(), KoinComponent {
                         System.currentTimeMillis() - lastTasksChecking > TASK_CHECK_DELAY -> {
                             when (val tasks = repository.getTasks()) {
                                 is Right -> if (databaseRepository.isMergeNeeded(tasks.value)) {
+                                    CustomLog.writeToFile("UPDATE: merge is needed")
                                     taskEventController.send(TaskEvent.TasksUpdateRequired(false))
                                 }
                             }

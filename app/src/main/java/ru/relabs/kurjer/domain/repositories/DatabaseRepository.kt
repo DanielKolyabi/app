@@ -15,13 +15,8 @@ import ru.relabs.kurjer.domain.mappers.database.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
-
 import ru.relabs.kurjer.models.GPSCoordinatesModel
-import ru.relabs.kurjer.models.TaskModel
-import ru.relabs.kurjer.utils.Either
-import ru.relabs.kurjer.utils.Left
-import ru.relabs.kurjer.utils.Right
-import ru.relabs.kurjer.utils.debug
+import ru.relabs.kurjer.utils.*
 import java.util.*
 
 class DatabaseRepository(
@@ -434,32 +429,36 @@ class DatabaseRepository(
         db.reportQueryDao().all.size + db.sendQueryDao().all.size
     }
 
-    suspend fun removeSendQuery(sendQuery: SendQueryItemEntity) = withContext(Dispatchers.IO){
+    suspend fun removeSendQuery(sendQuery: SendQueryItemEntity) = withContext(Dispatchers.IO) {
         db.sendQueryDao().delete(sendQuery)
     }
 
-    suspend fun isOpenedTasksExists(): Boolean = withContext(Dispatchers.IO){
+    suspend fun isOpenedTasksExists(): Boolean = withContext(Dispatchers.IO) {
         db.taskDao().allOpened.isNotEmpty()
     }
 
-    suspend fun isMergeNeeded(newTasks: List<Task>): Boolean = withContext(Dispatchers.IO){
+    suspend fun isMergeNeeded(newTasks: List<Task>): Boolean = withContext(Dispatchers.IO) {
         val savedTasksIDs = db.taskDao().all.map { it.id }
 
-        newTasks.filter { it.id.id !in savedTasksIDs }.forEach { task ->
+        if (newTasks.any { it.id.id !in savedTasksIDs }) {
+            CustomLog.writeToFile("UPDATE (Merge): ${newTasks.firstOrNull { it.id.id !in savedTasksIDs }?.id?.id} is new")
             return@withContext true
         }
 
         newTasks.filter { it.id.id in savedTasksIDs }.forEach { task ->
             val savedTask = db.taskDao().getById(task.id.id)!!
             if (task.state.state == TaskState.CANCELED) {
+                CustomLog.writeToFile("UPDATE (Merge): ${task.id.id} remote task is closed")
                 return@withContext true
             } else if (task.state.state == TaskState.COMPLETED) {
+                CustomLog.writeToFile("UPDATE (Merge): ${task.id.id} remote task is completed")
                 return@withContext true
             } else if (
                 (savedTask.iteration < task.iteration)
                 || (task.state.state.toInt() != savedTask.state && savedTask.state != TaskState.STARTED.toInt())
                 || (task.endTime != savedTask.endTime || task.startTime != savedTask.startTime && savedTask.state != TaskState.STARTED.toInt())
             ) {
+                CustomLog.writeToFile("UPDATE (Merge): ${task.id.id} time/iteration/state updated but task not started")
                 return@withContext true
             }
         }

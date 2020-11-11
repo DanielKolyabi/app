@@ -18,6 +18,7 @@ import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
+import ru.relabs.kurjer.utils.CustomLog
 
 /**
  * Created by ProOrange on 11.08.2018.
@@ -59,6 +60,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
             }
         }
         if (data.containsKey("tasks_update")) {
+            CustomLog.writeToFile("UPDATE: Got firebase tasks_update message")
             taskEventsController.send(TaskEvent.TasksUpdateRequired(false))
         }
         if (data.containsKey("closed_task_id")) {

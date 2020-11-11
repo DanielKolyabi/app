@@ -459,6 +459,9 @@ class DatabaseRepository(
                 || (task.endTime != savedTask.endTime || task.startTime != savedTask.startTime && savedTask.state != TaskState.STARTED.toInt())
             ) {
                 CustomLog.writeToFile("UPDATE (Merge): ${task.id.id} time/iteration/state updated but task not started")
+                CustomLog.writeToFile("UPDATE (Merge): ${task.id.id} iter: ${savedTask.iteration < task.iteration} savedIter: ${savedTask.iteration}; newTaskIter: ${task.iteration}")
+                CustomLog.writeToFile("UPDATE (Merge): ${task.id.id} state: ${savedTask.state != task.state.state.toInt()} savedState: ${savedTask.state}; newTaskState: ${task.state.state.toInt()}")
+                CustomLog.writeToFile("UPDATE (Merge): ${task.id.id} time: ${task.endTime != savedTask.endTime || task.startTime != savedTask.startTime} savedTime: start: ${savedTask.startTime.time}; end: ${savedTask.endTime.time}; newTaskTime: start: ${task.startTime.time} end: ${task.endTime.time}")
                 return@withContext true
             }
         }

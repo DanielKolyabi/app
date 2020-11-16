@@ -1,11 +1,9 @@
 package ru.relabs.kurjer.utils.extensions
 
-import android.content.Intent
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.coroutines.suspendCancellableCoroutine
 import ru.relabs.kurjer.utils.Either
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
  * Created by Daniil Kurchanov on 21.01.2020.
@@ -13,13 +11,16 @@ import kotlin.coroutines.resumeWithException
 suspend fun FirebaseInstanceId.instanceIdSuspend() = suspendCancellableCoroutine<String> { cont ->
     instanceId.addOnCompleteListener { task ->
         if (!task.isSuccessful) {
-            cont.resumeWith(
-                Result.failure(task.exception ?: RuntimeException("Firebase token retrieve failed. Task failed"))
-            )
+            cont.resumeWith(Result.failure(task.exception ?: RuntimeException("Firebase token retrieve failed. Task failed")))
         }
-        when (val token = task.result?.token) {
-            null -> cont.resumeWith(Result.failure(RuntimeException("Firebase token retrieve failed. Token is null")))
-            else -> cont.resumeWith(Result.success(token))
+        try {
+            when (val token = task.result?.token) {
+                null -> cont.resumeWith(Result.failure(RuntimeException("Firebase token retrieve failed. Token is null")))
+                else -> cont.resumeWith(Result.success(token))
+            }
+        } catch (e: Exception) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+            cont.resumeWith(Result.failure(e))
         }
     }.addOnCanceledListener {
         cont.resumeWith(Result.failure(RuntimeException("Firebase token retrieve failed. Task canceled")))

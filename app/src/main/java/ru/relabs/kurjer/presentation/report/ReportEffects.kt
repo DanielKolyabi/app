@@ -69,7 +69,7 @@ object ReportEffects {
     }
 
     fun effectNavigateBack(exits: Int): ReportEffect = { c, s ->
-        if(exits == 1){
+        if (exits == 1) {
             withContext(Dispatchers.Main) {
                 c.router.exit()
             }
@@ -167,7 +167,11 @@ object ReportEffects {
 
     fun effectSavePhotoFromFile(entrance: Int, targetFile: File, uuid: UUID): ReportEffect = { c, s ->
         val bmp = BitmapFactory.decodeFile(targetFile.path)
-        effectSavePhotoFromBitmap(entrance, bmp, targetFile, uuid)(c, s)
+        if (bmp == null) {
+            messages.send(msgEffect(effectShowPhotoError(7)))
+        } else {
+            effectSavePhotoFromBitmap(entrance, bmp, targetFile, uuid)(c, s)
+        }
     }
 
     fun effectSavePhotoFromBitmap(entrance: Int, bitmap: Bitmap, targetFile: File, uuid: UUID): ReportEffect = { c, s ->

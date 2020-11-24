@@ -307,7 +307,7 @@ class DatabaseRepository(
         getTaskItemResult(taskItem.id)
     }
 
-    suspend fun updateTaskItemResult(updatedReport: TaskItemResult): TaskItemResult? = withContext(Dispatchers.IO) {
+    suspend fun updateTaskItemResult(updatedReport: TaskItemResult): TaskItemResult = withContext(Dispatchers.IO) {
         val newId = db.taskItemResultsDao().insert(TaskItemResultMapper.fromModel(updatedReport))
         db.entrancesDao().insertAll(
             updatedReport.entrances.map {
@@ -321,7 +321,7 @@ class DatabaseRepository(
             }
         )
 
-        getTaskItemResult(updatedReport.taskItemId)
+        updatedReport.copy(id = TaskItemResultId(newId.toInt()))
     }
 
     suspend fun createOrUpdateTaskItemEntranceResultSelection(

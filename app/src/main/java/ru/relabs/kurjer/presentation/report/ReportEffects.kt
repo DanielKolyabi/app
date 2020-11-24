@@ -194,10 +194,13 @@ object ReportEffects {
     fun effectUpdateDescription(text: String): ReportEffect = { c, s ->
         when (val selectedTask = s.selectedTask) {
             null -> c.showError("re:103", true)
-            else -> when (val r = s.selectedTaskReport ?: createEmptyTaskResult(c.database, selectedTask.taskItem)) {
-                null -> c.showError("re:104", true)
-                else -> c.database.updateTaskItemResult(r.copy(description = text))?.let {
-                    messages.send(ReportMessages.msgSavedResultLoaded(it))
+            else -> {
+                s.tasks.filter { it.taskItem.state == TaskItemState.CREATED }.forEach { t ->
+                    val result = c.database.getTaskItemResult(t.taskItem) ?: createEmptyTaskResult(c.database, t.taskItem)
+                    val updated = c.database.updateTaskItemResult(result.copy(description = text))
+                    if (updated.taskItemId == selectedTask.taskItem.id) {
+                        messages.send(ReportMessages.msgSavedResultLoaded(updated))
+                    }
                 }
             }
         }
@@ -340,7 +343,7 @@ object ReportEffects {
         targetFile
     }
 
-    private suspend fun createEmptyTaskResult(database: DatabaseRepository, taskItem: TaskItem): TaskItemResult? {
+    private suspend fun createEmptyTaskResult(database: DatabaseRepository, taskItem: TaskItem): TaskItemResult {
         val result = TaskItemResult(
             id = TaskItemResultId(0),
             taskItemId = taskItem.id,

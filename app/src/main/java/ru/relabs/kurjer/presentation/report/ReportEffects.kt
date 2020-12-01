@@ -3,6 +3,7 @@ package ru.relabs.kurjer.presentation.report
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
+import android.net.Uri
 import androidx.core.net.toUri
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
@@ -165,12 +166,18 @@ object ReportEffects {
     }
 
 
-    fun effectSavePhotoFromFile(entrance: Int, targetFile: File, uuid: UUID): ReportEffect = { c, s ->
-        val bmp = BitmapFactory.decodeFile(targetFile.path)
-        if (bmp == null) {
-            messages.send(msgEffect(effectShowPhotoError(7)))
-        } else {
-            effectSavePhotoFromBitmap(entrance, bmp, targetFile, uuid)(c, s)
+    fun effectSavePhotoFromFile(entrance: Int, photoUri: Uri, targetFile: File, uuid: UUID): ReportEffect = { c, s ->
+        val contentResolver = c.contentResolver()
+        if(contentResolver == null){
+            messages.send(msgEffect(effectShowPhotoError(8)))
+        }else{
+            val bmp = BitmapFactory.decodeStream(contentResolver.openInputStream(photoUri))
+            if (bmp == null) {
+                CustomLog.writeToFile("Photo creation failed. Uri: ${photoUri}, File: ${targetFile.path}")
+                messages.send(msgEffect(effectShowPhotoError(7)))
+            } else {
+                effectSavePhotoFromBitmap(entrance, bmp, targetFile, uuid)(c, s)
+            }
         }
     }
 

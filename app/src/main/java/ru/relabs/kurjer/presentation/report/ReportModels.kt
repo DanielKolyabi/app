@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.presentation.report
 
+import android.content.ContentResolver
 import android.location.Location
 import android.net.Uri
 import org.koin.core.KoinComponent
@@ -61,6 +62,7 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     var showPhotosWarning: () -> Unit = {}
     var showPreCloseDialog: (location: Location?) -> Unit = {}
     var getBatteryLevel: () -> Float? = { null }
+    var contentResolver: () -> ContentResolver? = { null }
 }
 
 enum class EntranceSelectionButton {

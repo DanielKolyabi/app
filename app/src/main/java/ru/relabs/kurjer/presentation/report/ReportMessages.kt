@@ -2,6 +2,7 @@ package ru.relabs.kurjer.presentation.report
 
 import android.graphics.Bitmap
 import android.location.Location
+import android.net.Uri
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
@@ -72,11 +73,11 @@ object ReportMessages {
     fun msgPhotoError(errorCode: Int): ReportMessage =
         msgEffect(ReportEffects.effectShowPhotoError(errorCode))
 
-    fun msgPhotoCaptured(entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID): ReportMessage = msgEffects(
+    fun msgPhotoCaptured(entrance: Int, multiplePhoto: Boolean, photoUri: Uri, targetFile: File, uuid: UUID): ReportMessage = msgEffects(
         { it },
         {
             listOfNotNull(
-                ReportEffects.effectSavePhotoFromFile(entrance, targetFile, uuid),
+                ReportEffects.effectSavePhotoFromFile(entrance, photoUri, targetFile, uuid),
                 ReportEffects.effectCreatePhoto(entrance, multiplePhoto).takeIf { multiplePhoto }
             )
         }

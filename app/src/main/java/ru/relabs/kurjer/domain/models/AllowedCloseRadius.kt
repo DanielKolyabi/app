@@ -1,6 +1,6 @@
 package ru.relabs.kurjer.domain.models
 
-sealed class AllowedCloseRadius {
-    data class NotRequired(val distance: Int) : AllowedCloseRadius()
-    data class Required(val distance: Int) : AllowedCloseRadius()
+sealed class AllowedCloseRadius(val photoAnyDistance: Boolean, val distance: Int) {
+    class NotRequired(distance: Int, photoAnyDistance: Boolean) : AllowedCloseRadius(photoAnyDistance, distance)
+    class Required(distance: Int, photoAnyDistance: Boolean) : AllowedCloseRadius(photoAnyDistance, distance)
 }

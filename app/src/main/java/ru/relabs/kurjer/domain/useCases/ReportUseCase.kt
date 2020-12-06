@@ -44,9 +44,11 @@ class ReportUseCase(
             getReportLocation(location),
             Date(),
             result?.description ?: "",
-            result?.entrances?.map {
-                it.entranceNumber.number to ReportEntranceSelectionMapper.toBits(it.selection)
-            } ?: emptyList(),
+            taskItem.entrancesData.map {
+                val en = it.number
+                val resultData = result?.entrances?.firstOrNull { it.entranceNumber == en }
+                en.number to (resultData?.selection?.let { ReportEntranceSelectionMapper.toBits(it) } ?: 0)
+            },
             tokenStorage.getToken() ?: "",
             (batteryLevel * 100).roundToInt(),
             isCloseTaskRequired,

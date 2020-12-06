@@ -13,6 +13,7 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
+import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.extensions.isLocationExpired
@@ -104,7 +105,98 @@ object ReportEffects {
         messages.send(ReportMessages.msgAddLoaders(-1))
     }
 
-    fun effectCreatePhoto(entranceNumber: Int, multiplePhotos: Boolean): ReportEffect = { c, s ->
+    private fun effectValidatePhotoRadiusAnd(
+        msgFactory: () -> ReportMessage,
+        withAnyRadiusWarning: Boolean,
+        withLocationLoading: Boolean = true
+    ): ReportEffect = { c, s ->
+        messages.send(ReportMessages.msgAddLoaders(1))
+        when (val selected = s.selectedTask) {
+            null -> c.showError("re:106", true)
+            else -> {
+                val location = c.locationProvider.lastReceivedLocation()
+                val distance = location?.let {
+                    calculateDistance(
+                        location.latitude,
+                        location.longitude,
+                        selected.taskItem.address.lat.toDouble(),
+                        selected.taskItem.address.long.toDouble()
+                    )
+                } ?: Int.MAX_VALUE.toDouble()
+
+                if (c.radiusRepository.allowedCloseRadius.photoAnyDistance) {
+                    if (distance > c.radiusRepository.allowedCloseRadius.distance && withAnyRadiusWarning) {
+                        withContext(Dispatchers.Main) {
+                            c.showCloseError(R.string.report_close_location_null_warning, false, null)
+                        }
+                    }
+                    messages.send(msgFactory())
+                } else {
+                    if (location == null || Date(location.time).isLocationExpired()) {
+                        if (withLocationLoading) {
+                            coroutineScope {
+                                messages.send(ReportMessages.msgAddLoaders(1))
+                                messages.send(ReportMessages.msgGPSLoading(true))
+                                val delayJob = async { delay(40 * 1000) }
+                                val gpsJob = async(Dispatchers.Default) {
+                                    c.locationProvider.updatesChannel().apply {
+                                        receive()
+                                        cancel()
+                                    }
+                                }
+                                listOf(delayJob, gpsJob).awaitFirst()
+                                messages.send(ReportMessages.msgGPSLoading(false))
+                                messages.send(ReportMessages.msgAddLoaders(-1))
+                                messages.send(msgEffect(effectValidatePhotoRadiusAnd(msgFactory, withAnyRadiusWarning, false)))
+                            }
+                        } else {
+                            withContext(Dispatchers.Main) {
+                                c.showCloseError(R.string.report_close_location_null_error, false, null)
+                            }
+                        }
+                    } else {
+                        if (distance > c.radiusRepository.allowedCloseRadius.distance) {
+                            withContext(Dispatchers.Main) {
+                                c.showCloseError(R.string.report_close_location_far_error, false, null)
+                            }
+                        } else {
+                            messages.send(msgFactory())
+                        }
+                    }
+                }
+            }
+        }
+        messages.send(ReportMessages.msgAddLoaders(-1))
+    }
+
+    fun effectValidateRadiusAndSavePhoto(
+        entrance: Int,
+        photoUri: Uri,
+        targetFile: File,
+        uuid: UUID,
+        multiplePhoto: Boolean
+    ): ReportEffect = effectValidatePhotoRadiusAnd(
+        {
+            msgEffects(
+                { it },
+                {
+                    listOfNotNull(
+                        effectSavePhotoFromFile(entrance, photoUri, targetFile, uuid),
+                        effectRequestPhoto(entrance, multiplePhoto).takeIf { multiplePhoto }
+                    )
+                }
+            )
+        },
+        withAnyRadiusWarning = true
+    )
+
+    fun effectValidateRadiusAndRequestPhoto(
+        entranceNumber: Int,
+        multiplePhoto: Boolean
+    ): ReportEffect =
+        effectValidatePhotoRadiusAnd({ msgEffect(effectRequestPhoto(entranceNumber, multiplePhoto)) }, false)
+
+    fun effectRequestPhoto(entranceNumber: Int, multiplePhotos: Boolean): ReportEffect = { c, s ->
         when (val selectedTask = s.selectedTask) {
             null -> c.showError("re:100", true)
             else -> {
@@ -168,9 +260,9 @@ object ReportEffects {
 
     fun effectSavePhotoFromFile(entrance: Int, photoUri: Uri, targetFile: File, uuid: UUID): ReportEffect = { c, s ->
         val contentResolver = c.contentResolver()
-        if(contentResolver == null){
+        if (contentResolver == null) {
             messages.send(msgEffect(effectShowPhotoError(8)))
-        }else{
+        } else {
             val bmp = BitmapFactory.decodeStream(contentResolver.openInputStream(photoUri))
             if (bmp == null) {
                 CustomLog.writeToFile("Photo creation failed. Uri: ${photoUri}, File: ${targetFile.path}")

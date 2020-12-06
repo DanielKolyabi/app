@@ -50,7 +50,7 @@ object ReportMessages {
         msgState { it.copy(selectedTask = taskWithItem, selectedTaskPhotos = photos, isEntranceSelectionChanged = false) }
 
     fun msgPhotoClicked(entranceNumber: EntranceNumber? = null, multiplePhoto: Boolean): ReportMessage =
-        msgEffect(ReportEffects.effectCreatePhoto(entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM, multiplePhoto))
+        msgEffect(ReportEffects.effectValidateRadiusAndRequestPhoto(entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM, multiplePhoto))
 
     fun msgRemovePhotoClicked(removedPhoto: TaskItemPhoto): ReportMessage = msgEffects(
         { state -> state.copy(selectedTaskPhotos = state.selectedTaskPhotos.filter { photo -> photo.photo != removedPhoto }) },
@@ -77,8 +77,7 @@ object ReportMessages {
         { it },
         {
             listOfNotNull(
-                ReportEffects.effectSavePhotoFromFile(entrance, photoUri, targetFile, uuid),
-                ReportEffects.effectCreatePhoto(entrance, multiplePhoto).takeIf { multiplePhoto }
+                ReportEffects.effectValidateRadiusAndSavePhoto(entrance, photoUri, targetFile, uuid, multiplePhoto)
             )
         }
     )
@@ -88,7 +87,7 @@ object ReportMessages {
         {
             listOfNotNull(
                 ReportEffects.effectSavePhotoFromBitmap(entrance, bitmap, targetFile, uuid),
-                ReportEffects.effectCreatePhoto(entrance, multiplePhoto).takeIf { multiplePhoto }
+                ReportEffects.effectRequestPhoto(entrance, multiplePhoto).takeIf { multiplePhoto }
             )
         }
     )

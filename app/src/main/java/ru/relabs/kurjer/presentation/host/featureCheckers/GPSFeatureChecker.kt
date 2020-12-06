@@ -13,6 +13,7 @@ class GPSFeatureChecker(a: Activity) : FeatureChecker(a) {
     private var requestShowed = false
 
     override fun isFeatureEnabled(): Boolean {
+        return true
         return NetworkHelper.isGPSEnabled(activity)
     }
 

@@ -145,9 +145,13 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginBottom="8dp"
+            android:textAlignment="center"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:text="@string/report_gps_loading"
             android:textColor="@color/white"
             android:textSize="18sp"
+            tools:visibility="visible"
             android:textStyle="bold" />
 
         <ProgressBar

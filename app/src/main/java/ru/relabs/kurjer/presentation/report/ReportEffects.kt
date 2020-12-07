@@ -127,7 +127,7 @@ object ReportEffects {
                 if (c.radiusRepository.allowedCloseRadius.photoAnyDistance) {
                     if (distance > c.radiusRepository.allowedCloseRadius.distance && withAnyRadiusWarning) {
                         withContext(Dispatchers.Main) {
-                            c.showCloseError(R.string.report_close_location_null_warning, false, null)
+                            c.showCloseError(R.string.report_close_location_far_warning, false, null)
                         }
                     }
                     messages.send(msgFactory())

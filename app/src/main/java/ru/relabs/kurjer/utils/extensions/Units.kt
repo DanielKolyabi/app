@@ -38,5 +38,5 @@ fun View.dip(dp: Number): Float {
     return resources.dip(dp)
 }
 
-fun Date.isLocationExpired() =
-    (time - Date().time) > TimeUnit.MINUTES.toMillis(3)
+fun Date.isLocationExpired(timeout: Long = 3*60*1000) =
+    (Date().time - time) > timeout//TimeUnit.MINUTES.toMillis(timeout)

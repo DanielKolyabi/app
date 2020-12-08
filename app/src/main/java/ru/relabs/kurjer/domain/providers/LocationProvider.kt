@@ -68,12 +68,11 @@ class PlayServicesLocationProvider(
             override fun onLocationResult(locationResult: LocationResult) {
                 if (!channel.isClosedForSend) {
                     val lastLocation = locationResult.lastLocation
-                    if (lastLocation != null) {
+                    val location = locationResult.locations.firstOrNull()
+                    if (location != null) {
+                        channel.offer(location)
+                    } else if(lastLocation != null){
                         channel.offer(lastLocation)
-                    } else {
-                        locationResult.locations.firstOrNull()?.let {
-                            channel.offer(it)
-                        }
                     }
                 }
                 lastReceivedLocation = locationResult.lastLocation

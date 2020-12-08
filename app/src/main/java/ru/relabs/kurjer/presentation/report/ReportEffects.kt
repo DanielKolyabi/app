@@ -132,7 +132,7 @@ object ReportEffects {
                     }
                     messages.send(msgFactory())
                 } else {
-                    if (location == null || Date(location.time).isLocationExpired()) {
+                    if (location == null || Date(location.time).isLocationExpired(60*1000)) {
                         if (withLocationLoading) {
                             coroutineScope {
                                 messages.send(ReportMessages.msgAddLoaders(1))
@@ -143,8 +143,14 @@ object ReportEffects {
                                         receive()
                                         cancel()
                                     }
+                                    delay(3000)
                                 }
                                 listOf(delayJob, gpsJob).awaitFirst()
+                                listOf(delayJob, gpsJob).forEach {
+                                    if (it.isActive) {
+                                        it.cancel()
+                                    }
+                                }
                                 messages.send(ReportMessages.msgGPSLoading(false))
                                 messages.send(ReportMessages.msgAddLoaders(-1))
                                 messages.send(msgEffect(effectValidatePhotoRadiusAnd(msgFactory, withAnyRadiusWarning, false)))

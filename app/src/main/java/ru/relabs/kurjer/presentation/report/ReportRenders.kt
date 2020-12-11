@@ -85,12 +85,7 @@ object ReportRenders {
                         ReportEntranceItem(
                             taskItem,
                             entrance.number,
-                            reportEntrance?.selection ?: ReportEntranceSelection(
-                                entrance.isEuroBoxes,
-                                entrance.hasLookout,
-                                entrance.isStacked,
-                                entrance.isRefused
-                            ),
+                            reportEntrance?.selection ?: ReportEntranceSelection(false, false, false, false),
                             task?.let { coupling.isCouplingEnabled(task, entrance.number) } ?: false,
                             photos.any { photo -> photo.photo.entranceNumber == entrance.number }
                         )

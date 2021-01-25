@@ -6,9 +6,8 @@ import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
-import ru.relabs.kurjer.domain.models.ENTRANCE_NUMBER_TASK_ITEM
-import ru.relabs.kurjer.domain.models.ReportEntranceSelection
-import ru.relabs.kurjer.domain.models.TaskItemState
+import androidx.recyclerview.widget.RecyclerView
+import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
@@ -72,25 +71,28 @@ object ReportRenders {
         }
     )
 
-    fun renderEntrances(adapter: DelegateAdapter<ReportEntranceItem>): ReportRender = renderT(
+    fun renderEntrances(adapter: DelegateAdapter<ReportEntranceItem>, view: RecyclerView): ReportRender = renderT(
         { Triple(it.selectedTask?.taskItem to it.selectedTask?.task, it.selectedTaskPhotos, it.selectedTaskReport) to it.coupling },
         { (data, coupling) ->
             val (taskData, photos, report) = data
             val (taskItem, task) = taskData
+            view.visible = taskItem is TaskItem.Firm
             adapter.items.clear()
             if (taskItem != null) {
-                adapter.items.addAll(
-                    taskItem.entrancesData.map { entrance ->
-                        val reportEntrance = report?.entrances?.firstOrNull { it.entranceNumber == entrance.number }
-                        ReportEntranceItem(
-                            taskItem,
-                            entrance.number,
-                            reportEntrance?.selection ?: ReportEntranceSelection(false, false, false, false),
-                            task?.let { coupling.isCouplingEnabled(task, entrance.number) } ?: false,
-                            photos.any { photo -> photo.photo.entranceNumber == entrance.number }
-                        )
-                    }
-                )
+                if (taskItem is TaskItem.Common) {
+                    adapter.items.addAll(
+                        taskItem.entrancesData.map { entrance ->
+                            val reportEntrance = report?.entrances?.firstOrNull { it.entranceNumber == entrance.number }
+                            ReportEntranceItem(
+                                taskItem,
+                                entrance.number,
+                                reportEntrance?.selection ?: ReportEntranceSelection(false, false, false, false),
+                                task?.let { coupling.isCouplingEnabled(task, entrance.number) } ?: false,
+                                photos.any { photo -> photo.photo.entranceNumber == entrance.number }
+                            )
+                        }
+                    )
+                }
             }
             adapter.notifyDataSetChanged()
         }
@@ -115,7 +117,8 @@ object ReportRenders {
     fun renderTaskItemAvailability(
         listInterceptor: ListClickInterceptor,
         descriptionEdit: View,
-        closeButton: View
+        closeButton: View,
+        rejectButton: View
     ): ReportRender = renderT(
         { it.selectedTask },
         {
@@ -123,6 +126,12 @@ object ReportRenders {
             listInterceptor.enabled = available
             descriptionEdit.isEnabled = available
             closeButton.isEnabled = available
+            rejectButton.isEnabled = available
         }
+    )
+
+    fun renderRejectButton(button: View): ReportRender = renderT(
+        { it.selectedTask },
+        { button.visible = it?.taskItem is TaskItem.Firm }
     )
 }

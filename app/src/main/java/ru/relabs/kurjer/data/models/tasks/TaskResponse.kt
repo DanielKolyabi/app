@@ -27,7 +27,8 @@ data class TaskResponse(
     @SerializedName("iteration") val iteration: Int,
     @SerializedName("items") val items: List<TaskItemResponse>,
     @SerializedName("first_examined_device_id") val firstExaminedDeviceId: String?,
-    @SerializedName("couple_type") val coupleType: Int
+    @SerializedName("couple_type") val coupleType: Int,
+    @SerializedName("delivery_type") val deliveryType: Int
 )
 //{
 //    fun toTaskModel(deviceId: String): TaskModel {

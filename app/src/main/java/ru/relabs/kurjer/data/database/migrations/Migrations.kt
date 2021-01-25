@@ -16,7 +16,10 @@ object Migrations {
         migration_32_33,
         migration_33_34,
         migration_34_35,
-        migration_35_36
+        migration_35_36,
+        migration_37_38,
+        migration_38_39,
+        migration_39_40
     )
 
 
@@ -133,14 +136,23 @@ object Migrations {
             database.execSQL("ALTER TABLE tasks ADD COLUMN by_other_user INTEGER NOT NULL DEFAULT 0")
         }
     }
-    private val migration_36_37 =object : Migration(36, 37) {
+    private val migration_37_38 = object : Migration(37, 38) {
         override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("DELETE FROM task_items")
-            database.execSQL("DELETE FROM entrances")
-            database.execSQL("DELETE FROM addresses")
-            database.execSQL("DELETE FROM tasks")
-
-            database.execSQL("ALTER TABLE tasks ADD COLUMN by_other_user INTEGER NOT NULL DEFAULT 0")
+            database.execSQL("ALTER TABLE task_items ADD COLUMN is_firm INTEGER NOT NULL DEFAULT 0")
+            database.execSQL("ALTER TABLE task_items ADD COLUMN office_name TEXT NOT NULL DEFAULT ''")
+            database.execSQL("ALTER TABLE task_items ADD COLUMN firm_name TEXT NOT NULL DEFAULT ''")
+            database.execSQL("ALTER TABLE tasks ADD COLUMN delivery_type INTEGER NOT NULL DEFAULT 1")
+        }
+    }
+    private val migration_38_39 = object : Migration(38, 39) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE report_query ADD COLUMN is_rejected INTEGER NOT NULL DEFAULT 0")
+            database.execSQL("ALTER TABLE report_query ADD COLUMN reject_reason TEXT NOT NULL DEFAULT ''")
+        }
+    }
+    private val migration_39_40 = object : Migration(39, 40) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            //TODO: Create firm reject reasons table
         }
     }
 }

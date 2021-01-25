@@ -54,7 +54,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/top_app_bar"
-        tools:layout_height="64dp"
         tools:visibility="visible" />
 
     <include
@@ -82,7 +81,9 @@
             android:fadeScrollbars="false"
             android:scrollbars="vertical"
             app:layout_constraintBottom_toTopOf="@id/rv_photos"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0"
+            tools:layout_editor_absoluteX="0dp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_photos"
@@ -105,12 +106,23 @@
         android:hint="@string/user_explanation_hint"
         android:inputType="textMultiLine"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/btn_close"
+        app:layout_constraintBottom_toTopOf="@+id/btn_reject"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_max="128dp"
         app:layout_constraintHeight_min="48dp"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btn_reject"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:text="@string/reject_address_button"
+        app:layout_constraintBottom_toTopOf="@id/btn_close"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:visibility="gone"/>
 
     <Button
         android:id="@+id/btn_close"
@@ -132,7 +144,7 @@
         android:focusable="true"
         android:gravity="center"
         android:orientation="vertical"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

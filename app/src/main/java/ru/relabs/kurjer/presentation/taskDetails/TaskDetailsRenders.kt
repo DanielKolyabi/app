@@ -1,9 +1,7 @@
 package ru.relabs.kurjer.presentation.taskDetails
 
 import android.view.View
-import ru.relabs.kurjer.domain.models.TaskItem
-import ru.relabs.kurjer.domain.models.TaskItemState
-import ru.relabs.kurjer.domain.models.TaskState
+import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
 import ru.relabs.kurjer.utils.extensions.visible

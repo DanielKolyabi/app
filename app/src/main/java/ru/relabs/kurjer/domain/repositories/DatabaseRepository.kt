@@ -178,11 +178,13 @@ class DatabaseRepository(
                     openedTaskItems++
                 }
                 if (reportForThisTask != null) {
-                    db.taskItemDao().insert(DatabaseTaskItemMapper.toEntity(item.copy(state = TaskItemState.CLOSED)))
+                    db.taskItemDao().insert(DatabaseTaskItemMapper.toEntity(item).copy(state = TaskItemEntity.STATE_CLOSED))
                 } else {
                     db.taskItemDao().insert(DatabaseTaskItemMapper.toEntity(item))
                 }
-                db.entranceDataDao().insertAll(item.entrancesData.map { DatabaseEntranceDataMapper.toEntity(it, item.id) })
+                if (item is TaskItem.Common) {
+                    db.entranceDataDao().insertAll(item.entrancesData.map { DatabaseEntranceDataMapper.toEntity(it, item.id) })
+                }
                 debug("Add taskItem ID: ${item.id.id}")
             }
             if (openedTaskItems <= 0) {
@@ -235,14 +237,21 @@ class DatabaseRepository(
 
                     db.taskItemDao().insert(
                         if (reportForThisTask != null) {
-                            DatabaseTaskItemMapper.toEntity(newTaskItem.copy(state = TaskItemState.CLOSED))
+                            DatabaseTaskItemMapper.toEntity(newTaskItem).copy(state = TaskItemEntity.STATE_CLOSED)
                         } else {
                             DatabaseTaskItemMapper.toEntity(newTaskItem)
                         }
                     )
 
-                    db.entranceDataDao()
-                        .insertAll(newTaskItem.entrancesData.map { enData -> DatabaseEntranceDataMapper.toEntity(enData, newTaskItem.id) })
+                    if (newTaskItem is TaskItem.Common) {
+                        db.entranceDataDao()
+                            .insertAll(newTaskItem.entrancesData.map { enData ->
+                                DatabaseEntranceDataMapper.toEntity(
+                                    enData,
+                                    newTaskItem.id
+                                )
+                            })
+                    }
                 }
 
                 //Remove old taskItems

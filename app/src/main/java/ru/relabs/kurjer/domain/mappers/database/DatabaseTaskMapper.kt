@@ -2,10 +2,8 @@ package ru.relabs.kurjer.domain.mappers.database
 
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.TaskEntity
-import ru.relabs.kurjer.domain.models.CoupleType
-import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.domain.models.TaskId
-import ru.relabs.kurjer.domain.models.toTaskState
+import ru.relabs.kurjer.domain.mappers.MappingException
+import ru.relabs.kurjer.domain.models.*
 
 object DatabaseTaskMapper {
     fun fromEntity(taskEntity: TaskEntity, db: AppDatabase): Task = Task(
@@ -32,7 +30,12 @@ object DatabaseTaskMapper {
         items = db.taskItemDao().getAllForTask(taskEntity.id).map {
             DatabaseTaskItemMapper.fromEntity(it, db)
         },
-        coupleType = CoupleType(taskEntity.coupleType)
+        coupleType = CoupleType(taskEntity.coupleType),
+        deliveryType = when (taskEntity.deliveryType) {
+            1 -> TaskDeliveryType.Address
+            2 -> TaskDeliveryType.Firm
+            else -> throw MappingException("deliveryType", taskEntity.deliveryType)
+        }
     )
 
     fun toEntity(task: Task): TaskEntity = TaskEntity(
@@ -54,6 +57,10 @@ object DatabaseTaskMapper {
         storageAddress = task.storageAddress ?: "",
         iteration = task.iteration,
         coupleType = task.coupleType.type,
-        byOtherUser = task.state.byOtherUser
+        byOtherUser = task.state.byOtherUser,
+        deliveryType = when (task.deliveryType) {
+            TaskDeliveryType.Address -> 1
+            TaskDeliveryType.Firm -> 2
+        }
     )
 }

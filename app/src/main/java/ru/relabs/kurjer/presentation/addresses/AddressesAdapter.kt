@@ -12,9 +12,7 @@ import kotlinx.android.synthetic.main.holder_address_list_sorting.view.*
 import kotlinx.android.synthetic.main.holder_address_list_task.view.*
 import kotlinx.android.synthetic.main.holder_search.view.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.domain.models.TaskItem
-import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
 import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
 import ru.relabs.kurjer.presentation.base.recycler.delegateLoader
@@ -57,7 +55,7 @@ object AddressesAdapter {
         }
     )
 
-    fun taskItemDelegate(
+    fun commonTaskItemDelegate(
         onItemClicked: (taskItem: TaskItem, task: Task) -> Unit,
         onMapClicked: (task: Task) -> Unit
     ): IAdapterDelegate<AddressesItem> = delegateDefine(
@@ -67,6 +65,52 @@ object AddressesAdapter {
                 with(itemView) {
                     btn_task.text = "${task.name} №${task.edition}, ${taskItem.copies}экз."
                     if (taskItem.needPhoto || taskItem.entrancesData.any { it.photoRequired }) {
+                        when (taskItem.state) {
+                            TaskItemState.CLOSED -> {
+                                iv_item_map.alpha = 0.4f
+                                iv_item_map.isClickable = false
+                                btn_task.setTextColor(ColorUtils.setAlphaComponent(resources.getColorCompat(R.color.colorFuchsia), 128))
+                            }
+                            TaskItemState.CREATED -> {
+                                iv_item_map.alpha = 1f
+                                iv_item_map.isClickable = true
+                                btn_task.setTextColor(resources.getColorCompat(R.color.colorFuchsia))
+                            }
+                        }
+                    } else {
+                        when (taskItem.state) {
+                            TaskItemState.CLOSED -> {
+                                iv_item_map.alpha = 0.4f
+                                iv_item_map.isClickable = false
+                                btn_task.setTextColor(Color.parseColor("#66000000"))
+                            }
+                            TaskItemState.CREATED -> {
+                                iv_item_map.alpha = 1f
+                                iv_item_map.isClickable = true
+                                btn_task.setTextColor(Color.parseColor("#ff000000"))
+                            }
+                        }
+                    }
+
+                    btn_task.setOnClickListener { onItemClicked(taskItem, task) }
+                    iv_item_map.setOnClickListener { onMapClicked(task) }
+                }
+            }
+        }
+    )
+
+    fun firmTaskItemDelegate(
+        onItemClicked: (taskItem: TaskItem, task: Task) -> Unit,
+        onMapClicked: (task: Task) -> Unit
+    ): IAdapterDelegate<AddressesItem> = delegateDefine(
+        { it is AddressesItem.FirmItem },
+        { p ->
+            holderDefine(p, R.layout.holder_address_list_task, { it as AddressesItem.FirmItem }) { (taskItem, task) ->
+                with(itemView) {
+                    btn_task.text = listOf(task.name, "№${task.edition}", "${taskItem.copies}экз.", taskItem.firmName, taskItem.office)
+                        .filter { it.isNotEmpty() }
+                        .joinToString(", ")
+                    if (taskItem.needPhoto) {
                         when (taskItem.state) {
                             TaskItemState.CLOSED -> {
                                 iv_item_map.alpha = 0.4f

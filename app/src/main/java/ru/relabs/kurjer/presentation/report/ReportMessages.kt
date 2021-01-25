@@ -3,6 +3,7 @@ package ru.relabs.kurjer.presentation.report
 import android.graphics.Bitmap
 import android.location.Location
 import android.net.Uri
+import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
@@ -49,8 +50,21 @@ object ReportMessages {
     fun msgTaskSelectionLoaded(taskWithItem: TaskWithItem, photos: List<PhotoWithUri>): ReportMessage =
         msgState { it.copy(selectedTask = taskWithItem, selectedTaskPhotos = photos, isEntranceSelectionChanged = false) }
 
-    fun msgPhotoClicked(entranceNumber: EntranceNumber? = null, multiplePhoto: Boolean): ReportMessage =
-        msgEffect(ReportEffects.effectValidateRadiusAndRequestPhoto(entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM, multiplePhoto))
+    fun msgPhotoClicked(
+        entranceNumber: EntranceNumber? = null,
+        multiplePhoto: Boolean
+    ): ReportMessage = when (BuildConfig.FEATURE_PHOTO_RADIUS) {
+        true ->
+            msgEffect(
+                ReportEffects.effectValidateRadiusAndRequestPhoto(
+                    entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM,
+                    multiplePhoto
+                )
+            )
+        false ->
+            msgEffect(ReportEffects.effectRequestPhoto(entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM, multiplePhoto))
+    }
+
 
     fun msgRemovePhotoClicked(removedPhoto: TaskItemPhoto): ReportMessage = msgEffects(
         { state -> state.copy(selectedTaskPhotos = state.selectedTaskPhotos.filter { photo -> photo.photo != removedPhoto }) },
@@ -76,9 +90,13 @@ object ReportMessages {
     fun msgPhotoCaptured(entrance: Int, multiplePhoto: Boolean, photoUri: Uri, targetFile: File, uuid: UUID): ReportMessage = msgEffects(
         { it },
         {
-            listOfNotNull(
-                ReportEffects.effectValidateRadiusAndSavePhoto(entrance, photoUri, targetFile, uuid, multiplePhoto)
-            )
+            when (BuildConfig.FEATURE_PHOTO_RADIUS) {
+                true -> listOf(ReportEffects.effectValidateRadiusAndSavePhoto(entrance, photoUri, targetFile, uuid, multiplePhoto))
+                false -> listOfNotNull(
+                    ReportEffects.effectSavePhotoFromFile(entrance, photoUri, targetFile, uuid),
+                    ReportEffects.effectRequestPhoto(entrance, multiplePhoto).takeIf { multiplePhoto }
+                )
+            }
         }
     )
 
@@ -104,11 +122,11 @@ object ReportMessages {
     fun msgCouplingChanged(coupling: ReportCoupling): ReportMessage =
         msgState { it.copy(coupling = coupling) }
 
-    fun msgCloseClicked(): ReportMessage =
-        msgEffect(ReportEffects.effectCloseCheck(true))
+    fun msgCloseClicked(rejectReason: String?): ReportMessage =
+        msgEffect(ReportEffects.effectCloseCheck(true, rejectReason))
 
-    fun msgPerformClose(location: Location?): ReportMessage =
-        msgEffect(ReportEffects.effectClosePerform(true, location))
+    fun msgPerformClose(location: Location?, rejectReason: String?): ReportMessage =
+        msgEffect(ReportEffects.effectClosePerform(rejectReason == null, location, rejectReason))
 
     fun msgInterruptPause(): ReportMessage =
         msgEffect(ReportEffects.effectInterruptPause())
@@ -119,15 +137,21 @@ object ReportMessages {
                 it.copy(
                     tasks = it.tasks.map { t ->
                         if (t.taskItem.id == task.taskItem.id) {
-                            t.copy(taskItem = t.taskItem.copy(state = TaskItemState.CLOSED))
+                            t.copy(
+                                taskItem = when (t.taskItem) {
+                                    is TaskItem.Common -> t.taskItem.copy(state = TaskItemState.CLOSED)
+                                    is TaskItem.Firm -> t.taskItem.copy(state = TaskItemState.CLOSED)
+                                }
+                            )
                         } else {
                             t
                         }
                     },
                     selectedTask = it.selectedTask?.copy(
-                        taskItem = it.selectedTask.taskItem.copy(
-                            state = TaskItemState.CLOSED
-                        )
+                        taskItem = when (it.selectedTask.taskItem) {
+                            is TaskItem.Common -> it.selectedTask.taskItem.copy(state = TaskItemState.CLOSED)
+                            is TaskItem.Firm -> it.selectedTask.taskItem.copy(state = TaskItemState.CLOSED)
+                        }
                     ),
                     exits = if (withRemove && it.tasks.none { it.taskItem.state == TaskItemState.CREATED && it.taskItem.id != task.taskItem.id }) {
                         it.exits.inc()
@@ -161,15 +185,18 @@ object ReportMessages {
                     if (t.task.id == taskId) {
                         t.copy(
                             task = t.task.copy(state = t.task.state.copy(state = TaskState.COMPLETED)),
-                            taskItem = t.taskItem.copy(state = TaskItemState.CLOSED)
+                            taskItem = when (t.taskItem) {
+                                is TaskItem.Common -> t.taskItem.copy(state = TaskItemState.CLOSED)
+                                is TaskItem.Firm -> t.taskItem.copy(state = TaskItemState.CLOSED)
+                            }
                         )
                     } else {
                         t
                     }
                 },
-                exits = if(s.tasks.none { it.taskItem.state == TaskItemState.CREATED && it.task.id != taskId }){
+                exits = if (s.tasks.none { it.taskItem.state == TaskItemState.CREATED && it.task.id != taskId }) {
                     s.exits.inc()
-                }else{
+                } else {
                     s.exits
                 }
             )
@@ -187,5 +214,8 @@ object ReportMessages {
 
     fun msgDisableCouplingForType(coupleType: CoupleType): ReportMessage =
         msgState { it.copy(coupling = it.coupling.filter { e -> e.key.second != coupleType }) }
+
+    fun msgRejectClicked(): ReportMessage =
+        msgEffect(ReportEffects.effectRejectClicked())
 
 }

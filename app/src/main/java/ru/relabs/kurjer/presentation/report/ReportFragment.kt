@@ -27,14 +27,12 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.domain.models.TaskId
-import ru.relabs.kurjer.domain.models.TaskItem
-import ru.relabs.kurjer.domain.models.TaskItemId
+import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.TextChangeListener
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.*
+import ru.relabs.kurjer.presentation.dialogs.RejectFirmDialog
 import ru.relabs.kurjer.uiOld.helpers.HintHelper
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
@@ -148,11 +146,12 @@ class ReportFragment : BaseFragment() {
                 ReportRenders.renderLoading(view.loading, view.tv_gps_loading),
                 ReportRenders.renderTasks(tasksAdapter, view.rv_tasks),
                 ReportRenders.renderPhotos(photosAdapter),
-                ReportRenders.renderEntrances(entrancesAdapter),
+                ReportRenders.renderEntrances(entrancesAdapter, view.rv_entrances),
                 ReportRenders.renderTitle(view.tv_title),
                 ReportRenders.renderDescription(view.et_description, descriptionTextWatcher),
                 ReportRenders.renderNotes(view.hint_text),
-                ReportRenders.renderTaskItemAvailability(listInterceptor, view.et_description, view.btn_close)
+                ReportRenders.renderTaskItemAvailability(listInterceptor, view.et_description, view.btn_close, view.btn_reject),
+                ReportRenders.renderRejectButton(view.btn_reject)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
@@ -167,6 +166,13 @@ class ReportFragment : BaseFragment() {
         controller.context.getBatteryLevel = ::getBatteryLevel
         controller.context.showError = ::showFatalError
         controller.context.contentResolver = { requireContext().contentResolver }
+        controller.context.showRejectDialog = ::showRejectDialog
+    }
+
+    private fun showRejectDialog(reasons: List<String>) {
+        RejectFirmDialog(reasons) {
+            uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(it))
+        }.show(requireFragmentManager(), "dialog_reject")
     }
 
     private suspend fun showFatalError(code: String, isFatal: Boolean) = withContext(Dispatchers.Main) {
@@ -193,21 +199,21 @@ class ReportFragment : BaseFragment() {
         }
     }
 
-    private fun showPreCloseDialog(location: Location?) {
+    private fun showPreCloseDialog(location: Location?, rejectReason: String?) {
         showDialog(
             R.string.report_close_ask,
-            R.string.yes to { uiScope.sendMessage(controller, ReportMessages.msgPerformClose(location)) },
+            R.string.yes to { uiScope.sendMessage(controller, ReportMessages.msgPerformClose(location, rejectReason)) },
             R.string.no to {},
             style = R.style.RedAlertDialog
         )
     }
 
-    private fun showCloseError(msgRes: Int, withPreClose: Boolean, location: Location? = null) {
+    private fun showCloseError(msgRes: Int, withPreClose: Boolean, location: Location? = null, rejectReason: String?) {
         showDialog(
             msgRes,
             R.string.ok to {
                 if (withPreClose) {
-                    showPreCloseDialog(location)
+                    showPreCloseDialog(location, rejectReason)
                 }
             }
         )
@@ -270,7 +276,13 @@ class ReportFragment : BaseFragment() {
 
         uiScope.sendMessage(
             controller,
-            ReportMessages.msgPhotoCaptured(photoData.entrance, photoData.multiplePhoto, photoData.photoUri, photoData.targetFile, photoData.uuid)
+            ReportMessages.msgPhotoCaptured(
+                photoData.entrance,
+                photoData.multiplePhoto,
+                photoData.photoUri,
+                photoData.targetFile,
+                photoData.uuid
+            )
         )
     }
 
@@ -282,7 +294,11 @@ class ReportFragment : BaseFragment() {
         }
 
         view.btn_close.setOnClickListener {
-            uiScope.sendMessage(controller, ReportMessages.msgCloseClicked())
+            uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(null))
+        }
+
+        view.btn_reject.setOnClickListener {
+            uiScope.sendMessage(controller, ReportMessages.msgRejectClicked())
         }
     }
 
@@ -292,10 +308,10 @@ class ReportFragment : BaseFragment() {
         controller.context.showError = { _, _ -> }
         controller.context.hideKeyboard = {}
         controller.context.requestPhoto = { _, _, _, _ -> }
-        controller.context.showCloseError = { _, _, _ -> }
+        controller.context.showCloseError = { _, _, _, _ -> }
         controller.context.showPausedWarning = {}
         controller.context.showPhotosWarning = {}
-        controller.context.showPreCloseDialog = {}
+        controller.context.showPreCloseDialog = { _, _ -> }
         controller.context.getBatteryLevel = { null }
         controller.context.contentResolver = { null }
         controller.context.errorContext.detach()
@@ -322,5 +338,11 @@ class ReportFragment : BaseFragment() {
     @Parcelize
     private data class ArgItem(val task: TaskId, val taskItem: TaskItemId) : Parcelable
 
-    private data class ReportPhotoData(val entrance: Int, val multiplePhoto: Boolean, val photoUri: Uri, val targetFile: File, val uuid: UUID)
+    private data class ReportPhotoData(
+        val entrance: Int,
+        val multiplePhoto: Boolean,
+        val photoUri: Uri,
+        val targetFile: File,
+        val uuid: UUID
+    )
 }

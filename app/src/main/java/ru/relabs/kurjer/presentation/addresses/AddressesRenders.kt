@@ -8,12 +8,8 @@ import android.view.View
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import okhttp3.internal.toImmutableList
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.domain.models.AddressId
-import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.domain.models.TaskItem
-import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
@@ -128,7 +124,12 @@ object AddressesRenders {
 
         val taskItems = tasks.flatMap { task -> task.items.map { item -> task to item } }.let { items ->
             if (searchFilter.isNotEmpty()) {
-                items.filter { item -> SearchUtils.isMatches(item.second.address.name, searchFilter) }
+                items.filter { (_, item) ->
+                    when (item) {
+                        is TaskItem.Common -> false
+                        is TaskItem.Firm -> SearchUtils.isMatches("${item.firmName}, ${item.office}", searchFilter)
+                    } || SearchUtils.isMatches(item.address.name, searchFilter)
+                }
             } else {
                 items
             }
@@ -170,8 +171,12 @@ object AddressesRenders {
         val groups = sortedItems
             .groupBy { it.second.address.id }
             .map {
-                listOf(AddressesItem.GroupHeader(it.value.map { it.second }, tasks.size == 1)) +
-                        it.value.map { AddressesItem.AddressItem(it.second, it.first) }
+                listOf(AddressesItem.GroupHeader(it.value.map { it.second }, tasks.size == 1)) + it.value.map { (t, ti) ->
+                    when (ti) {
+                        is TaskItem.Common -> AddressesItem.AddressItem(ti, t)
+                        is TaskItem.Firm -> AddressesItem.FirmItem(ti, t)
+                    }
+                }
             }
             .flatten()
 

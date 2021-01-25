@@ -15,5 +15,8 @@ data class TaskItemResponse(
     @SerializedName("copies") val copies: Int,
     @SerializedName("task_id") val taskId: Int,
     @SerializedName("need_photo") val needPhoto: Boolean,
-    @SerializedName("entrances_data") val entrancesData: List<TaskItemEntranceResponse>
+    @SerializedName("entrances_data") val entrancesData: List<TaskItemEntranceResponse>,
+    @SerializedName("is_firm") val isFirm: Boolean,
+    @SerializedName("firm_name") val firmName: String,
+    @SerializedName("office") val officeName: String
 )

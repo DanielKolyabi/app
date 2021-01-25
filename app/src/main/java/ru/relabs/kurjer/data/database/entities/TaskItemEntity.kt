@@ -36,16 +36,14 @@ data class TaskItemEntity(
     @ColumnInfo(name = "task_id")
     var taskId: Int,
     @ColumnInfo(name = "need_photo")
-    var needPhoto: Boolean
+    var needPhoto: Boolean,
+    @ColumnInfo(name = "is_firm")
+    var isFirm: Boolean,
+    @ColumnInfo(name = "office_name")
+    var officeName: String,
+    @ColumnInfo(name = "firm_name")
+    val firmName: String
 ) {
-    fun toTaskItemModel(db: AppDatabase): TaskItemModel {
-        return TaskItemModel(
-            db.addressDao().getById(addressId)!!.toAddressModel(),
-            state, id, notes, entrances.map { EntranceModel(it, false) }, subarea, bypass, copies, needPhoto,
-            db.entranceDataDao().getAllForTaskItem(id).map { it.toEntranceDataModel() }
-        )
-    }
-
     companion object {
         const val STATE_CLOSED = 1
         const val STATE_CREATED = 0

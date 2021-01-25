@@ -12,6 +12,7 @@ import retrofit2.HttpException
 import retrofit2.Response
 import ru.relabs.kurjer.data.api.DeliveryApi
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.data.database.entities.FirmRejectReason
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.TaskItemPhotoEntity
@@ -41,6 +42,7 @@ class DeliveryRepository(
     private val networkClient: OkHttpClient,
     private val pathsProvider: PathsProvider
 ) {
+    private var availableFirmRejectReasons: List<String> = listOf()
     fun isAuthenticated(): Boolean = authTokenStorage.getToken() != null
 
     suspend fun login(login: UserLogin, password: String): EitherE<Pair<User, String>> = anonymousRequest {
@@ -136,7 +138,8 @@ class DeliveryRepository(
         val reportObject = TaskItemReportRequest(
             item.taskId, item.taskItemId, item.imageFolderId,
             item.gps, item.closeTime, item.userDescription, item.entrances, photosMap,
-            item.batteryLevel, item.closeDistance, item.allowedDistance, item.radiusRequired
+            item.batteryLevel, item.closeDistance, item.allowedDistance, item.radiusRequired,
+            item.isRejected, item.rejectReason
         )
 
         deliveryApi.sendTaskReport(
@@ -213,6 +216,20 @@ class DeliveryRepository(
             throw Exception("Wrong response code.")
         }
     }
+
+    suspend fun getFirmRejectReasons(withRefresh: Boolean = false): EitherE<List<String>> =
+        authenticatedRequest { token ->
+            if (!withRefresh && availableFirmRejectReasons.isEmpty()) {
+                availableFirmRejectReasons = database.firmRejectReasonDao().all.map { it.reason }
+            }
+            if ((withRefresh || availableFirmRejectReasons.isEmpty()) && token.isNotBlank()) {
+                availableFirmRejectReasons = deliveryApi.getAvailableFirmRejectReasons(token)
+                database.firmRejectReasonDao().clear()
+                database.firmRejectReasonDao()
+                    .insertAll(availableFirmRejectReasons.map { FirmRejectReason(0, it) })
+            }
+            availableFirmRejectReasons
+        }
 
     //Could be sended in other user session
     suspend fun startPause(pauseType: PauseType, token: String, startTime: Long): EitherE<Boolean> = anonymousRequest {

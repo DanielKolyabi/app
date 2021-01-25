@@ -3,6 +3,8 @@ package ru.relabs.kurjer.presentation.tasks
 import android.view.View
 import androidx.recyclerview.widget.DiffUtil
 import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.address
+import ru.relabs.kurjer.domain.models.id
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT

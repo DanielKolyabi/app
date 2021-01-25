@@ -25,6 +25,7 @@ android {
         targetSdkVersion(29)
         versionCode = 128
         versionName = "128"
+        buildConfigField("Boolean", "FEATURE_PHOTO_RADIUS", "false")
     }
     flavorDimensions("server")
     productFlavors {
@@ -85,7 +86,7 @@ dependencies {
     implementation("org.koin:koin-android-ext:${Config.Versions.koin}")
 
     // androidx
-    implementation("androidx.core:core-ktx:1.3.0")
+    implementation("androidx.core:core-ktx:1.3.2")
     implementation("androidx.appcompat:appcompat:1.1.0")
     implementation("androidx.constraintlayout:constraintlayout:2.0.0-beta4")
     implementation("androidx.recyclerview:recyclerview:1.1.0")

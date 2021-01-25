@@ -7,10 +7,7 @@ import kotlinx.android.synthetic.main.holder_report_entrance.view.*
 import kotlinx.android.synthetic.main.holder_report_photo.view.*
 import kotlinx.android.synthetic.main.holder_report_task.view.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.domain.models.EntranceNumber
-import ru.relabs.kurjer.domain.models.TaskItem
-import ru.relabs.kurjer.domain.models.TaskItemPhoto
-import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
 import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
 import ru.relabs.kurjer.presentation.base.recycler.holderDefine
@@ -65,7 +62,10 @@ object ReportAdapter {
         { p ->
             holderDefine(p, R.layout.holder_report_task, { it }) { (task, taskItem, active) ->
 
-                itemView.btn_task.text = "${task.name} №${task.edition}, ${task.copies}"
+                itemView.btn_task.text = when(taskItem){
+                    is TaskItem.Common -> "${task.name} №${task.edition}, ${task.copies}экз."
+                    is TaskItem.Firm -> "${task.name} №${task.edition}, ${task.copies}экз., ${taskItem.firmName}, ${taskItem.office}"
+                }
                 if (active) {
                     itemView.btn_task.setBackgroundResource(R.drawable.abc_btn_colored_material)
                 } else {

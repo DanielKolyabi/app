@@ -79,6 +79,7 @@ object TasksEffects {
                 else -> R.string.task_list_tasks_not_changed
             }
             c.showSnackbar(message)
+            c.deliveryRepository.getFirmRejectReasons(true)
         }
         messages.send(TasksMessages.msgTasksLoaded(c.databaseRepository.getTasks()))
         messages.send(TasksMessages.msgAddLoaders(-1))

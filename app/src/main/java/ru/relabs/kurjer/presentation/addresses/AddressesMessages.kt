@@ -53,7 +53,10 @@ object AddressesMessages {
                 t.copy(
                     items = t.items.map { ti ->
                         if (ti.id == taskItemId) {
-                            ti.copy(state = TaskItemState.CLOSED)
+                            when (ti) {
+                                is TaskItem.Common -> ti.copy(state = TaskItemState.CLOSED)
+                                is TaskItem.Firm -> ti.copy(state = TaskItemState.CLOSED)
+                            }
                         } else {
                             ti
                         }
@@ -62,7 +65,12 @@ object AddressesMessages {
             }
             val visibleOpenedTaskItemsCount = newTasks.map { t ->
                 t.items.filter {
-                    SearchUtils.isMatches(it.address.name, s.searchFilter) && it.state == TaskItemState.CREATED
+                    val isNameMatch = when (it) {
+                        is TaskItem.Common -> false
+                        is TaskItem.Firm -> SearchUtils.isMatches("${it.firmName}, ${it.office}", s.searchFilter)
+                    } || SearchUtils.isMatches(it.address.name, s.searchFilter)
+
+                    isNameMatch && it.state == TaskItemState.CREATED
                 }.size
             }.sum()
 

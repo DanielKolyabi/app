@@ -10,6 +10,7 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
+import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.RadiusRepository
 import ru.relabs.kurjer.domain.useCases.ReportUseCase
@@ -53,16 +54,18 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     val reportUseCase: ReportUseCase by inject()
     val taskEventController: TaskEventController by inject()
     val pathsProvider: PathsProvider by inject()
+    val deliveryRepository: DeliveryRepository by inject()
 
     var showError: suspend (code: String, isFatal: Boolean) -> Unit = { _, _ -> }
     var requestPhoto: (entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID) -> Unit = { _, _, _, _ -> }
     var hideKeyboard: () -> Unit = {}
-    var showCloseError: (msgRes: Int, showNext: Boolean, location: Location?) -> Unit = { _, _, _ -> }
+    var showCloseError: (msgRes: Int, showNext: Boolean, location: Location?, rejectReason: String?) -> Unit = { _, _, _, _ -> }
     var showPausedWarning: () -> Unit = {}
     var showPhotosWarning: () -> Unit = {}
-    var showPreCloseDialog: (location: Location?) -> Unit = {}
+    var showPreCloseDialog: (location: Location?, rejectReason: String?) -> Unit = { _, _ -> }
     var getBatteryLevel: () -> Float? = { null }
     var contentResolver: () -> ContentResolver? = { null }
+    var showRejectDialog: (reasons: List<String>) -> Unit = {}
 }
 
 enum class EntranceSelectionButton {

@@ -109,4 +109,5 @@
     <string name="task_update_required">Необходимо обновить список заданий</string>
     <string name="later">Позже</string>
     <string name="menu_bottom_info">"Версия: %d | Пользователь: %s "</string>
+    <string name="reject_address_button">Отказ</string>
 </resources>

@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.domain.mappers.network
 
 import ru.relabs.kurjer.data.models.tasks.TaskResponse
+import ru.relabs.kurjer.domain.mappers.MappingException
 import ru.relabs.kurjer.domain.models.*
 
 object TaskMapper {
@@ -35,6 +36,11 @@ object TaskMapper {
         items = raw.items.map {
             TaskItemMapper.fromRaw(it)
         },
-        coupleType = CoupleType(raw.coupleType)
+        coupleType = CoupleType(raw.coupleType),
+        deliveryType = when(raw.deliveryType){
+            1 -> TaskDeliveryType.Address
+            2 -> TaskDeliveryType.Firm
+            else -> throw MappingException("deliveryType", raw.deliveryType)
+        }
     )
 }

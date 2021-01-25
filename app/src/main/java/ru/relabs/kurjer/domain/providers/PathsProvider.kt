@@ -3,6 +3,7 @@ package ru.relabs.kurjer.domain.providers
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.id
 
 import ru.relabs.kurjer.models.TaskItemModel
 import java.io.File

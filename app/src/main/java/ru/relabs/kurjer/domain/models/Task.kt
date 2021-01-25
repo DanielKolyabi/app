@@ -32,7 +32,8 @@ data class Task(
     val storageAddress: String?,
     val iteration: Int,
     val items: List<TaskItem>,
-    val coupleType: CoupleType
+    val coupleType: CoupleType,
+    val deliveryType: TaskDeliveryType
 ) : Parcelable {
 
     val listName: String
@@ -42,6 +43,10 @@ data class Task(
         val state: TaskState,
         val byOtherUser: Boolean
     ) : Parcelable
+}
+
+enum class TaskDeliveryType {
+    Address, Firm
 }
 
 

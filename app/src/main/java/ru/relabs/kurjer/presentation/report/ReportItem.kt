@@ -12,7 +12,7 @@ sealed class ReportPhotoItem {
 }
 
 data class ReportEntranceItem(
-    val taskItem: TaskItem,
+    val taskItem: TaskItem.Common,
     val entranceNumber: EntranceNumber,
     val selection: ReportEntranceSelection,
     val coupleEnabled: Boolean,

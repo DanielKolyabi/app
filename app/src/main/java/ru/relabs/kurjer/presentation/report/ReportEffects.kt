@@ -54,11 +54,16 @@ object ReportEffects {
                 tasks
                     .distinctBy { it.task.coupleType }
                     .flatMap { taskWithItem ->
-                        taskWithItem.taskItem.entrancesData.map {
-                            val isCouplingEnabled = activeTaskWithItems.count { taskWithItem.task.coupleType == it.task.coupleType } > 1 &&
-                                    c.database.getTaskItemResult(taskWithItem.taskItem) == null
+                        if (taskWithItem.taskItem is TaskItem.Common) {
+                            taskWithItem.taskItem.entrancesData.map {
+                                val isCouplingEnabled =
+                                    activeTaskWithItems.count { taskWithItem.task.coupleType == it.task.coupleType } > 1 &&
+                                            c.database.getTaskItemResult(taskWithItem.taskItem) == null
 
-                            (it.number to taskWithItem.task.coupleType) to isCouplingEnabled
+                                (it.number to taskWithItem.task.coupleType) to isCouplingEnabled
+                            }
+                        } else {
+                            emptyList()
                         }
                     }
                     .toMap()
@@ -127,12 +132,12 @@ object ReportEffects {
                 if (c.radiusRepository.allowedCloseRadius.photoAnyDistance) {
                     if (distance > c.radiusRepository.allowedCloseRadius.distance && withAnyRadiusWarning) {
                         withContext(Dispatchers.Main) {
-                            c.showCloseError(R.string.report_close_location_far_warning, false, null)
+                            c.showCloseError(R.string.report_close_location_far_warning, false, null, null)
                         }
                     }
                     messages.send(msgFactory())
                 } else {
-                    if (location == null || Date(location.time).isLocationExpired(60*1000)) {
+                    if (location == null || Date(location.time).isLocationExpired(60 * 1000)) {
                         if (withLocationLoading) {
                             coroutineScope {
                                 messages.send(ReportMessages.msgAddLoaders(1))
@@ -157,13 +162,13 @@ object ReportEffects {
                             }
                         } else {
                             withContext(Dispatchers.Main) {
-                                c.showCloseError(R.string.report_close_location_null_error, false, null)
+                                c.showCloseError(R.string.report_close_location_null_error, false, null, null)
                             }
                         }
                     } else {
                         if (distance > c.radiusRepository.allowedCloseRadius.distance) {
                             withContext(Dispatchers.Main) {
-                                c.showCloseError(R.string.report_close_location_far_error, false, null)
+                                c.showCloseError(R.string.report_close_location_far_error, false, null, null)
                             }
                         } else {
                             messages.send(msgFactory())
@@ -199,8 +204,7 @@ object ReportEffects {
     fun effectValidateRadiusAndRequestPhoto(
         entranceNumber: Int,
         multiplePhoto: Boolean
-    ): ReportEffect =
-        effectValidatePhotoRadiusAnd({ msgEffect(effectRequestPhoto(entranceNumber, multiplePhoto)) }, false)
+    ): ReportEffect = effectValidatePhotoRadiusAnd({ msgEffect(effectRequestPhoto(entranceNumber, multiplePhoto)) }, false)
 
     fun effectRequestPhoto(entranceNumber: Int, multiplePhotos: Boolean): ReportEffect = { c, s ->
         when (val selectedTask = s.selectedTask) {
@@ -324,7 +328,7 @@ object ReportEffects {
         }
     }
 
-    fun effectCloseCheck(withLocationLoading: Boolean): ReportEffect = { c, s ->
+    fun effectCloseCheck(withLocationLoading: Boolean, rejectReason: String?): ReportEffect = { c, s ->
         messages.send(ReportMessages.msgAddLoaders(1))
         when (val selected = s.selectedTask) {
             null -> c.showError("re:106", true)
@@ -335,9 +339,12 @@ object ReportEffects {
                     true
                 }
 
-                val requiredEntrancesPhotos = selected.taskItem.entrancesData
-                    .filter { it.photoRequired }
-                    .map { it.number }
+                val requiredEntrancesPhotos = when (selected.taskItem) {
+                    is TaskItem.Common -> selected.taskItem.entrancesData
+                        .filter { it.photoRequired }
+                        .map { it.number }
+                    is TaskItem.Firm -> emptyList()
+                }
 
                 val entrancesRequiredPhotoExists = if (requiredEntrancesPhotos.isNotEmpty()) {
                     requiredEntrancesPhotos.all { entranceNumber -> s.selectedTaskPhotos.any { it.photo.entranceNumber == entranceNumber } }
@@ -369,7 +376,7 @@ object ReportEffects {
                         listOf(delayJob, gpsJob).awaitFirst()
                         messages.send(ReportMessages.msgGPSLoading(false))
                         messages.send(ReportMessages.msgAddLoaders(-1))
-                        messages.send(msgEffect(effectCloseCheck(false)))
+                        messages.send(msgEffect(effectCloseCheck(false, rejectReason)))
                     }
                 } else {
                     val distance = location?.let {
@@ -385,32 +392,32 @@ object ReportEffects {
                         when (val radius = c.radiusRepository.allowedCloseRadius) {
                             is AllowedCloseRadius.Required -> when {
                                 location == null || Date(location.time).isLocationExpired() -> {
-                                    c.showCloseError(R.string.report_close_location_null_error, false, null)
+                                    c.showCloseError(R.string.report_close_location_null_error, false, null, rejectReason)
                                     true
                                 }
                                 distance > radius.distance -> {
-                                    c.showCloseError(R.string.report_close_location_far_error, false, null)
+                                    c.showCloseError(R.string.report_close_location_far_error, false, null, rejectReason)
                                     true
                                 }
                                 else -> {
                                     withContext(Dispatchers.Main) {
-                                        c.showPreCloseDialog(location)
+                                        c.showPreCloseDialog(location, rejectReason)
                                     }
                                     false
                                 }
                             }
                             is AllowedCloseRadius.NotRequired -> when {
                                 location == null || Date(location.time).isLocationExpired() -> {
-                                    c.showCloseError(R.string.report_close_location_null_warning, true, location)
+                                    c.showCloseError(R.string.report_close_location_null_warning, true, location, rejectReason)
                                     false
                                 }
                                 distance > radius.distance -> {
-                                    c.showCloseError(R.string.report_close_location_far_warning, true, location)
+                                    c.showCloseError(R.string.report_close_location_far_warning, true, location, rejectReason)
                                     false
                                 }
                                 else -> {
                                     withContext(Dispatchers.Main) {
-                                        c.showPreCloseDialog(location)
+                                        c.showPreCloseDialog(location, rejectReason)
                                     }
                                     false
                                 }
@@ -418,7 +425,7 @@ object ReportEffects {
                         }
                     }
                     if (shadowClose) {
-                        effectClosePerform(false, location)(c, s)
+                        effectClosePerform(false, location, rejectReason)(c, s)
                     }
                 }
             }
@@ -426,13 +433,21 @@ object ReportEffects {
         messages.send(ReportMessages.msgAddLoaders(-1))
     }
 
-    fun effectClosePerform(withRemove: Boolean, location: Location?): ReportEffect = { c, s ->
+    fun effectClosePerform(withRemove: Boolean, location: Location?, rejectReason: String?): ReportEffect = { c, s ->
         messages.send(ReportMessages.msgAddLoaders(1))
         when (val selected = s.selectedTask) {
             null -> c.showError("re:107", true)
             else -> {
                 effectInterruptPause()(c, s)
-                c.reportUseCase.createReport(selected.task, selected.taskItem, location, c.getBatteryLevel() ?: 0f, withRemove)
+                c.reportUseCase.createReport(
+                    selected.task,
+                    selected.taskItem,
+                    location,
+                    c.getBatteryLevel() ?: 0f,
+                    withRemove,
+                    rejectReason != null,
+                    rejectReason ?: ""
+                )
                 if (withRemove) {
                     ReportService.restartTaskClosingTimer()
                 }
@@ -489,5 +504,15 @@ object ReportEffects {
 
     fun effectShowPhotoError(errorCode: Int): ReportEffect = { c, s ->
         c.showError("Не удалось сделать фотографию: re:photo:$errorCode", false)
+    }
+
+    fun effectRejectClicked(): ReportEffect = {c,s ->
+        val reasons = when(val r = c.deliveryRepository.getFirmRejectReasons()){
+            is Right -> r.value
+            is Left -> emptyList()
+        }
+        withContext(Dispatchers.Main){
+            c.showRejectDialog(reasons)
+        }
     }
 }

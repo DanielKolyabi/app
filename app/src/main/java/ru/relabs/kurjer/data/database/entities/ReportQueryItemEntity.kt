@@ -25,5 +25,7 @@ data class ReportQueryItemEntity(
     @ColumnInfo(name = "remove_after_send") var removeAfterSend: Boolean,
     @ColumnInfo(name = "close_distance") var closeDistance: Int,
     @ColumnInfo(name = "allowed_distance") var allowedDistance: Int,
-    @ColumnInfo(name = "radius_required") var radiusRequired: Boolean
+    @ColumnInfo(name = "radius_required") var radiusRequired: Boolean,
+    @ColumnInfo(name = "is_rejected") var isRejected: Boolean,
+    @ColumnInfo(name = "reject_reason") var rejectReason: String
 )

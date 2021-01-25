@@ -6,7 +6,7 @@ import kotlinx.android.synthetic.main.holder_task_details_list_info.view.*
 import kotlinx.android.synthetic.main.holder_task_details_list_info.view.tv_copies
 import kotlinx.android.synthetic.main.holder_task_details_list_item.view.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
 import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
 import ru.relabs.kurjer.presentation.base.recycler.holderDefine
@@ -29,7 +29,7 @@ object TaskDetailsAdapter {
                     tv_remain.text = task.remain.toString()
                     tv_storage.text = task.storageAddress
 
-                    if (task.items.any { it.needPhoto || it.entrancesData.any { it.photoRequired } }) {
+                    if (task.items.any { it.needPhoto || (it is TaskItem.Common && it.entrancesData.any { it.photoRequired }) }) {
                         need_photo_label.visibility = View.VISIBLE
                     } else {
                         need_photo_label.visibility = View.GONE
@@ -54,14 +54,19 @@ object TaskDetailsAdapter {
             holderDefine(p, R.layout.holder_task_details_list_item, { it as TaskDetailsItem.ListItem }) { (taskItem) ->
                 with(itemView) {
                     tv_bypass.text = resources.getString(R.string.task_details_address_bypass, taskItem.subarea, taskItem.bypass)
-                    tv_address.text = taskItem.address.name
+                    tv_address.text = when (taskItem) {
+                        is TaskItem.Common -> taskItem.address.name
+                        is TaskItem.Firm -> listOf(taskItem.address.name, taskItem.firmName, taskItem.office)
+                            .filter { it.isNotEmpty() }
+                            .joinToString(", ")
+                    }
                     tv_copies.text = taskItem.copies.toString()
 
                     iv_info.setOnClickListener {
                         onInfoClicked(taskItem)
                     }
 
-                    if (taskItem.needPhoto || taskItem.entrancesData.any { it.photoRequired }) {
+                    if (taskItem.needPhoto || (taskItem is TaskItem.Common && taskItem.entrancesData.any { it.photoRequired })) {
                         tv_address.setTextColor(resources.getColor(R.color.colorFuchsia))
                     } else {
                         tv_address.setTextColor(Color.parseColor("#808080"))

@@ -17,9 +17,4 @@ data class AddressModel(
 
     val name: String
         get() = "$street, д. $houseName"
-
-
-    fun toAddressEntity(): AddressEntity {
-        return AddressEntity(id, city, street, house, houseName, lat, long)
-    }
 }

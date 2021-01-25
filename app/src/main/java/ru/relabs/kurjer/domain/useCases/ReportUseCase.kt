@@ -5,9 +5,7 @@ import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.mappers.ReportEntranceSelectionMapper
-import ru.relabs.kurjer.domain.models.AllowedCloseRadius
-import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.RadiusRepository
@@ -25,7 +23,15 @@ class ReportUseCase(
     private val taskEventController: TaskEventController
 ) {
 
-    suspend fun createReport(task: Task, taskItem: TaskItem, location: Location?, batteryLevel: Float, isCloseTaskRequired: Boolean) {
+    suspend fun createReport(
+        task: Task,
+        taskItem: TaskItem,
+        location: Location?,
+        batteryLevel: Float,
+        isCloseTaskRequired: Boolean,
+        isRejected: Boolean,
+        rejectReason: String
+    ) {
         val result = databaseRepository.getTaskItemResult(taskItem)
         val distance = location?.let {
             calculateDistance(
@@ -44,17 +50,22 @@ class ReportUseCase(
             getReportLocation(location),
             Date(),
             result?.description ?: "",
-            taskItem.entrancesData.map {
-                val en = it.number
-                val resultData = result?.entrances?.firstOrNull { it.entranceNumber == en }
-                en.number to (resultData?.selection?.let { ReportEntranceSelectionMapper.toBits(it) } ?: 0)
+            when (taskItem) {
+                is TaskItem.Common -> taskItem.entrancesData.map {
+                    val en = it.number
+                    val resultData = result?.entrances?.firstOrNull { it.entranceNumber == en }
+                    en.number to (resultData?.selection?.let { ReportEntranceSelectionMapper.toBits(it) } ?: 0)
+                }
+                is TaskItem.Firm -> emptyList()
             },
             tokenStorage.getToken() ?: "",
             (batteryLevel * 100).roundToInt(),
             isCloseTaskRequired,
             distance.toInt(),
             (radiusRepository.allowedCloseRadius as? AllowedCloseRadius.Required)?.distance ?: 0,
-            radiusRepository.allowedCloseRadius is AllowedCloseRadius.Required
+            radiusRepository.allowedCloseRadius is AllowedCloseRadius.Required,
+            isRejected,
+            rejectReason
         )
 
         databaseRepository.createTaskItemReport(reportItem)

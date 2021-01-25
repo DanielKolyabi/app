@@ -31,7 +31,15 @@ class AddressesFragment : BaseFragment() {
     private var renderJob: Job? = null
 
     private val addressesAdapter = DelegateAdapter(
-        AddressesAdapter.taskItemDelegate(
+        AddressesAdapter.commonTaskItemDelegate(
+            { item, task ->
+                uiScope.sendMessage(controller, AddressesMessages.msgTaskItemClicked(item, task))
+            },
+            {
+                uiScope.sendMessage(controller, AddressesMessages.msgTaskItemMapClicked(it))
+            }
+        ),
+        AddressesAdapter.firmTaskItemDelegate(
             { item, task ->
                 uiScope.sendMessage(controller, AddressesMessages.msgTaskItemClicked(item, task))
             },

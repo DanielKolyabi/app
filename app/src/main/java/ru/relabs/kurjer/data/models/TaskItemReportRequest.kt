@@ -20,7 +20,9 @@ data class TaskItemReportRequest(
     @SerializedName("battery_level") val batteryLevel: Int,
     @SerializedName("close_distance") val closeDistance: Int,
     @SerializedName("allowed_distance") val allowedDistance: Int,
-    @SerializedName("radius_required") val radiusRequired: Boolean
+    @SerializedName("radius_required") val radiusRequired: Boolean,
+    @SerializedName("is_rejected") val isRejected: Boolean,
+    @SerializedName("reject_reason") val rejectReason: String
 )
 
 data class PhotoReportRequest(

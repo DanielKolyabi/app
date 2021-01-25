@@ -99,4 +99,7 @@ interface DeliveryApi {
     suspend fun getRadius(
         @Header("X-TOKEN") token: String
     ): RadiusResponse
+
+    @GET("/api/v1/reject_reasons")
+    suspend fun getAvailableFirmRejectReasons(@Query("token") token: String): List<String>
 }

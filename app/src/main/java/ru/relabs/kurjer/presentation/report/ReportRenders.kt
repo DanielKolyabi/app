@@ -76,7 +76,7 @@ object ReportRenders {
         { (data, coupling) ->
             val (taskData, photos, report) = data
             val (taskItem, task) = taskData
-            view.visible = taskItem is TaskItem.Firm
+            view.visible = taskItem is TaskItem.Common
             adapter.items.clear()
             if (taskItem != null) {
                 if (taskItem is TaskItem.Common) {

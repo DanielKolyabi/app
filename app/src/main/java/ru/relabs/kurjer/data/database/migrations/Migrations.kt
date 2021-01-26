@@ -2,8 +2,6 @@ package ru.relabs.kurjer.data.database.migrations
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import ru.relabs.kurjer.data.database.entities.TaskEntity
-import java.util.*
 
 object Migrations {
     fun getMigrations(): Array<Migration> = arrayOf(
@@ -152,7 +150,14 @@ object Migrations {
     }
     private val migration_39_40 = object : Migration(39, 40) {
         override fun migrate(database: SupportSQLiteDatabase) {
-            //TODO: Create firm reject reasons table
+            database.execSQL(
+                """
+                    CREATE TABLE firm_reject_reason(
+                        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        reason TEXT NOT NULL DEFAULT ''
+                    )
+                """.trimIndent()
+            )
         }
     }
 }

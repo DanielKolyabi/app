@@ -126,7 +126,7 @@ object ReportMessages {
         msgEffect(ReportEffects.effectCloseCheck(true, rejectReason))
 
     fun msgPerformClose(location: Location?, rejectReason: String?): ReportMessage =
-        msgEffect(ReportEffects.effectClosePerform(rejectReason == null, location, rejectReason))
+        msgEffect(ReportEffects.effectClosePerform(true, location, rejectReason))
 
     fun msgInterruptPause(): ReportMessage =
         msgEffect(ReportEffects.effectInterruptPause())

@@ -65,7 +65,11 @@ class ReportUseCase(
             (radiusRepository.allowedCloseRadius as? AllowedCloseRadius.Required)?.distance ?: 0,
             radiusRepository.allowedCloseRadius is AllowedCloseRadius.Required,
             isRejected,
-            rejectReason
+            rejectReason,
+            when(taskItem){
+                is TaskItem.Common -> 1
+                is TaskItem.Firm -> 2
+            }
         )
 
         databaseRepository.createTaskItemReport(reportItem)

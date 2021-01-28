@@ -27,5 +27,6 @@ data class ReportQueryItemEntity(
     @ColumnInfo(name = "allowed_distance") var allowedDistance: Int,
     @ColumnInfo(name = "radius_required") var radiusRequired: Boolean,
     @ColumnInfo(name = "is_rejected") var isRejected: Boolean,
-    @ColumnInfo(name = "reject_reason") var rejectReason: String
+    @ColumnInfo(name = "reject_reason") var rejectReason: String,
+    @ColumnInfo(name = "delivery_type") var deliveryType: Int
 )

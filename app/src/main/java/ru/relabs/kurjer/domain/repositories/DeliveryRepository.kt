@@ -139,7 +139,7 @@ class DeliveryRepository(
             item.taskId, item.taskItemId, item.imageFolderId,
             item.gps, item.closeTime, item.userDescription, item.entrances, photosMap,
             item.batteryLevel, item.closeDistance, item.allowedDistance, item.radiusRequired,
-            item.isRejected, item.rejectReason
+            item.isRejected, item.rejectReason, item.deliveryType
         )
 
         deliveryApi.sendTaskReport(

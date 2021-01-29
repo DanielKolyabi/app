@@ -17,7 +17,8 @@ object Migrations {
         migration_35_36,
         migration_37_38,
         migration_38_39,
-        migration_39_40
+        migration_39_40,
+        migration_40_41
     )
 
 
@@ -158,6 +159,11 @@ object Migrations {
                     )
                 """.trimIndent()
             )
+        }
+    }
+    private val migration_40_41 = object : Migration(40, 41) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE report_query ADD COLUMN delivery_type INTEGER NOT NULL DEFAULT 1")
         }
     }
 }

@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.AdapterView
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.dialog_reject.view.*
 import kotlinx.android.synthetic.main.holder_spinner.view.*
@@ -48,10 +49,19 @@ class RejectFirmDialog(val reasons: List<String>, val onRejected: (reason: Strin
 
         view.sp_reason.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                this@RejectFirmDialog.view?.et_reason?.visible = adapter.getItem(position)?.shouldExpandDescription == true
+                val fragView = this@RejectFirmDialog.view
+                fragView?.et_reason?.visible = adapter.getItem(position)?.shouldExpandDescription == true
+                fragView?.btn_reject?.isEnabled =
+                    adapter.getItem(position)?.shouldExpandDescription == false || ((fragView?.et_reason?.text?.length ?: 0) >= 5)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        view.et_reason.doAfterTextChanged {
+            val isReasonVisible =
+                view?.sp_reason?.selectedItemPosition?.let { adapter.getItem(it)?.shouldExpandDescription == false } ?: false
+            view?.btn_reject?.isEnabled = isReasonVisible || ((view?.et_reason?.text?.length ?: 0)  >= 5)
         }
 
         view.btn_reject.setOnClickListener {

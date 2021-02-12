@@ -63,8 +63,8 @@ object ReportAdapter {
             holderDefine(p, R.layout.holder_report_task, { it }) { (task, taskItem, active) ->
 
                 itemView.btn_task.text = when(taskItem){
-                    is TaskItem.Common -> "${task.name} №${task.edition}, ${task.copies}экз."
-                    is TaskItem.Firm -> "${task.name} №${task.edition}, ${task.copies}экз., ${taskItem.firmName}, ${taskItem.office}"
+                    is TaskItem.Common -> "${task.name} №${task.edition}, ${taskItem.copies}экз."
+                    is TaskItem.Firm -> "${task.name} №${task.edition}, ${taskItem.copies}экз., ${taskItem.firmName}, ${taskItem.office}"
                 }
                 if (active) {
                     itemView.btn_task.setBackgroundResource(R.drawable.abc_btn_colored_material)

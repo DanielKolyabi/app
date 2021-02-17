@@ -155,7 +155,10 @@ class YandexMapFragment : Fragment() {
                 R.color.colorPrimary,
                 2f,
                 ColorUtils.setAlphaComponent(coloredAddress.color, 125)
-            )
+            ).apply {
+                userData = address
+                addTapListener(clickListener)
+            }
         }
     }
 

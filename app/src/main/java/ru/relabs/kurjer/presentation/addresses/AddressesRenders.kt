@@ -68,7 +68,13 @@ object AddressesRenders {
         {
             it?.let { a ->
                 adapter.items
-                    .indexOfFirst { item -> item is AddressesItem.AddressItem && item.taskItem.address.id == a.id }
+                    .indexOfFirst { item ->
+                        when (item) {
+                            is AddressesItem.AddressItem -> item.taskItem.address.id == a.id
+                            is AddressesItem.FirmItem -> item.taskItem.address.id == a.id
+                            else -> false
+                        }
+                    }
                     .takeIf { idx -> idx > 0 }
                     ?.let { idx ->
                         list.scrollToPosition(idx)

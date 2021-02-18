@@ -23,8 +23,8 @@ android {
         applicationId = "abix.kurjer"
         minSdkVersion(21)
         targetSdkVersion(29)
-        versionCode = 136
-        versionName = "136"
+        versionCode = 137
+        versionName = "137"
         buildConfigField("Boolean", "FEATURE_PHOTO_RADIUS", "false")
     }
     flavorDimensions("server")

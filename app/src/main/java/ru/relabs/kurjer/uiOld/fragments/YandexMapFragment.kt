@@ -147,7 +147,6 @@ class YandexMapFragment : Fragment() {
                 .addPlacemark(point, ColoredIconProvider(ctx, coloredAddress.color))
                 .apply{
                     userData = address
-                    addTapListener(clickListener)
                 }
 
             mapview.map.mapObjects.addCircle(

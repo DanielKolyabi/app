@@ -7,6 +7,7 @@ import android.animation.ValueAnimator
 import android.view.View
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.*
@@ -16,6 +17,8 @@ import ru.relabs.kurjer.presentation.base.tea.renderT
 import ru.relabs.kurjer.utils.SearchUtils
 import ru.relabs.kurjer.utils.extensions.getColorCompat
 import ru.relabs.kurjer.utils.extensions.visible
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Created by Daniil Kurchanov on 06.04.2020.
@@ -77,7 +80,21 @@ object AddressesRenders {
                     }
                     .takeIf { idx -> idx > 0 }
                     ?.let { idx ->
-                        list.scrollToPosition(idx)
+                        val layoutManager = (list.layoutManager as? LinearLayoutManager)
+                        val firstItemIdx = layoutManager?.findFirstVisibleItemPosition()
+                        val lastItemIdx = layoutManager?.findLastVisibleItemPosition()
+                        val preferredIdx = if (firstItemIdx != null && lastItemIdx != null) {
+                            val itemsOnScreen = lastItemIdx - firstItemIdx
+                            val visibleMiddleIdx = firstItemIdx + itemsOnScreen / 2
+                            when {
+                                idx > visibleMiddleIdx -> min(idx + itemsOnScreen / 2, adapter.itemCount)
+                                idx < visibleMiddleIdx -> max(0, idx - itemsOnScreen / 2)
+                                else -> visibleMiddleIdx
+                            }
+                        } else {
+                            idx
+                        }
+                        list.scrollToPosition(preferredIdx)
                         list.post {
                             list?.findViewHolderForAdapterPosition(idx)?.itemView?.let {
                                 flashSelectedColor(it)

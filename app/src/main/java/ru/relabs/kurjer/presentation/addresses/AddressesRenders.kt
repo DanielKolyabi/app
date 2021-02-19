@@ -6,7 +6,6 @@ import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.view.View
 import androidx.core.graphics.ColorUtils
-import androidx.core.view.postDelayed
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -73,13 +72,9 @@ object AddressesRenders {
             it?.let { a ->
                 adapter.items
                     .indexOfFirst { item ->
-                        when (item) {
-                            is AddressesItem.AddressItem -> item.taskItem.address.id == a.id
-                            is AddressesItem.FirmItem -> item.taskItem.address.id == a.id
-                            else -> false
-                        }
+                        item is AddressesItem.GroupHeader && item.subItems.firstOrNull()?.address?.id == a.id
                     }
-                    .takeIf { idx -> idx > 0 }
+                    .takeIf { idx -> idx >= 0 }
                     ?.let { idx ->
                         val layoutManager = (list.layoutManager as? LinearLayoutManager)
                         val firstItemIdx = layoutManager?.findFirstVisibleItemPosition()
@@ -95,16 +90,12 @@ object AddressesRenders {
                         } else {
                             idx
                         }
-                        list.postDelayed(100) {
-                            list?.scrollToPosition(preferredIdx-1)
-                            list?.postDelayed(100) {
-                                list?.scrollToPosition(preferredIdx)
-                                list?.findViewHolderForAdapterPosition(idx)?.itemView?.let {
-                                    flashSelectedColor(it)
-                                }
+                        list.scrollToPosition(preferredIdx)
+                        list.post {
+                            list?.findViewHolderForAdapterPosition(idx)?.itemView?.let {
+                                flashSelectedColor(it)
                             }
                         }
-
                     }
             }
         }

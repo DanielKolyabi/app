@@ -98,6 +98,7 @@ object AddressesRenders {
                         list.postDelayed(100) {
                             list?.scrollToPosition(preferredIdx-1)
                             list?.postDelayed(100) {
+                                list?.scrollToPosition(preferredIdx)
                                 list?.findViewHolderForAdapterPosition(idx)?.itemView?.let {
                                     flashSelectedColor(it)
                                 }

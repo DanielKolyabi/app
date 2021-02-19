@@ -6,6 +6,7 @@ import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.view.View
 import androidx.core.graphics.ColorUtils
+import androidx.core.view.postDelayed
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -94,12 +95,15 @@ object AddressesRenders {
                         } else {
                             idx
                         }
-                        list.scrollToPosition(preferredIdx)
-                        list.post {
-                            list?.findViewHolderForAdapterPosition(idx)?.itemView?.let {
-                                flashSelectedColor(it)
+                        list.postDelayed(100) {
+                            list?.scrollToPosition(preferredIdx-1)
+                            list?.postDelayed(100) {
+                                list?.findViewHolderForAdapterPosition(idx)?.itemView?.let {
+                                    flashSelectedColor(it)
+                                }
                             }
                         }
+
                     }
             }
         }

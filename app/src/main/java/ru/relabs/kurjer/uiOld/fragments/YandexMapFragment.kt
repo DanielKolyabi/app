@@ -37,11 +37,15 @@ class YandexMapFragment : Fragment() {
     private val locationProvider: LocationProvider by inject()
     private lateinit var userLocationLayer: UserLocationLayer
     private var addresses: List<AddressWithColor> = listOf()
+    private var exitInitialized: Boolean = false
     private val clickListener = MapObjectTapListener { obj, point ->
         val udata = obj.userData
         if(udata is Address){
             onAddressClicked?.invoke(udata)
-            router.exit()
+            if(!exitInitialized){
+                router.exit()
+                exitInitialized = true
+            }
             true
         }
         false
@@ -91,7 +95,10 @@ class YandexMapFragment : Fragment() {
         }
 
         view.iv_menu.setOnClickListener {
-            router.exit()
+            if(!exitInitialized){
+                router.exit()
+                exitInitialized = true
+            }
         }
 
 

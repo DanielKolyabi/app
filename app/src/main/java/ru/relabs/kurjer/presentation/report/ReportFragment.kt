@@ -151,7 +151,8 @@ class ReportFragment : BaseFragment() {
                 ReportRenders.renderDescription(view.et_description, descriptionTextWatcher),
                 ReportRenders.renderNotes(view.hint_text),
                 ReportRenders.renderTaskItemAvailability(listInterceptor, view.et_description, view.btn_close, view.btn_reject),
-                ReportRenders.renderRejectButton(view.btn_reject)
+                ReportRenders.renderRejectButton(view.btn_reject),
+                ReportRenders.renderFirmFullAddress(view.tv_firm_full_address)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }

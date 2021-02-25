@@ -134,4 +134,21 @@ object ReportRenders {
         { it.selectedTask },
         { button.visible = it?.taskItem is TaskItem.Firm }
     )
+
+    fun renderFirmFullAddress(textView: TextView): ReportRender = renderT(
+        {
+            val ti = it.selectedTask
+            if (ti != null && ti.taskItem is TaskItem.Firm) {
+                listOf(ti.task.name, "№${ti.task.edition}", "${ti.taskItem.copies}экз.", ti.taskItem.firmName, ti.taskItem.office)
+                    .filter { it.isNotEmpty() }
+                    .joinToString(", ")
+            } else {
+                null
+            }
+        },
+        {
+            textView.visible = it != null
+            textView.text = it
+        }
+    )
 }

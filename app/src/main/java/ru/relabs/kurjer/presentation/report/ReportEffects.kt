@@ -407,7 +407,7 @@ object ReportEffects {
                                 }
                             }
                             is AllowedCloseRadius.NotRequired -> when {
-                                location == null || Date(location.time).isLocationExpired() -> {
+                                location == null -> {
                                     c.showCloseError(R.string.report_close_location_null_warning, true, location, rejectReason)
                                     false
                                 }

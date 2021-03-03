@@ -15,7 +15,9 @@ import com.google.android.gms.location.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import ru.relabs.kurjer.uiOld.helpers.formatedWithSecs
 import ru.relabs.kurjer.utils.CustomLog
+import java.util.*
 
 /**
  * Created by Daniil Kurchanov on 13.01.2020.
@@ -37,6 +39,7 @@ class PlayServicesLocationProvider(
     private var lastReceivedLocation: Location? = null
     private val backgroundCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
+            CustomLog.writeToFile("GPS LOG: BG Receive ${Date(result.lastLocation.time).formatedWithSecs()}")
             lastReceivedLocation = result.lastLocation
         }
     }
@@ -47,7 +50,9 @@ class PlayServicesLocationProvider(
     override fun updatesChannel(fastest: Boolean): ReceiveChannel<Location> {
         val channel = Channel<Location>(Channel.UNLIMITED)
 
+        CustomLog.writeToFile("GPS LOG: Forced GPS request")
         if (!checkPermission()) {
+            CustomLog.writeToFile("GPS LOG: No permission")
             lastReceivedLocation?.let {
                 channel.offer(it)
             }
@@ -58,6 +63,7 @@ class PlayServicesLocationProvider(
             client.lastLocation.addOnSuccessListener { location: Location? ->
                 if (!channel.isClosedForSend) {
                     location?.let {
+                        CustomLog.writeToFile("GPS LOG: Fastest method, ${Date(location.time).formatedWithSecs()}")
                         channel.offer(it)
                     }
                 }
@@ -69,9 +75,13 @@ class PlayServicesLocationProvider(
                 if (!channel.isClosedForSend) {
                     val lastLocation = locationResult.lastLocation
                     val location = locationResult.locations.firstOrNull()
+                    CustomLog.writeToFile(
+                        "GPS LOG: Normal flow location: ${Date(location?.time ?: 0).formatedWithSecs()}, " +
+                                "lastLocation: ${Date(lastLocation?.time ?: 0).formatedWithSecs()}"
+                    )
                     if (location != null) {
                         channel.offer(location)
-                    } else if(lastLocation != null){
+                    } else if (lastLocation != null) {
                         channel.offer(lastLocation)
                     }
                 }
@@ -99,6 +109,7 @@ class PlayServicesLocationProvider(
         if (checkPermission()) {
             return false
         }
+        CustomLog.writeToFile("GPS LOG: Start In Background")
         val request = LocationRequest().apply {
             fastestInterval = 10 * 1000
             interval = 60 * 1000
@@ -113,6 +124,7 @@ class PlayServicesLocationProvider(
 
     override fun stopInBackground() {
         if (!isBackgroundRunning) return
+        CustomLog.writeToFile("GPS LOG: Stop BG")
         isBackgroundRunning = false
         client.removeLocationUpdates(backgroundCallback)
     }

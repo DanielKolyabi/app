@@ -391,7 +391,7 @@ object ReportEffects {
                     val shadowClose: Boolean = withContext(Dispatchers.Main) {
                         when (val radius = c.radiusRepository.allowedCloseRadius) {
                             is AllowedCloseRadius.Required -> when {
-                                location == null || Date(location.time).isLocationExpired() -> {
+                                location == null -> {
                                     c.showCloseError(R.string.report_close_location_null_error, false, null, rejectReason)
                                     true
                                 }

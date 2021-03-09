@@ -15,6 +15,7 @@ import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.services.ReportService
+import ru.relabs.kurjer.uiOld.helpers.formatedWithSecs
 import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.extensions.isLocationExpired
 import java.io.File
@@ -353,6 +354,7 @@ object ReportEffects {
                 }
 
                 val location = c.locationProvider.lastReceivedLocation()
+                CustomLog.writeToFile("GPS LOG: Close check with location(${location?.latitude}, ${location?.longitude}, ${Date(location?.time ?: 0).formatedWithSecs()})")
 
                 if (c.pauseRepository.isPaused) {
                     withContext(Dispatchers.Main) {
@@ -370,10 +372,12 @@ object ReportEffects {
                         val gpsJob = async(Dispatchers.Default) {
                             c.locationProvider.updatesChannel().apply {
                                 receive()
+                                CustomLog.writeToFile("GPS LOG: Received new location")
                                 cancel()
                             }
                         }
                         listOf(delayJob, gpsJob).awaitFirst()
+                        CustomLog.writeToFile("GPS LOG: Got force coordinates")
                         messages.send(ReportMessages.msgGPSLoading(false))
                         messages.send(ReportMessages.msgAddLoaders(-1))
                         messages.send(msgEffect(effectCloseCheck(false, rejectReason)))
@@ -506,12 +510,12 @@ object ReportEffects {
         c.showError("Не удалось сделать фотографию: re:photo:$errorCode", false)
     }
 
-    fun effectRejectClicked(): ReportEffect = {c,s ->
-        val reasons = when(val r = c.deliveryRepository.getFirmRejectReasons()){
+    fun effectRejectClicked(): ReportEffect = { c, s ->
+        val reasons = when (val r = c.deliveryRepository.getFirmRejectReasons()) {
             is Right -> r.value
             is Left -> emptyList()
         }
-        withContext(Dispatchers.Main){
+        withContext(Dispatchers.Main) {
             c.showRejectDialog(reasons)
         }
     }

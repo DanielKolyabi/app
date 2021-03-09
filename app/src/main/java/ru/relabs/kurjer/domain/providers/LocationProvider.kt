@@ -106,7 +106,7 @@ class PlayServicesLocationProvider(
         if (isBackgroundRunning) {
             return true
         }
-        if (checkPermission()) {
+        if (!checkPermission()) {
             return false
         }
         CustomLog.writeToFile("GPS LOG: Start In Background")
@@ -130,8 +130,8 @@ class PlayServicesLocationProvider(
     }
 
     private fun checkPermission(): Boolean = application.let {
-        ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 }
 

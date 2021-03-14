@@ -12,7 +12,7 @@ import androidx.core.app.ActivityCompat
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.location.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import ru.relabs.kurjer.uiOld.helpers.formatedWithSecs
@@ -33,7 +33,8 @@ interface LocationProvider {
 @ExperimentalCoroutinesApi
 class PlayServicesLocationProvider(
     private val client: FusedLocationProviderClient,
-    private val application: Application
+    private val application: Application,
+    private val mainHandlerScope: CoroutineScope
 ) :
     LocationProvider {
     private var lastReceivedLocation: Location? = null
@@ -69,7 +70,11 @@ class PlayServicesLocationProvider(
                 }
             }
         }
-        val request = LocationRequest.create()
+        val request = LocationRequest.create().apply{
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            fastestInterval = 1000
+            interval = 5000
+        }
         val callback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 if (!channel.isClosedForSend) {
@@ -92,9 +97,13 @@ class PlayServicesLocationProvider(
         if (isBackgroundRunning) {
             stopInBackground()
         }
-        client.requestLocationUpdates(request, callback, null)
+        mainHandlerScope.launch(Dispatchers.Main){
+            client.requestLocationUpdates(request, callback, null)
+        }
         channel.invokeOnClose {
-            client.removeLocationUpdates(callback)
+            mainHandlerScope.launch(Dispatchers.Main){
+                client.removeLocationUpdates(callback)
+            }
             if (shouldRunBackgroundAfter) {
                 startInBackground()
             }
@@ -138,7 +147,8 @@ class PlayServicesLocationProvider(
 @ExperimentalCoroutinesApi
 class NativeLocationProvider(
     private val client: LocationManager,
-    private val application: Application
+    private val application: Application,
+    private val mainHandlerScope: CoroutineScope
 ) : LocationProvider {
     private var lastReceivedLocation: Location? = null
     private val backgroundCallback = object : LocationListener {
@@ -194,8 +204,10 @@ class NativeLocationProvider(
         if (isBackgroundRunning) {
             stopInBackground()
         }
-        client.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, callback)
-        client.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, callback)
+        mainHandlerScope.launch(Dispatchers.Main) {
+            client.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, callback)
+            client.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, callback)
+        }
 
         channel.invokeOnClose {
             client.removeUpdates(callback)
@@ -231,20 +243,22 @@ class NativeLocationProvider(
     }
 }
 
-fun getLocationProvider(application: Application): LocationProvider {
+fun getLocationProvider(application: Application, mainHandlerScope: CoroutineScope): LocationProvider {
     return if (GoogleApiAvailability.getInstance()
             .isGooglePlayServicesAvailable(application.applicationContext) == ConnectionResult.SUCCESS
     ) {
         CustomLog.writeToFile("Used PlayServices provider")
         PlayServicesLocationProvider(
             LocationServices.getFusedLocationProviderClient(application),
-            application
+            application,
+            mainHandlerScope
         )
     } else {
         CustomLog.writeToFile("Used native provider")
         NativeLocationProvider(
             application.getSystemService(Context.LOCATION_SERVICE) as LocationManager,
-            application
+            application,
+            mainHandlerScope
         )
     }
 }

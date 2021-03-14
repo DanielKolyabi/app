@@ -3,6 +3,8 @@ package ru.relabs.kurjer.di
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -73,7 +75,7 @@ val storagesModule = module {
     }
 
     single<LocationProvider> {
-        getLocationProvider(androidApplication())
+        getLocationProvider(androidApplication(), CoroutineScope(Dispatchers.Main))
     }
 
     single<AppDatabase> {

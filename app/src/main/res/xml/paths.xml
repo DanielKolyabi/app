@@ -3,6 +3,9 @@
     <external-path  name="files" path="deliveryman/"/>
     <external-path  name="files" path="."/>
     <files-path
+        name="root"
+        path="/"/>
+    <files-path
         name="photos"
         path="photos/" />
     <files-path

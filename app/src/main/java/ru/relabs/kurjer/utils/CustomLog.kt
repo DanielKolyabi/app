@@ -6,15 +6,19 @@ import android.os.Environment
 import android.util.Log
 import androidx.core.content.FileProvider
 import org.joda.time.DateTime
+import org.koin.core.KoinComponent
+import org.koin.core.inject
 import ru.relabs.kurjer.BuildConfig
+import ru.relabs.kurjer.domain.providers.PathsProvider
 import java.io.*
 
 /**
  * Created by ProOrange on 02.10.2018.
  */
-const val CRASH_FILENAME = "crash.log"
 
-object CustomLog {
+object CustomLog: KoinComponent {
+    private val pathsProvider: PathsProvider by inject()
+
     fun getStacktraceAsString(e: Throwable): String {
         val stringBuffSync = StringWriter()
         val printWriter = PrintWriter(stringBuffSync)
@@ -25,11 +29,7 @@ object CustomLog {
     }
 
     fun share(context: Activity): Either<Exception, Unit> = Either.of {
-        val dir = File(
-            Environment.getExternalStorageDirectory(),
-            "deliveryman"
-        )
-        val f = File(dir, CRASH_FILENAME)
+        val f = pathsProvider.getCrashLogFile()
         if (!f.exists()) {
             throw FileNotFoundException()
         }
@@ -46,19 +46,8 @@ object CustomLog {
 
     fun writeToFile(currentStacktrace: String) {
         try {
-
-            //Gets the Android external storage directory & Create new folder Crash_Reports
-            val dir = File(
-                Environment.getExternalStorageDirectory(),
-                "deliveryman"
-            )
-            if (!dir.exists()) {
-                dir.mkdirs()
-            }
-
-
             // Write the file into the folder
-            val reportFile = File(dir, CRASH_FILENAME)
+            val reportFile = pathsProvider.getCrashLogFile()
             val fileWriter = FileWriter(reportFile, true)
             fileWriter.append("\n${DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")} Ver.${BuildConfig.VERSION_NAME}:\n")
             fileWriter.append(currentStacktrace)

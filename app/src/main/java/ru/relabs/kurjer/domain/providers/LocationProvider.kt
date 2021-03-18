@@ -12,9 +12,12 @@ import androidx.core.app.ActivityCompat
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.location.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.launch
 import ru.relabs.kurjer.uiOld.helpers.formatedWithSecs
 import ru.relabs.kurjer.utils.CustomLog
 import java.util.*
@@ -70,7 +73,7 @@ class PlayServicesLocationProvider(
                 }
             }
         }
-        val request = LocationRequest.create().apply{
+        val request = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             fastestInterval = 1000
             interval = 5000
@@ -97,11 +100,11 @@ class PlayServicesLocationProvider(
         if (isBackgroundRunning) {
             stopInBackground()
         }
-        mainHandlerScope.launch(Dispatchers.Main){
+        mainHandlerScope.launch(Dispatchers.Main) {
             client.requestLocationUpdates(request, callback, null)
         }
         channel.invokeOnClose {
-            mainHandlerScope.launch(Dispatchers.Main){
+            mainHandlerScope.launch(Dispatchers.Main) {
                 client.removeLocationUpdates(callback)
             }
             if (shouldRunBackgroundAfter) {
@@ -127,7 +130,9 @@ class PlayServicesLocationProvider(
         }
 
         isBackgroundRunning = true
-        client.requestLocationUpdates(request, backgroundCallback, null)
+        mainHandlerScope.launch(Dispatchers.Main) {
+            client.requestLocationUpdates(request, backgroundCallback, null)
+        }
         return true
     }
 
@@ -135,7 +140,9 @@ class PlayServicesLocationProvider(
         if (!isBackgroundRunning) return
         CustomLog.writeToFile("GPS LOG: Stop BG")
         isBackgroundRunning = false
-        client.removeLocationUpdates(backgroundCallback)
+        mainHandlerScope.launch(Dispatchers.Main) {
+            client.removeLocationUpdates(backgroundCallback)
+        }
     }
 
     private fun checkPermission(): Boolean = application.let {
@@ -210,7 +217,9 @@ class NativeLocationProvider(
         }
 
         channel.invokeOnClose {
-            client.removeUpdates(callback)
+            mainHandlerScope.launch(Dispatchers.Main) {
+                client.removeUpdates(callback)
+            }
             if (shouldRunBackgroundAfter) {
                 startInBackground()
             }
@@ -226,15 +235,21 @@ class NativeLocationProvider(
             return false
         }
         isBackgroundRunning = true
-        client.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10 * 1000, 10f, backgroundCallback)
-        client.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10 * 1000, 10f, backgroundCallback)
+
+        mainHandlerScope.launch(Dispatchers.Main) {
+            client.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10 * 1000, 10f, backgroundCallback)
+            client.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10 * 1000, 10f, backgroundCallback)
+        }
         return true
     }
 
     override fun stopInBackground() {
         if (!isBackgroundRunning) return
         isBackgroundRunning = false
-        client.removeUpdates(backgroundCallback)
+
+        mainHandlerScope.launch(Dispatchers.Main) {
+            client.removeUpdates(backgroundCallback)
+        }
     }
 
     private fun checkPermission(): Boolean = application.let {

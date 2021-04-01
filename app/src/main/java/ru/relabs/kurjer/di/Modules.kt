@@ -19,7 +19,7 @@ import ru.relabs.kurjer.domain.providers.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
-import ru.relabs.kurjer.domain.repositories.RadiusRepository
+import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
@@ -117,8 +117,8 @@ val repositoryModule = module {
             get<PathsProvider>()
         )
     }
-    single<RadiusRepository> {
-        RadiusRepository(
+    single<SettingsRepository> {
+        SettingsRepository(
             get<DeliveryRepository>(),
             get<SharedPreferences>()
         )
@@ -138,7 +138,7 @@ val useCasesModule = module {
             get<DeliveryRepository>(),
             get<CurrentUserStorage>(),
             get<DatabaseRepository>(),
-            get<RadiusRepository>(),
+            get<SettingsRepository>(),
             get<AuthTokenStorage>(),
             get<PauseRepository>(),
             get<AppPreferences>()
@@ -157,7 +157,7 @@ val useCasesModule = module {
             get<DatabaseRepository>(),
             get<PauseRepository>(),
             get<AuthTokenStorage>(),
-            get<RadiusRepository>(),
+            get<SettingsRepository>(),
             get<TaskEventController>()
         )
     }

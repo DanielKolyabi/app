@@ -12,7 +12,7 @@ import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
-import ru.relabs.kurjer.domain.repositories.RadiusRepository
+import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.useCases.ReportUseCase
 import ru.relabs.kurjer.presentation.base.tea.*
 import java.io.File
@@ -50,7 +50,7 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     val database: DatabaseRepository by inject()
     val locationProvider: LocationProvider by inject()
     val pauseRepository: PauseRepository by inject()
-    val radiusRepository: RadiusRepository by inject()
+    val settingsRepository: SettingsRepository by inject()
     val reportUseCase: ReportUseCase by inject()
     val taskEventController: TaskEventController by inject()
     val pathsProvider: PathsProvider by inject()

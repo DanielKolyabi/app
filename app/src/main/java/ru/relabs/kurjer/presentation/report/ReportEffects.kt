@@ -130,8 +130,8 @@ object ReportEffects {
                     )
                 } ?: Int.MAX_VALUE.toDouble()
 
-                if (c.radiusRepository.allowedCloseRadius.photoAnyDistance) {
-                    if (distance > c.radiusRepository.allowedCloseRadius.distance && withAnyRadiusWarning) {
+                if (c.settingsRepository.allowedCloseRadius.photoAnyDistance) {
+                    if (distance > c.settingsRepository.allowedCloseRadius.distance && withAnyRadiusWarning) {
                         withContext(Dispatchers.Main) {
                             c.showCloseError(R.string.report_close_location_far_warning, false, null, null)
                         }
@@ -143,7 +143,7 @@ object ReportEffects {
                             coroutineScope {
                                 messages.send(ReportMessages.msgAddLoaders(1))
                                 messages.send(ReportMessages.msgGPSLoading(true))
-                                val delayJob = async { delay(40 * 1000) }
+                                val delayJob = async { delay(c.settingsRepository.closeGpsUpdateTime.photo * 1000L) }
                                 val gpsJob = async(Dispatchers.Default) {
                                     c.locationProvider.updatesChannel().apply {
                                         receive()
@@ -167,7 +167,7 @@ object ReportEffects {
                             }
                         }
                     } else {
-                        if (distance > c.radiusRepository.allowedCloseRadius.distance) {
+                        if (distance > c.settingsRepository.allowedCloseRadius.distance) {
                             withContext(Dispatchers.Main) {
                                 c.showCloseError(R.string.report_close_location_far_error, false, null, null)
                             }
@@ -368,7 +368,7 @@ object ReportEffects {
                     coroutineScope {
                         messages.send(ReportMessages.msgAddLoaders(1))
                         messages.send(ReportMessages.msgGPSLoading(true))
-                        val delayJob = async { delay(40 * 1000) }
+                        val delayJob = async { delay(c.settingsRepository.closeGpsUpdateTime.close * 1000L) }
                         val gpsJob = async(Dispatchers.Default) {
                             c.locationProvider.updatesChannel().apply {
                                 receive()
@@ -393,7 +393,7 @@ object ReportEffects {
                     } ?: Int.MAX_VALUE.toDouble()
 
                     val shadowClose: Boolean = withContext(Dispatchers.Main) {
-                        when (val radius = c.radiusRepository.allowedCloseRadius) {
+                        when (val radius = c.settingsRepository.allowedCloseRadius) {
                             is AllowedCloseRadius.Required -> when {
                                 location == null -> {
                                     c.showCloseError(R.string.report_close_location_null_error, false, null, rejectReason)

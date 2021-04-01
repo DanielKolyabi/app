@@ -23,6 +23,7 @@ import ru.relabs.kurjer.data.models.common.ApiError
 import ru.relabs.kurjer.data.models.common.ApiErrorContainer
 import ru.relabs.kurjer.data.models.common.DomainException
 import ru.relabs.kurjer.data.models.common.EitherE
+import ru.relabs.kurjer.domain.mappers.SettingsMapper
 import ru.relabs.kurjer.domain.mappers.network.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.*
@@ -180,6 +181,10 @@ class DeliveryRepository(
 
     suspend fun getAllowedCloseRadius(): EitherE<AllowedCloseRadius> = authenticatedRequest { token ->
         RadiusMapper.fromRaw(deliveryApi.getRadius(token))
+    }
+
+    suspend fun getAppSettings(): EitherE<AppSettings> = authenticatedRequest { token ->
+        SettingsMapper.fromRaw(deliveryApi.getSettings(token))
     }
 
     suspend fun loadTaskMap(task: Task): Either<Exception, Unit> = Either.of {

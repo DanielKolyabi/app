@@ -5,6 +5,7 @@ import retrofit2.http.*
 import ru.relabs.kurjer.data.models.TaskItemReportRequest
 import ru.relabs.kurjer.data.models.UpdatesResponse
 import ru.relabs.kurjer.data.models.auth.AuthResponse
+import ru.relabs.kurjer.data.models.common.SettingsResponse
 import ru.relabs.kurjer.data.models.common.StatusResponse
 import ru.relabs.kurjer.data.models.pause.PauseTimeResponse
 import ru.relabs.kurjer.data.models.pause.PauseTimesResponse
@@ -99,6 +100,11 @@ interface DeliveryApi {
     suspend fun getRadius(
         @Header("X-TOKEN") token: String
     ): RadiusResponse
+
+    @GET("api/v1/settings")
+    suspend fun getSettings(
+        @Header("X-TOKEN") token: String
+    ): SettingsResponse
 
     @GET("/api/v1/reject_reasons")
     suspend fun getAvailableFirmRejectReasons(@Query("token") token: String): List<String>

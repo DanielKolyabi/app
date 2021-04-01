@@ -8,7 +8,7 @@ import ru.relabs.kurjer.domain.mappers.ReportEntranceSelectionMapper
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
-import ru.relabs.kurjer.domain.repositories.RadiusRepository
+import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import ru.relabs.kurjer.utils.calculateDistance
@@ -19,7 +19,7 @@ class ReportUseCase(
     private val databaseRepository: DatabaseRepository,
     private val pauseRepository: PauseRepository,
     private val tokenStorage: AuthTokenStorage,
-    private val radiusRepository: RadiusRepository,
+    private val settingsRepository: SettingsRepository,
     private val taskEventController: TaskEventController
 ) {
 
@@ -62,8 +62,8 @@ class ReportUseCase(
             (batteryLevel * 100).roundToInt(),
             isCloseTaskRequired,
             distance.toInt(),
-            (radiusRepository.allowedCloseRadius as? AllowedCloseRadius.Required)?.distance ?: 0,
-            radiusRepository.allowedCloseRadius is AllowedCloseRadius.Required,
+            (settingsRepository.allowedCloseRadius as? AllowedCloseRadius.Required)?.distance ?: 0,
+            settingsRepository.allowedCloseRadius is AllowedCloseRadius.Required,
             isRejected,
             rejectReason,
             when(taskItem){

@@ -61,7 +61,7 @@ class ApiProvider(deliveryUrl: String) {
     private fun buildClient() = OkHttpClient.Builder()
         .apply {
             if(BuildConfig.DEBUG){
-                addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC })
+                addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
             }
         }
         .addInterceptor(timeoutInterceptor)

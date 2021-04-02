@@ -377,6 +377,8 @@ object ReportEffects {
                             }
                         }
                         listOf(delayJob, gpsJob).awaitFirst()
+                        delayJob.cancel()
+                        gpsJob.cancel()
                         CustomLog.writeToFile("GPS LOG: Got force coordinates")
                         messages.send(ReportMessages.msgGPSLoading(false))
                         messages.send(ReportMessages.msgAddLoaders(-1))

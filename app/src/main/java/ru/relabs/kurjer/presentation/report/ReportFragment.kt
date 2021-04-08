@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -51,10 +52,6 @@ class ReportFragment : BaseFragment() {
 
     private val controller = defaultController(ReportState(), ReportContext())
     private var renderJob: Job? = null
-
-    private val descriptionTextWatcher = TextChangeListener {
-        uiScope.sendMessage(controller, ReportMessages.msgDescriptionChanged(it))
-    }
 
     private val tasksAdapter = DelegateAdapter(
         ReportAdapter.task {
@@ -139,7 +136,11 @@ class ReportFragment : BaseFragment() {
         view.rv_photos.adapter = photosAdapter
         view.rv_photos.addOnItemTouchListener(listInterceptor)
 
-        bindControls(view)
+        val descriptionTextWatcher = TextChangeListener {
+            if (view.et_description.hasFocus())
+                uiScope.sendMessage(controller, ReportMessages.msgDescriptionChanged(it))
+        }
+        bindControls(view, descriptionTextWatcher)
 
         renderJob = uiScope.launch {
             val renders = listOf(
@@ -287,7 +288,7 @@ class ReportFragment : BaseFragment() {
         )
     }
 
-    private fun bindControls(view: View) {
+    private fun bindControls(view: View, descriptionTextWatcher: TextWatcher) {
         view.et_description.addTextChangedListener(descriptionTextWatcher)
 
         view.iv_menu.setOnClickListener {

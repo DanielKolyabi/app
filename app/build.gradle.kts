@@ -25,7 +25,7 @@ android {
         targetSdkVersion(29)
         versionCode = 150
         versionName = "150"
-        buildConfigField("Boolean", "FEATURE_PHOTO_RADIUS", "false")
+        buildConfigField("Boolean", "FEATURE_PHOTO_RADIUS", "true")
     }
     flavorDimensions("server")
     productFlavors {

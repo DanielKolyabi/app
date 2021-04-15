@@ -130,49 +130,47 @@ object ReportEffects {
                     )
                 } ?: Int.MAX_VALUE.toDouble()
 
-                if (c.settingsRepository.allowedCloseRadius.photoAnyDistance) {
-                    if (distance > c.settingsRepository.allowedCloseRadius.distance && withAnyRadiusWarning) {
-                        withContext(Dispatchers.Main) {
-                            c.showCloseError(R.string.report_close_location_far_warning, false, null, null)
-                        }
-                    }
-                    messages.send(msgFactory())
-                } else {
-                    if (location == null || Date(location.time).isLocationExpired(60 * 1000)) {
-                        if (withLocationLoading) {
-                            coroutineScope {
-                                messages.send(ReportMessages.msgAddLoaders(1))
-                                messages.send(ReportMessages.msgGPSLoading(true))
-                                val delayJob = async { delay(c.settingsRepository.closeGpsUpdateTime.photo * 1000L) }
-                                val gpsJob = async(Dispatchers.Default) {
-                                    c.locationProvider.updatesChannel().apply {
-                                        receive()
-                                        cancel()
-                                    }
-                                    delay(3000)
-                                }
-                                listOf(delayJob, gpsJob).awaitFirst()
-                                listOf(delayJob, gpsJob).forEach {
-                                    if (it.isActive) {
-                                        it.cancel()
-                                    }
-                                }
-                                messages.send(ReportMessages.msgGPSLoading(false))
-                                messages.send(ReportMessages.msgAddLoaders(-1))
-                                messages.send(msgEffect(effectValidatePhotoRadiusAnd(msgFactory, withAnyRadiusWarning, false)))
+                val locationNotValid = location == null || Date(location.time).isLocationExpired(60 * 1000)
+                if (locationNotValid && withLocationLoading) {
+                    coroutineScope {
+                        messages.send(ReportMessages.msgAddLoaders(1))
+                        messages.send(ReportMessages.msgGPSLoading(true))
+                        val delayJob = async { delay(c.settingsRepository.closeGpsUpdateTime.photo * 1000L) }
+                        val gpsJob = async(Dispatchers.Default) {
+                            c.locationProvider.updatesChannel().apply {
+                                receive()
+                                cancel()
                             }
-                        } else {
+                        }
+                        listOf(delayJob, gpsJob).awaitFirst()
+                        listOf(delayJob, gpsJob).forEach {
+                            if (it.isActive) {
+                                it.cancel()
+                            }
+                        }
+                        messages.send(ReportMessages.msgGPSLoading(false))
+                        messages.send(ReportMessages.msgAddLoaders(-1))
+                        messages.send(msgEffect(effectValidatePhotoRadiusAnd(msgFactory, withAnyRadiusWarning, false)))
+                    }
+                } else {
+                    if (c.settingsRepository.allowedCloseRadius.photoAnyDistance) {
+                        if (distance > c.settingsRepository.allowedCloseRadius.distance && withAnyRadiusWarning) {
                             withContext(Dispatchers.Main) {
+                                c.showCloseError(R.string.report_close_location_far_warning, false, null, null)
+                            }
+                        }
+                        messages.send(msgFactory())
+                    } else {
+                        when {
+                            locationNotValid -> withContext(Dispatchers.Main) {
                                 c.showCloseError(R.string.report_close_location_null_error, false, null, null)
                             }
-                        }
-                    } else {
-                        if (distance > c.settingsRepository.allowedCloseRadius.distance) {
-                            withContext(Dispatchers.Main) {
+                            distance > c.settingsRepository.allowedCloseRadius.distance -> withContext(Dispatchers.Main) {
                                 c.showCloseError(R.string.report_close_location_far_error, false, null, null)
                             }
-                        } else {
-                            messages.send(msgFactory())
+                            else ->
+                                messages.send(msgFactory())
+
                         }
                     }
                 }

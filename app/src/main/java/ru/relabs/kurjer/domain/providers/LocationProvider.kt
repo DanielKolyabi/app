@@ -246,19 +246,25 @@ class NativeLocationProvider(
     override fun stopInBackground() {
         if (!isBackgroundRunning) return
         isBackgroundRunning = false
-
         mainHandlerScope.launch(Dispatchers.Main) {
             client.removeUpdates(backgroundCallback)
         }
     }
 
+
     private fun checkPermission(): Boolean = application.let {
-        ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(it, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 }
 
 fun getLocationProvider(application: Application, mainHandlerScope: CoroutineScope): LocationProvider {
+    return NativeLocationProvider(
+        application.getSystemService(Context.LOCATION_SERVICE) as LocationManager,
+        application,
+        mainHandlerScope
+    )
+
     return if (GoogleApiAvailability.getInstance()
             .isGooglePlayServicesAvailable(application.applicationContext) == ConnectionResult.SUCCESS
     ) {

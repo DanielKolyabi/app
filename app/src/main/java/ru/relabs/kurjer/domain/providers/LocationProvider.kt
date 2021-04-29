@@ -259,12 +259,6 @@ class NativeLocationProvider(
 }
 
 fun getLocationProvider(application: Application, mainHandlerScope: CoroutineScope): LocationProvider {
-    return NativeLocationProvider(
-        application.getSystemService(Context.LOCATION_SERVICE) as LocationManager,
-        application,
-        mainHandlerScope
-    )
-
     return if (GoogleApiAvailability.getInstance()
             .isGooglePlayServicesAvailable(application.applicationContext) == ConnectionResult.SUCCESS
     ) {

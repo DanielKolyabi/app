@@ -72,6 +72,7 @@ class DatabaseRepository(
     }
 
     fun removePhoto(photo: TaskItemPhoto) {
+        CustomLog.writeToFile("Remove photo ${photo.id} ent=${photo.entranceNumber} tii=${photo.taskItemId} ti=${photo.UUID}")
         val file = pathsProvider.getTaskItemPhotoFileByID(photo.taskItemId.id, UUID.fromString(photo.UUID))
         file.delete()
         db.photosDao().deleteById(photo.id.id)
@@ -389,6 +390,8 @@ class DatabaseRepository(
             val photoEntity = TaskItemPhotoEntity(0, uuid.toString(), gps, taskItem.id.id, entrance)
 
             val id = db.photosDao().insert(photoEntity)
+            CustomLog.writeToFile("Save photo $id ent=$entrance tii=${taskItem.id} ti=${taskItem.taskId} uuid=$uuid")
+
             DatabasePhotoMapper.fromEntity(photoEntity.copy(id = id.toInt()))
         }
 

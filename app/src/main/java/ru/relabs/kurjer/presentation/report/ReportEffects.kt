@@ -210,6 +210,7 @@ object ReportEffects {
             null -> c.showError("re:100", true)
             else -> {
                 val photoUUID = UUID.randomUUID()
+                CustomLog.writeToFile("Request photo ${entranceNumber} ${photoUUID}")
                 val photoFile = c.pathsProvider.getTaskItemPhotoFile(selectedTask.taskItem, photoUUID)
                 withContext(Dispatchers.Main) {
                     c.requestPhoto(entranceNumber, multiplePhotos, photoFile, photoUUID)
@@ -283,6 +284,7 @@ object ReportEffects {
     }
 
     fun effectSavePhotoFromBitmap(entrance: Int, bitmap: Bitmap, targetFile: File, uuid: UUID): ReportEffect = { c, s ->
+        CustomLog.writeToFile("Save photo ${entrance} ${uuid}")
         when (val task = s.selectedTask) {
             null -> c.showError("re:102", true)
             else -> {

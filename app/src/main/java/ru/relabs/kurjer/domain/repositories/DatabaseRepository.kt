@@ -31,6 +31,7 @@ class DatabaseRepository(
         if (report.removeAfterSend) {
             db.photosDao().getByTaskItemId(report.taskItemId).forEach {
                 //Delete photo
+                CustomLog.writeToFile("Remove photos due to report removal tii=${report.taskItemId} ti=${it.UUID}")
                 val file = pathsProvider.getTaskItemPhotoFileByID(report.taskItemId, UUID.fromString(it.UUID))
                 file.delete()
                 db.photosDao().delete(it)
@@ -49,6 +50,7 @@ class DatabaseRepository(
         //Remove all taskItems
         db.taskItemDao().getAllForTask(taskId.id).forEach { taskItem ->
             db.photosDao().getByTaskItemId(taskItem.id).forEach { photo ->
+                CustomLog.writeToFile("Remove photos due to task removal tii=${photo.taskItemId } ti=${photo.UUID}")
                 val file = pathsProvider.getTaskItemPhotoFileByID(photo.taskItemId, UUID.fromString(photo.UUID))
                 file.delete()
                 db.photosDao().delete(photo)

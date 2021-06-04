@@ -8,6 +8,7 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.presentation.base.tea.msgState
+import ru.relabs.kurjer.utils.CustomLog
 import java.io.File
 import java.util.*
 
@@ -110,8 +111,10 @@ object ReportMessages {
         }
     )
 
-    fun msgNewPhoto(newPhoto: PhotoWithUri): ReportMessage =
-        msgState { it.copy(selectedTaskPhotos = it.selectedTaskPhotos + listOf(newPhoto)) }
+    fun msgNewPhoto(newPhoto: PhotoWithUri): ReportMessage = msgState {
+        CustomLog.writeToFile("New photo added to list ${newPhoto.photo.UUID}")
+        it.copy(selectedTaskPhotos = it.selectedTaskPhotos + listOf(newPhoto))
+    }
 
     fun msgDescriptionChanged(text: String): ReportMessage =
         msgEffect(ReportEffects.effectUpdateDescription(text))

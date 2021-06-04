@@ -131,6 +131,13 @@ object ReportEffects {
                 } ?: Int.MAX_VALUE.toDouble()
 
                 val locationNotValid = location == null || Date(location.time).isLocationExpired(60 * 1000)
+                CustomLog.writeToFile(
+                    "Validate photo radius (valid: ${!locationNotValid}): " +
+                            "${location?.latitude}, ${location?.longitude}, ${location?.time}, " +
+                            "photoAnyDistance: ${c.settingsRepository.allowedCloseRadius.photoAnyDistance}, " +
+                            "allowedDistance: ${c.settingsRepository.allowedCloseRadius.distance}"
+                )
+
                 if (locationNotValid && withLocationLoading) {
                     coroutineScope {
                         messages.send(ReportMessages.msgAddLoaders(1))
@@ -185,25 +192,31 @@ object ReportEffects {
         targetFile: File,
         uuid: UUID,
         multiplePhoto: Boolean
-    ): ReportEffect = effectValidatePhotoRadiusAnd(
-        {
-            msgEffects(
-                { it },
-                {
-                    listOfNotNull(
-                        effectSavePhotoFromFile(entrance, photoUri, targetFile, uuid),
-                        effectRequestPhoto(entrance, multiplePhoto).takeIf { multiplePhoto }
-                    )
-                }
-            )
-        },
-        withAnyRadiusWarning = true
-    )
+    ): ReportEffect = { c, s ->
+        CustomLog.writeToFile("Save photo ($uuid) with radius validation")
+        effectValidatePhotoRadiusAnd(
+            {
+                msgEffects(
+                    { it },
+                    {
+                        listOfNotNull(
+                            effectSavePhotoFromFile(entrance, photoUri, targetFile, uuid),
+                            effectRequestPhoto(entrance, multiplePhoto).takeIf { multiplePhoto }
+                        )
+                    }
+                )
+            },
+            withAnyRadiusWarning = true
+        )
+    }
 
     fun effectValidateRadiusAndRequestPhoto(
         entranceNumber: Int,
         multiplePhoto: Boolean
-    ): ReportEffect = effectValidatePhotoRadiusAnd({ msgEffect(effectRequestPhoto(entranceNumber, multiplePhoto)) }, false)
+    ): ReportEffect = { c, s ->
+        CustomLog.writeToFile("Request photo ($entranceNumber) with raidus validation")
+        effectValidatePhotoRadiusAnd({ msgEffect(effectRequestPhoto(entranceNumber, multiplePhoto)) }, false)
+    }
 
     fun effectRequestPhoto(entranceNumber: Int, multiplePhotos: Boolean): ReportEffect = { c, s ->
         when (val selectedTask = s.selectedTask) {

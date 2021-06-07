@@ -135,7 +135,9 @@ object ReportEffects {
                     "Validate photo radius (valid: ${!locationNotValid}): " +
                             "${location?.latitude}, ${location?.longitude}, ${location?.time}, " +
                             "photoAnyDistance: ${c.settingsRepository.allowedCloseRadius.photoAnyDistance}, " +
-                            "allowedDistance: ${c.settingsRepository.allowedCloseRadius.distance}"
+                            "allowedDistance: ${c.settingsRepository.allowedCloseRadius.distance}, " +
+                            "distance: $distance, " +
+                            "targetTaskItem: ${selected.taskItem.id}"
                 )
 
                 if (locationNotValid && withLocationLoading) {
@@ -215,7 +217,7 @@ object ReportEffects {
         multiplePhoto: Boolean
     ): ReportEffect = { c, s ->
         CustomLog.writeToFile("Request photo ($entranceNumber) with raidus validation")
-        effectValidatePhotoRadiusAnd({ msgEffect(effectRequestPhoto(entranceNumber, multiplePhoto)) }, false)
+        effectValidatePhotoRadiusAnd({ msgEffect(effectRequestPhoto(entranceNumber, multiplePhoto)) }, false)(c, s)
     }
 
     fun effectRequestPhoto(entranceNumber: Int, multiplePhotos: Boolean): ReportEffect = { c, s ->

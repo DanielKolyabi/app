@@ -209,7 +209,7 @@ object ReportEffects {
                 )
             },
             withAnyRadiusWarning = true
-        )
+        )(c,s)
     }
 
     fun effectValidateRadiusAndRequestPhoto(

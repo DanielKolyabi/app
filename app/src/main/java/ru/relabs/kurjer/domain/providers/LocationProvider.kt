@@ -17,6 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import ru.relabs.kurjer.uiOld.helpers.formatedWithSecs
 import ru.relabs.kurjer.utils.CustomLog
@@ -26,6 +28,8 @@ import java.util.*
  * Created by Daniil Kurchanov on 13.01.2020.
  */
 interface LocationProvider {
+    val location: Flow<Location?>
+
     fun updatesChannel(fastest: Boolean = false): ReceiveChannel<Location>
     fun lastReceivedLocation(): Location?
 
@@ -40,7 +44,15 @@ class PlayServicesLocationProvider(
     private val mainHandlerScope: CoroutineScope
 ) :
     LocationProvider {
+    override val location: MutableStateFlow<Location?> = MutableStateFlow(null)
+
     private var lastReceivedLocation: Location? = null
+        get() = field
+        set(v) {
+            location.value = v
+            field = v
+        }
+
     private val backgroundCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
             CustomLog.writeToFile("GPS LOG: BG Receive ${Date(result.lastLocation.time).formatedWithSecs()}")
@@ -157,7 +169,14 @@ class NativeLocationProvider(
     private val application: Application,
     private val mainHandlerScope: CoroutineScope
 ) : LocationProvider {
+    override val location: MutableStateFlow<Location?> = MutableStateFlow(null)
     private var lastReceivedLocation: Location? = null
+        get() = field
+        set(v) {
+            location.value = v
+            field = v
+        }
+
     private val backgroundCallback = object : LocationListener {
         override fun onLocationChanged(location: Location?) {
             lastReceivedLocation = location

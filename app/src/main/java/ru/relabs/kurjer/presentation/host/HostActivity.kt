@@ -27,6 +27,7 @@ import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.AppUpdate
+import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
@@ -43,7 +44,6 @@ import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
 import ru.relabs.kurjer.utils.extensions.showSnackbar
 import ru.terrakok.cicerone.NavigatorHolder
-import ru.terrakok.cicerone.Router
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -55,13 +55,18 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     private val controller = defaultController(HostState(), HostContext())
 
     private val navigationHolder: NavigatorHolder by inject()
-    private val router: Router by inject()
+    private val locationProvider: LocationProvider by inject()
     private lateinit var navigationDrawer: Drawer
 
     private val navigator = CiceroneNavigator(this)
 
-    private val featureCheckersContainer = FeatureCheckersContainer(this)
-    private val systemWatchersContainer = SystemWatchersContainer(this, featureCheckersContainer.network, featureCheckersContainer.gps)
+    private val featureCheckersContainer = FeatureCheckersContainer(this, locationProvider, uiScope)
+    private val systemWatchersContainer = SystemWatchersContainer(
+        this,
+        featureCheckersContainer.network,
+        featureCheckersContainer.gps,
+        featureCheckersContainer.mockLocation
+    )
 
     private var taskUpdateRequiredDialogShowed: Boolean = false
     private var isUpdateAppDialogShowed: Boolean = false
@@ -414,7 +419,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         uiScope.sendMessage(controller, HostMessages.msgResume())
         ReportService.isAppPaused = false
 
-        if(!ReportService.isRunning){
+        if (!ReportService.isRunning) {
             startService(Intent(this, ReportService::class.java))
         }
     }

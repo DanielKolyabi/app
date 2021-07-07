@@ -419,6 +419,13 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         uiScope.sendMessage(controller, HostMessages.msgResume())
         ReportService.isAppPaused = false
 
+        uiScope.launch(Dispatchers.IO) {
+            locationProvider.updatesChannel().apply {
+                receive()
+                cancel()
+            }
+        }
+
         if (!ReportService.isRunning) {
             startService(Intent(this, ReportService::class.java))
         }

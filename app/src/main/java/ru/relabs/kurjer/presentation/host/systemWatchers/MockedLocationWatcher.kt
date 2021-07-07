@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 class MockedLocationWatcher(
     a: Activity,
     private val mockedLocationChecker: MockedLocationChecker
-) : SystemWatcher(a, TimeUnit.SECONDS.toMillis(10)) {
+) : SystemWatcher(a, TimeUnit.SECONDS.toMillis(3)) {
     private val ctx: Context = a
 
     override suspend fun onWatcherTick() {

@@ -130,7 +130,7 @@ object ReportEffects {
                     )
                 } ?: Int.MAX_VALUE.toDouble()
 
-                val locationNotValid = location == null || Date(location.time).isLocationExpired(60 * 1000)
+                val locationNotValid = location == null || Date(location.time).isLocationExpired()
                 CustomLog.writeToFile(
                     "Validate photo radius (valid: ${!locationNotValid}): " +
                             "${location?.latitude}, ${location?.longitude}, ${location?.time}, " +

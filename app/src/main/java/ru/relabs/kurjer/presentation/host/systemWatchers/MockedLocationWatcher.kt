@@ -30,7 +30,7 @@ class MockedLocationWatcher(
         }
     }
 
-    private fun getAllMockGPSApps(): List<String> {
+    fun getAllMockGPSApps(): List<String> {
         return ctx.packageManager.getInstalledApplications(PackageManager.GET_META_DATA).filter {
             val isSystemPackage = it.flags and ApplicationInfo.FLAG_SYSTEM != 0
             !isSystemPackage && hasAppPermission(ctx, it.packageName, "android.permission.ACCESS_MOCK_LOCATION")

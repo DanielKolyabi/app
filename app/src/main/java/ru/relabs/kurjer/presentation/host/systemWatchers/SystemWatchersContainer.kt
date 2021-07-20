@@ -15,7 +15,7 @@ class SystemWatchersContainer(
 ) {
     private val gps = GPSSystemWatcher(activity, gpsFeatureChecker)
     private val network = NetworkSystemWatcher(activity, networkFeatureChecker)
-    private val mockedLocation = MockedLocationWatcher(activity, mockedLocationChecker)
+    val mockedLocation = MockedLocationWatcher(activity, mockedLocationChecker)
 
     private val allWatchers = listOf(
         gps,

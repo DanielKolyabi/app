@@ -85,6 +85,10 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        systemWatchersContainer.mockedLocation.getAllMockGPSApps().takeIf { it.isNotEmpty() }?.let {
+            CustomLog.writeToFile("MockGPS Apps: " + it.joinToString { ", " })
+        }
+
         setContentView(R.layout.activity_host)
 
         Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler())

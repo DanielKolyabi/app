@@ -42,9 +42,12 @@ class PlayServicesLocationProvider(
     private val client: FusedLocationProviderClient,
     private val application: Application,
     private val mainHandlerScope: CoroutineScope
-) :
-    LocationProvider {
+) : LocationProvider {
     override val location: MutableStateFlow<Location?> = MutableStateFlow(null)
+
+    private var subscribedChannels = 0
+    private var subscribedBackgrounds = 0
+
 
     private var lastReceivedLocation: Location? = null
         get() = field
@@ -113,10 +116,14 @@ class PlayServicesLocationProvider(
             stopInBackground()
         }
         mainHandlerScope.launch(Dispatchers.Main) {
+            subscribedChannels++
+            CustomLog.writeToFile("GPS LOG: Subscribe $callback ($subscribedChannels)")
             client.requestLocationUpdates(request, callback, null)
         }
         channel.invokeOnClose {
             mainHandlerScope.launch(Dispatchers.Main) {
+                subscribedChannels--
+                CustomLog.writeToFile("GPS LOG: Unsubscribe $callback ($subscribedChannels)")
                 client.removeLocationUpdates(callback)
             }
             if (shouldRunBackgroundAfter) {
@@ -143,6 +150,8 @@ class PlayServicesLocationProvider(
 
         isBackgroundRunning = true
         mainHandlerScope.launch(Dispatchers.Main) {
+            subscribedBackgrounds++
+            CustomLog.writeToFile("GPS LOG: Subscribe BG $backgroundCallback (${subscribedBackgrounds})")
             client.requestLocationUpdates(request, backgroundCallback, null)
         }
         return true
@@ -153,6 +162,8 @@ class PlayServicesLocationProvider(
         CustomLog.writeToFile("GPS LOG: Stop BG")
         isBackgroundRunning = false
         mainHandlerScope.launch(Dispatchers.Main) {
+            subscribedBackgrounds--
+            CustomLog.writeToFile("GPS LOG: Unsubscribe BG $backgroundCallback (${subscribedBackgrounds})")
             client.removeLocationUpdates(backgroundCallback)
         }
     }

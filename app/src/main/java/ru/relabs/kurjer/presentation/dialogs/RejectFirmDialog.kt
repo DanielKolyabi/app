@@ -19,6 +19,12 @@ import ru.relabs.kurjer.utils.extensions.visible
 
 class RejectFirmDialog(val reasons: List<String>, val onRejected: (reason: String) -> Unit) : DialogFragment() {
 
+    private var onDismissListener: (() -> Unit)? = null
+
+    fun setOnDismissListener(listener: (() -> Unit)?) {
+        onDismissListener = listener
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, R.style.Theme_AppCompat_Light_Dialog_Alert)
@@ -61,7 +67,7 @@ class RejectFirmDialog(val reasons: List<String>, val onRejected: (reason: Strin
         view.et_reason.doAfterTextChanged {
             val isReasonVisible =
                 view?.sp_reason?.selectedItemPosition?.let { adapter.getItem(it)?.shouldExpandDescription == false } ?: false
-            view?.btn_reject?.isEnabled = isReasonVisible || ((view?.et_reason?.text?.length ?: 0)  >= 5)
+            view?.btn_reject?.isEnabled = isReasonVisible || ((view?.et_reason?.text?.length ?: 0) >= 5)
         }
 
         view.btn_reject.setOnClickListener {
@@ -79,7 +85,9 @@ class RejectFirmDialog(val reasons: List<String>, val onRejected: (reason: Strin
         val dialog = super.onCreateDialog(savedInstanceState)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-
+        dialog.setOnDismissListener {
+            onDismissListener?.invoke()
+        }
         return dialog
     }
 

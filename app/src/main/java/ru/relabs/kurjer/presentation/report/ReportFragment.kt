@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -52,6 +53,7 @@ class ReportFragment : BaseFragment() {
 
     private val controller = defaultController(ReportState(), ReportContext())
     private var renderJob: Job? = null
+    private var isCloseClicked = false
 
     private val tasksAdapter = DelegateAdapter(
         ReportAdapter.task {
@@ -174,7 +176,10 @@ class ReportFragment : BaseFragment() {
     private fun showRejectDialog(reasons: List<String>) {
         RejectFirmDialog(reasons) {
             uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(it))
-        }.show(requireFragmentManager(), "dialog_reject")
+        }.apply{
+            setOnDismissListener { isCloseClicked = false }
+            show(requireFragmentManager(), "dialog_reject")
+        }
     }
 
     private suspend fun showFatalError(code: String, isFatal: Boolean) = withContext(Dispatchers.Main) {
@@ -186,7 +191,9 @@ class ReportFragment : BaseFragment() {
                     uiScope.sendMessage(controller, ReportMessages.msgBackClicked())
                 }
             }
-        )
+        ).setOnDismissListener {
+            isCloseClicked = false
+        }
 
         Unit
     }
@@ -207,7 +214,9 @@ class ReportFragment : BaseFragment() {
             R.string.yes to { uiScope.sendMessage(controller, ReportMessages.msgPerformClose(location, rejectReason)) },
             R.string.no to {},
             style = R.style.RedAlertDialog
-        )
+        ).setOnDismissListener {
+            isCloseClicked = false
+        }
     }
 
     private fun showCloseError(msgRes: Int, withPreClose: Boolean, location: Location? = null, rejectReason: String?) {
@@ -218,14 +227,18 @@ class ReportFragment : BaseFragment() {
                     showPreCloseDialog(location, rejectReason)
                 }
             }
-        )
+        ).setOnDismissListener {
+            isCloseClicked = false
+        }
     }
 
     private fun showPhotosWarning() {
         showDialog(
             R.string.report_close_no_photos,
             R.string.ok to {}
-        )
+        ).setOnDismissListener {
+            isCloseClicked = false
+        }
     }
 
     private fun showPausedWarning() {
@@ -233,7 +246,9 @@ class ReportFragment : BaseFragment() {
             R.string.report_close_paused_warning,
             R.string.ok to { uiScope.sendMessage(controller, ReportMessages.msgInterruptPause()) },
             R.string.cancel to {}
-        )
+        ).setOnDismissListener {
+            isCloseClicked = false
+        }
     }
 
     private fun requestPhoto(entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID) {
@@ -296,7 +311,12 @@ class ReportFragment : BaseFragment() {
         }
 
         view.btn_close.setOnClickListener {
+            if(isCloseClicked){
+                return@setOnClickListener
+            }
             uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(null))
+            isCloseClicked = true
+            Thread.sleep(1000)
         }
 
         view.btn_reject.setOnClickListener {
@@ -317,6 +337,7 @@ class ReportFragment : BaseFragment() {
         controller.context.getBatteryLevel = { null }
         controller.context.contentResolver = { null }
         controller.context.errorContext.detach()
+        isCloseClicked = false
     }
 
     override fun interceptBackPressed(): Boolean {

@@ -11,21 +11,31 @@ import ru.relabs.kurjer.utils.Either
 suspend fun FirebaseInstanceId.instanceIdSuspend() = suspendCancellableCoroutine<String> { cont ->
     instanceId.addOnCompleteListener { task ->
         if (!task.isSuccessful) {
-            cont.resumeWith(Result.failure(task.exception ?: RuntimeException("Firebase token retrieve failed. Task failed")))
+            if(cont.isActive){
+                cont.resumeWith(Result.failure(task.exception ?: RuntimeException("Firebase token retrieve failed. Task failed")))
+            }
         }
         try {
-            when (val token = task.result?.token) {
-                null -> cont.resumeWith(Result.failure(RuntimeException("Firebase token retrieve failed. Token is null")))
-                else -> cont.resumeWith(Result.success(token))
+            if(cont.isActive){
+                when (val token = task.result?.token) {
+                    null -> cont.resumeWith(Result.failure(RuntimeException("Firebase token retrieve failed. Token is null")))
+                    else -> cont.resumeWith(Result.success(token))
+                }
             }
         } catch (e: Exception) {
             FirebaseCrashlytics.getInstance().recordException(e)
-            cont.resumeWith(Result.failure(e))
+            if(cont.isActive){
+                cont.resumeWith(Result.failure(e))
+            }
         }
     }.addOnCanceledListener {
-        cont.resumeWith(Result.failure(RuntimeException("Firebase token retrieve failed. Task canceled")))
+        if(cont.isActive) {
+            cont.resumeWith(Result.failure(RuntimeException("Firebase token retrieve failed. Task canceled")))
+        }
     }.addOnFailureListener {
-        cont.resumeWith(Result.failure(it))
+        if(cont.isActive){
+            cont.resumeWith(Result.failure(it))
+        }
     }
 }
 

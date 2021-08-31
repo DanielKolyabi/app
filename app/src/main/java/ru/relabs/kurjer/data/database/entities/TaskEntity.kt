@@ -42,7 +42,8 @@ data class TaskEntity(
         @ColumnInfo(name = "by_other_user")
         var byOtherUser: Boolean,
         @ColumnInfo(name = "delivery_type")
-        var deliveryType: Int
+        var deliveryType: Int,
+        var listSort: String
 ) {
     val plainState
         get() = if(state and TaskModel.BY_OTHER_USER == 1){

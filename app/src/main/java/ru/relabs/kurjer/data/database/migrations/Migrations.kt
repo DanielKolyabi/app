@@ -166,4 +166,9 @@ object Migrations {
             database.execSQL("ALTER TABLE report_query ADD COLUMN delivery_type INTEGER NOT NULL DEFAULT 1")
         }
     }
+    private val migration_41_42 = object : Migration(41, 42) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE tasks ADD COLUMN listSort TEXT NOT NULL DEFAULT ''")
+        }
+    }
 }

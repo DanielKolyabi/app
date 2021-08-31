@@ -316,7 +316,6 @@ class ReportFragment : BaseFragment() {
             }
             uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(null))
             isCloseClicked = true
-            Thread.sleep(1000)
         }
 
         view.btn_reject.setOnClickListener {

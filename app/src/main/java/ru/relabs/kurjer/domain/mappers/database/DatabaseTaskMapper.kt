@@ -35,7 +35,8 @@ object DatabaseTaskMapper {
             1 -> TaskDeliveryType.Address
             2 -> TaskDeliveryType.Firm
             else -> throw MappingException("deliveryType", taskEntity.deliveryType)
-        }
+        },
+        listSort = taskEntity.listSort
     )
 
     fun toEntity(task: Task): TaskEntity = TaskEntity(
@@ -61,6 +62,7 @@ object DatabaseTaskMapper {
         deliveryType = when (task.deliveryType) {
             TaskDeliveryType.Address -> 1
             TaskDeliveryType.Firm -> 2
-        }
+        },
+        listSort = task.listSort
     )
 }

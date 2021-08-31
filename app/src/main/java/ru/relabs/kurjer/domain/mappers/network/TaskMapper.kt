@@ -41,6 +41,7 @@ object TaskMapper {
             1 -> TaskDeliveryType.Address
             2 -> TaskDeliveryType.Firm
             else -> throw MappingException("deliveryType", raw.deliveryType)
-        }
+        },
+        listSort = raw.sort
     )
 }

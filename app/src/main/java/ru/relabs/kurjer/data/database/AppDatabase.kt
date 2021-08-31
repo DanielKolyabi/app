@@ -13,7 +13,7 @@ import ru.relabs.kurjer.data.database.entities.*
     entities = [AddressEntity::class, TaskEntity::class, TaskItemEntity::class,
         TaskItemPhotoEntity::class, TaskItemResultEntity::class, TaskItemResultEntranceEntity::class,
         SendQueryItemEntity::class, ReportQueryItemEntity::class, EntranceDataEntity::class,
-        FirmRejectReason::class], version = 41
+        FirmRejectReason::class], version = 42
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

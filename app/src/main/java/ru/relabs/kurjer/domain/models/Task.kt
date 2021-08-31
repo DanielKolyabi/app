@@ -33,7 +33,8 @@ data class Task(
     val iteration: Int,
     val items: List<TaskItem>,
     val coupleType: CoupleType,
-    val deliveryType: TaskDeliveryType
+    val deliveryType: TaskDeliveryType,
+    val listSort: String
 ) : Parcelable {
 
     val listName: String

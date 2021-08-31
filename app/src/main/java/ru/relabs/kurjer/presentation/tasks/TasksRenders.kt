@@ -23,7 +23,7 @@ object TasksRenders {
             val newItems = if (tasks.isEmpty() && loaders > 0) {
                 listOf(TasksItem.Loader)
             } else {
-                listOf(TasksItem.Search(filter)) + tasks.filter {
+                listOf(TasksItem.Search(filter)) + tasks.sortedBy { it.listSort }.filter {
                     if (filter.isNotEmpty()) {
                         SearchUtils.isMatches(it.listName, filter)
                     } else {

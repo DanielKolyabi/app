@@ -50,7 +50,7 @@ class DatabaseRepository(
         //Remove all taskItems
         db.taskItemDao().getAllForTask(taskId.id).forEach { taskItem ->
             db.photosDao().getByTaskItemId(taskItem.id).forEach { photo ->
-                CustomLog.writeToFile("Remove photos due to task removal tii=${photo.taskItemId } ti=${photo.UUID}")
+                CustomLog.writeToFile("Remove photos due to task removal tii=${photo.taskItemId} ti=${photo.UUID}")
                 val file = pathsProvider.getTaskItemPhotoFileByID(photo.taskItemId, UUID.fromString(photo.UUID))
                 file.delete()
                 db.photosDao().delete(photo)
@@ -262,6 +262,9 @@ class DatabaseRepository(
                     removeTaskItem(it.id)
                 }
                 //result.isTasksChanged = true
+            } else if (savedTask.listSort != task.listSort) {
+                emit(MergeResult.TaskUpdated(task))
+                db.taskDao().update(savedTask.copy(listSort = task.listSort))
             }
         }
     }.flowOn(Dispatchers.IO)

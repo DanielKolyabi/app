@@ -5,13 +5,9 @@ import android.location.LocationManager
 import android.location.LocationManager.GPS_PROVIDER
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
+import android.os.Build
 import android.provider.Settings
-import android.util.Log
-
-import java.io.File
-import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
+import android.telephony.TelephonyManager
 
 
 /**
@@ -22,14 +18,14 @@ object NetworkHelper {
     private fun isWifiEnabled(context: Context?): Boolean {
         context ?: return false
         val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
-                ?: return false
+            ?: return false
         return wifiManager.isWifiEnabled
     }
 
     private fun isWifiConnected(context: Context?): Boolean {
         context ?: return false
         val wifiManager = context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-                ?: return false
+            ?: return false
         return wifiManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected
     }
 
@@ -63,44 +59,23 @@ object NetworkHelper {
 
     fun isGPSEnabled(context: Context?): Boolean {
         return ((context?.getSystemService(Context.LOCATION_SERVICE) as? LocationManager)?.isProviderEnabled(GPS_PROVIDER)
-                ?: false) && !isAirplaneModeEnabled(context)
+            ?: false) && !isAirplaneModeEnabled(context)
     }
 
     fun isNetworkAvailable(context: Context?): Boolean {
         context ?: return false
-        val status = (context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager)?.activeNetworkInfo?.isConnectedOrConnecting
+        val status =
+            (context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager)?.activeNetworkInfo?.isConnectedOrConnecting
         return status ?: false
     }
 
-    fun loadUpdateFile(url: URL, onDownloadUpdate: (current: Int, total: Int) -> Unit): File {
-        val file = File("test")//PathHelper.getUpdateFile()
-        val connection = url.openConnection() as HttpURLConnection
-        val stream = url.openStream()
-        val fos = FileOutputStream(file)
-        try {
-            val fileSize = connection.contentLength
-
-
-            val b = ByteArray(2048)
-
-            var read = stream.read(b)
-            var total = read
-            while (read != -1) {
-                fos.write(b, 0, read)
-                read = stream.read(b)
-                total += read
-                Log.d("loader", "$total/$fileSize")
-                onDownloadUpdate(total, fileSize)
-            }
-        } catch (e: Exception) {
-            throw e
-        } finally {
-            stream.close()
-            connection.disconnect()
-            fos.close()
+    fun isSIMInserted(context: Context?): Boolean {
+        context ?: return false
+        val manager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            (0..2).any { manager.getSimState(it) == TelephonyManager.SIM_STATE_READY }
+        } else {
+            manager.simState == TelephonyManager.SIM_STATE_READY
         }
-
-
-        return file
     }
 }

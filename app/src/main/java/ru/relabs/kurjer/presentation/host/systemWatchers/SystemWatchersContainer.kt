@@ -6,21 +6,25 @@ import android.os.Bundle
 import ru.relabs.kurjer.presentation.host.featureCheckers.GPSFeatureChecker
 import ru.relabs.kurjer.presentation.host.featureCheckers.MockedLocationChecker
 import ru.relabs.kurjer.presentation.host.featureCheckers.NetworkFeatureChecker
+import ru.relabs.kurjer.presentation.host.featureCheckers.SimExistenceChecker
 
 class SystemWatchersContainer(
     activity: Activity,
     networkFeatureChecker: NetworkFeatureChecker,
     gpsFeatureChecker: GPSFeatureChecker,
-    mockedLocationChecker: MockedLocationChecker
+    mockedLocationChecker: MockedLocationChecker,
+    simFeatureChecker: SimExistenceChecker
 ) {
     private val gps = GPSSystemWatcher(activity, gpsFeatureChecker)
     private val network = NetworkSystemWatcher(activity, networkFeatureChecker)
+    private val sim = SimExistenceWatcher(activity, simFeatureChecker)
     val mockedLocation = MockedLocationWatcher(activity, mockedLocationChecker)
 
     private val allWatchers = listOf(
         gps,
         network,
-        mockedLocation
+        mockedLocation,
+        sim
     )
 
     fun onPause(){

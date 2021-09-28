@@ -65,7 +65,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         this,
         featureCheckersContainer.network,
         featureCheckersContainer.gps,
-        featureCheckersContainer.mockLocation
+        featureCheckersContainer.mockLocation,
+        featureCheckersContainer.sim
     )
 
     private var taskUpdateRequiredDialogShowed: Boolean = false

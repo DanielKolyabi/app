@@ -17,6 +17,7 @@ class FeatureCheckersContainer(
     val permissions = PermissionFeatureChecker(a)
     val time = TimeFeatureChecker(a)
     val mockLocation = MockedLocationChecker(a, locationProvider, scope)
+    val sim = SimExistenceChecker(a)
 
     private val allFeatures: List<FeatureChecker>
         get() = listOf(gps, network, xiaomiPermissions, permissions, time, mockLocation)

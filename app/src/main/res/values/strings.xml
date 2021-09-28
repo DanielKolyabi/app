@@ -58,6 +58,7 @@
     <string name="login_need_update">Необходимо обновить приложение</string>
     <string name="login_need_network">Необходимо включить передачу данных</string>
     <string name="network_request_enable">Небходимо включить передачу данных</string>
+    <string name="sim_required_error">Небходимо вставить сим-карту</string>
     <string name="time_request_valid">Неверные настройки времени</string>
     <string name="settings">Настройки</string>
     <string name="xiaomi_permissions_request">Необходимо дать доступ к \"Экран блокировки\", \"Всплывающие окна\" и \"Отображать всплывающие окна, когда запущено в фоновом режиме\"</string>

@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -41,7 +40,6 @@ import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
 import java.io.File
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 /**
@@ -114,8 +112,12 @@ class ReportFragment : BaseFragment() {
         return inflater.inflate(R.layout.fragment_report, container, false)
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        nextPhotoData = savedInstanceState?.getParcelable<ReportPhotoData>(NEXT_PHOTO_DATA_KEY)?.also {
+            savedInstanceState.remove(NEXT_PHOTO_DATA_KEY)
+        }
 
         val hintHelper = HintHelper(hint_container, "", false, requireActivity())
         hint_container.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
@@ -176,7 +178,7 @@ class ReportFragment : BaseFragment() {
     private fun showRejectDialog(reasons: List<String>) {
         RejectFirmDialog(reasons) {
             uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(it))
-        }.apply{
+        }.apply {
             setOnDismissListener { isCloseClicked = false }
             show(requireFragmentManager(), "dialog_reject")
         }
@@ -268,6 +270,13 @@ class ReportFragment : BaseFragment() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        nextPhotoData?.let {
+            outState.putParcelable(NEXT_PHOTO_DATA_KEY, it)
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode != REQUEST_PHOTO_CODE) return
@@ -311,7 +320,7 @@ class ReportFragment : BaseFragment() {
         }
 
         view.btn_close.setOnClickListener {
-            if(isCloseClicked){
+            if (isCloseClicked) {
                 return@setOnClickListener
             }
             uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(null))
@@ -344,6 +353,7 @@ class ReportFragment : BaseFragment() {
     }
 
     companion object {
+        private const val NEXT_PHOTO_DATA_KEY = "next_photo_data"
         const val ARG_ITEMS_KEY = "items"
         const val ARG_SELECTED_TASK_ITEM_ID = "task_item_id"
         const val ARG_SELECTED_TASK_ITEM_EMPTY = -999
@@ -360,11 +370,12 @@ class ReportFragment : BaseFragment() {
     @Parcelize
     private data class ArgItem(val task: TaskId, val taskItem: TaskItemId) : Parcelable
 
+    @Parcelize
     private data class ReportPhotoData(
         val entrance: Int,
         val multiplePhoto: Boolean,
         val photoUri: Uri,
         val targetFile: File,
         val uuid: UUID
-    )
+    ) : Parcelable
 }

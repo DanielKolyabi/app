@@ -163,7 +163,11 @@ object ReportEffects {
                     }
                 } else {
                     if (c.settingsRepository.allowedCloseRadius.photoAnyDistance) {
-                        if (distance > c.settingsRepository.allowedCloseRadius.distance && withAnyRadiusWarning) {
+                        //https://git.relabs.ru/kurier/app/-/issues/87 если юзер может делать фото и закрывать дома вне радиуса - ему нужно показывать диалог (он админ).
+                        //Если же он может только делать фото, ему о диалоге знать не надо, что бы не особо пользовался этим
+                        val shouldSuppressDialog = c.settingsRepository.allowedCloseRadius is AllowedCloseRadius.Required
+                        8
+                        if (distance > c.settingsRepository.allowedCloseRadius.distance && withAnyRadiusWarning && shouldSuppressDialog) {
                             withContext(Dispatchers.Main) {
                                 c.showCloseError(R.string.report_close_location_far_warning, false, null, null)
                             }
@@ -209,7 +213,7 @@ object ReportEffects {
                 )
             },
             withAnyRadiusWarning = true
-        )(c,s)
+        )(c, s)
     }
 
     fun effectValidateRadiusAndRequestPhoto(

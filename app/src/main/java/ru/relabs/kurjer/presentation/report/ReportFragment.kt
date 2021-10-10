@@ -180,8 +180,7 @@ class ReportFragment : BaseFragment() {
             uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(it))
         }.apply {
             setOnDismissListener { isCloseClicked = false }
-            show(requireFragmentManager(), "dialog_reject")
-        }
+        }.show(childFragmentManager, "dialog_reject")
     }
 
     private suspend fun showFatalError(code: String, isFatal: Boolean) = withContext(Dispatchers.Main) {

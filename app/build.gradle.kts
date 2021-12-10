@@ -16,6 +16,8 @@ android {
             keyPassword = "1qazxsw2"
             storeFile = file("2017abix.dat")
             storePassword = "1qazxsw2"
+            isV1SigningEnabled = true
+            isV2SigningEnabled = true
         }
     }
     compileSdkVersion(29)
@@ -23,8 +25,8 @@ android {
         applicationId = "abix.kurjer"
         minSdkVersion(21)
         targetSdkVersion(29)
-        versionCode = 168
-        versionName = "168"
+        versionCode = 169
+        versionName = "169"
         buildConfigField("Boolean", "FEATURE_PHOTO_RADIUS", "true")
     }
     flavorDimensions("server")

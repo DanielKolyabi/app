@@ -427,7 +427,11 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         uiScope.launch(Dispatchers.IO) {
             locationProvider.updatesChannel().apply {
                 receive()
-                cancel()
+                try {
+                    cancel()
+                } catch (e: Exception) {
+                    e.log()
+                }
             }
         }
 

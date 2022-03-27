@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.domain.useCases
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.models.auth.UserLogin
@@ -64,6 +65,8 @@ class LoginUseCase(
         pauseRepository.loadLastPausesRemote()
         deliveryRepository.updateDeviceIMEI()
         deliveryRepository.updatePushToken()
+
+        FirebaseCrashlytics.getInstance().setUserId(login.login)
     }
 
     suspend fun logout() {
@@ -71,5 +74,6 @@ class LoginUseCase(
         authTokenStorage.resetToken()
         currentUserStorage.resetCurrentUserLogin()
         ReportService.stopTaskClosingTimer()
+        FirebaseCrashlytics.getInstance().setUserId("NA")
     }
 }

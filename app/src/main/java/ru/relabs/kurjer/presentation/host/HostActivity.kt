@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.presentation.host
 
 import android.app.Activity
+import android.app.ActivityManager
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -14,6 +15,7 @@ import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.holder.DimenHolder
@@ -22,6 +24,7 @@ import com.mikepenz.materialize.util.UIUtils
 import kotlinx.android.synthetic.main.activity_host.*
 import kotlinx.android.synthetic.main.nav_header.view.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.receiveOrNull
 import kotlinx.coroutines.flow.collect
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
@@ -426,7 +429,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
         uiScope.launch(Dispatchers.IO) {
             locationProvider.updatesChannel().apply {
-                receive()
+                receiveOrNull()
                 try {
                     cancel()
                 } catch (e: Exception) {
@@ -435,8 +438,29 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
             }
         }
 
+
         if (!ReportService.isRunning) {
-            startService(Intent(this, ReportService::class.java))
+            val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+            var attempts = 0
+            uiScope.launch(Dispatchers.IO) {
+                while (true) {
+                    val process = activityManager?.runningAppProcesses?.firstOrNull()
+                    if (process != null && process.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+                        startService(Intent(this@HostActivity, ReportService::class.java))
+                        break
+                    } else if (attempts >= 10) {
+                        FirebaseCrashlytics.getInstance()
+                            .recordException(RuntimeException("App resumed but importance lower than foreground"))
+                        break
+                    } else if (activityManager == null) {
+                        FirebaseCrashlytics.getInstance().recordException(RuntimeException("App resumed but activityManager is null"))
+                        break
+                    } else {
+                        delay(200)
+                        attempts++
+                    }
+                }
+            }
         }
     }
 

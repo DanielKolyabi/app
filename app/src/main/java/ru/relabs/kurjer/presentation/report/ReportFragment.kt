@@ -35,6 +35,7 @@ import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.*
 import ru.relabs.kurjer.presentation.dialogs.RejectFirmDialog
 import ru.relabs.kurjer.uiOld.helpers.HintHelper
+import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
@@ -117,6 +118,8 @@ class ReportFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         nextPhotoData = savedInstanceState?.getParcelable<ReportPhotoData>(NEXT_PHOTO_DATA_KEY)?.also {
             savedInstanceState.remove(NEXT_PHOTO_DATA_KEY)
+
+            CustomLog.writeToFile("Request Photo: Photo Data Restored ${it}")
         }
 
         val hintHelper = HintHelper(hint_container, "", false, requireActivity())
@@ -263,6 +266,7 @@ class ReportFragment : BaseFragment() {
         intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
         if (intent.resolveActivity(requireContext().packageManager) != null) {
             nextPhotoData = ReportPhotoData(entrance, multiplePhoto, photoUri, targetFile, uuid)
+            CustomLog.writeToFile("Request Photo: Store photo data: ${nextPhotoData}")
             startActivityForResult(intent, REQUEST_PHOTO_CODE)
         } else {
             uiScope.sendMessage(controller, ReportMessages.msgPhotoError(1))
@@ -273,6 +277,7 @@ class ReportFragment : BaseFragment() {
         super.onSaveInstanceState(outState)
         nextPhotoData?.let {
             outState.putParcelable(NEXT_PHOTO_DATA_KEY, it)
+            CustomLog.writeToFile("Request Photo: Save Photo Data ${nextPhotoData}")
         }
     }
 
@@ -289,6 +294,7 @@ class ReportFragment : BaseFragment() {
             return
         }
         if (photoData == null) {
+            CustomLog.writeToFile("Request Photo: Photo data is null")
             uiScope.sendMessage(controller, ReportMessages.msgPhotoError(3))
             return
         }

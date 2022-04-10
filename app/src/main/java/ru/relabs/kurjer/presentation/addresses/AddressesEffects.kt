@@ -3,12 +3,12 @@ package ru.relabs.kurjer.presentation.addresses
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.*
-
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
+import ru.relabs.kurjer.services.ReportService
+import ru.relabs.kurjer.uiOld.fragments.YandexMapFragment
 
 /**
  * Created by Daniil Kurchanov on 02.04.2020.
@@ -87,9 +87,21 @@ object AddressesEffects {
     }
 
     fun effectOpenYandexMap(taskItems: List<TaskItem>): AddressesEffect = { c, s ->
+        val storages = taskItems
+            .distinctBy { it.taskId }
+            .mapNotNull {
+                val task = c.databaseRepository.getTask(it.taskId)
+                if (task?.storageLat != null && task.storageLong != null) {
+                    YandexMapFragment.StorageLocation(task.storageLat, task.storageLong)
+                } else {
+                    null
+                }
+            }
+            .distinct()
+
         withContext(Dispatchers.Main) {
             c.router.navigateTo(
-                RootScreen.YandexMap(taskItems) {
+                RootScreen.YandexMap(taskItems, storages) {
                     messages.offer(msgEffect(effectYandexMapAddressSelected(it)))
                 }
             )

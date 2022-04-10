@@ -18,7 +18,9 @@ object Migrations {
         migration_37_38,
         migration_38_39,
         migration_39_40,
-        migration_40_41
+        migration_40_41,
+        migration_41_42,
+        migration_42_43,
     )
 
 
@@ -169,6 +171,12 @@ object Migrations {
     private val migration_41_42 = object : Migration(41, 42) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("ALTER TABLE tasks ADD COLUMN listSort TEXT NOT NULL DEFAULT ''")
+        }
+    }
+    private val migration_42_43 = object : Migration(42, 43) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE tasks ADD COLUMN storage_lat REAL DEFAULT ''")
+            database.execSQL("ALTER TABLE tasks ADD COLUMN storage_long REAL DEFAULT ''")
         }
     }
 }

@@ -36,7 +36,9 @@ object DatabaseTaskMapper {
             2 -> TaskDeliveryType.Firm
             else -> throw MappingException("deliveryType", taskEntity.deliveryType)
         },
-        listSort = taskEntity.listSort
+        listSort = taskEntity.listSort,
+        storageLat = taskEntity.storageLat,
+        storageLong = taskEntity.storageLong,
     )
 
     fun toEntity(task: Task): TaskEntity = TaskEntity(
@@ -56,6 +58,8 @@ object DatabaseTaskMapper {
         userId = task.userId,
         city = task.city,
         storageAddress = task.storageAddress ?: "",
+        storageLat = task.storageLat,
+        storageLong = task.storageLong,
         iteration = task.iteration,
         coupleType = task.coupleType.type,
         byOtherUser = task.state.byOtherUser,

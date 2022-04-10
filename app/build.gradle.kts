@@ -38,7 +38,7 @@ android {
             buildConfigField("String", "API_URL", "\"http://warp.courdm.ru:8084\"")
         }
         create("localServer") {
-            buildConfigField("String", "API_URL", "\"http://192.168.31.18:8090\"")
+            buildConfigField("String", "API_URL", "\"http://192.168.1.106:8090\"")
         }
     }
     buildTypes {

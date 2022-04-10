@@ -32,12 +32,14 @@ object TaskMapper {
         userId = raw.userId,
         city = raw.city,
         storageAddress = raw.storageAddress,
+        storageLat = raw.storageLat,
+        storageLong = raw.storageLong,
         iteration = raw.iteration,
         items = raw.items.map {
             TaskItemMapper.fromRaw(it)
         },
         coupleType = CoupleType(raw.coupleType),
-        deliveryType = when(raw.deliveryType){
+        deliveryType = when (raw.deliveryType) {
             1 -> TaskDeliveryType.Address
             2 -> TaskDeliveryType.Firm
             else -> throw MappingException("deliveryType", raw.deliveryType)

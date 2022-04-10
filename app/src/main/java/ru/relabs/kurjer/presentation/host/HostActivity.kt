@@ -431,7 +431,9 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
             locationProvider.updatesChannel().apply {
                 receiveOrNull()
                 try {
-                    cancel()
+                    if (isActive) {
+                        cancel()
+                    }
                 } catch (e: Exception) {
                     e.log()
                 }

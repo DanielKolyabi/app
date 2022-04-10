@@ -30,6 +30,8 @@ data class Task(
     val userId: Int,
     val city: String,
     val storageAddress: String?,
+    val storageLat: Float?,
+    val storageLong: Float?,
     val iteration: Int,
     val items: List<TaskItem>,
     val coupleType: CoupleType,

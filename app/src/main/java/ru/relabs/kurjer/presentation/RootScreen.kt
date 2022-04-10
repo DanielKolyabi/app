@@ -29,7 +29,7 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
     class Report(items: List<Pair<Task, TaskItem>>, selectedTaskItem: TaskItem) :
         RootScreen({ ReportFragment.newInstance(items, selectedTaskItem) })
 
-    class YandexMap(taskItems: List<TaskItem>, onAddressClicked: (Address) -> Unit) :
+    class YandexMap(taskItems: List<TaskItem>, storages: List<YandexMapFragment.StorageLocation> = emptyList(), onAddressClicked: (Address) -> Unit) :
         RootScreen({
             val addresses = taskItems
                 .groupBy { it.address.id }
@@ -56,7 +56,7 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
                 }
 
             //TODO: Strongly recommend to refactor
-            YandexMapFragment.newInstance(addresses).apply {
+            YandexMapFragment.newInstance(addresses, storages).apply {
                 this.onAddressClicked = onAddressClicked
             }
         })

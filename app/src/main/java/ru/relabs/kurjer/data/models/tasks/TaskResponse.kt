@@ -24,6 +24,8 @@ data class TaskResponse(
     @SerializedName("user_id") val userId: Int,
     @SerializedName("city") val city: String,
     @SerializedName("storage_address") val storageAddress: String?,
+    @SerializedName("storage_lat") val storageLat: Float?,
+    @SerializedName("storage_long") val storageLong: Float?,
     @SerializedName("iteration") val iteration: Int,
     @SerializedName("items") val items: List<TaskItemResponse>,
     @SerializedName("first_examined_device_id") val firstExaminedDeviceId: String?,

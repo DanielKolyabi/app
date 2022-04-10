@@ -1,10 +1,7 @@
 package ru.relabs.kurjer.uiOld.fragments
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
+import android.graphics.*
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
@@ -16,9 +13,7 @@ import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Circle
 import com.yandex.mapkit.geometry.Point
-import com.yandex.mapkit.map.CameraPosition
-import com.yandex.mapkit.map.MapObject
-import com.yandex.mapkit.map.MapObjectTapListener
+import com.yandex.mapkit.map.*
 import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.android.parcel.Parcelize
@@ -28,7 +23,6 @@ import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.Address
 import ru.relabs.kurjer.domain.providers.LocationProvider
-import ru.relabs.kurjer.utils.application
 import ru.terrakok.cicerone.Router
 
 
@@ -37,12 +31,13 @@ class YandexMapFragment : Fragment() {
     private val locationProvider: LocationProvider by inject()
     private lateinit var userLocationLayer: UserLocationLayer
     private var addresses: List<AddressWithColor> = listOf()
+    private var storages: List<StorageLocation> = listOf()
     private var exitInitialized: Boolean = false
     private val clickListener = MapObjectTapListener { obj, point ->
         val udata = obj.userData
-        if(udata is Address){
+        if (udata is Address) {
             onAddressClicked?.invoke(udata)
-            if(!exitInitialized){
+            if (!exitInitialized) {
                 router.exit()
                 exitInitialized = true
             }
@@ -56,7 +51,8 @@ class YandexMapFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            addresses = it.getParcelableArrayList("addresses") ?: listOf()
+            addresses = it.getParcelableArrayList("addresses") ?: emptyList()
+            storages = it.getParcelableArrayList(ARG_STORAGES_KEY) ?: emptyList()
             if (addresses.size < 2) {
                 savedCameraPosition = null
             }
@@ -95,15 +91,42 @@ class YandexMapFragment : Fragment() {
         }
 
         view.iv_menu.setOnClickListener {
-            if(!exitInitialized){
+            if (!exitInitialized) {
                 router.exit()
                 exitInitialized = true
             }
         }
 
 
+        showStorages(storages)
         showAddresses(addresses)
         makeFocus(addresses)
+    }
+
+    private fun showStorages(storages: List<StorageLocation>) {
+        mapview.map.mapObjects.forEach {
+            if (it.userData == IconType.Storage) {
+                mapview.map.mapObjects.remove(it)
+            }
+        }
+
+        storages.forEach {
+            mapview.map.mapObjects.addPlacemark(
+                Point(it.storageLat.toDouble(), it.storageLong.toDouble()),
+                ColoredIconProvider(mapview.context, Color.BLACK)
+            ).apply {
+                userData = IconType.Storage
+            }
+
+            mapview.map.mapObjects.addCircle(
+                Circle(Point(it.storageLat.toDouble(), it.storageLong.toDouble()), 20f),
+                Color.BLACK,
+                2f,
+                ColorUtils.setAlphaComponent(Color.BLACK, 80)
+            ).apply {
+                userData = IconType.Storage
+            }
+        }
     }
 
 
@@ -152,7 +175,7 @@ class YandexMapFragment : Fragment() {
 
             mapview.map.mapObjects
                 .addPlacemark(point, ColoredIconProvider(ctx, coloredAddress.color))
-                .apply{
+                .apply {
                     userData = address
                 }
 
@@ -190,22 +213,35 @@ class YandexMapFragment : Fragment() {
 
     companion object {
 
+        private const val ARG_STORAGES_KEY = "storages"
+
         var savedCameraPosition: CameraPosition? = null
 
         @JvmStatic
-        fun newInstance(address: List<AddressWithColor>) =
+        fun newInstance(address: List<AddressWithColor>, storages: List<StorageLocation>) =
             YandexMapFragment().apply {
                 arguments = Bundle().apply {
                     putParcelableArrayList("addresses", ArrayList(address))
+                    putParcelableArrayList(ARG_STORAGES_KEY, ArrayList(storages))
                 }
             }
     }
+
+    @Parcelize
+    data class StorageLocation(
+        val storageLat: Float,
+        val storageLong: Float
+    ) : Parcelable
 
     @Parcelize
     data class AddressWithColor(
         val address: Address,
         val color: Int
     ) : Parcelable
+
+    private enum class IconType {
+        Address, Storage
+    }
 }
 
 
@@ -224,4 +260,16 @@ class ColoredIconProvider(val context: Context, val color: Int) : ImageProvider(
         drawable.draw(canvas)
         return bmp
     }
+}
+
+inline fun MapObjectCollection.forEach(crossinline block: (MapObject) -> Unit) {
+    this.traverse(object : MapObjectVisitor {
+        override fun onPolygonVisited(p0: PolygonMapObject) = block(p0)
+        override fun onCircleVisited(p0: CircleMapObject) = block(p0)
+        override fun onPolylineVisited(p0: PolylineMapObject) = block(p0)
+        override fun onColoredPolylineVisited(p0: ColoredPolylineMapObject) = block(p0)
+        override fun onPlacemarkVisited(p0: PlacemarkMapObject) = block(p0)
+        override fun onCollectionVisitEnd(p0: MapObjectCollection) {}
+        override fun onCollectionVisitStart(p0: MapObjectCollection): Boolean = true
+    })
 }

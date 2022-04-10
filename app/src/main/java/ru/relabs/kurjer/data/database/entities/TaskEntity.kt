@@ -36,6 +36,10 @@ data class TaskEntity(
         var city: String,
         @ColumnInfo(name = "storage_address")
         var storageAddress: String,
+        @ColumnInfo(name = "storage_lat")
+        var storageLat: Float?,
+        @ColumnInfo(name = "storage_long")
+        var storageLong: Float?,
         var iteration: Int,
         @ColumnInfo(name = "couple_type")
         var coupleType: Int,

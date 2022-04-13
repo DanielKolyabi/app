@@ -98,8 +98,8 @@ class YandexMapFragment : Fragment() {
         }
 
 
-        showStorages(storages)
         showAddresses(addresses)
+        showStorages(storages)
         makeFocus(addresses)
     }
 
@@ -122,7 +122,7 @@ class YandexMapFragment : Fragment() {
                 Circle(Point(it.storageLat.toDouble(), it.storageLong.toDouble()), 20f),
                 Color.BLACK,
                 2f,
-                ColorUtils.setAlphaComponent(Color.BLACK, 80)
+                ColorUtils.setAlphaComponent(Color.BLACK, 125)
             ).apply {
                 userData = IconType.Storage
             }
@@ -180,7 +180,7 @@ class YandexMapFragment : Fragment() {
                 }
 
             mapview.map.mapObjects.addCircle(
-                Circle(point, 20f),
+                Circle(point, 50f),
                 R.color.colorPrimary,
                 2f,
                 ColorUtils.setAlphaComponent(coloredAddress.color, 125)

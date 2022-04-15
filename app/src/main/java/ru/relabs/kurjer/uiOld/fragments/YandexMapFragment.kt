@@ -25,6 +25,8 @@ import ru.relabs.kurjer.domain.models.Address
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.terrakok.cicerone.Router
 
+private const val ADDRESS_RADIUS = 20f
+private const val STORAGE_RADIUS = 10f
 
 class YandexMapFragment : Fragment() {
     private val router: Router by inject()
@@ -119,7 +121,7 @@ class YandexMapFragment : Fragment() {
             }
 
             mapview.map.mapObjects.addCircle(
-                Circle(Point(it.storageLat.toDouble(), it.storageLong.toDouble()), 20f),
+                Circle(Point(it.storageLat.toDouble(), it.storageLong.toDouble()), STORAGE_RADIUS),
                 Color.BLACK,
                 2f,
                 ColorUtils.setAlphaComponent(Color.BLACK, 125)
@@ -180,7 +182,7 @@ class YandexMapFragment : Fragment() {
                 }
 
             mapview.map.mapObjects.addCircle(
-                Circle(point, 50f),
+                Circle(point, ADDRESS_RADIUS),
                 R.color.colorPrimary,
                 2f,
                 ColorUtils.setAlphaComponent(coloredAddress.color, 125)

@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ru.relabs.kurjer.models.TaskModel
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.domain.models.DistrictType
 import ru.relabs.kurjer.domain.models.TaskState
 import java.util.*
 
@@ -47,7 +48,10 @@ data class TaskEntity(
         var byOtherUser: Boolean,
         @ColumnInfo(name = "delivery_type")
         var deliveryType: Int,
-        var listSort: String
+        var listSort: String,
+
+        var districtType: Int,
+        var orderNumber: Int
 ) {
     val plainState
         get() = if(state and TaskModel.BY_OTHER_USER == 1){

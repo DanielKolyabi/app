@@ -4,6 +4,7 @@ import android.view.View
 import androidx.recyclerview.widget.DiffUtil
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.address
+import ru.relabs.kurjer.domain.models.canBeSelectedWith
 import ru.relabs.kurjer.domain.models.id
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
@@ -65,17 +66,20 @@ object TasksRenders {
         selectedTasks: List<Task>
     ): Map<Task, Boolean> {
         val result = mutableMapOf<Task, Boolean>()
-        tasks.forEach { task ->
-            selectedTasks.forEach { selectedTask ->
-                val isSelectedTaskContainsTaskAddress = task.items.any { taskItem ->
-                    selectedTask.items.any { selectedTaskItem -> selectedTaskItem.address.id == taskItem.address.id && selectedTaskItem.id != taskItem.id }
-                }
+        //Check if any on items has intersected address with other tasks
+        tasks
+            .filter { it.canBeSelectedWith(selectedTasks) } //Filter restricted by district rule
+            .forEach { task -> //Search addresses intersections
+                selectedTasks.forEach { selectedTask ->
+                    val isSelectedTaskContainsTaskAddress = task.items.any { taskItem ->
+                        selectedTask.items.any { selectedTaskItem -> selectedTaskItem.address.id == taskItem.address.id && selectedTaskItem.id != taskItem.id }
+                    }
 
-                if (isSelectedTaskContainsTaskAddress) {
-                    result[task] = true
+                    if (isSelectedTaskContainsTaskAddress) {
+                        result[task] = true
+                    }
                 }
             }
-        }
         return result
     }
 }

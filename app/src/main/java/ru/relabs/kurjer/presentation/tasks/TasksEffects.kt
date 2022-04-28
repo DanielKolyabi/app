@@ -29,14 +29,13 @@ object TasksEffects {
     }
 
     fun effectTaskSelected(task: Task): TasksEffect = { c, s ->
-        if (task.state.state == TaskState.EXAMINED || task.state.state == TaskState.STARTED) {
-            if (Date() > task.startTime) {
-                messages.send(TasksMessages.msgTaskSelected(task))
-            } else {
+        when {
+            task.state.state != TaskState.EXAMINED && task.state.state != TaskState.STARTED ->
+                c.showSnackbar(R.string.task_list_not_examined)
+            Date() < task.startTime ->
                 c.showSnackbar(R.string.task_list_not_started)
-            }
-        } else {
-            c.showSnackbar(R.string.task_list_not_examined)
+            else ->
+                messages.send(TasksMessages.msgTaskSelected(task))
         }
     }
 
@@ -100,7 +99,7 @@ object TasksEffects {
                         is TaskEvent.TaskClosed ->
                             messages.send(TasksMessages.msgTaskClosed(event.taskId))
                         is TaskEvent.TasksUpdateRequired -> withContext(Dispatchers.Main) {
-                            if(event.showDialogInTasks && s.loaders == 0){
+                            if (event.showDialogInTasks && s.loaders == 0) {
                                 c.showUpdateRequiredOnVisible()
                             }
                         }
@@ -108,5 +107,9 @@ object TasksEffects {
                 }
             }
         }
+    }
+
+    fun effectShowTaskSelectionDistrictError(): TasksEffect = { c, _ ->
+        c.showSnackbar(R.string.task_list_district_different)
     }
 }

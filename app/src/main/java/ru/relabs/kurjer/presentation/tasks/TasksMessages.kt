@@ -1,7 +1,9 @@
 package ru.relabs.kurjer.presentation.tasks
 
+import ru.relabs.kurjer.domain.models.DistrictType
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.canBeSelectedWith
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.presentation.base.tea.msgState
@@ -25,11 +27,12 @@ object TasksMessages {
     fun msgTaskSelectClick(task: Task): TasksMessage = msgEffects(
         { it },
         {
+            val isTaskCanBeSelected = task.canBeSelectedWith(it.selectedTasks)
             listOf(
-                if (it.selectedTasks.contains(task)) {
-                    TasksEffects.effectTaskUnselected(task)
-                } else {
-                    TasksEffects.effectTaskSelected(task)
+                when{
+                    !isTaskCanBeSelected -> TasksEffects.effectShowTaskSelectionDistrictError()
+                    it.selectedTasks.contains(task) -> TasksEffects.effectTaskUnselected(task)
+                    else -> TasksEffects.effectTaskSelected(task)
                 }
             )
         }

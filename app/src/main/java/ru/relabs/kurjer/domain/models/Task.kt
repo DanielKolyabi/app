@@ -12,6 +12,11 @@ data class TaskId(val id: Int) : Parcelable
 @Parcelize
 data class CoupleType(val type: Int): Parcelable
 
+enum class DistrictType {
+    Global,
+    Regional,
+}
+
 @Parcelize
 data class Task(
     val id: TaskId,
@@ -36,7 +41,9 @@ data class Task(
     val items: List<TaskItem>,
     val coupleType: CoupleType,
     val deliveryType: TaskDeliveryType,
-    val listSort: String
+    val listSort: String,
+    val districtType: DistrictType,
+    val orderNumber: Int
 ) : Parcelable {
 
     val listName: String
@@ -46,6 +53,15 @@ data class Task(
         val state: TaskState,
         val byOtherUser: Boolean
     ) : Parcelable
+}
+
+fun Task.canBeSelectedWith(tasks: List<Task>): Boolean {
+    return when (districtType) {
+        DistrictType.Global -> true
+        DistrictType.Regional -> tasks.all {
+            it.districtType == DistrictType.Global || (it.districtType == DistrictType.Regional && it.orderNumber == orderNumber)
+        }
+    }
 }
 
 enum class TaskDeliveryType {

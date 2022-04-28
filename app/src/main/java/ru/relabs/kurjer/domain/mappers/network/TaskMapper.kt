@@ -44,6 +44,10 @@ object TaskMapper {
             2 -> TaskDeliveryType.Firm
             else -> throw MappingException("deliveryType", raw.deliveryType)
         },
-        listSort = raw.sort
+        listSort = raw.sort,
+        districtType = DistrictType.values()
+            .getOrNull(raw.districtType)
+            ?: throw MappingException("districtType", raw.districtType),
+        orderNumber = raw.orderNumber
     )
 }

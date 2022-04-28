@@ -39,6 +39,10 @@ object DatabaseTaskMapper {
         listSort = taskEntity.listSort,
         storageLat = taskEntity.storageLat,
         storageLong = taskEntity.storageLong,
+        districtType = DistrictType.values()
+            .getOrNull(taskEntity.districtType)
+            ?: throw MappingException("districtType", taskEntity.districtType),
+        orderNumber = taskEntity.orderNumber
     )
 
     fun toEntity(task: Task): TaskEntity = TaskEntity(
@@ -67,6 +71,8 @@ object DatabaseTaskMapper {
             TaskDeliveryType.Address -> 1
             TaskDeliveryType.Firm -> 2
         },
-        listSort = task.listSort
+        listSort = task.listSort,
+        districtType = task.districtType.ordinal,
+        orderNumber = task.orderNumber
     )
 }

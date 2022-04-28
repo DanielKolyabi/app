@@ -31,5 +31,7 @@ data class TaskResponse(
     @SerializedName("first_examined_device_id") val firstExaminedDeviceId: String?,
     @SerializedName("couple_type") val coupleType: Int,
     @SerializedName("delivery_type") val deliveryType: Int,
-    @SerializedName("sort") val sort: String
+    @SerializedName("sort") val sort: String,
+    @SerializedName("district_type") val districtType: Int,
+    @SerializedName("order_number") val orderNumber: Int,
 )

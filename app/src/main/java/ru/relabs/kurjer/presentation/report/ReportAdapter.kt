@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.presentation.report
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.widget.Button
 import com.bumptech.glide.Glide
@@ -24,15 +25,13 @@ object ReportAdapter {
                     onPhotoClicked()
                 }
 
-                val photoImgRes = if (hasPhoto) {
-                    R.drawable.ic_house_photo_done
-                } else {
-                    when (required) {
-                        true -> R.drawable.ic_house_photo_req
-                        else -> R.drawable.ic_house_photo
+                itemView.singlePhoto.imageTintList = ColorStateList.valueOf(
+                    when {
+                        hasPhoto -> Color.parseColor("#FF435CDC")
+                        required -> Color.parseColor("#FFED0D81")
+                        else -> Color.BLACK
                     }
-                }
-                itemView.singlePhoto.setImageResource(photoImgRes)
+                )
             }
         }
     )
@@ -62,7 +61,7 @@ object ReportAdapter {
         { p ->
             holderDefine(p, R.layout.holder_report_task, { it }) { (task, taskItem, active) ->
 
-                itemView.btn_task.text = when(taskItem){
+                itemView.btn_task.text = when (taskItem) {
                     is TaskItem.Common -> "${task.name} №${task.edition}, ${taskItem.copies}экз."
                     is TaskItem.Firm -> "${task.name} №${task.edition}, ${taskItem.copies}экз., ${taskItem.firmName}, ${taskItem.office}"
                 }

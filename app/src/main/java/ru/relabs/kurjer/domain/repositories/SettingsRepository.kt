@@ -15,14 +15,16 @@ class SettingsRepository(
     private val sharedPreferences: SharedPreferences
 ) {
     val scope = CoroutineScope(Dispatchers.Main)
-    var allowedCloseRadius: AllowedCloseRadius = loadSavedRadius()
     var closeGpsUpdateTime: GpsRefreshTimes = loadSavedGPSRefreshTimes()
+    var isCloseRadiusRequired: Boolean = sharedPreferences.getBoolean(RADIUS_REQUIRED_KEY, true)
+    var isPhotoRadiusRequired: Boolean = sharedPreferences.getBoolean(PHOTO_REQUIRED_KEY, true)
 
     private var updateJob: Job? = null
 
     fun resetData() {
         closeGpsUpdateTime = GpsRefreshTimes(40, 40)
-        allowedCloseRadius = AllowedCloseRadius.Required(DEFAULT_REQUIRED_RADIUS, false)
+        isCloseRadiusRequired = false
+        isPhotoRadiusRequired = false
         sharedPreferences.edit {
             remove(RADIUS_REQUIRED_KEY)
             remove(RADIUS_KEY)
@@ -45,9 +47,10 @@ class SettingsRepository(
     private suspend fun loadSettingsRemote() = withContext(Dispatchers.Default) {
         when (val r = api.getAppSettings()) {
             is Right -> {
-                allowedCloseRadius = r.value.radius
+                isCloseRadiusRequired = r.value.isCloseRadiusRequired
+                isPhotoRadiusRequired = r.value.isPhotoRadiusRequired
                 closeGpsUpdateTime = r.value.gpsRefreshTimes
-                saveRadius(allowedCloseRadius)
+                saveRadius(isCloseRadiusRequired, isPhotoRadiusRequired)
                 saveGPSRefreshTime(closeGpsUpdateTime)
             }
         }
@@ -66,32 +69,10 @@ class SettingsRepository(
         return GpsRefreshTimes(close = close, photo = photo)
     }
 
-
-    private fun loadSavedRadius(): AllowedCloseRadius {
-        val closeRequired = sharedPreferences.getBoolean(RADIUS_REQUIRED_KEY, true)
-        val radius = sharedPreferences.getInt(RADIUS_KEY, DEFAULT_REQUIRED_RADIUS)
-        val photoRequired = sharedPreferences.getBoolean(PHOTO_REQUIRED_KEY, true)
-        return if (!closeRequired) {
-            AllowedCloseRadius.NotRequired(radius, photoRequired)
-        } else {
-            AllowedCloseRadius.Required(radius, photoRequired)
-        }
-    }
-
-    private fun saveRadius(allowedCloseRadius: AllowedCloseRadius) {
+    private fun saveRadius(isCloseRadiusRequired: Boolean, isPhotoRadiusRequired: Boolean) {
         val editor = sharedPreferences.edit()
-        when (allowedCloseRadius) {
-            is AllowedCloseRadius.NotRequired -> {
-                editor.putBoolean(RADIUS_REQUIRED_KEY, false)
-                editor.putBoolean(PHOTO_REQUIRED_KEY, allowedCloseRadius.photoAnyDistance)
-                editor.putInt(RADIUS_KEY, allowedCloseRadius.distance)
-            }
-            is AllowedCloseRadius.Required -> {
-                editor.putBoolean(RADIUS_REQUIRED_KEY, true)
-                editor.putBoolean(PHOTO_REQUIRED_KEY, allowedCloseRadius.photoAnyDistance)
-                editor.putInt(RADIUS_KEY, allowedCloseRadius.distance)
-            }
-        }
+        editor.putBoolean(RADIUS_REQUIRED_KEY, isCloseRadiusRequired)
+        editor.putBoolean(PHOTO_REQUIRED_KEY, isPhotoRadiusRequired)
         editor.apply()
     }
 
@@ -100,7 +81,11 @@ class SettingsRepository(
         const val PHOTO_REQUIRED_KEY = "photo_required"
         const val CLOSE_GPS_KEY = "close_gps"
         const val PHOTO_GPS_KEY = "photo_gps"
+
+        @Deprecated("Kept for migration purpose")
         const val RADIUS_KEY = "radius"
+
+        @Deprecated("Kept for migration purpose")
         const val DEFAULT_REQUIRED_RADIUS = 50
     }
 }

@@ -7,6 +7,5 @@ import com.google.gson.annotations.SerializedName
  */
 data class RadiusResponse(
     @SerializedName("closeAnyRadius") val closeAnyDistance: Boolean,
-    @SerializedName("photoAnyDistance") val photoAnyDistance: Boolean,
-    @SerializedName("radius") val radius: Int
+    @SerializedName("photoAnyDistance") val photoAnyDistance: Boolean
 )

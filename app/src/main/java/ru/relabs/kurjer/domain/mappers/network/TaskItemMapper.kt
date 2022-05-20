@@ -28,7 +28,8 @@ object TaskItemMapper {
         taskId = TaskId(raw.taskId),
         needPhoto = raw.needPhoto,
         office = raw.officeName,
-        firmName = raw.firmName
+        firmName = raw.firmName,
+        closeRadius = raw.closeRadius
     )
     private fun fromRawAddress(raw: TaskItemResponse): TaskItem.Common =  TaskItem.Common(
         id = TaskItemId(raw.id),
@@ -46,6 +47,7 @@ object TaskItemMapper {
         needPhoto = raw.needPhoto,
         entrancesData = raw.entrancesData.map {
             EntranceMapper.fromRaw(it)
-        }
+        },
+        closeRadius = raw.closeRadius
     )
 }

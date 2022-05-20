@@ -42,7 +42,9 @@ data class TaskItemEntity(
     @ColumnInfo(name = "office_name")
     var officeName: String,
     @ColumnInfo(name = "firm_name")
-    val firmName: String
+    val firmName: String,
+    @ColumnInfo(name = "close_radius")
+    val closeRadius: Int
 ) {
     companion object {
         const val STATE_CLOSED = 1

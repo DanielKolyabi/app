@@ -62,11 +62,11 @@ class ReportUseCase(
             (batteryLevel * 100).roundToInt(),
             isCloseTaskRequired,
             distance.toInt(),
-            (settingsRepository.allowedCloseRadius as? AllowedCloseRadius.Required)?.distance ?: 0,
-            settingsRepository.allowedCloseRadius is AllowedCloseRadius.Required,
+            taskItem.closeRadius,
+            settingsRepository.isCloseRadiusRequired,
             isRejected,
             rejectReason,
-            when(taskItem){
+            when (taskItem) {
                 is TaskItem.Common -> 1
                 is TaskItem.Firm -> 2
             }

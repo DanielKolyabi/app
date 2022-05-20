@@ -9,6 +9,7 @@ import ru.relabs.kurjer.domain.mappers.MappingException
 data class TaskItemId(val id: Int) : Parcelable
 
 sealed class TaskItem : Parcelable {
+    abstract val closeRadius: Int
     @Parcelize
     data class Common(
         val id: TaskItemId,
@@ -20,7 +21,8 @@ sealed class TaskItem : Parcelable {
         val copies: Int,
         val taskId: TaskId,
         val needPhoto: Boolean,
-        val entrancesData: List<TaskItemEntrance>
+        val entrancesData: List<TaskItemEntrance>,
+        override val closeRadius: Int
     ) : TaskItem()
 
     @Parcelize
@@ -35,7 +37,8 @@ sealed class TaskItem : Parcelable {
         val taskId: TaskId,
         val needPhoto: Boolean,
         val office: String,
-        val firmName: String
+        val firmName: String,
+        override val closeRadius: Int
     ) : TaskItem()
 }
 

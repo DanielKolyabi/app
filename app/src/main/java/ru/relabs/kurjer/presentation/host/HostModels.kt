@@ -12,6 +12,7 @@ import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.PauseType
+import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
@@ -48,13 +49,14 @@ class HostContext(
     val taskEventController: TaskEventController by inject()
     val serviceEventController: ServiceEventController by inject()
     val userRepository: CurrentUserStorage by inject()
+    val settings: SettingsRepository by inject()
 
     var copyToClipboard: (String) -> Unit = {}
     var showUpdateDialog: (AppUpdate) -> Boolean = { false }
     var showErrorDialog: (id: Int) -> Unit = {}
     var installUpdate: (updateFile: File) -> Unit = {}
     var showPauseDialog: (availablePauseTypes: List<PauseType>) -> Unit = {}
-    var showTaskUpdateRequired: () -> Unit = {}
+    var showTaskUpdateRequired: (canSkip: Boolean) -> Unit = {}
 
     var featureCheckersContainer: FeatureCheckersContainer? = null
 

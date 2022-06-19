@@ -4,5 +4,6 @@ import ru.relabs.kurjer.data.models.common.GpsRefreshTimesResponse
 
 data class AppSettings(
     val radius: AllowedCloseRadius,
-    val gpsRefreshTimes: GpsRefreshTimes
+    val gpsRefreshTimes: GpsRefreshTimes,
+    val canSkipUpdates: Boolean
 )

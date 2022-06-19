@@ -100,7 +100,7 @@ object TasksEffects {
                             messages.send(TasksMessages.msgTaskClosed(event.taskId))
                         is TaskEvent.TasksUpdateRequired -> withContext(Dispatchers.Main) {
                             if (event.showDialogInTasks && s.loaders == 0) {
-                                c.showUpdateRequiredOnVisible()
+                                c.showUpdateRequiredOnVisible(c.settingsRepository.canSkipUpdates)
                             }
                         }
                     }

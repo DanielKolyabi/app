@@ -40,6 +40,7 @@ class TasksFragment : BaseFragment(),
     private val controller = defaultController(TasksState(), TasksContext(this))
     private var renderJob: Job? = null
     private var shouldShowUpdateRequiredOnResume: Boolean = false
+    private var canSkipUpdate: Boolean = false
     private var taskUpdateRequiredDialogShowed: Boolean = false
 
     private val tasksAdapter = DelegateAdapter(
@@ -57,8 +58,8 @@ class TasksFragment : BaseFragment(),
     override fun onResume() {
         super.onResume()
         YandexMapFragment.savedCameraPosition = null //TODO: Remove after yandex map refactor
-        if(shouldShowUpdateRequiredOnResume){
-            showUpdateRequiredOnVisible()
+        if (shouldShowUpdateRequiredOnResume) {
+            showUpdateRequiredOnVisible(canSkipUpdate)
         }
     }
 
@@ -110,8 +111,8 @@ class TasksFragment : BaseFragment(),
         taskUpdateRequiredDialogShowed = false
     }
 
-    private fun showUpdateRequiredOnVisible() {
-        if(taskUpdateRequiredDialogShowed){
+    private fun showUpdateRequiredOnVisible(canSkip: Boolean) {
+        if (taskUpdateRequiredDialogShowed) {
             return
         }
         if (isVisible) {
@@ -121,12 +122,14 @@ class TasksFragment : BaseFragment(),
                 R.string.ok to {
                     uiScope.sendMessage(controller, TasksMessages.msgRefresh())
                     shouldShowUpdateRequiredOnResume = false
+                    canSkipUpdate = false
                     taskUpdateRequiredDialogShowed = false
                 },
-                R.string.later to {
+                (R.string.later to {
                     shouldShowUpdateRequiredOnResume = true
+                    canSkipUpdate = canSkip
                     taskUpdateRequiredDialogShowed = false
-                }
+                }).takeIf { canSkip }
             )
         }
     }

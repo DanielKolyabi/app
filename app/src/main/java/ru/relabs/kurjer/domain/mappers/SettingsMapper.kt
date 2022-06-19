@@ -11,6 +11,7 @@ object SettingsMapper {
         gpsRefreshTimes = GpsRefreshTimes(
             close = raw.gpsRefreshTimes.close,
             photo = raw.gpsRefreshTimes.photo
-        )
+        ),
+        canSkipUpdates = raw.userSettings.canSkipUpdates
     )
 }

@@ -17,6 +17,7 @@ class SettingsRepository(
     val scope = CoroutineScope(Dispatchers.Main)
     var allowedCloseRadius: AllowedCloseRadius = loadSavedRadius()
     var closeGpsUpdateTime: GpsRefreshTimes = loadSavedGPSRefreshTimes()
+    var canSkipUpdates: Boolean = loadCanSkipUpdates()
 
     private var updateJob: Job? = null
 
@@ -29,6 +30,7 @@ class SettingsRepository(
             remove(PHOTO_REQUIRED_KEY)
             remove(PHOTO_GPS_KEY)
             remove(CLOSE_GPS_KEY)
+            remove(UPDATES_SKIP_KEY)
         }
     }
 
@@ -47,9 +49,17 @@ class SettingsRepository(
             is Right -> {
                 allowedCloseRadius = r.value.radius
                 closeGpsUpdateTime = r.value.gpsRefreshTimes
+                canSkipUpdates = r.value.canSkipUpdates
+                saveUpdatesSkipping(canSkipUpdates)
                 saveRadius(allowedCloseRadius)
                 saveGPSRefreshTime(closeGpsUpdateTime)
             }
+        }
+    }
+
+    private fun saveUpdatesSkipping(canSkipUpdates: Boolean) {
+        sharedPreferences.edit {
+            putBoolean(UPDATES_SKIP_KEY, canSkipUpdates)
         }
     }
 
@@ -66,6 +76,9 @@ class SettingsRepository(
         return GpsRefreshTimes(close = close, photo = photo)
     }
 
+    private fun loadCanSkipUpdates(): Boolean {
+        return sharedPreferences.getBoolean(UPDATES_SKIP_KEY, false)
+    }
 
     private fun loadSavedRadius(): AllowedCloseRadius {
         val closeRequired = sharedPreferences.getBoolean(RADIUS_REQUIRED_KEY, true)
@@ -99,6 +112,7 @@ class SettingsRepository(
         const val RADIUS_REQUIRED_KEY = "radius_required"
         const val PHOTO_REQUIRED_KEY = "photo_required"
         const val CLOSE_GPS_KEY = "close_gps"
+        const val UPDATES_SKIP_KEY = "can_skip_updates"
         const val PHOTO_GPS_KEY = "photo_gps"
         const val RADIUS_KEY = "radius"
         const val DEFAULT_REQUIRED_RADIUS = 50

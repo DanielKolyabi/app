@@ -123,7 +123,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.context.featureCheckersContainer = featureCheckersContainer
     }
 
-    private fun showTaskUpdateRequiredDialog() {
+    private fun showTaskUpdateRequiredDialog(canSkip: Boolean) {
         if (taskUpdateRequiredDialogShowed) {
             return
         }
@@ -134,10 +134,10 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                 uiScope.sendMessage(controller, HostMessages.msgRequiredUpdateOk())
                 taskUpdateRequiredDialogShowed = false
             },
-            R.string.later to {
+            (R.string.later to {
                 uiScope.sendMessage(controller, HostMessages.msgRequiredUpdateLater())
                 taskUpdateRequiredDialogShowed = false
-            }
+            }).takeIf { canSkip }
         )
     }
 

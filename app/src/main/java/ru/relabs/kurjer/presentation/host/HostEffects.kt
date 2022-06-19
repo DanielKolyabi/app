@@ -4,7 +4,6 @@ import android.net.Uri
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
@@ -209,8 +208,8 @@ object HostEffects {
                 c.taskEventController.subscribe().collect {
                     when (it) {
                         is TaskEvent.TasksUpdateRequired -> withContext(Dispatchers.Main) {
-                            if(!it.showDialogInTasks){
-                                c.showTaskUpdateRequired()
+                            if (!it.showDialogInTasks) {
+                                c.showTaskUpdateRequired(c.settings.canSkipUpdates)
                             }
                         }
                     }
@@ -222,17 +221,17 @@ object HostEffects {
                 }
             }
             launch {
-                while(isActive){
+                while (isActive) {
                     delay(5000)
-                    if(!c.updatesUseCase.isAppUpdated){
+                    if (!c.updatesUseCase.isAppUpdated) {
                         messages.send(HostMessages.msgRequestUpdates())
                     }
                 }
             }
             launch {
                 c.serviceEventController.subscribe().collect {
-                    if(it == ServiceEvent.Stop){
-                        withContext(Dispatchers.Main){
+                    if (it == ServiceEvent.Stop) {
+                        withContext(Dispatchers.Main) {
                             c.finishApp()
                         }
                     }

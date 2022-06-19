@@ -7,5 +7,7 @@ data class SettingsResponse(
     @SerializedName("radius")
     val radius: RadiusResponse,
     @SerializedName("gpsRefreshTime")
-    val gpsRefreshTimes: GpsRefreshTimesResponse
+    val gpsRefreshTimes: GpsRefreshTimesResponse,
+    @SerializedName("userSettings")
+    val userSettings: UserSettingsResponse
 )

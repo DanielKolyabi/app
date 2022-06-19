@@ -6,6 +6,7 @@ import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
+import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.presentation.base.tea.*
 
 /**
@@ -27,9 +28,10 @@ class TasksContext(val examinedConsumer: TasksFragment, val errorContext: ErrorC
     val deliveryRepository: DeliveryRepository by inject()
     val databaseRepository: DatabaseRepository by inject()
     val taskEventController: TaskEventController by inject()
+    val settingsRepository: SettingsRepository by inject()
 
     var showSnackbar: suspend (Int) -> Unit = {}
-    var showUpdateRequiredOnVisible: () -> Unit = {}
+    var showUpdateRequiredOnVisible: (canSkip: Boolean) -> Unit = {}
 }
 
 typealias TasksMessage = ElmMessage<TasksContext, TasksState>

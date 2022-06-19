@@ -134,8 +134,8 @@ object ReportEffects {
                 CustomLog.writeToFile(
                     "Validate photo radius (valid: ${!locationNotValid}): " +
                             "${location?.latitude}, ${location?.longitude}, ${location?.time}, " +
-                            "photoAnyDistance: ${c.settingsRepository.allowedCloseRadius.photoAnyDistance}, " +
-                            "allowedDistance: ${c.settingsRepository.allowedCloseRadius.distance}, " +
+                            "photoRadiusRequired: ${c.settingsRepository.isPhotoRadiusRequired}, " +
+                            "allowedDistance: ${selected.taskItem.closeRadius}, " +
                             "distance: $distance, " +
                             "targetTaskItem: ${selected.taskItem.id}"
                 )
@@ -162,12 +162,12 @@ object ReportEffects {
                         messages.send(msgEffect(effectValidatePhotoRadiusAnd(msgFactory, withAnyRadiusWarning, false)))
                     }
                 } else {
-                    if (c.settingsRepository.allowedCloseRadius.photoAnyDistance) {
+                    if (!c.settingsRepository.isPhotoRadiusRequired) {
                         //https://git.relabs.ru/kurier/app/-/issues/87 если юзер может делать фото и закрывать дома вне радиуса - ему нужно показывать диалог (он админ).
                         //Если же он может только делать фото, ему о диалоге знать не надо, что бы не особо пользовался этим
-                        val shouldSuppressDialog = c.settingsRepository.allowedCloseRadius is AllowedCloseRadius.Required
+                        val shouldSuppressDialog = c.settingsRepository.isCloseRadiusRequired
 
-                        if (distance > c.settingsRepository.allowedCloseRadius.distance && withAnyRadiusWarning && !shouldSuppressDialog) {
+                        if (distance > selected.taskItem.closeRadius && withAnyRadiusWarning && !shouldSuppressDialog) {
                             withContext(Dispatchers.Main) {
                                 c.showCloseError(R.string.report_close_location_far_warning, false, null, null)
                             }
@@ -178,7 +178,7 @@ object ReportEffects {
                             locationNotValid -> withContext(Dispatchers.Main) {
                                 c.showCloseError(R.string.report_close_location_null_error, false, null, null)
                             }
-                            distance > c.settingsRepository.allowedCloseRadius.distance -> withContext(Dispatchers.Main) {
+                            distance > selected.taskItem.closeRadius -> withContext(Dispatchers.Main) {
                                 c.showCloseError(R.string.report_close_location_far_error, false, null, null)
                             }
                             else ->
@@ -414,13 +414,13 @@ object ReportEffects {
                     } ?: Int.MAX_VALUE.toDouble()
 
                     val shadowClose: Boolean = withContext(Dispatchers.Main) {
-                        when (val radius = c.settingsRepository.allowedCloseRadius) {
-                            is AllowedCloseRadius.Required -> when {
+                        if (c.settingsRepository.isCloseRadiusRequired) {
+                            when {
                                 location == null -> {
                                     c.showCloseError(R.string.report_close_location_null_error, false, null, rejectReason)
                                     true
                                 }
-                                distance > radius.distance -> {
+                                distance > selected.taskItem.closeRadius -> {
                                     c.showCloseError(R.string.report_close_location_far_error, false, null, rejectReason)
                                     true
                                 }
@@ -431,12 +431,13 @@ object ReportEffects {
                                     false
                                 }
                             }
-                            is AllowedCloseRadius.NotRequired -> when {
+                        } else {
+                            when {
                                 location == null -> {
                                     c.showCloseError(R.string.report_close_location_null_warning, true, location, rejectReason)
                                     false
                                 }
-                                distance > radius.distance -> {
+                                distance > selected.taskItem.closeRadius -> {
                                     c.showCloseError(R.string.report_close_location_far_warning, true, location, rejectReason)
                                     false
                                 }

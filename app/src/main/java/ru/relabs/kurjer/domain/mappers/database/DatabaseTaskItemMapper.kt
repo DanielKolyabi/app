@@ -21,7 +21,8 @@ object DatabaseTaskItemMapper {
             taskId = TaskId(taskItem.taskId),
             needPhoto = taskItem.needPhoto,
             firmName = taskItem.firmName,
-            office = taskItem.officeName
+            office = taskItem.officeName,
+            closeRadius = taskItem.closeRadius
         )
         false -> TaskItem.Common(
             id = TaskItemId(taskItem.id),
@@ -38,7 +39,8 @@ object DatabaseTaskItemMapper {
             needPhoto = taskItem.needPhoto,
             entrancesData = db.entranceDataDao().getAllForTaskItem(taskItem.id).map {
                 DatabaseEntranceDataMapper.fromEntity(it)
-            }
+            },
+            closeRadius = taskItem.closeRadius
         )
     }
 
@@ -56,7 +58,8 @@ object DatabaseTaskItemMapper {
             entrances = emptyList(), //TODO: Remove with migration
             isFirm = false,
             firmName = "",
-            officeName = ""
+            officeName = "",
+            closeRadius = taskItem.closeRadius
         )
         is TaskItem.Firm -> TaskItemEntity(
             id = taskItem.id.id,
@@ -71,7 +74,8 @@ object DatabaseTaskItemMapper {
             entrances = emptyList(), //TODO: Remove with migration
             isFirm = true,
             firmName = taskItem.firmName,
-            officeName = taskItem.office
+            officeName = taskItem.office,
+            closeRadius = taskItem.closeRadius
         )
     }
 

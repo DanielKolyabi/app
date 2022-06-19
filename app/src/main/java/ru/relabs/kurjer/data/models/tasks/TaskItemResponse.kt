@@ -18,5 +18,6 @@ data class TaskItemResponse(
     @SerializedName("entrances_data") val entrancesData: List<TaskItemEntranceResponse>,
     @SerializedName("is_firm") val isFirm: Boolean,
     @SerializedName("firm_name") val firmName: String,
-    @SerializedName("office") val officeName: String
+    @SerializedName("office") val officeName: String,
+    @SerializedName("close_radius") val closeRadius: Int
 )

@@ -179,10 +179,6 @@ class DeliveryRepository(
         PauseMapper.fromRaw(deliveryApi.getPauseDurations())
     }
 
-    suspend fun getAllowedCloseRadius(): EitherE<AllowedCloseRadius> = authenticatedRequest { token ->
-        RadiusMapper.fromRaw(deliveryApi.getRadius(token))
-    }
-
     suspend fun getAppSettings(): EitherE<AppSettings> = authenticatedRequest { token ->
         SettingsMapper.fromRaw(deliveryApi.getSettings(token))
     }

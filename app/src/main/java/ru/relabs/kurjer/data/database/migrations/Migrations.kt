@@ -1,9 +1,15 @@
 package ru.relabs.kurjer.data.database.migrations
 
+import android.content.SharedPreferences
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import org.koin.core.KoinComponent
+import org.koin.core.inject
+import ru.relabs.kurjer.domain.repositories.SettingsRepository
 
-object Migrations {
+object Migrations: KoinComponent {
+    private val preferences by inject<SharedPreferences>()
+
     fun getMigrations(): Array<Migration> = arrayOf(
         migration_26_27,
         migration_27_28,
@@ -21,7 +27,8 @@ object Migrations {
         migration_40_41,
         migration_41_42,
         migration_42_43,
-        migration_43_44
+        migration_43_44,
+        migration_44_45
     )
 
 
@@ -184,6 +191,12 @@ object Migrations {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("ALTER TABLE tasks ADD COLUMN districtType INTEGER NOT NULL DEFAULT 0")
             database.execSQL("ALTER TABLE tasks ADD COLUMN orderNumber INTEGER NOT NULL DEFAULT -1")
+        }
+    }
+    private val migration_44_45 = object : Migration(44, 45) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            val storedRequiredRadius = preferences.getInt(SettingsRepository.RADIUS_KEY, SettingsRepository.DEFAULT_REQUIRED_RADIUS)
+            database.execSQL("ALTER TABLE task_items ADD COLUMN close_radius INTEGER NOT NULL DEFAULT $storedRequiredRadius")
         }
     }
 }

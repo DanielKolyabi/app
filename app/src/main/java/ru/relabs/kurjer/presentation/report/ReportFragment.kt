@@ -9,11 +9,15 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
+import android.text.InputFilter
+import android.text.InputType
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -73,7 +77,8 @@ class ReportFragment : BaseFragment() {
         ReportAdapter.entrance(
             { entrance, button -> uiScope.sendMessage(controller, ReportMessages.msgEntranceSelectClicked(entrance, button)) },
             { uiScope.sendMessage(controller, ReportMessages.msgCoupleClicked(it)) },
-            { uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(it, false)) }
+            { uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(it, false)) },
+            { uiScope.sendMessage(controller, ReportMessages.msgEntranceDescriptionClicked(it)) }
         )
     )
 
@@ -176,6 +181,28 @@ class ReportFragment : BaseFragment() {
         controller.context.showError = ::showFatalError
         controller.context.contentResolver = { requireContext().contentResolver }
         controller.context.showRejectDialog = ::showRejectDialog
+        controller.context.showDescriptionInputDialog = ::showDescriptionInputDialog
+    }
+
+    private fun showDescriptionInputDialog(entranceNumber: EntranceNumber, description: String, isEditable: Boolean) {
+        val input = EditText(requireContext()).apply {
+            inputType = InputType.TYPE_CLASS_TEXT
+            isEnabled = isEditable
+            filters = arrayOf(InputFilter.LengthFilter(100))
+            setText(description)
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Описание")
+            .setView(input)
+            .setPositiveButton("Ок") { _, _ ->
+                uiScope.sendMessage(
+                    controller,
+                    ReportMessages.msgEntranceDescriptionChanged(entranceNumber, input.text.toString())
+                )
+            }
+            .setNegativeButton("Отмена") { _, _ -> }
+            .show()
     }
 
     private fun showRejectDialog(reasons: List<String>) {

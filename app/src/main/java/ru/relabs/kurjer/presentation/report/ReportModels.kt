@@ -66,6 +66,7 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     var getBatteryLevel: () -> Float? = { null }
     var contentResolver: () -> ContentResolver? = { null }
     var showRejectDialog: (reasons: List<String>) -> Unit = {}
+    var showDescriptionInputDialog: (number: EntranceNumber, current: String, isEditable: Boolean) -> Unit = { _, _, _ -> }
 }
 
 enum class EntranceSelectionButton {

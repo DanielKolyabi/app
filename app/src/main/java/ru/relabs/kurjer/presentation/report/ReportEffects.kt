@@ -541,4 +541,28 @@ object ReportEffects {
             c.showRejectDialog(reasons)
         }
     }
+
+    fun effectShowDescriptionInput(number: EntranceNumber): ReportEffect = { c, s ->
+        val currentDescription = s.selectedTaskReport?.entrances?.firstOrNull { it.entranceNumber == number }?.userDescription ?: ""
+        val isTaskFinished = s.selectedTask?.task?.state?.state in listOf(TaskState.COMPLETED, TaskState.CANCELED)
+        withContext(Dispatchers.Main) {
+            c.showDescriptionInputDialog(
+                number,
+                currentDescription,
+                !isTaskFinished
+            )
+        }
+    }
+
+    fun effectChangeEntranceDescription(entranceNumber: EntranceNumber, description: String): ReportEffect = { c, s ->
+
+        when (val affectedTask = s.selectedTask) {
+            null -> c.showError("re:111", true)
+            else -> {
+                c.database.createOrUpdateTaskItemEntranceResult(entranceNumber, affectedTask.taskItem) {
+                    it.copy(userDescription = description)
+                }?.let { messages.send(ReportMessages.msgSavedResultLoaded(it)) }
+            }
+        }
+    }
 }

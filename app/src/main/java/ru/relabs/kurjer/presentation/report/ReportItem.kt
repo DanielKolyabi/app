@@ -16,7 +16,8 @@ data class ReportEntranceItem(
     val entranceNumber: EntranceNumber,
     val selection: ReportEntranceSelection,
     val coupleEnabled: Boolean,
-    val hasPhoto: Boolean
+    val hasPhoto: Boolean,
+    val hasDescription: Boolean
 )
 
 data class ReportTaskItem(val task: Task, val taskItem: TaskItem, val active: Boolean)

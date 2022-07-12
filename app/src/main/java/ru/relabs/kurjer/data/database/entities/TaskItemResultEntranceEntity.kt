@@ -24,18 +24,13 @@ data class TaskItemResultEntranceEntity(
         @ColumnInfo(name = "task_item_result_id")
         var taskItemResultId: Int,
         var entrance: Int,
-        var state: Int
+        var state: Int,
+        @ColumnInfo(name = "user_description")
+        var userDescription: String,
 ) {
-    fun toTaskItemResultEntranceModel(): TaskItemResultEntranceModel {
-        return TaskItemResultEntranceModel(
-                id,
-                entrance, state
-        )
-    }
-
     companion object {
         fun empty(taskItemResultId: TaskItemResultId, entrance: EntranceNumber) = TaskItemResultEntranceEntity(
-            0, taskItemResultId.id, entrance.number, 0
+            0, taskItemResultId.id, entrance.number, 0, ""
         )
     }
 }

@@ -2,6 +2,7 @@ package ru.relabs.kurjer.domain.useCases
 
 import android.location.Location
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
+import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntranceData
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.mappers.ReportEntranceSelectionMapper
@@ -54,7 +55,11 @@ class ReportUseCase(
                 is TaskItem.Common -> taskItem.entrancesData.map {
                     val en = it.number
                     val resultData = result?.entrances?.firstOrNull { it.entranceNumber == en }
-                    en.number to (resultData?.selection?.let { ReportEntranceSelectionMapper.toBits(it) } ?: 0)
+                    ReportQueryItemEntranceData(
+                        en.number,
+                        (resultData?.selection?.let { ReportEntranceSelectionMapper.toBits(it) } ?: 0),
+                        resultData?.userDescription ?: ""
+                    )
                 }
                 is TaskItem.Firm -> emptyList()
             },

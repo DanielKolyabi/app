@@ -221,4 +221,10 @@ object ReportMessages {
     fun msgRejectClicked(): ReportMessage =
         msgEffect(ReportEffects.effectRejectClicked())
 
+    fun msgEntranceDescriptionClicked(number: EntranceNumber): ReportMessage =
+        msgEffect(ReportEffects.effectShowDescriptionInput(number))
+
+    fun msgEntranceDescriptionChanged(entranceNumber: EntranceNumber, description: String): ReportMessage =
+        msgEffect(ReportEffects.effectChangeEntranceDescription(entranceNumber, description))
+
 }

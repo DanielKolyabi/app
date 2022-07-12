@@ -8,14 +8,16 @@ object TaskItemEntranceResultMapper {
         id = TaskItemEntranceId(entity.id),
         taskItemResultId = TaskItemResultId(entity.taskItemResultId),
         entranceNumber = EntranceNumber(entity.entrance),
-        selection = ReportEntranceSelectionMapper.fromBits(entity.state)
+        selection = ReportEntranceSelectionMapper.fromBits(entity.state),
+        userDescription = entity.userDescription
     )
 
     fun fromModel(model: TaskItemEntranceResult): TaskItemResultEntranceEntity = TaskItemResultEntranceEntity(
         id = model.id.id,
         taskItemResultId = model.taskItemResultId.id,
         entrance = model.entranceNumber.number,
-        state = ReportEntranceSelectionMapper.toBits(model.selection)
+        state = ReportEntranceSelectionMapper.toBits(model.selection),
+        userDescription = model.userDescription
     )
 }
 

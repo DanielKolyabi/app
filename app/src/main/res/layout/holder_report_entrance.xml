@@ -17,12 +17,22 @@
         android:focusable="true"
         android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btn_euro"
+        app:layout_constraintEnd_toStartOf="@+id/description_button"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintHorizontal_chainStyle="spread"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Под. 11" />
+
+    <Button
+        android:text="Т"
+        app:layout_constraintStart_toEndOf="@id/tv_entrance"
+        app:layout_constraintTop_toTopOf="@id/tv_entrance"
+        app:layout_constraintBottom_toBottomOf="@id/tv_entrance"
+        app:layout_constraintEnd_toStartOf="@id/btn_euro"
+        android:layout_width="32dp"
+        android:layout_height="40dp"
+        android:id="@+id/description_button"/>
 
     <Button
         android:id="@+id/btn_euro"
@@ -36,7 +46,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/tv_entrance"
         app:layout_constraintEnd_toStartOf="@+id/btn_watch"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/tv_entrance"
+        app:layout_constraintStart_toEndOf="@+id/description_button"
         app:layout_constraintTop_toTopOf="@+id/tv_entrance" />
 
     <Button

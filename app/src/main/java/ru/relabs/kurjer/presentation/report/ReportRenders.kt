@@ -88,7 +88,8 @@ object ReportRenders {
                                 entrance.number,
                                 reportEntrance?.selection ?: ReportEntranceSelection(false, false, false, false),
                                 task?.let { coupling.isCouplingEnabled(task, entrance.number) } ?: false,
-                                photos.any { photo -> photo.photo.entranceNumber == entrance.number }
+                                photos.any { photo -> photo.photo.entranceNumber == entrance.number },
+                                reportEntrance?.userDescription.isNullOrEmpty()
                             )
                         }
                     )

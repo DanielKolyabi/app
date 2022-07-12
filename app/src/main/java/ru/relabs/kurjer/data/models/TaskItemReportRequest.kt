@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.data.models
 
 import com.google.gson.annotations.SerializedName
+import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntranceData
 import ru.relabs.kurjer.models.GPSCoordinatesModel
 import java.util.*
 
@@ -15,7 +16,7 @@ data class TaskItemReportRequest(
     @SerializedName("gps") val gps: GPSCoordinatesModel,
     @SerializedName("close_time") val closeTime: Date,
     @SerializedName("description") val userDescription: String,
-    @SerializedName("entrances") val entrances: List<Pair<Int, Int>>,
+    @SerializedName("entrances") val entrances: List<ReportQueryItemEntranceData>,
     @SerializedName("photos") val photos: Map<String, PhotoReportRequest>,
     @SerializedName("battery_level") val batteryLevel: Int,
     @SerializedName("close_distance") val closeDistance: Int,

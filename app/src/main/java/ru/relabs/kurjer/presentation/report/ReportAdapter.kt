@@ -85,7 +85,8 @@ object ReportAdapter {
     fun entrance(
         onSelectionClicked: (entranceNumber: EntranceNumber, button: EntranceSelectionButton) -> Unit,
         onCoupleClicked: (entranceNumber: EntranceNumber) -> Unit,
-        onPhotoClicked: (entranceNumber: EntranceNumber) -> Unit
+        onPhotoClicked: (entranceNumber: EntranceNumber) -> Unit,
+        onDescriptionClicked: (entranceNumber: EntranceNumber) -> Unit
     ): IAdapterDelegate<ReportEntranceItem> = delegateDefine(
         { true },
         { p ->
@@ -94,9 +95,15 @@ object ReportAdapter {
                 val apartmentsCount = entranceData?.apartmentsCount ?: "?"
                 itemView.tv_entrance.text = "${entrance.entranceNumber.number}п-${apartmentsCount}"
 
-                itemView.iv_photo.setOnClickListener {
-                    onPhotoClicked(entrance.entranceNumber)
-                }
+                itemView.description_button.setTextColor(
+                    when (entrance.hasDescription) {
+                        true -> Color.BLACK
+                        else -> Color.GREEN
+                    }
+                )
+                itemView.description_button.setOnClickListener { onDescriptionClicked(entrance.entranceNumber) }
+
+                itemView.iv_photo.setOnClickListener { onPhotoClicked(entrance.entranceNumber) }
 
                 val photoImgRes = if (entrance.hasPhoto) {
                     R.drawable.ic_entrance_photo_done

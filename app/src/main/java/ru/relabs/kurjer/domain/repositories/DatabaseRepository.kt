@@ -339,22 +339,32 @@ class DatabaseRepository(
         updatedReport.copy(id = TaskItemResultId(newId.toInt()))
     }
 
-    suspend fun createOrUpdateTaskItemEntranceResultSelection(
+    suspend fun createOrUpdateTaskItemEntranceResult(
         entrance: EntranceNumber,
         taskItem: TaskItem,
-        selectionUpdater: (ReportEntranceSelection) -> ReportEntranceSelection
+        selectionUpdater: (TaskItemResultEntranceEntity) -> TaskItemResultEntranceEntity
     ): TaskItemResult? = withContext(Dispatchers.IO) {
         val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItem.id.id) ?: createEmptyTaskItemResult(taskItem.id)
         val entranceResult = db.entrancesDao().getByTaskItemResultId(taskItemResult.id).firstOrNull { it.entrance == entrance.number }
             ?: createEmptyTaskItemEntranceResult(TaskItemResultId(taskItemResult.id), entrance)
 
-        db.entrancesDao().update(
-            entranceResult.copy(
+        db.entrancesDao().update(selectionUpdater(entranceResult))
+
+        getTaskItemResult(taskItem)
+    }
+
+    suspend fun createOrUpdateTaskItemEntranceResultSelection(
+        entrance: EntranceNumber,
+        taskItem: TaskItem,
+        selectionUpdater: (ReportEntranceSelection) -> ReportEntranceSelection
+    ): TaskItemResult? = withContext(Dispatchers.IO) {
+        createOrUpdateTaskItemEntranceResult(entrance, taskItem) {
+            it.copy(
                 state = ReportEntranceSelectionMapper.toBits(
-                    selectionUpdater(ReportEntranceSelectionMapper.fromBits(entranceResult.state))
+                    selectionUpdater(ReportEntranceSelectionMapper.fromBits(it.state))
                 )
             )
-        )
+        }
 
         getTaskItemResult(taskItem)
     }

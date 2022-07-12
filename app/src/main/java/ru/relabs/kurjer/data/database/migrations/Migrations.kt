@@ -28,7 +28,8 @@ object Migrations: KoinComponent {
         migration_41_42,
         migration_42_43,
         migration_43_44,
-        migration_44_45
+        migration_44_45,
+        migration_45_46,
     )
 
 
@@ -197,6 +198,11 @@ object Migrations: KoinComponent {
         override fun migrate(database: SupportSQLiteDatabase) {
             val storedRequiredRadius = preferences.getInt(SettingsRepository.RADIUS_KEY, SettingsRepository.DEFAULT_REQUIRED_RADIUS)
             database.execSQL("ALTER TABLE task_items ADD COLUMN close_radius INTEGER NOT NULL DEFAULT $storedRequiredRadius")
+        }
+    }
+    private val migration_45_46 = object : Migration(45, 46) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE task_item_result_entrances ADD COLUMN user_description TEXT NOT NULL DEFAULT ''")
         }
     }
 }

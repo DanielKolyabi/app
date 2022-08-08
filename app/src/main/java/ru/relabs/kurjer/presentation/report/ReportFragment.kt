@@ -127,11 +127,11 @@ class ReportFragment : BaseFragment() {
             CustomLog.writeToFile("Request Photo: Photo Data Restored ${it}")
         }
 
-        val hintHelper = HintHelper(hint_container, "", false, requireActivity())
+        val hintHelper = HintHelper(hint_container, "", true, requireActivity())
         hint_container.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 hint_container?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
-                hintHelper.maxHeight = (rv_entrances?.height ?: 0) + (hint_container?.height ?: 0)
+                hintHelper.maxHeight = hint_container?.height ?: 0
             }
         })
 

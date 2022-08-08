@@ -9,6 +9,7 @@ import android.view.animation.Transformation
 import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.android.synthetic.main.include_hint_container.view.*
 import ru.relabs.kurjer.BuildConfig
+import ru.relabs.kurjer.utils.CustomLog
 
 /**
  * Created by ProOrange on 27.08.2018.
@@ -84,9 +85,12 @@ class HintHelper(
 
         val lp = (hintContainer.hint_icon.layoutParams as ConstraintLayout.LayoutParams)
         val collapsedHeight = hintContainer.hint_icon.height + lp.topMargin + lp.bottomMargin
-        val expandedHeight = Math.min(hintContainer.measuredHeight, maxHeight)
+        expandedHeight = maxHeight
 
-        this.expandedHeight = expandedHeight
+        CustomLog.writeToFile("" +
+                "Expand hint from $collapsedHeight to $expandedHeight, default = ${200 * hintContainer.resources.displayMetrics.density.toInt()}\n"+
+                "  text height = ${hintContainer.hint_text.height}, container height = ${hintContainer.height}"
+        )
 
         return object : Animation() {
             override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
@@ -112,12 +116,14 @@ class HintHelper(
         val lp = hintContainer.hint_icon.layoutParams as ConstraintLayout.LayoutParams
         val collapsedHeight = hintContainer.hint_icon.height + lp.topMargin + lp.bottomMargin
 
+        val actualExpandedHeight = expandedHeight.takeIf { it != 0 } ?: maxHeight
+
         return object : Animation() {
             override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
                 hintContainer.layoutParams.height = if (interpolatedTime == 1f)
                     collapsedHeight
                 else
-                    (expandedHeight - (expandedHeight - collapsedHeight) * interpolatedTime).toInt()
+                    (actualExpandedHeight - (actualExpandedHeight - collapsedHeight) * interpolatedTime).toInt()
                 hintContainer.requestLayout()
             }
 

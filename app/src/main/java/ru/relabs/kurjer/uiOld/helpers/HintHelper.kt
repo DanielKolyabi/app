@@ -1,11 +1,14 @@
 package ru.relabs.kurjer.uiOld.helpers
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import android.view.MotionEvent
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.Transformation
+import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.android.synthetic.main.include_hint_container.view.*
 import ru.relabs.kurjer.BuildConfig
@@ -14,6 +17,7 @@ import ru.relabs.kurjer.utils.CustomLog
 /**
  * Created by ProOrange on 27.08.2018.
  */
+@SuppressLint("ClickableViewAccessibility")
 class HintHelper(
     val hintContainer: View,
     val text: String,
@@ -33,11 +37,15 @@ class HintHelper(
 
     init {
         hintContainer.hint_text.text = text
+        hintContainer.isFocusable = true
+        hintContainer.isClickable = true
         hintContainer.setOnClickListener {
             changeState()
         }
-        hintContainer.hint_text.setOnClickListener {
-            changeState()
+        hintContainer.hint_text.setOnTouchListener { v, event ->
+            if(event.action == MotionEvent.ACTION_UP && !hintContainer.hint_text.hasSelection())
+                changeState()
+            false
         }
         hintContainer.font_plus.setOnClickListener {
             setFontBigger()

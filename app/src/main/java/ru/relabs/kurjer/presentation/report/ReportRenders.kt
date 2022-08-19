@@ -112,7 +112,6 @@ object ReportRenders {
                 (3 downTo 1)
                     .map { notes.getOrElse(it - 1) { "" } }
                     .joinToString("<br/>")
-                    .repeat(3)
             )
         }
     )

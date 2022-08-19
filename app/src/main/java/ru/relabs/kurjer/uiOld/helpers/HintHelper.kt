@@ -101,7 +101,7 @@ class HintHelper(
     }
 
     fun TextView.calculateHeight(text: CharSequence = getText()): Int {
-        val alignment = when(gravity) {
+        val alignment = when (gravity) {
             Gravity.CENTER -> Layout.Alignment.ALIGN_CENTER
             Gravity.RIGHT -> Layout.Alignment.ALIGN_OPPOSITE
             else -> Layout.Alignment.ALIGN_NORMAL
@@ -127,7 +127,14 @@ class HintHelper(
         )
 
         val collapsedHeight = hintContainer.height
-        expandedHeight = minOf(maxHeight, hintContainer.hint_text.calculateHeight(text))
+        val minHeight = 250 * hintContainer.resources.displayMetrics.density.toInt()
+        expandedHeight = maxOf(
+            minHeight,
+            minOf(
+                maxHeight,
+                hintContainer.hint_text.calculateHeight(text)
+            )
+        )
 
         CustomLog.writeToFile(
             "" +

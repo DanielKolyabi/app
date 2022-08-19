@@ -11,6 +11,7 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
+import ru.relabs.kurjer.uiOld.helpers.HintHelper
 import ru.relabs.kurjer.utils.extensions.renderText
 import ru.relabs.kurjer.utils.extensions.visible
 import java.util.*
@@ -104,13 +105,14 @@ object ReportRenders {
         { view.renderText(it?.description ?: "", watcher) }
     )
 
-    fun renderNotes(hintText: TextView): ReportRender = renderT(
+    fun renderNotes(hintHelper: HintHelper): ReportRender = renderT(
         { it.selectedTask?.taskItem?.notes.orEmpty() },
         { notes ->
-            hintText.text = Html.fromHtml(
+            hintHelper.text = Html.fromHtml(
                 (3 downTo 1)
                     .map { notes.getOrElse(it - 1) { "" } }
                     .joinToString("<br/>")
+                    .repeat(3)
             )
         }
     )

@@ -128,10 +128,12 @@ class ReportFragment : BaseFragment() {
         }
 
         val hintHelper = HintHelper(hint_container, "", true, requireActivity())
-        hint_container.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+        report_root.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
-                hint_container?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
-                hintHelper.maxHeight = hint_container?.height ?: 0
+                report_root.height.takeIf { it > 0 }?.let { height ->
+                    report_root?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+                    hintHelper.maxHeight = height - top_app_bar.height
+                }
             }
         })
 
@@ -162,7 +164,7 @@ class ReportFragment : BaseFragment() {
                 ReportRenders.renderEntrances(entrancesAdapter, view.rv_entrances),
                 ReportRenders.renderTitle(view.tv_title),
                 ReportRenders.renderDescription(view.et_description, descriptionTextWatcher),
-                ReportRenders.renderNotes(view.hint_text),
+                ReportRenders.renderNotes(hintHelper),
                 ReportRenders.renderTaskItemAvailability(listInterceptor, view.et_description, view.btn_close, view.btn_reject),
                 ReportRenders.renderRejectButton(view.btn_reject),
                 ReportRenders.renderFirmFullAddress(view.tv_firm_full_address)

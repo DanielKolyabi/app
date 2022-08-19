@@ -4,6 +4,11 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.Animation
@@ -20,30 +25,40 @@ import ru.relabs.kurjer.utils.CustomLog
 @SuppressLint("ClickableViewAccessibility")
 class HintHelper(
     val hintContainer: View,
-    val text: String,
-    private var expanded: Boolean = false,
+    private var expanded: Boolean = true,
     val preferences: SharedPreferences,
-    var maxHeight: Int = 200 * hintContainer.resources.displayMetrics.density.toInt()
 ) {
+    var text: CharSequence = ""
+        set(value) {
+            field = value
+            hintContainer.hint_text?.text = value
+            setHintExpanded(expanded)
+        }
+    var maxHeight: Int = 200 * hintContainer.resources.displayMetrics.density.toInt()
+        set(value) {
+            field = value
+            setHintExpanded(expanded)
+        }
 
     constructor(
         hintContainer: View,
         text: String,
         expanded: Boolean = false,
         activity: Activity
-    ) : this(hintContainer, text, expanded, activity.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE))
+    ) : this(hintContainer, expanded, activity.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)) {
+        this.text = text
+    }
 
-    var expandedHeight = 0
+    private var expandedHeight = 0
 
     init {
-        hintContainer.hint_text.text = text
         hintContainer.isFocusable = true
         hintContainer.isClickable = true
         hintContainer.setOnClickListener {
             changeState()
         }
         hintContainer.hint_text.setOnTouchListener { v, event ->
-            if(event.action == MotionEvent.ACTION_UP && !hintContainer.hint_text.hasSelection())
+            if (event.action == MotionEvent.ACTION_UP && !hintContainer.hint_text.hasSelection())
                 changeState()
             false
         }
@@ -53,6 +68,7 @@ class HintHelper(
         hintContainer.font_minus.setOnClickListener {
             setFontSmaller()
         }
+
         changeFont(preferences.getFloat("hint_font_size", 12f))
     }
 
@@ -73,16 +89,35 @@ class HintHelper(
     }
 
     fun changeState() {
-        setHintExpanded(expanded)
         expanded = !expanded
+        setHintExpanded(expanded)
     }
 
-
     private fun setHintExpanded(expanded: Boolean) {
-        val anim = if (expanded) getCollapseHintAnimation() else getExpandHintAnimation()
+        val anim = if (!expanded) getCollapseHintAnimation() else getExpandHintAnimation()
         hintContainer.startAnimation(anim.apply {
             duration = 250
         })
+    }
+
+    fun TextView.calculateHeight(text: CharSequence = getText()): Int {
+        val alignment = when(gravity) {
+            Gravity.CENTER -> Layout.Alignment.ALIGN_CENTER
+            Gravity.RIGHT -> Layout.Alignment.ALIGN_OPPOSITE
+            else -> Layout.Alignment.ALIGN_NORMAL
+        }
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            StaticLayout.Builder.obtain(text, 0, text.length, TextPaint(paint), width)
+                .setLineSpacing(lineSpacingExtra, lineSpacingMultiplier)
+                .setAlignment(alignment)
+                .setIncludePad(true).build()
+        } else {
+            @Suppress("DEPRECATION")
+            StaticLayout(
+                text, TextPaint(paint), width, alignment,
+                lineSpacingMultiplier, lineSpacingExtra, true
+            )
+        }.height
     }
 
     private fun getExpandHintAnimation(): Animation {
@@ -91,13 +126,13 @@ class HintHelper(
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         )
 
-        val lp = (hintContainer.hint_icon.layoutParams as ConstraintLayout.LayoutParams)
-        val collapsedHeight = hintContainer.hint_icon.height + lp.topMargin + lp.bottomMargin
-        expandedHeight = maxHeight
+        val collapsedHeight = hintContainer.height
+        expandedHeight = minOf(maxHeight, hintContainer.hint_text.calculateHeight(text))
 
-        CustomLog.writeToFile("" +
-                "Expand hint from $collapsedHeight to $expandedHeight, default = ${200 * hintContainer.resources.displayMetrics.density.toInt()}\n"+
-                "  text height = ${hintContainer.hint_text.height}, container height = ${hintContainer.height}"
+        CustomLog.writeToFile(
+            "" +
+                    "Expand hint from $collapsedHeight to $expandedHeight, default = ${200 * hintContainer.resources.displayMetrics.density.toInt()}\n" +
+                    "  text height = ${hintContainer.hint_text.height}, container height = ${hintContainer.height}"
         )
 
         return object : Animation() {
@@ -124,14 +159,14 @@ class HintHelper(
         val lp = hintContainer.hint_icon.layoutParams as ConstraintLayout.LayoutParams
         val collapsedHeight = hintContainer.hint_icon.height + lp.topMargin + lp.bottomMargin
 
-        val actualExpandedHeight = expandedHeight.takeIf { it != 0 } ?: maxHeight
+        val currentHeight = hintContainer.height
 
         return object : Animation() {
             override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
                 hintContainer.layoutParams.height = if (interpolatedTime == 1f)
                     collapsedHeight
                 else
-                    (actualExpandedHeight - (actualExpandedHeight - collapsedHeight) * interpolatedTime).toInt()
+                    (currentHeight - (currentHeight - collapsedHeight) * interpolatedTime).toInt()
                 hintContainer.requestLayout()
             }
 

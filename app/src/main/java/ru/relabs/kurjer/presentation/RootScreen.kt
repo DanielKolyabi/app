@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.addresses.AddressesFragment
 import ru.relabs.kurjer.presentation.login.LoginFragment
+import ru.relabs.kurjer.presentation.photoViewer.PhotoViewerFragment
 import ru.relabs.kurjer.presentation.report.ReportFragment
 import ru.relabs.kurjer.presentation.taskDetails.IExaminedConsumer
 import ru.relabs.kurjer.presentation.taskDetails.TaskDetailsFragment
@@ -29,7 +30,13 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
     class Report(items: List<Pair<Task, TaskItem>>, selectedTaskItem: TaskItem) :
         RootScreen({ ReportFragment.newInstance(items, selectedTaskItem) })
 
-    class YandexMap(taskItems: List<TaskItem>, storages: List<YandexMapFragment.StorageLocation> = emptyList(), onAddressClicked: (Address) -> Unit) :
+    class ImagePreview(imagePaths: List<String>) : RootScreen({ PhotoViewerFragment.newInstance(imagePaths) })
+
+    class YandexMap(
+        taskItems: List<TaskItem>,
+        storages: List<YandexMapFragment.StorageLocation> = emptyList(),
+        onAddressClicked: (Address) -> Unit
+    ) :
         RootScreen({
             val addresses = taskItems
                 .groupBy { it.address.id }

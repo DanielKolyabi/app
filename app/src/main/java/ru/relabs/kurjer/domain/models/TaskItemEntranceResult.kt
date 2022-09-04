@@ -21,5 +21,6 @@ data class TaskItemEntranceResult(
     val taskItemResultId: TaskItemResultId,
     val entranceNumber: EntranceNumber,
     val selection: ReportEntranceSelection,
-    val userDescription: String
+    val userDescription: String,
+    val isPhotoRequired: Boolean
 ): Parcelable

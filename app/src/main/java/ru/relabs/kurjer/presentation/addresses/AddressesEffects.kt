@@ -76,11 +76,14 @@ object AddressesEffects {
 
     fun effectOpenImageMap(task: Task): AddressesEffect = { c, s ->
         messages.send(AddressesMessages.msgAddLoaders(1))
-        val file = c.pathsProvider.getTaskRasterizeMapFile(task)
+        val taskItemFile = c.pathsProvider.getEditionPhotoFile(task)
+        val mapFile = c.pathsProvider.getTaskRasterizeMapFile(task)
+        val imagesToShow = listOf(taskItemFile, mapFile).filter { it.exists() }
+
         withContext(Dispatchers.Main) {
-            when (file.exists()) {
-                true -> c.showImagePreview(file)
-                else -> c.showSnackbar(R.string.image_map_not_found)
+            when {
+                imagesToShow.isEmpty() -> c.showSnackbar(R.string.image_map_or_production_not_found)
+                else -> c.router.navigateTo(RootScreen.ImagePreview(imagesToShow.map { it.path }))
             }
         }
         messages.send(AddressesMessages.msgAddLoaders(-1))

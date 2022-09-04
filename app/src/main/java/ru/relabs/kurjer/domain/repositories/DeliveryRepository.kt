@@ -191,6 +191,15 @@ class DeliveryRepository(
         bmp.recycle()
     }
 
+    suspend fun loadEditionPhoto(task: Task): Either<Exception, Unit> = Either.of {
+        if(task.editionPhotoUrl == null) return@of Unit
+        val url = URL(task.editionPhotoUrl)
+        val bmp = BitmapFactory.decodeStream(url.openStream())
+        val mapFile = pathsProvider.getEditionPhotoFile(task)
+        ImageUtils.saveImage(bmp, mapFile)
+        bmp.recycle()
+    }
+
     suspend fun sendQuery(item: SendQueryItemEntity): Either<java.lang.Exception, Unit> = Either.of {
         val postDataBuilder = FormBody.Builder()
         item.post_data.split("&").forEach {

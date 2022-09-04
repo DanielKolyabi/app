@@ -58,7 +58,8 @@ class ReportUseCase(
                     ReportQueryItemEntranceData(
                         en.number,
                         (resultData?.selection?.let { ReportEntranceSelectionMapper.toBits(it) } ?: 0),
-                        resultData?.userDescription ?: ""
+                        resultData?.userDescription ?: "",
+                        resultData?.isPhotoRequired ?: false
                     )
                 }
                 is TaskItem.Firm -> emptyList()
@@ -74,7 +75,8 @@ class ReportUseCase(
             when (taskItem) {
                 is TaskItem.Common -> 1
                 is TaskItem.Firm -> 2
-            }
+            },
+            isPhotoRequired = result?.isPhotoRequired ?: taskItem.needPhoto
         )
 
         databaseRepository.createTaskItemReport(reportItem)

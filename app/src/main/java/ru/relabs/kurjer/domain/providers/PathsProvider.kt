@@ -21,6 +21,9 @@ class PathsProvider(
     private val mapDir = File(filesRootDir, "maps").apply {
         mkdirs()
     }
+    private val editionPhotoDir = File(filesRootDir, "editions").apply {
+        mkdirs()
+    }
 
 
     fun getCrashLogFile(): File {
@@ -51,6 +54,14 @@ class PathsProvider(
 
     fun getTaskRasterizeMapFileById(taskId: TaskId): File {
         return File(mapDir, "${taskId.id}.jpg")
+    }
+
+    fun getEditionPhotoFile(task: Task): File {
+        return getEditionPhotoFileById(task.id)
+    }
+
+    fun getEditionPhotoFileById(taskId: TaskId): File {
+        return File(editionPhotoDir, "${taskId.id}.jpg")
     }
 
     fun getUpdateFile(): File {

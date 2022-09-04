@@ -44,8 +44,13 @@ object TasksEffects {
     }
 
     fun effectNavigateAddresses(): TasksEffect = { c, s ->
+        val photos = s.selectedTasks
+            .map { c.pathsProvider.getEditionPhotoFile(it) }
+            .filter { it.exists() }
+            .map { it.path }
         withContext(Dispatchers.Main) {
             c.router.navigateTo(RootScreen.Addresses(s.selectedTasks))
+            c.router.navigateTo(RootScreen.ImagePreview(photos))
         }
     }
 
@@ -60,10 +65,12 @@ object TasksEffects {
                     when (it) {
                         is MergeResult.TaskCreated -> {
                             c.deliveryRepository.loadTaskMap(it.task)
+                            c.deliveryRepository.loadEditionPhoto(it.task)
                             tasksCreated = true
                         }
                         is MergeResult.TaskUpdated -> {
                             c.deliveryRepository.loadTaskMap(it.task)
+                            c.deliveryRepository.loadEditionPhoto(it.task)
                             tasksUpdated = true
                         }
                         is MergeResult.TaskRemoved -> tasksUpdated = true

@@ -34,8 +34,4 @@ data class EntranceDataEntity(
         var isRefused: Boolean,
         @ColumnInfo(name = "photo_required")
         var photoRequired: Boolean
-) {
-    fun toEntranceDataModel(): EntranceDataModel {
-        return EntranceDataModel(number, apartmentsCount, isEuroBoxes, hasLookout, isStacked, isRefused, photoRequired)
-    }
-}
+)

@@ -18,7 +18,8 @@ object TaskItemResultMapper {
             entrances = db.entrancesDao().getByTaskItemResultId(entity.id).map {
                 TaskItemEntranceResultMapper.fromEntity(it)
             },
-            gps = entity.gps
+            gps = entity.gps,
+            isPhotoRequired = entity.isPhotoRequired
         )
     }
 
@@ -27,6 +28,7 @@ object TaskItemResultMapper {
         taskItemId = updatedReport.taskItemId.id,
         gps = updatedReport.gps,
         closeTime = updatedReport.closeTime,
-        description = updatedReport.description
+        description = updatedReport.description,
+        isPhotoRequired = updatedReport.isPhotoRequired
     )
 }

@@ -15,5 +15,6 @@ data class TaskItemResult(
     val closeTime: Date?,
     val description: String,
     val entrances: List<TaskItemEntranceResult>,
-    val gps: GPSCoordinatesModel
+    val gps: GPSCoordinatesModel,
+    val isPhotoRequired: Boolean
 ) : Parcelable

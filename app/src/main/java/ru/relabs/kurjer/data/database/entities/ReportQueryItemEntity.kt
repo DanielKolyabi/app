@@ -29,11 +29,13 @@ data class ReportQueryItemEntity(
     @ColumnInfo(name = "radius_required") var radiusRequired: Boolean,
     @ColumnInfo(name = "is_rejected") var isRejected: Boolean,
     @ColumnInfo(name = "reject_reason") var rejectReason: String,
-    @ColumnInfo(name = "delivery_type") var deliveryType: Int
+    @ColumnInfo(name = "delivery_type") var deliveryType: Int,
+    @ColumnInfo(name = "is_photo_required") var isPhotoRequired: Boolean,
 )
 
 data class ReportQueryItemEntranceData(
     @SerializedName("entrance") val entrance: Int,
     @SerializedName("selection") val selection: Int,
-    @SerializedName("description") val description: String
+    @SerializedName("description") val description: String,
+    @SerializedName("is_photo_required") val isPhotoRequired: Boolean,
 )

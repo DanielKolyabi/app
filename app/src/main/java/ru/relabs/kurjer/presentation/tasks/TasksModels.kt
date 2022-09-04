@@ -4,6 +4,7 @@ import org.koin.core.KoinComponent
 import org.koin.core.inject
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
@@ -29,6 +30,7 @@ class TasksContext(val examinedConsumer: TasksFragment, val errorContext: ErrorC
     val databaseRepository: DatabaseRepository by inject()
     val taskEventController: TaskEventController by inject()
     val settingsRepository: SettingsRepository by inject()
+    val pathsProvider: PathsProvider by inject()
 
     var showSnackbar: suspend (Int) -> Unit = {}
     var showUpdateRequiredOnVisible: (canSkip: Boolean) -> Unit = {}

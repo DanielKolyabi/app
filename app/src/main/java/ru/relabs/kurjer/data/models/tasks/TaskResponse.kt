@@ -34,4 +34,5 @@ data class TaskResponse(
     @SerializedName("sort") val sort: String,
     @SerializedName("district_type") val districtType: Int,
     @SerializedName("order_number") val orderNumber: Int,
+    @SerializedName("photo_paths") val photos: List<String>
 )

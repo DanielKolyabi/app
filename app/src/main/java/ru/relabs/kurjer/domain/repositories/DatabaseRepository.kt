@@ -344,9 +344,14 @@ class DatabaseRepository(
         taskItem: TaskItem,
         selectionUpdater: (TaskItemResultEntranceEntity) -> TaskItemResultEntranceEntity
     ): TaskItemResult? = withContext(Dispatchers.IO) {
-        val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItem.id.id) ?: createEmptyTaskItemResult(taskItem.id)
+        val isPhotoRequired = when (val ti = taskItem) {
+            is TaskItem.Common -> ti.entrancesData.firstOrNull { it.number == entrance }?.photoRequired ?: false
+            is TaskItem.Firm -> ti.needPhoto
+        }
+        val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItem.id.id)
+            ?: createEmptyTaskItemResult(taskItem.id, taskItem.needPhoto)
         val entranceResult = db.entrancesDao().getByTaskItemResultId(taskItemResult.id).firstOrNull { it.entrance == entrance.number }
-            ?: createEmptyTaskItemEntranceResult(TaskItemResultId(taskItemResult.id), entrance)
+            ?: createEmptyTaskItemEntranceResult(TaskItemResultId(taskItemResult.id), entrance, isPhotoRequired)
 
         db.entrancesDao().update(selectionUpdater(entranceResult))
 
@@ -379,20 +384,22 @@ class DatabaseRepository(
 
     private suspend fun createEmptyTaskItemEntranceResult(
         taskItemResultId: TaskItemResultId,
-        entranceNumber: EntranceNumber
+        entranceNumber: EntranceNumber,
+        isPhotoRequired: Boolean
     ): TaskItemResultEntranceEntity = withContext(Dispatchers.IO) {
-        val empty = TaskItemResultEntranceEntity.empty(taskItemResultId, entranceNumber)
+        val empty = TaskItemResultEntranceEntity.empty(taskItemResultId, entranceNumber, isPhotoRequired)
         val id = db.entrancesDao().insert(empty)
 
         empty.copy(id = id.toInt())
     }
 
-    private suspend fun createEmptyTaskItemResult(taskItemId: TaskItemId): TaskItemResultEntity = withContext(Dispatchers.IO) {
-        val empty = TaskItemResultEntity.empty(taskItemId)
-        val id = db.taskItemResultsDao().insert(empty)
+    private suspend fun createEmptyTaskItemResult(taskItemId: TaskItemId, isPhotoRequired: Boolean): TaskItemResultEntity =
+        withContext(Dispatchers.IO) {
+            val empty = TaskItemResultEntity.empty(taskItemId, isPhotoRequired)
+            val id = db.taskItemResultsDao().insert(empty)
 
-        empty.copy(id = id.toInt())
-    }
+            empty.copy(id = id.toInt())
+        }
 
     suspend fun savePhoto(entrance: Int, taskItem: TaskItem, uuid: UUID, location: Location?): TaskItemPhoto =
         withContext(Dispatchers.IO) {

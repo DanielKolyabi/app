@@ -48,6 +48,7 @@ object TaskMapper {
         districtType = DistrictType.values()
             .getOrNull(raw.districtType)
             ?: throw MappingException("districtType", raw.districtType),
-        orderNumber = raw.orderNumber
+        orderNumber = raw.orderNumber,
+        editionPhotoUrl = raw.photos.firstOrNull()
     )
 }

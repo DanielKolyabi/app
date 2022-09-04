@@ -136,12 +136,6 @@ class HintHelper(
             )
         )
 
-        CustomLog.writeToFile(
-            "" +
-                    "Expand hint from $collapsedHeight to $expandedHeight, default = ${200 * hintContainer.resources.displayMetrics.density.toInt()}\n" +
-                    "  text height = ${hintContainer.hint_text.height}, container height = ${hintContainer.height}"
-        )
-
         return object : Animation() {
             override fun applyTransformation(interpolatedTime: Float, t: Transformation) {
                 hintContainer.layoutParams.height = if (interpolatedTime == 1f)

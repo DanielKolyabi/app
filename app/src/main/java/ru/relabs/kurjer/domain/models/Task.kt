@@ -43,7 +43,8 @@ data class Task(
     val deliveryType: TaskDeliveryType,
     val listSort: String,
     val districtType: DistrictType,
-    val orderNumber: Int
+    val orderNumber: Int,
+    val editionPhotoUrl: String?
 ) : Parcelable {
 
     val listName: String

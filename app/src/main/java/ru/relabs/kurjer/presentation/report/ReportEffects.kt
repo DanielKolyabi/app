@@ -253,23 +253,25 @@ object ReportEffects {
         when (val affectedTask = s.selectedTask) {
             null -> c.showError("re:101", true)
             else -> {
-                val newResult =
-                    c.database.createOrUpdateTaskItemEntranceResultSelection(entrance, affectedTask.taskItem) { selection ->
-                        applyButtonClick(selection).let { applied ->
-                            if (button == EntranceSelectionButton.Euro && applied.isEuro) {
-                                applied.copy(isStacked = true)
-                            } else if (button == EntranceSelectionButton.Watch && applied.isWatch) {
-                                applied.copy(isStacked = true)
-                            } else if (
-                                (button == EntranceSelectionButton.Watch || button == EntranceSelectionButton.Euro)
-                                && (!applied.isEuro && !applied.isWatch)
-                            ) {
-                                applied.copy(isStacked = false)
-                            } else {
-                                applied
-                            }
+                val newResult = c.database.createOrUpdateTaskItemEntranceResultSelection(
+                    entrance,
+                    affectedTask.taskItem
+                ) { selection ->
+                    applyButtonClick(selection).let { applied ->
+                        if (button == EntranceSelectionButton.Euro && applied.isEuro) {
+                            applied.copy(isStacked = true)
+                        } else if (button == EntranceSelectionButton.Watch && applied.isWatch) {
+                            applied.copy(isStacked = true)
+                        } else if (
+                            (button == EntranceSelectionButton.Watch || button == EntranceSelectionButton.Euro)
+                            && (!applied.isEuro && !applied.isWatch)
+                        ) {
+                            applied.copy(isStacked = false)
+                        } else {
+                            applied
                         }
                     }
+                }
 
                 //Coupling
                 val newSelection = newResult?.entrances?.firstOrNull { it.entranceNumber == entrance }?.selection
@@ -496,7 +498,8 @@ object ReportEffects {
             closeTime = null,
             description = "",
             entrances = emptyList(),
-            gps = GPSCoordinatesModel(0.0, 0.0, Date())
+            gps = GPSCoordinatesModel(0.0, 0.0, Date()),
+            isPhotoRequired = taskItem.needPhoto
         )
         return database.updateTaskItemResult(result)
     }
@@ -555,11 +558,13 @@ object ReportEffects {
     }
 
     fun effectChangeEntranceDescription(entranceNumber: EntranceNumber, description: String): ReportEffect = { c, s ->
-
         when (val affectedTask = s.selectedTask) {
             null -> c.showError("re:111", true)
             else -> {
-                c.database.createOrUpdateTaskItemEntranceResult(entranceNumber, affectedTask.taskItem) {
+                c.database.createOrUpdateTaskItemEntranceResult(
+                    entranceNumber,
+                    affectedTask.taskItem
+                ) {
                     it.copy(userDescription = description)
                 }?.let { messages.send(ReportMessages.msgSavedResultLoaded(it)) }
             }

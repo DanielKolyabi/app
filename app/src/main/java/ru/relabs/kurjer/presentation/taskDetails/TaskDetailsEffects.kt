@@ -31,7 +31,10 @@ object TaskDetailsEffects {
             else -> {
                 c.onExamine(c.database.examineTask(t))
                 withContext(Dispatchers.Main) {
-                    c.router.exit()
+                    when (val photoUrl = t.editionPhotoUrl) {
+                        null -> c.router.exit()
+                        else -> c.router.replaceScreen(RootScreen.ImagePreview(listOf(photoUrl)))
+                    }
                 }
             }
         }
@@ -40,11 +43,11 @@ object TaskDetailsEffects {
 
     fun effectOpenMap(): TaskDetailsEffect = { c, s ->
         messages.send(TaskDetailsMessages.msgAddLoaders(1))
-        when(val t = s.task){
+        when (val t = s.task) {
             null -> c.showFatalError("tde:102")
             else -> {
                 val file = c.pathsProvider.getTaskRasterizeMapFile(t)
-                when(file.exists()){
+                when (file.exists()) {
                     true -> c.showImagePreview(file)
                     else -> c.showSnackbar(R.string.image_map_not_found)
                 }

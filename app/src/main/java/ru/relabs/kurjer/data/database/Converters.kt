@@ -68,7 +68,7 @@ class Converters {
                 .getAdapter(TypeToken.getParameterized(List::class.java, ReportQueryItemEntranceData::class.java))
                 .fromJson(value) as List<ReportQueryItemEntranceData>
         } catch (e: Exception) {
-            jsonToIntPairList(value).map { ReportQueryItemEntranceData(it.first, it.second, "") }
+            jsonToIntPairList(value).map { ReportQueryItemEntranceData(it.first, it.second, "", false) }
         }
     }
 

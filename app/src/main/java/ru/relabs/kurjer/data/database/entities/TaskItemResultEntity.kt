@@ -4,10 +4,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
-import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.domain.models.TaskItemId
 import ru.relabs.kurjer.models.GPSCoordinatesModel
-import ru.relabs.kurjer.models.TaskItemResultModel
 import java.util.*
 
 /**
@@ -30,12 +28,14 @@ data class TaskItemResultEntity(
     var gps: GPSCoordinatesModel,
     @ColumnInfo(name = "close_time")
     var closeTime: Date?,
-    var description: String
+    var description: String,
+    @ColumnInfo(name = "is_photo_required")
+    var isPhotoRequired: Boolean,
 ) {
 
     companion object {
-        fun empty(taskItemId: TaskItemId) = TaskItemResultEntity(
-            0, taskItemId.id, GPSCoordinatesModel(0.0, 0.0, Date(0)), null, ""
+        fun empty(taskItemId: TaskItemId, isPhotoRequired: Boolean) = TaskItemResultEntity(
+            0, taskItemId.id, GPSCoordinatesModel(0.0, 0.0, Date(0)), null, "", isPhotoRequired
         )
     }
 }

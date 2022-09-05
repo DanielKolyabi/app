@@ -49,8 +49,10 @@ object TasksEffects {
             .filter { it.exists() }
             .map { it.path }
         withContext(Dispatchers.Main) {
-            c.router.navigateTo(RootScreen.Addresses(s.selectedTasks))
-            c.router.navigateTo(RootScreen.ImagePreview(photos))
+            c.router.newChain(
+                RootScreen.Addresses(s.selectedTasks),
+                RootScreen.ImagePreview(photos)
+            )
         }
     }
 

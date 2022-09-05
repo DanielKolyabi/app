@@ -151,6 +151,7 @@ class DatabaseRepository(
         }
         //Remove rast map
         pathsProvider.getTaskRasterizeMapFileById(TaskId(taskId)).delete()
+        pathsProvider.getEditionPhotoFileById(TaskId(taskId)).delete()
     }
 
     suspend fun mergeTasks(tasks: List<Task>): Flow<MergeResult> = flow {

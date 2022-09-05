@@ -123,6 +123,11 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         controller.context.featureCheckersContainer = featureCheckersContainer
     }
 
+    override fun onResumeFragments() {
+        super.onResumeFragments()
+        navigationHolder.setNavigator(navigator)
+    }
+
     private fun showTaskUpdateRequiredDialog(canSkip: Boolean) {
         if (taskUpdateRequiredDialogShowed) {
             return
@@ -294,7 +299,6 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     }
 
     private fun prepareNavigation() {
-        navigationHolder.setNavigator(navigator)
         bindBackstackListener()
 
         navigationDrawer = with(DrawerBuilder()) {
@@ -467,9 +471,9 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     }
 
     override fun onPause() {
+        navigationHolder.removeNavigator()
         super.onPause()
         systemWatchersContainer.onPause()
-        navigationHolder.removeNavigator()
         uiScope.sendMessage(controller, HostMessages.msgPause())
         ReportService.isAppPaused = true
     }

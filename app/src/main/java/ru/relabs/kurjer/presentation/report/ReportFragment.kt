@@ -132,7 +132,7 @@ class ReportFragment : BaseFragment() {
             override fun onGlobalLayout() {
                 report_root.height.takeIf { it > 0 }?.let { height ->
                     report_root?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
-                    hintHelper.maxHeight = height - top_app_bar.height
+                    hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
                 }
             }
         })

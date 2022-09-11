@@ -59,7 +59,7 @@ class ReportUseCase(
                         en.number,
                         (resultData?.selection?.let { ReportEntranceSelectionMapper.toBits(it) } ?: 0),
                         resultData?.userDescription ?: "",
-                        resultData?.isPhotoRequired ?: false
+                        resultData?.isPhotoRequired ?: it.photoRequired
                     )
                 }
                 is TaskItem.Firm -> emptyList()

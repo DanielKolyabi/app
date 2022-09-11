@@ -130,7 +130,7 @@ class ReportFragment : BaseFragment() {
         val hintHelper = HintHelper(hint_container, "", true, requireActivity())
         report_root.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
-                report_root.height.takeIf { it > 0 }?.let { height ->
+                report_root?.height?.takeIf { it > 0 }?.let { height ->
                     report_root?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
                     hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
                 }

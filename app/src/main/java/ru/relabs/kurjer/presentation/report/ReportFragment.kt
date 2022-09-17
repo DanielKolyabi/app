@@ -25,7 +25,6 @@ import kotlinx.android.parcel.Parcelize
 import kotlinx.android.synthetic.main.fragment_report.*
 import kotlinx.android.synthetic.main.fragment_report.view.*
 import kotlinx.android.synthetic.main.include_hint_container.*
-import kotlinx.android.synthetic.main.include_hint_container.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -43,6 +42,7 @@ import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
+import ru.relabs.kurjer.utils.extensions.visible
 import java.io.File
 import java.util.*
 
@@ -131,8 +131,20 @@ class ReportFragment : BaseFragment() {
         report_root.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 report_root?.height?.takeIf { it > 0 }?.let { height ->
-                    report_root?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+                    if ((rv_tasks.visible && rv_tasks.height != 0) || !rv_tasks.visible) {
+                        report_root?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+                    }
                     hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
+                }
+            }
+        })
+        rv_tasks?.viewTreeObserver?.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                if (rv_tasks.visible && rv_tasks.height != 0) {
+                    report_root?.height?.takeIf { it > 0 }?.let { height ->
+                        rv_tasks?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+                        hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
+                    }
                 }
             }
         })

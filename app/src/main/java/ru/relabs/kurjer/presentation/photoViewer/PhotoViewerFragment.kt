@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
@@ -60,6 +61,8 @@ class PhotoViewerFragment : BaseFragment() {
         Glide
             .with(requireContext())
             .load(path)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .skipMemoryCache(true)
             .into(view)
     }
 

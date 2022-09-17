@@ -30,10 +30,11 @@ object TaskDetailsEffects {
             null -> c.showFatalError("tde:101")
             else -> {
                 c.onExamine(c.database.examineTask(t))
+                val editionPhotoPath = c.pathsProvider.getEditionPhotoFile(t).takeIf { it.exists() }?.path
                 withContext(Dispatchers.Main) {
-                    when (val photoUrl = t.editionPhotoUrl) {
+                    when (editionPhotoPath) {
                         null -> c.router.exit()
-                        else -> c.router.replaceScreen(RootScreen.ImagePreview(listOf(photoUrl)))
+                        else -> c.router.replaceScreen(RootScreen.ImagePreview(listOf(editionPhotoPath)))
                     }
                 }
             }

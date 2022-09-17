@@ -19,6 +19,9 @@ import android.view.ViewTreeObserver
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.OnLifecycleEvent
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.android.parcel.Parcelize
@@ -138,14 +141,21 @@ class ReportFragment : BaseFragment() {
                 }
             }
         })
-        rv_tasks?.viewTreeObserver?.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+        val tasksListListener = object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
-                if (rv_tasks.visible && rv_tasks.height != 0) {
+                if (rv_tasks?.visible == true && rv_tasks?.height != 0) {
                     report_root?.height?.takeIf { it > 0 }?.let { height ->
                         rv_tasks?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
                         hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
                     }
                 }
+            }
+        }
+        rv_tasks?.viewTreeObserver?.addOnGlobalLayoutListener(tasksListListener)
+        lifecycle.addObserver(object: LifecycleObserver{
+            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+            fun onDestroy(){
+                rv_tasks?.viewTreeObserver?.removeOnGlobalLayoutListener(tasksListListener)
             }
         })
 

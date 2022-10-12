@@ -313,6 +313,12 @@ class DatabaseRepository(
         }
     }
 
+    suspend fun getUnfinishedItemPhotos(): List<TaskItemPhoto> = withContext(Dispatchers.IO) {
+        db.photosDao().all
+            .filter { db.taskItemDao().getById(it.taskItemId)?.state == TaskItemEntity.STATE_CREATED }
+            .map { DatabasePhotoMapper.fromEntity(it) }
+    }
+
     suspend fun getTaskItemResult(taskItemId: TaskItemId): TaskItemResult? = withContext(Dispatchers.IO) {
         db.taskItemResultsDao().getByTaskItemId(taskItemId.id)?.let {
             TaskItemResultMapper.fromEntity(db, it)

@@ -111,6 +111,39 @@ object ReportEffects {
         messages.send(ReportMessages.msgAddLoaders(-1))
     }
 
+    fun effectValidateUnfinishedReportsAnd(
+        msgFactory: () -> ReportMessage
+    ): ReportEffect = { c, s ->
+        messages.send(ReportMessages.msgAddLoaders(1))
+        val unfinishedItemsPhotos = c.database.getUnfinishedItemPhotos().filter {
+            it.taskItemId != s.selectedTask?.taskItem?.id
+        }
+        when (val unfinishedItemPhoto = unfinishedItemsPhotos.firstOrNull()) {
+            null -> messages.send(msgFactory())
+            else -> {
+                val unfinishedItem = c.database.getTaskItem(unfinishedItemPhoto.taskItemId)
+                val unfinishedTask = unfinishedItem?.taskId?.let { c.database.getTask(it) }
+                if (unfinishedItem == null || unfinishedTask == null) {
+                    messages.send(msgFactory())
+                } else {
+                    withContext(Dispatchers.Main) {
+                        c.showCloseError(
+                            R.string.report_close_with_unfinished_item_warning,
+                            false,
+                            null,
+                            null,
+                            arrayOf(
+                                "${unfinishedTask.name} №${unfinishedTask.edition}",
+                                unfinishedItem.address.name
+                            )
+                        )
+                    }
+                }
+            }
+        }
+        messages.send(ReportMessages.msgAddLoaders(-1))
+    }
+
     private fun effectValidatePhotoRadiusAnd(
         msgFactory: () -> ReportMessage,
         withAnyRadiusWarning: Boolean,
@@ -169,17 +202,17 @@ object ReportEffects {
 
                         if (distance > selected.taskItem.closeRadius && withAnyRadiusWarning && !shouldSuppressDialog) {
                             withContext(Dispatchers.Main) {
-                                c.showCloseError(R.string.report_close_location_far_warning, false, null, null)
+                                c.showCloseError(R.string.report_close_location_far_warning, false, null, null, emptyArray())
                             }
                         }
                         messages.send(msgFactory())
                     } else {
                         when {
                             locationNotValid -> withContext(Dispatchers.Main) {
-                                c.showCloseError(R.string.report_close_location_null_error, false, null, null)
+                                c.showCloseError(R.string.report_close_location_null_error, false, null, null, emptyArray())
                             }
                             distance > selected.taskItem.closeRadius -> withContext(Dispatchers.Main) {
-                                c.showCloseError(R.string.report_close_location_far_error, false, null, null)
+                                c.showCloseError(R.string.report_close_location_far_error, false, null, null, emptyArray())
                             }
                             else ->
                                 messages.send(msgFactory())
@@ -419,11 +452,11 @@ object ReportEffects {
                         if (c.settingsRepository.isCloseRadiusRequired) {
                             when {
                                 location == null -> {
-                                    c.showCloseError(R.string.report_close_location_null_error, false, null, rejectReason)
+                                    c.showCloseError(R.string.report_close_location_null_error, false, null, rejectReason, emptyArray())
                                     true
                                 }
                                 distance > selected.taskItem.closeRadius -> {
-                                    c.showCloseError(R.string.report_close_location_far_error, false, null, rejectReason)
+                                    c.showCloseError(R.string.report_close_location_far_error, false, null, rejectReason, emptyArray())
                                     true
                                 }
                                 else -> {
@@ -436,11 +469,17 @@ object ReportEffects {
                         } else {
                             when {
                                 location == null -> {
-                                    c.showCloseError(R.string.report_close_location_null_warning, true, location, rejectReason)
+                                    c.showCloseError(
+                                        R.string.report_close_location_null_warning,
+                                        true,
+                                        location,
+                                        rejectReason,
+                                        emptyArray()
+                                    )
                                     false
                                 }
                                 distance > selected.taskItem.closeRadius -> {
-                                    c.showCloseError(R.string.report_close_location_far_warning, true, location, rejectReason)
+                                    c.showCloseError(R.string.report_close_location_far_warning, true, location, rejectReason, emptyArray())
                                     false
                                 }
                                 else -> {

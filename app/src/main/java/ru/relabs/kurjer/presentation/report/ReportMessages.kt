@@ -1,6 +1,5 @@
 package ru.relabs.kurjer.presentation.report
 
-import android.graphics.Bitmap
 import android.location.Location
 import android.net.Uri
 import ru.relabs.kurjer.BuildConfig
@@ -54,17 +53,21 @@ object ReportMessages {
     fun msgPhotoClicked(
         entranceNumber: EntranceNumber? = null,
         multiplePhoto: Boolean
-    ): ReportMessage = when (BuildConfig.FEATURE_PHOTO_RADIUS) {
-        true ->
-            msgEffect(
-                ReportEffects.effectValidateRadiusAndRequestPhoto(
-                    entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM,
-                    multiplePhoto
-                )
-            )
-        false ->
-            msgEffect(ReportEffects.effectRequestPhoto(entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM, multiplePhoto))
-    }
+    ): ReportMessage = msgEffect(
+        ReportEffects.effectValidateUnfinishedReportsAnd {
+            when (BuildConfig.FEATURE_PHOTO_RADIUS) {
+                true ->
+                    msgEffect(
+                        ReportEffects.effectValidateRadiusAndRequestPhoto(
+                            entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM,
+                            multiplePhoto
+                        )
+                    )
+                false ->
+                    msgEffect(ReportEffects.effectRequestPhoto(entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM, multiplePhoto))
+            }
+        }
+    )
 
 
     fun msgRemovePhotoClicked(removedPhoto: TaskItemPhoto): ReportMessage = msgEffects(
@@ -101,16 +104,6 @@ object ReportMessages {
         }
     )
 
-    fun msgPhotoCaptured(entrance: Int, multiplePhoto: Boolean, bitmap: Bitmap, targetFile: File, uuid: UUID): ReportMessage = msgEffects(
-        { it },
-        {
-            listOfNotNull(
-                ReportEffects.effectSavePhotoFromBitmap(entrance, bitmap, targetFile, uuid),
-                ReportEffects.effectRequestPhoto(entrance, multiplePhoto).takeIf { multiplePhoto }
-            )
-        }
-    )
-
     fun msgNewPhoto(newPhoto: PhotoWithUri): ReportMessage = msgState {
         CustomLog.writeToFile("New photo added to list ${newPhoto.photo.UUID}")
         it.copy(selectedTaskPhotos = it.selectedTaskPhotos + listOf(newPhoto))
@@ -125,8 +118,11 @@ object ReportMessages {
     fun msgCouplingChanged(coupling: ReportCoupling): ReportMessage =
         msgState { it.copy(coupling = coupling) }
 
-    fun msgCloseClicked(rejectReason: String?): ReportMessage =
-        msgEffect(ReportEffects.effectCloseCheck(true, rejectReason))
+    fun msgCloseClicked(rejectReason: String?): ReportMessage = msgEffect(
+        ReportEffects.effectValidateUnfinishedReportsAnd {
+            msgEffect(ReportEffects.effectCloseCheck(true, rejectReason))
+        }
+    )
 
     fun msgPerformClose(location: Location?, rejectReason: String?): ReportMessage =
         msgEffect(ReportEffects.effectClosePerform(true, location, rejectReason))

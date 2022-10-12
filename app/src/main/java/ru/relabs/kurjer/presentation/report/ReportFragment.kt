@@ -274,9 +274,10 @@ class ReportFragment : BaseFragment() {
         }
     }
 
-    private fun showCloseError(msgRes: Int, withPreClose: Boolean, location: Location? = null, rejectReason: String?) {
+    private fun showCloseError(msgRes: Int, withPreClose: Boolean, location: Location? = null, rejectReason: String?, vararg msgFormat: Any) {
+        val text = resources.getString(msgRes, *msgFormat)
         showDialog(
-            msgRes,
+            text,
             R.string.ok to {
                 if (withPreClose) {
                     showPreCloseDialog(location, rejectReason)
@@ -394,7 +395,7 @@ class ReportFragment : BaseFragment() {
         controller.context.showError = { _, _ -> }
         controller.context.hideKeyboard = {}
         controller.context.requestPhoto = { _, _, _, _ -> }
-        controller.context.showCloseError = { _, _, _, _ -> }
+        controller.context.showCloseError = { _, _, _, _, _ -> }
         controller.context.showPausedWarning = {}
         controller.context.showPhotosWarning = {}
         controller.context.showPreCloseDialog = { _, _ -> }

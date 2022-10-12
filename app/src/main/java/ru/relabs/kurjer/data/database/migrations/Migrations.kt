@@ -31,6 +31,7 @@ object Migrations: KoinComponent {
         migration_44_45,
         migration_45_46,
         migration_46_47,
+        migration_47_48,
     )
 
 
@@ -212,6 +213,11 @@ object Migrations: KoinComponent {
             database.execSQL("ALTER TABLE tasks ADD COLUMN edition_photo_url TEXT DEFAULT NULL")
             database.execSQL("ALTER TABLE task_item_results ADD COLUMN is_photo_required INTEGER NOT NULL DEFAULT 0")
             database.execSQL("ALTER TABLE task_item_result_entrances ADD COLUMN is_photo_required INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+    private val migration_47_48 = object : Migration(47, 48) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE task_item_photos ADD COLUMN photo_date INTEGER NOT NULL DEFAULT 0")
         }
     }
 }

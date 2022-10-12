@@ -410,7 +410,7 @@ class DatabaseRepository(
                 location?.time?.let { Date(it) } ?: Date(0)
             )
 
-            val photoEntity = TaskItemPhotoEntity(0, uuid.toString(), gps, taskItem.id.id, entrance)
+            val photoEntity = TaskItemPhotoEntity(0, uuid.toString(), gps, taskItem.id.id, entrance, Date())
 
             val id = db.photosDao().insert(photoEntity)
             CustomLog.writeToFile("Save photo $id ent=$entrance tii=${taskItem.id} ti=${taskItem.taskId} uuid=$uuid")

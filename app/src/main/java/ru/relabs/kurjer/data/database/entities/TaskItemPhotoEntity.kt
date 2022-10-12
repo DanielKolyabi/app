@@ -4,8 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ru.relabs.kurjer.models.GPSCoordinatesModel
-import ru.relabs.kurjer.models.TaskItemPhotoModel
-import ru.relabs.kurjer.data.database.AppDatabase
+import java.util.Date
 
 /**
  * Created by ProOrange on 03.09.2018.
@@ -22,5 +21,7 @@ data class TaskItemPhotoEntity(
         @ColumnInfo(name = "task_item_id")
         var taskItemId: Int,
         @ColumnInfo(name = "entrance_number")
-        var entranceNumber: Int
+        var entranceNumber: Int,
+        @ColumnInfo(name = "photo_date")
+        var date: Date
 )

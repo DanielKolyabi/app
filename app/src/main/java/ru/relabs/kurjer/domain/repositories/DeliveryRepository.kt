@@ -129,7 +129,7 @@ class DeliveryRepository(
             try {
                 photoParts.add(photoEntityToPart("img_$imgCount", item, photo))
                 photosMap["img_$imgCount"] =
-                    PhotoReportRequest("", photo.gps, photo.entranceNumber)
+                    PhotoReportRequest("", photo.gps, photo.entranceNumber, photo.date)
                 imgCount++
             } catch (e: Throwable) {
                 e.fillInStackTrace().log()

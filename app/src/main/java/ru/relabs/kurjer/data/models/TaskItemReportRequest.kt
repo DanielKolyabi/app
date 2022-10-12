@@ -31,5 +31,6 @@ data class TaskItemReportRequest(
 data class PhotoReportRequest(
     @SerializedName("hash") val hash: String,
     @SerializedName("gps") val gps: GPSCoordinatesModel,
-    @SerializedName("entranceNumber") val entranceNumber: Int
+    @SerializedName("entranceNumber") val entranceNumber: Int,
+    @SerializedName("photoDate") val photoDate: Date,
 )

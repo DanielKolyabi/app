@@ -115,15 +115,16 @@ object ReportEffects {
         msgFactory: () -> ReportMessage
     ): ReportEffect = { c, s ->
         messages.send(ReportMessages.msgAddLoaders(1))
-        val unfinishedItemsPhotos = c.database.getUnfinishedItemPhotos().filter {
-            it.taskItemId != s.selectedTask?.taskItem?.id
-        }
-        when (val unfinishedItemPhoto = unfinishedItemsPhotos.firstOrNull()) {
+        val unfinishedTaskItems = c.database.getUnfinishedItemPhotos()
+            .filter { it.taskItemId != s.selectedTask?.taskItem?.id } //Exclude current taskItem from unfinished list
+            .map { c.database.getTaskItem(it.taskItemId) }
+            .filter { taskItem -> taskItem?.address?.id != s.selectedTask?.taskItem?.address?.id }
+
+        when (val unfinishedItemPhoto = unfinishedTaskItems.firstOrNull()) {
             null -> messages.send(msgFactory())
             else -> {
-                val unfinishedItem = c.database.getTaskItem(unfinishedItemPhoto.taskItemId)
-                val unfinishedTask = unfinishedItem?.taskId?.let { c.database.getTask(it) }
-                if (unfinishedItem == null || unfinishedTask == null) {
+                val unfinishedTask = c.database.getTask(unfinishedItemPhoto.taskId)
+                if (unfinishedTask == null) {
                     messages.send(msgFactory())
                 } else {
                     withContext(Dispatchers.Main) {
@@ -134,7 +135,7 @@ object ReportEffects {
                             null,
                             arrayOf(
                                 "${unfinishedTask.name} №${unfinishedTask.edition}",
-                                unfinishedItem.address.name
+                                unfinishedItemPhoto.address.name
                             )
                         )
                     }

@@ -114,35 +114,42 @@ object ReportEffects {
     fun effectValidateUnfinishedReportsAnd(
         msgFactory: () -> ReportMessage
     ): ReportEffect = { c, s ->
-        messages.send(ReportMessages.msgAddLoaders(1))
-        val unfinishedTaskItems = c.database.getUnfinishedItemPhotos()
-            .filter { it.taskItemId != s.selectedTask?.taskItem?.id } //Exclude current taskItem from unfinished list
-            .map { c.database.getTaskItem(it.taskItemId) }
-            .filter { taskItem -> taskItem?.address?.id != s.selectedTask?.taskItem?.address?.id }
+        if (!c.settingsRepository.canSkipUnfinishedTaskItem) {
+            messages.send(ReportMessages.msgAddLoaders(1))
+            val unfinishedTaskItem = c.database.getUnfinishedItemPhotos()
+                .map { c.database.getTaskItem(it.taskItemId) }
+                .firstOrNull()
+                ?.takeIf {
+                    it.id != s.selectedTask?.taskItem?.id
+                            && it.address.id != s.selectedTask?.taskItem?.address?.id
+                }
 
-        when (val unfinishedItemPhoto = unfinishedTaskItems.firstOrNull()) {
-            null -> messages.send(msgFactory())
-            else -> {
-                val unfinishedTask = c.database.getTask(unfinishedItemPhoto.taskId)
-                if (unfinishedTask == null) {
-                    messages.send(msgFactory())
-                } else {
-                    withContext(Dispatchers.Main) {
-                        c.showCloseError(
-                            R.string.report_close_with_unfinished_item_warning,
-                            false,
-                            null,
-                            null,
-                            arrayOf(
-                                "${unfinishedTask.name} №${unfinishedTask.edition}",
-                                unfinishedItemPhoto.address.name
+            when (unfinishedTaskItem) {
+                null -> messages.send(msgFactory())
+                else -> {
+                    val unfinishedTask = c.database.getTask(unfinishedTaskItem.taskId)
+                    if (unfinishedTask == null) {
+                        messages.send(msgFactory())
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            c.showCloseError(
+                                R.string.report_close_with_unfinished_item_warning,
+                                false,
+                                null,
+                                null,
+                                arrayOf(
+                                    "${unfinishedTask.name} №${unfinishedTask.edition}",
+                                    unfinishedTaskItem.address.name
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
+            messages.send(ReportMessages.msgAddLoaders(-1))
+        } else {
+            messages.send(msgFactory())
         }
-        messages.send(ReportMessages.msgAddLoaders(-1))
     }
 
     private fun effectValidatePhotoRadiusAnd(

@@ -18,6 +18,7 @@ class SettingsRepository(
     var isCloseRadiusRequired: Boolean = sharedPreferences.getBoolean(RADIUS_REQUIRED_KEY, true)
     var isPhotoRadiusRequired: Boolean = sharedPreferences.getBoolean(PHOTO_REQUIRED_KEY, true)
     var canSkipUpdates: Boolean = loadCanSkipUpdates()
+    var canSkipUnfinishedTaskItem: Boolean = loadCanSkipUnfinishedTaskItem()
 
     private var updateJob: Job? = null
 
@@ -26,6 +27,7 @@ class SettingsRepository(
         isCloseRadiusRequired = false
         isPhotoRadiusRequired = false
         canSkipUpdates = false
+        canSkipUnfinishedTaskItem = false
         sharedPreferences.edit {
             remove(RADIUS_REQUIRED_KEY)
             remove(RADIUS_KEY)
@@ -53,8 +55,10 @@ class SettingsRepository(
                 isPhotoRadiusRequired = r.value.isPhotoRadiusRequired
                 closeGpsUpdateTime = r.value.gpsRefreshTimes
                 canSkipUpdates = r.value.canSkipUpdates
+                canSkipUnfinishedTaskItem = r.value.canSkipUnfinishedTaskitem
                 saveRadius(isCloseRadiusRequired, isPhotoRadiusRequired)
                 saveUpdatesSkipping(canSkipUpdates)
+                saveUnfinishedTaskItemSkipping(canSkipUnfinishedTaskItem)
                 saveGPSRefreshTime(closeGpsUpdateTime)
             }
         }
@@ -63,6 +67,12 @@ class SettingsRepository(
     private fun saveUpdatesSkipping(canSkipUpdates: Boolean) {
         sharedPreferences.edit {
             putBoolean(UPDATES_SKIP_KEY, canSkipUpdates)
+        }
+    }
+
+    private fun saveUnfinishedTaskItemSkipping(canSkipUnfinishedTaskItem: Boolean) {
+        sharedPreferences.edit {
+            putBoolean(UNFINISHED_TASK_ITEMS_SKIP_KEY, canSkipUnfinishedTaskItem)
         }
     }
 
@@ -83,6 +93,10 @@ class SettingsRepository(
         return sharedPreferences.getBoolean(UPDATES_SKIP_KEY, false)
     }
 
+    private fun loadCanSkipUnfinishedTaskItem(): Boolean {
+        return sharedPreferences.getBoolean(UNFINISHED_TASK_ITEMS_SKIP_KEY, false)
+    }
+
     private fun saveRadius(isCloseRadiusRequired: Boolean, isPhotoRadiusRequired: Boolean) {
         val editor = sharedPreferences.edit()
         editor.putBoolean(RADIUS_REQUIRED_KEY, isCloseRadiusRequired)
@@ -95,6 +109,7 @@ class SettingsRepository(
         const val PHOTO_REQUIRED_KEY = "photo_required"
         const val CLOSE_GPS_KEY = "close_gps"
         const val UPDATES_SKIP_KEY = "can_skip_updates"
+        const val UNFINISHED_TASK_ITEMS_SKIP_KEY = "can_skip_unfinished_task_items"
         const val PHOTO_GPS_KEY = "photo_gps"
 
         @Deprecated("Kept for migration purpose")

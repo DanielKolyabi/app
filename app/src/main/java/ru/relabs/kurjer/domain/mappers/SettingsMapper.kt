@@ -12,6 +12,7 @@ object SettingsMapper {
             close = raw.gpsRefreshTimes.close,
             photo = raw.gpsRefreshTimes.photo
         ),
-        canSkipUpdates = raw.userSettings.canSkipUpdates
+        canSkipUpdates = raw.userSettings.canSkipUpdates,
+        canSkipUnfinishedTaskitem = raw.userSettings.canSkipUnfinishedTaskItem
     )
 }

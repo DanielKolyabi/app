@@ -1,6 +1,8 @@
 package ru.relabs.kurjer.utils.extensions
 
 import android.app.Activity
+import android.text.Spannable
+import android.text.Spanned
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 
@@ -63,7 +65,7 @@ fun Fragment.showDialog(
 )
 
 fun Fragment.showDialog(
-    message: String,
+    message: CharSequence,
     positiveButton: Pair<Int, () -> Unit>? = null,
     negativeButton: Pair<Int, () -> Unit>? = null,
     cancelable: Boolean = false,

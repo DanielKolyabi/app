@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
+import android.text.Html
 import android.text.InputFilter
 import android.text.InputType
 import android.text.TextWatcher
@@ -275,7 +276,7 @@ class ReportFragment : BaseFragment() {
     }
 
     private fun showCloseError(msgRes: Int, withPreClose: Boolean, location: Location? = null, rejectReason: String?, vararg msgFormat: Any) {
-        val text = resources.getString(msgRes, *msgFormat)
+        val text = Html.fromHtml(resources.getString(msgRes, *msgFormat))
         showDialog(
             text,
             R.string.ok to {

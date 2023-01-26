@@ -11,7 +11,6 @@ import kotlinx.android.synthetic.main.fragment_task_item_explanation.view.*
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.notes
-import ru.relabs.kurjer.models.TaskItemModel
 
 
 class TaskItemExplanationFragment : Fragment() {

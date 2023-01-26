@@ -1,4 +1,4 @@
-package ru.relabs.kurjer.data.models.radius
+package ru.relabs.kurjer.data.models.common
 
 import com.google.gson.annotations.SerializedName
 

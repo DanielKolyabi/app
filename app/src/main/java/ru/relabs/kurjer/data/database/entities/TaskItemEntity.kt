@@ -5,9 +5,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
-import ru.relabs.kurjer.data.database.AppDatabase
-import ru.relabs.kurjer.models.EntranceModel
-import ru.relabs.kurjer.models.TaskItemModel
 
 /**
  * Created by ProOrange on 31.08.2018.

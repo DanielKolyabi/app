@@ -4,8 +4,6 @@ import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.id
-
-import ru.relabs.kurjer.models.TaskItemModel
 import java.io.File
 import java.util.*
 
@@ -38,10 +36,6 @@ class PathsProvider(
 
     fun getTaskItemPhotoFile(taskItem: TaskItem, uuid: UUID): File {
         return getTaskItemPhotoFileByID(taskItem.id.id, uuid)
-    }
-
-    fun getTaskItemPhotoFile(taskItem: TaskItemModel, uuid: UUID): File {
-        return getTaskItemPhotoFileByID(taskItem.id, uuid)
     }
 
     fun getTaskItemPhotoFileByID(taskItemID: Int, uuid: UUID): File {

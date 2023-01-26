@@ -3,17 +3,7 @@ package ru.relabs.kurjer
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.content.pm.PackageManager
-import android.media.MediaDrm
-import android.os.Build
 import android.os.StrictMode
-import android.telephony.TelephonyManager
-import androidx.core.content.ContextCompat
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
-import com.google.android.gms.location.LocationResult
 import com.instacart.library.truetime.TrueTime
 import com.yandex.mapkit.MapKitFactory
 import kotlinx.coroutines.CoroutineScope
@@ -23,9 +13,6 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import ru.relabs.kurjer.di.*
-import ru.relabs.kurjer.domain.models.User
-import ru.relabs.kurjer.models.GPSCoordinatesModel
-import ru.relabs.kurjer.models.UserModel
 import ru.relabs.kurjer.utils.CustomLog
 import ru.terrakok.cicerone.Cicerone
 import ru.terrakok.cicerone.NavigatorHolder

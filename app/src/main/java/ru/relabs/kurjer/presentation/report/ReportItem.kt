@@ -4,7 +4,7 @@ import android.net.Uri
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 import ru.relabs.kurjer.domain.models.*
-import ru.relabs.kurjer.models.TaskItemPhotoModel
+
 
 sealed class ReportPhotoItem {
     data class Single(val required: Boolean, val hasPhoto: Boolean): ReportPhotoItem()

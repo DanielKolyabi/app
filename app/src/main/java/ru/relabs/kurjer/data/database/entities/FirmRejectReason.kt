@@ -3,7 +3,6 @@ package ru.relabs.kurjer.data.database.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import ru.relabs.kurjer.models.AddressModel
 
 /**
  * Created by ProOrange on 31.08.2018.

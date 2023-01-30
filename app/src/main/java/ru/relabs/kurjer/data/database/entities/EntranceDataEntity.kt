@@ -4,7 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
-import ru.relabs.kurjer.models.EntranceDataModel
 
 /**
  * Created by ProOrange on 24.06.2019.

@@ -60,7 +60,11 @@ class AddressesFragment : BaseFragment() {
         },
         AddressesAdapter.otherAddressesAdapter {
             uiScope.sendMessage(controller, AddressesMessages.msgSearch(""))
+        },
+        AddressesAdapter.storageAdapter {
+            uiScope.sendMessage(controller, AddressesMessages.msgStorageBtnClicked())
         }
+
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {

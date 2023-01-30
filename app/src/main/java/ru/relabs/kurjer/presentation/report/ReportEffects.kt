@@ -11,7 +11,7 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
-import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.services.ReportService

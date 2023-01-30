@@ -23,9 +23,9 @@ data class TaskResponse(
     @SerializedName("rast_map_url") val rastMapUrl: String,
     @SerializedName("user_id") val userId: Int,
     @SerializedName("city") val city: String,
-    @SerializedName("storage_address") val storageAddress: String?,
-    @SerializedName("storage_lat") val storageLat: Float?,
-    @SerializedName("storage_long") val storageLong: Float?,
+    @SerializedName("storage_address") val storageAddress: String,
+    @SerializedName("storage_lat") val storageLat: Float,
+    @SerializedName("storage_long") val storageLong: Float,
     @SerializedName("iteration") val iteration: Int,
     @SerializedName("items") val items: List<TaskItemResponse>,
     @SerializedName("first_examined_device_id") val firstExaminedDeviceId: String?,
@@ -34,5 +34,11 @@ data class TaskResponse(
     @SerializedName("sort") val sort: String,
     @SerializedName("district_type") val districtType: Int,
     @SerializedName("order_number") val orderNumber: Int,
-    @SerializedName("photo_paths") val photos: List<String>
-)
+    @SerializedName("photo_paths") val photos: List<String>,
+    @SerializedName("storage_close_distance") val storageCloseDistance: Int,
+    @SerializedName("storage_closes") val storageCloses: StorageClosesResponse,
+    @SerializedName("storage_photo_required") val storagePhotoRequired: Boolean,
+    @SerializedName("storage_close_first_required") val storageCloseFirstRequired: Boolean,
+    @SerializedName("storage_requirements_update_date") val storageRequirementsUpdateDate: Date,
+    @SerializedName("storage_description") val storageDescription : String
+    )

@@ -1,6 +1,6 @@
 package ru.relabs.kurjer.utils
 
-import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import java.util.*
 import kotlin.math.atan2
 import kotlin.math.cos

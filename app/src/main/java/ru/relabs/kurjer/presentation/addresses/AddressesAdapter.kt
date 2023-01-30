@@ -7,6 +7,7 @@ import android.widget.FrameLayout
 import androidx.core.graphics.ColorUtils
 import androidx.core.widget.addTextChangedListener
 import kotlinx.android.synthetic.main.holder_address_list_address.view.*
+import kotlinx.android.synthetic.main.holder_address_list_confirm.view.*
 import kotlinx.android.synthetic.main.holder_address_list_other_addresses.view.*
 import kotlinx.android.synthetic.main.holder_address_list_sorting.view.*
 import kotlinx.android.synthetic.main.holder_address_list_task.view.*
@@ -28,13 +29,17 @@ object AddressesAdapter {
     ): IAdapterDelegate<AddressesItem> = delegateDefine(
         { it is AddressesItem.GroupHeader },
         { p ->
-            holderDefine(p, R.layout.holder_address_list_address, { it as AddressesItem.GroupHeader }) { (items, showBypass) ->
+            holderDefine(
+                p,
+                R.layout.holder_address_list_address,
+                { it as AddressesItem.GroupHeader }) { (items, showBypass) ->
                 with(itemView) {
                     val address = if (showBypass) {
                         "${items.firstOrNull()?.subarea ?: "?"}-${items.firstOrNull()?.bypass ?: "?"} "
                     } else {
                         ""
-                    } + (items.firstOrNull()?.address?.name ?: resources.getString(R.string.address_unknown))
+                    } + (items.firstOrNull()?.address?.name
+                        ?: resources.getString(R.string.address_unknown))
                     tv_address.text = address
                     when (items.none { it.state == TaskItemState.CREATED }) {
                         true -> {
@@ -61,7 +66,10 @@ object AddressesAdapter {
     ): IAdapterDelegate<AddressesItem> = delegateDefine(
         { it is AddressesItem.AddressItem },
         { p ->
-            holderDefine(p, R.layout.holder_address_list_task, { it as AddressesItem.AddressItem }) { (taskItem, task) ->
+            holderDefine(
+                p,
+                R.layout.holder_address_list_task,
+                { it as AddressesItem.AddressItem }) { (taskItem, task) ->
                 with(itemView) {
                     btn_task.text = "${task.name} №${task.edition}, ${taskItem.copies}экз."
                     if (taskItem.needPhoto || taskItem.entrancesData.any { it.photoRequired }) {
@@ -69,7 +77,13 @@ object AddressesAdapter {
                             TaskItemState.CLOSED -> {
                                 iv_item_map.alpha = 0.4f
                                 iv_item_map.isClickable = false
-                                btn_task.setTextColor(ColorUtils.setAlphaComponent(resources.getColorCompat(R.color.colorFuchsia), 128))
+                                btn_task.setTextColor(
+                                    ColorUtils.setAlphaComponent(
+                                        resources.getColorCompat(
+                                            R.color.colorFuchsia
+                                        ), 128
+                                    )
+                                )
                             }
                             TaskItemState.CREATED -> {
                                 iv_item_map.alpha = 1f
@@ -105,9 +119,18 @@ object AddressesAdapter {
     ): IAdapterDelegate<AddressesItem> = delegateDefine(
         { it is AddressesItem.FirmItem },
         { p ->
-            holderDefine(p, R.layout.holder_address_list_task, { it as AddressesItem.FirmItem }) { (taskItem, task) ->
+            holderDefine(
+                p,
+                R.layout.holder_address_list_task,
+                { it as AddressesItem.FirmItem }) { (taskItem, task) ->
                 with(itemView) {
-                    btn_task.text = listOf(task.name, "№${task.edition}", "${taskItem.copies}экз.", taskItem.firmName, taskItem.office)
+                    btn_task.text = listOf(
+                        task.name,
+                        "№${task.edition}",
+                        "${taskItem.copies}экз.",
+                        taskItem.firmName,
+                        taskItem.office
+                    )
                         .filter { it.isNotEmpty() }
                         .joinToString(", ")
                     if (taskItem.needPhoto) {
@@ -115,7 +138,13 @@ object AddressesAdapter {
                             TaskItemState.CLOSED -> {
                                 iv_item_map.alpha = 0.4f
                                 iv_item_map.isClickable = false
-                                btn_task.setTextColor(ColorUtils.setAlphaComponent(resources.getColorCompat(R.color.colorFuchsia), 128))
+                                btn_task.setTextColor(
+                                    ColorUtils.setAlphaComponent(
+                                        resources.getColorCompat(
+                                            R.color.colorFuchsia
+                                        ), 128
+                                    )
+                                )
                             }
                             TaskItemState.CREATED -> {
                                 iv_item_map.alpha = 1f
@@ -145,34 +174,54 @@ object AddressesAdapter {
         }
     )
 
-    fun sortingAdapter(onSortingSelected: (AddressesSortingMethod) -> Unit): IAdapterDelegate<AddressesItem> = delegateDefine(
-        { it is AddressesItem.Sorting },
-        { p ->
-            holderDefine(p, R.layout.holder_address_list_sorting, { it as AddressesItem.Sorting }) { (sorting) ->
-                when (sorting) {
-                    AddressesSortingMethod.STANDARD -> {
-                        itemView.btn_standart.setBackgroundColor(itemView.resources.getColorCompat(R.color.colorAccent))
-                        itemView.btn_alphabetic.setBackgroundColor(itemView.resources.getColorCompat(R.color.button_material_light))
+    fun sortingAdapter(onSortingSelected: (AddressesSortingMethod) -> Unit): IAdapterDelegate<AddressesItem> =
+        delegateDefine(
+            { it is AddressesItem.Sorting },
+            { p ->
+                holderDefine(
+                    p,
+                    R.layout.holder_address_list_sorting,
+                    { it as AddressesItem.Sorting }) { (sorting) ->
+                    when (sorting) {
+                        AddressesSortingMethod.STANDARD -> {
+                            itemView.btn_standart.setBackgroundColor(
+                                itemView.resources.getColorCompat(
+                                    R.color.colorAccent
+                                )
+                            )
+                            itemView.btn_alphabetic.setBackgroundColor(
+                                itemView.resources.getColorCompat(
+                                    R.color.button_material_light
+                                )
+                            )
+                        }
+                        AddressesSortingMethod.ALPHABETIC -> {
+                            itemView.btn_standart.setBackgroundColor(
+                                itemView.resources.getColorCompat(
+                                    R.color.button_material_light
+                                )
+                            )
+                            itemView.btn_alphabetic.setBackgroundColor(
+                                itemView.resources.getColorCompat(
+                                    R.color.colorAccent
+                                )
+                            )
+                        }
                     }
-                    AddressesSortingMethod.ALPHABETIC -> {
-                        itemView.btn_standart.setBackgroundColor(itemView.resources.getColorCompat(R.color.button_material_light))
-                        itemView.btn_alphabetic.setBackgroundColor(itemView.resources.getColorCompat(R.color.colorAccent))
-                    }
-                }
 
-                itemView.btn_standart.setOnClickListener {
-                    if (sorting != AddressesSortingMethod.STANDARD) {
-                        onSortingSelected(AddressesSortingMethod.STANDARD)
+                    itemView.btn_standart.setOnClickListener {
+                        if (sorting != AddressesSortingMethod.STANDARD) {
+                            onSortingSelected(AddressesSortingMethod.STANDARD)
+                        }
                     }
-                }
-                itemView.btn_alphabetic.setOnClickListener {
-                    if (sorting != AddressesSortingMethod.ALPHABETIC) {
-                        onSortingSelected(AddressesSortingMethod.ALPHABETIC)
+                    itemView.btn_alphabetic.setOnClickListener {
+                        if (sorting != AddressesSortingMethod.ALPHABETIC) {
+                            onSortingSelected(AddressesSortingMethod.ALPHABETIC)
+                        }
                     }
                 }
             }
-        }
-    )
+        )
 
     fun loaderAdapter(): IAdapterDelegate<AddressesItem> =
         delegateLoader { it is AddressesItem.Loading }
@@ -181,22 +230,30 @@ object AddressesAdapter {
         { it is AddressesItem.Blank },
         { p ->
             holderDefine(p, R.layout.holder_empty, { it as AddressesItem.Blank }) {
-                itemView.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, itemView.context.dpToPx(56).toInt())
+                itemView.layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    itemView.context.dpToPx(56).toInt()
+                )
             }
         }
     )
 
-    fun otherAddressesAdapter(onClick: () -> Unit): IAdapterDelegate<AddressesItem> = delegateDefine(
-        { it is AddressesItem.OtherAddresses },
-        { p ->
-            holderDefine(p, R.layout.holder_address_list_other_addresses, { it as AddressesItem.OtherAddresses }) { (count) ->
-                itemView.tv_more.text = itemView.resources.getString(R.string.addresses_more, count)
-                itemView.setOnClickListener {
-                    onClick()
+    fun otherAddressesAdapter(onClick: () -> Unit): IAdapterDelegate<AddressesItem> =
+        delegateDefine(
+            { it is AddressesItem.OtherAddresses },
+            { p ->
+                holderDefine(
+                    p,
+                    R.layout.holder_address_list_other_addresses,
+                    { it as AddressesItem.OtherAddresses }) { (count) ->
+                    itemView.tv_more.text =
+                        itemView.resources.getString(R.string.addresses_more, count)
+                    itemView.setOnClickListener {
+                        onClick()
+                    }
                 }
             }
-        }
-    )
+        )
 
     fun searchAdapter(onSearch: (String) -> Unit): IAdapterDelegate<AddressesItem> = delegateDefine(
         { it is AddressesItem.Search },
@@ -230,6 +287,15 @@ object AddressesAdapter {
                     itemView.et_search.setText("")
                     itemView.hideKeyboard(itemView.context)
                 }
+            }
+        }
+    )
+
+    fun storageAdapter(onClick: () -> Unit): IAdapterDelegate<AddressesItem> = delegateDefine(
+        { it is AddressesItem.Storage },
+        { p ->
+            holderDefine(p, R.layout.holder_address_list_confirm, { it as AddressesItem.Storage }) {
+                itemView.btn_storage_confirm.setOnClickListener { onClick() }
             }
         }
     )

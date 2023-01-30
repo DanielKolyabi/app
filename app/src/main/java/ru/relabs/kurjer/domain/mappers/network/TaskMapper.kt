@@ -31,9 +31,6 @@ object TaskMapper {
         rastMapUrl = raw.rastMapUrl,
         userId = raw.userId,
         city = raw.city,
-        storageAddress = raw.storageAddress,
-        storageLat = raw.storageLat,
-        storageLong = raw.storageLong,
         iteration = raw.iteration,
         items = raw.items.map {
             TaskItemMapper.fromRaw(it)
@@ -49,6 +46,21 @@ object TaskMapper {
             .getOrNull(raw.districtType)
             ?: throw MappingException("districtType", raw.districtType),
         orderNumber = raw.orderNumber,
-        editionPhotoUrl = raw.photos.firstOrNull()
+        editionPhotoUrl = raw.photos.firstOrNull(),
+        storage = Task.Storage(
+            address = raw.storageAddress,
+            lat = raw.storageLat,
+            long = raw.storageLong,
+            closeDistance = raw.storageCloseDistance,
+            closes = StorageCloses(
+                taskId = raw.storageCloses.taskId,
+                storageId = raw.storageCloses.storageId,
+                closeDate = raw.storageCloses.closeDate
+            ),
+            photoRequired = raw.storagePhotoRequired,
+            requirementsUpdateDate = raw.storageRequirementsUpdateDate,
+            description = raw.storageDescription
+        ),
+        storageCloseFirstRequired = true
     )
 }

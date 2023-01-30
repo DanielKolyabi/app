@@ -1,4 +1,4 @@
-package ru.relabs.kurjer.models
+package ru.relabs.kurjer.domain.models
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName

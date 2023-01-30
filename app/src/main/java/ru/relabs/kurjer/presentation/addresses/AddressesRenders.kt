@@ -44,7 +44,8 @@ object AddressesRenders {
             val newItems = listOfNotNull(
                 AddressesItem.Sorting(sorting).takeIf { tasks.size == 1 },
                 AddressesItem.Search(searchFilter).takeIf { tasks.isNotEmpty() },
-                AddressesItem.Loading.takeIf { tasks.isEmpty() && loading }
+                AddressesItem.Loading.takeIf { tasks.isEmpty() && loading },
+                AddressesItem.Storage.takeIf { tasks.isNotEmpty() }
             ) +
                     filteredTasks +
                     listOfNotNull(

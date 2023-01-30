@@ -115,4 +115,6 @@
     <string name="mocked_location_disable_request">Обнаружена подмена координат. Необходимо отключить, удалить все приложения с данным функционалом и перезапустить приложение</string>
     <string name="task_list_district_different">Сцепка этих заданий запрещена</string>
     <string name="report_close_with_unfinished_item_warning">&lt;b>Аввалги домни ëпинг, ëки расмга олганингизни удалить килинг. Сунгра кейинги домни ëпишингиз мумкин.&lt;/b> Закрой дом или удали фото в задании %s по адресу: %s !!!"</string>
+    <string name="btn_storage_check">Отметка на складе</string>
+    <string name="storage_addresses">Адреса складов</string>
 </resources>

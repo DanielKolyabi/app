@@ -5,9 +5,12 @@ import android.graphics.Color
 import androidx.fragment.app.Fragment
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.addresses.AddressesFragment
+import ru.relabs.kurjer.presentation.biba.BibaFragment
 import ru.relabs.kurjer.presentation.login.LoginFragment
 import ru.relabs.kurjer.presentation.photoViewer.PhotoViewerFragment
 import ru.relabs.kurjer.presentation.report.ReportFragment
+import ru.relabs.kurjer.presentation.storage.StorageFragment
+import ru.relabs.kurjer.presentation.storageList.StorageListFragment
 import ru.relabs.kurjer.presentation.taskDetails.IExaminedConsumer
 import ru.relabs.kurjer.presentation.taskDetails.TaskDetailsFragment
 import ru.relabs.kurjer.presentation.tasks.TasksFragment
@@ -22,15 +25,25 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
 
     object Login : RootScreen({ LoginFragment.newInstance() })
     class Tasks(refreshTasks: Boolean) : RootScreen({ TasksFragment.newInstance(refreshTasks) })
-    class Addresses(tasks: List<Task>) : RootScreen({ AddressesFragment.newInstance(tasks.map { it.id }) })
-    class TaskInfo<F>(task: Task, parent: F) :
-        RootScreen({ TaskDetailsFragment.newInstance(task, parent) }) where F : Fragment, F : IExaminedConsumer
+    class Addresses(tasks: List<Task>) :
+        RootScreen({ AddressesFragment.newInstance(tasks.map { it.id }) })
 
-    class TaskItemDetails(taskItem: TaskItem) : RootScreen({ TaskItemExplanationFragment.newInstance(taskItem) })
+    class TaskInfo<F>(task: Task, parent: F) :
+        RootScreen({
+            TaskDetailsFragment.newInstance(
+                task,
+                parent
+            )
+        }) where F : Fragment, F : IExaminedConsumer
+
+    class TaskItemDetails(taskItem: TaskItem) :
+        RootScreen({ TaskItemExplanationFragment.newInstance(taskItem) })
+
     class Report(items: List<Pair<Task, TaskItem>>, selectedTaskItem: TaskItem) :
         RootScreen({ ReportFragment.newInstance(items, selectedTaskItem) })
 
-    class ImagePreview(imagePaths: List<String>) : RootScreen({ PhotoViewerFragment.newInstance(imagePaths) })
+    class ImagePreview(imagePaths: List<String>) :
+        RootScreen({ PhotoViewerFragment.newInstance(imagePaths) })
 
     class YandexMap(
         taskItems: List<TaskItem>,
@@ -67,4 +80,14 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
                 this.onAddressClicked = onAddressClicked
             }
         })
+
+    class BibaScreen(taskId: TaskId) :
+        RootScreen({ BibaFragment.newInstance(taskId) })
+
+    class StorageScreen(taskId: TaskId) :
+        RootScreen({ StorageFragment.newInstance(taskId) })
+
+    class StorageListScreen(taskIds: List<TaskId>) :
+        RootScreen({ StorageListFragment.newInstance(taskIds) })
 }
+

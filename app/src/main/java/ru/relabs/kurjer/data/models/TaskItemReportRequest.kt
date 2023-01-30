@@ -2,7 +2,7 @@ package ru.relabs.kurjer.data.models
 
 import com.google.gson.annotations.SerializedName
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntranceData
-import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import java.util.*
 
 /**

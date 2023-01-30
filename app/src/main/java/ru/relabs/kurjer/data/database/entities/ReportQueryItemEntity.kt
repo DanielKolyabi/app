@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
-import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import java.util.*
 
 /**

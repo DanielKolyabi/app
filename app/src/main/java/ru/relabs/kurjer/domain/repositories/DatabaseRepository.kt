@@ -15,7 +15,7 @@ import ru.relabs.kurjer.domain.mappers.database.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
-import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import ru.relabs.kurjer.utils.*
 import java.util.*
 

@@ -2,7 +2,6 @@ package ru.relabs.kurjer.domain.models
 
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
-import ru.relabs.kurjer.models.GPSCoordinatesModel
 import java.util.*
 
 @Parcelize

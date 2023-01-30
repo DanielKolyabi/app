@@ -11,7 +11,7 @@ import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
-import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import ru.relabs.kurjer.utils.calculateDistance
 import java.util.*
 import kotlin.math.roundToInt

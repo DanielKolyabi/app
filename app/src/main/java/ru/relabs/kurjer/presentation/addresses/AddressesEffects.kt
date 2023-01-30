@@ -116,4 +116,18 @@ object AddressesEffects {
         delay(1000)
         messages.send(AddressesMessages.msgSelectedListAddress(null))
     }
+
+    fun effectNavigateStorage(): AddressesEffect = { c, s ->
+        val requiredTasks = s.tasks.filter { it.storageCloseFirstRequired }
+        if (requiredTasks.size == 1) {
+            withContext(Dispatchers.Main) {
+                c.router.navigateTo(RootScreen.StorageScreen(requiredTasks.first().id))
+            }
+        } else {
+            withContext(Dispatchers.Main) {
+                c.router.navigateTo(RootScreen.StorageListScreen(requiredTasks.map { it.id }))
+            }
+        }
+        //TODO:Добавить обработку заданий с тем же складом не в сцепке
+    }
 }

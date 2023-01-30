@@ -2,7 +2,6 @@ package ru.relabs.kurjer.data.models.tasks
 
 import com.google.gson.annotations.SerializedName
 import ru.relabs.kurjer.data.models.auth.AddressResponse
-import ru.relabs.kurjer.models.EntranceDataModel
 
 data class TaskItemResponse(
     @SerializedName("address") val address: AddressResponse,

@@ -67,7 +67,10 @@ object AddressesMessages {
                 t.items.filter {
                     val isNameMatch = when (it) {
                         is TaskItem.Common -> false
-                        is TaskItem.Firm -> SearchUtils.isMatches("${it.firmName}, ${it.office}", s.searchFilter)
+                        is TaskItem.Firm -> SearchUtils.isMatches(
+                            "${it.firmName}, ${it.office}",
+                            s.searchFilter
+                        )
                     } || SearchUtils.isMatches(it.address.name, s.searchFilter)
 
                     isNameMatch && it.state == TaskItemState.CREATED
@@ -110,5 +113,9 @@ object AddressesMessages {
         { s ->
             listOf(AddressesEffects.effectOpenYandexMap(s.tasks.flatMap { t -> t.items }))
         }
+    )
+
+    fun msgStorageBtnClicked(): AddressesMessage = msgEffect(
+        AddressesEffects.effectNavigateStorage()
     )
 }

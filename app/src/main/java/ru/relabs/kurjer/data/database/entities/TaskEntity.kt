@@ -1,8 +1,11 @@
 package ru.relabs.kurjer.data.database.entities
 
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.gson.annotations.SerializedName
+import ru.relabs.kurjer.domain.models.StorageCloses
 
 import java.util.*
 
@@ -32,12 +35,6 @@ data class TaskEntity(
     @ColumnInfo(name = "user_id")
     var userId: Int,
     var city: String,
-    @ColumnInfo(name = "storage_address")
-    var storageAddress: String,
-    @ColumnInfo(name = "storage_lat")
-    var storageLat: Float?,
-    @ColumnInfo(name = "storage_long")
-    var storageLong: Float?,
     var iteration: Int,
     @ColumnInfo(name = "couple_type")
     var coupleType: Int,
@@ -46,9 +43,40 @@ data class TaskEntity(
     @ColumnInfo(name = "delivery_type")
     var deliveryType: Int,
     var listSort: String,
-
     var districtType: Int,
     var orderNumber: Int,
     @ColumnInfo(name = "edition_photo_url")
     var editionPhotoUrl: String?,
+    @Embedded
+    var storage: StorageEntity,
+    @ColumnInfo(name = "storage_close_first_required")
+    var storageCloseFirstRequired: Boolean
+)
+
+data class StorageEntity(
+    @ColumnInfo(name = "storage_address")
+    var address: String,
+    @ColumnInfo(name = "storage_lat")
+    var lat: Float,
+    @ColumnInfo(name = "storage_long")
+    var long: Float,
+    @ColumnInfo(name = "storage_close_distance")
+    var closeDistance: Int,
+    @Embedded
+    var closes: StorageClosesEntity,
+    @ColumnInfo(name = "storage_photo_required")
+    var photoRequired: Boolean,
+    @ColumnInfo(name = "storage_requirements_update_date")
+    var requirementsUpdateDate: Date,
+    @ColumnInfo(name = "storage_description")
+    var description: String
+)
+
+data class StorageClosesEntity(
+    @ColumnInfo(name = "task_id")
+    var taskId: Int,
+    @ColumnInfo(name = "storage_id")
+    var storageId: Int,
+    @ColumnInfo(name = "close_date")
+    var closeDate: Date
 )

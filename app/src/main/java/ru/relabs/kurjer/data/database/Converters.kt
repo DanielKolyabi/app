@@ -11,7 +11,7 @@ import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import org.joda.time.format.DateTimeFormat
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntranceData
-import ru.relabs.kurjer.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import java.util.*
 
 

@@ -144,6 +144,9 @@ class TasksFragment : BaseFragment(),
         view.iv_update.setOnClickListener {
             uiScope.sendMessage(controller, TasksMessages.msgRefresh())
         }
+        view.btn_biba.setOnClickListener {
+            uiScope.sendMessage(controller, TasksMessages.msgBibaClicked())
+        }
     }
 
     override fun onDestroyView() {

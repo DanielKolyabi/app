@@ -85,4 +85,7 @@ object TasksMessages {
                 selectedTasks = s.selectedTasks.filter { it.id != taskId }
             )
         }
+
+    fun msgBibaClicked(): TasksMessage =
+        msgEffect(TasksEffects.effectNavigateBiba())
 }

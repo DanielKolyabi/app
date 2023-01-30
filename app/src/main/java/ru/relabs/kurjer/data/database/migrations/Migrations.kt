@@ -220,4 +220,9 @@ object Migrations: KoinComponent {
             database.execSQL("ALTER TABLE task_item_photos ADD COLUMN photo_date INTEGER NOT NULL DEFAULT 0")
         }
     }
+    private val migration_48_49 = object : Migration(48, 49) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE task_item_photos ADD COLUMN photo_date INTEGER NOT NULL DEFAULT 0")
+        }
+    }
 }

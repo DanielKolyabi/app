@@ -32,7 +32,10 @@ class DatabaseRepository(
             db.photosDao().getByTaskItemId(report.taskItemId).forEach {
                 //Delete photo
                 CustomLog.writeToFile("Remove photos due to report removal tii=${report.taskItemId} ti=${it.UUID}")
-                val file = pathsProvider.getTaskItemPhotoFileByID(report.taskItemId, UUID.fromString(it.UUID))
+                val file = pathsProvider.getTaskItemPhotoFileByID(
+                    report.taskItemId,
+                    UUID.fromString(it.UUID)
+                )
                 file.delete()
                 db.photosDao().delete(it)
             }
@@ -51,7 +54,10 @@ class DatabaseRepository(
         db.taskItemDao().getAllForTask(taskId.id).forEach { taskItem ->
             db.photosDao().getByTaskItemId(taskItem.id).forEach { photo ->
                 CustomLog.writeToFile("Remove photos due to task removal tii=${photo.taskItemId} ti=${photo.UUID}")
-                val file = pathsProvider.getTaskItemPhotoFileByID(photo.taskItemId, UUID.fromString(photo.UUID))
+                val file = pathsProvider.getTaskItemPhotoFileByID(
+                    photo.taskItemId,
+                    UUID.fromString(photo.UUID)
+                )
                 file.delete()
                 db.photosDao().delete(photo)
             }
@@ -75,20 +81,22 @@ class DatabaseRepository(
 
     fun removePhoto(photo: TaskItemPhoto) {
         CustomLog.writeToFile("Remove photo ${photo.id} ent=${photo.entranceNumber} tii=${photo.taskItemId} ti=${photo.UUID}")
-        val file = pathsProvider.getTaskItemPhotoFileByID(photo.taskItemId.id, UUID.fromString(photo.UUID))
+        val file =
+            pathsProvider.getTaskItemPhotoFileByID(photo.taskItemId.id, UUID.fromString(photo.UUID))
         file.delete()
         db.photosDao().deleteById(photo.id.id)
     }
 
-    suspend fun putSendQuery(sendData: SendQueryData): Either<Exception, SendQueryItemEntity> = withContext(Dispatchers.IO) {
-        when (val r = mapSendDataToEntity(sendData)) {
-            is Right -> {
-                val id = db.sendQueryDao().insert(r.value)
-                Right(r.value.copy(id = id.toInt()))
+    suspend fun putSendQuery(sendData: SendQueryData): Either<Exception, SendQueryItemEntity> =
+        withContext(Dispatchers.IO) {
+            when (val r = mapSendDataToEntity(sendData)) {
+                is Right -> {
+                    val id = db.sendQueryDao().insert(r.value)
+                    Right(r.value.copy(id = id.toInt()))
+                }
+                is Left -> r
             }
-            is Left -> r
         }
-    }
 
     private fun mapSendDataToEntity(data: SendQueryData): Either<Exception, SendQueryItemEntity> {
         return when (data) {
@@ -112,12 +120,19 @@ class DatabaseRepository(
         }
     }
 
-    private fun getAuthorizedSendQuery(url: String, postData: String = ""): Either<Exception, SendQueryItemEntity> {
+    private fun getAuthorizedSendQuery(
+        url: String,
+        postData: String = ""
+    ): Either<Exception, SendQueryItemEntity> {
         val token = authTokenStorage.getToken() ?: throw RuntimeException("Empty auth token")
         return getSendQuery(url, postData, token)
     }
 
-    private fun getSendQuery(url: String, postData: String, token: String?): Either<Exception, SendQueryItemEntity> = Either.of {
+    private fun getSendQuery(
+        url: String,
+        postData: String,
+        token: String?
+    ): Either<Exception, SendQueryItemEntity> = Either.of {
         SendQueryItemEntity(
             0,
             url + "?token=${token ?: ""}",
@@ -131,7 +146,12 @@ class DatabaseRepository(
             .filter { it.items.isNotEmpty() && Date() <= it.endTime }
     }
 
-    suspend fun closeTaskById(taskId: TaskId, sendClosed: Boolean) = closeTaskById(taskId.id, sendClosed)
+    suspend fun getTasksByIds(taskIds: List<TaskId>): List<Task> = withContext(Dispatchers.IO) {
+        db.taskDao().getByIds(taskIds).map { DatabaseTaskMapper.fromEntity(it, db) }
+    }
+
+    suspend fun closeTaskById(taskId: TaskId, sendClosed: Boolean) =
+        closeTaskById(taskId.id, sendClosed)
 
     suspend fun closeTaskById(taskId: Int, sendClosed: Boolean) = withContext(Dispatchers.IO) {
         //Remove all taskItems
@@ -182,12 +202,20 @@ class DatabaseRepository(
                     openedTaskItems++
                 }
                 if (reportForThisTask != null) {
-                    db.taskItemDao().insert(DatabaseTaskItemMapper.toEntity(item).copy(state = TaskItemEntity.STATE_CLOSED))
+                    db.taskItemDao().insert(
+                        DatabaseTaskItemMapper.toEntity(item)
+                            .copy(state = TaskItemEntity.STATE_CLOSED)
+                    )
                 } else {
                     db.taskItemDao().insert(DatabaseTaskItemMapper.toEntity(item))
                 }
                 if (item is TaskItem.Common) {
-                    db.entranceDataDao().insertAll(item.entrancesData.map { DatabaseEntranceDataMapper.toEntity(it, item.id) })
+                    db.entranceDataDao().insertAll(item.entrancesData.map {
+                        DatabaseEntranceDataMapper.toEntity(
+                            it,
+                            item.id
+                        )
+                    })
                 }
                 debug("Add taskItem ID: ${item.id.id}")
             }
@@ -241,7 +269,8 @@ class DatabaseRepository(
 
                     db.taskItemDao().insert(
                         if (reportForThisTask != null) {
-                            DatabaseTaskItemMapper.toEntity(newTaskItem).copy(state = TaskItemEntity.STATE_CLOSED)
+                            DatabaseTaskItemMapper.toEntity(newTaskItem)
+                                .copy(state = TaskItemEntity.STATE_CLOSED)
                         } else {
                             DatabaseTaskItemMapper.toEntity(newTaskItem)
                         }
@@ -307,44 +336,51 @@ class DatabaseRepository(
         db.taskItemDao().getById(id.id)?.let { DatabaseTaskItemMapper.fromEntity(it, db) }
     }
 
-    suspend fun getTaskItemPhotos(taskItem: TaskItem): List<TaskItemPhoto> = withContext(Dispatchers.IO) {
-        db.photosDao().getByTaskItemId(taskItem.id.id).map {
-            DatabasePhotoMapper.fromEntity(it)
+    suspend fun getTaskItemPhotos(taskItem: TaskItem): List<TaskItemPhoto> =
+        withContext(Dispatchers.IO) {
+            db.photosDao().getByTaskItemId(taskItem.id.id).map {
+                DatabasePhotoMapper.fromEntity(it)
+            }
         }
-    }
 
     suspend fun getUnfinishedItemPhotos(): List<TaskItemPhoto> = withContext(Dispatchers.IO) {
         db.photosDao().all
-            .filter { db.taskItemDao().getById(it.taskItemId)?.state == TaskItemEntity.STATE_CREATED }
+            .filter {
+                db.taskItemDao().getById(it.taskItemId)?.state == TaskItemEntity.STATE_CREATED
+            }
             .map { DatabasePhotoMapper.fromEntity(it) }
     }
 
-    suspend fun getTaskItemResult(taskItemId: TaskItemId): TaskItemResult? = withContext(Dispatchers.IO) {
-        db.taskItemResultsDao().getByTaskItemId(taskItemId.id)?.let {
-            TaskItemResultMapper.fromEntity(db, it)
-        }
-    }
-
-    suspend fun getTaskItemResult(taskItem: TaskItem): TaskItemResult? = withContext(Dispatchers.IO) {
-        getTaskItemResult(taskItem.id)
-    }
-
-    suspend fun updateTaskItemResult(updatedReport: TaskItemResult): TaskItemResult = withContext(Dispatchers.IO) {
-        val newId = db.taskItemResultsDao().insert(TaskItemResultMapper.fromModel(updatedReport))
-        db.entrancesDao().insertAll(
-            updatedReport.entrances.map {
-                TaskItemEntranceResultMapper.fromModel(
-                    if (it.taskItemResultId.id == 0) {
-                        it.copy(taskItemResultId = TaskItemResultId(newId.toInt()))
-                    } else {
-                        it
-                    }
-                )
+    suspend fun getTaskItemResult(taskItemId: TaskItemId): TaskItemResult? =
+        withContext(Dispatchers.IO) {
+            db.taskItemResultsDao().getByTaskItemId(taskItemId.id)?.let {
+                TaskItemResultMapper.fromEntity(db, it)
             }
-        )
+        }
 
-        updatedReport.copy(id = TaskItemResultId(newId.toInt()))
-    }
+    suspend fun getTaskItemResult(taskItem: TaskItem): TaskItemResult? =
+        withContext(Dispatchers.IO) {
+            getTaskItemResult(taskItem.id)
+        }
+
+    suspend fun updateTaskItemResult(updatedReport: TaskItemResult): TaskItemResult =
+        withContext(Dispatchers.IO) {
+            val newId =
+                db.taskItemResultsDao().insert(TaskItemResultMapper.fromModel(updatedReport))
+            db.entrancesDao().insertAll(
+                updatedReport.entrances.map {
+                    TaskItemEntranceResultMapper.fromModel(
+                        if (it.taskItemResultId.id == 0) {
+                            it.copy(taskItemResultId = TaskItemResultId(newId.toInt()))
+                        } else {
+                            it
+                        }
+                    )
+                }
+            )
+
+            updatedReport.copy(id = TaskItemResultId(newId.toInt()))
+        }
 
     suspend fun createOrUpdateTaskItemEntranceResult(
         entrance: EntranceNumber,
@@ -352,13 +388,19 @@ class DatabaseRepository(
         selectionUpdater: (TaskItemResultEntranceEntity) -> TaskItemResultEntranceEntity
     ): TaskItemResult? = withContext(Dispatchers.IO) {
         val isPhotoRequired = when (val ti = taskItem) {
-            is TaskItem.Common -> ti.entrancesData.firstOrNull { it.number == entrance }?.photoRequired ?: false
+            is TaskItem.Common -> ti.entrancesData.firstOrNull { it.number == entrance }?.photoRequired
+                ?: false
             is TaskItem.Firm -> ti.needPhoto
         }
         val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItem.id.id)
             ?: createEmptyTaskItemResult(taskItem.id, taskItem.needPhoto)
-        val entranceResult = db.entrancesDao().getByTaskItemResultId(taskItemResult.id).firstOrNull { it.entrance == entrance.number }
-            ?: createEmptyTaskItemEntranceResult(TaskItemResultId(taskItemResult.id), entrance, isPhotoRequired)
+        val entranceResult = db.entrancesDao().getByTaskItemResultId(taskItemResult.id)
+            .firstOrNull { it.entrance == entrance.number }
+            ?: createEmptyTaskItemEntranceResult(
+                TaskItemResultId(taskItemResult.id),
+                entrance,
+                isPhotoRequired
+            )
 
         db.entrancesDao().update(selectionUpdater(entranceResult))
 
@@ -394,13 +436,17 @@ class DatabaseRepository(
         entranceNumber: EntranceNumber,
         isPhotoRequired: Boolean
     ): TaskItemResultEntranceEntity = withContext(Dispatchers.IO) {
-        val empty = TaskItemResultEntranceEntity.empty(taskItemResultId, entranceNumber, isPhotoRequired)
+        val empty =
+            TaskItemResultEntranceEntity.empty(taskItemResultId, entranceNumber, isPhotoRequired)
         val id = db.entrancesDao().insert(empty)
 
         empty.copy(id = id.toInt())
     }
 
-    private suspend fun createEmptyTaskItemResult(taskItemId: TaskItemId, isPhotoRequired: Boolean): TaskItemResultEntity =
+    private suspend fun createEmptyTaskItemResult(
+        taskItemId: TaskItemId,
+        isPhotoRequired: Boolean
+    ): TaskItemResultEntity =
         withContext(Dispatchers.IO) {
             val empty = TaskItemResultEntity.empty(taskItemId, isPhotoRequired)
             val id = db.taskItemResultsDao().insert(empty)
@@ -408,7 +454,12 @@ class DatabaseRepository(
             empty.copy(id = id.toInt())
         }
 
-    suspend fun savePhoto(entrance: Int, taskItem: TaskItem, uuid: UUID, location: Location?): TaskItemPhoto =
+    suspend fun savePhoto(
+        entrance: Int,
+        taskItem: TaskItem,
+        uuid: UUID,
+        location: Location?
+    ): TaskItemPhoto =
         withContext(Dispatchers.IO) {
             val gps = GPSCoordinatesModel(
                 location?.latitude ?: 0.0,
@@ -416,7 +467,8 @@ class DatabaseRepository(
                 location?.time?.let { Date(it) } ?: Date(0)
             )
 
-            val photoEntity = TaskItemPhotoEntity(0, uuid.toString(), gps, taskItem.id.id, entrance, Date())
+            val photoEntity =
+                TaskItemPhotoEntity(0, uuid.toString(), gps, taskItem.id.id, entrance, Date())
 
             val id = db.photosDao().insert(photoEntity)
             CustomLog.writeToFile("Save photo $id ent=$entrance tii=${taskItem.id} ti=${taskItem.taskId} uuid=$uuid")
@@ -424,35 +476,38 @@ class DatabaseRepository(
             DatabasePhotoMapper.fromEntity(photoEntity.copy(id = id.toInt()))
         }
 
-    suspend fun closeTaskItem(taskItemId: TaskItemId, fromRemote: Boolean = false) = withContext(Dispatchers.IO) {
-        val taskItemEntity = db.taskItemDao().getById(taskItemId.id)
-        val parentTaskId = taskItemEntity?.taskId
+    suspend fun closeTaskItem(taskItemId: TaskItemId, fromRemote: Boolean = false) =
+        withContext(Dispatchers.IO) {
+            val taskItemEntity = db.taskItemDao().getById(taskItemId.id)
+            val parentTaskId = taskItemEntity?.taskId
 
-        taskItemEntity
-            ?.copy(state = TaskItemEntity.STATE_CLOSED)
-            ?.let { db.taskItemDao().update(it) }
+            taskItemEntity
+                ?.copy(state = TaskItemEntity.STATE_CLOSED)
+                ?.let { db.taskItemDao().update(it) }
 
-        parentTaskId?.let { taskId ->
-            db.taskDao().getById(taskId)?.let { parentTask ->
-                val state = parentTask.state.toTaskState()
-                if (state == TaskState.EXAMINED || state == TaskState.CREATED) {
-                    if (!fromRemote) {
-                        putSendQuery(SendQueryData.TaskAccepted(TaskId(parentTask.id)))
+            parentTaskId?.let { taskId ->
+                db.taskDao().getById(taskId)?.let { parentTask ->
+                    val state = parentTask.state.toTaskState()
+                    if (state == TaskState.EXAMINED || state == TaskState.CREATED) {
+                        if (!fromRemote) {
+                            putSendQuery(SendQueryData.TaskAccepted(TaskId(parentTask.id)))
+                        }
+                        db.taskDao().update(parentTask.copy(state = TaskState.STARTED.toInt()))
                     }
-                    db.taskDao().update(parentTask.copy(state = TaskState.STARTED.toInt()))
                 }
             }
         }
-    }
 
-    suspend fun closeTaskItem(taskItem: TaskItem, fromRemote: Boolean = false) = withContext(Dispatchers.IO) {
-        closeTaskItem(taskItem.id, fromRemote)
-    }
+    suspend fun closeTaskItem(taskItem: TaskItem, fromRemote: Boolean = false) =
+        withContext(Dispatchers.IO) {
+            closeTaskItem(taskItem.id, fromRemote)
+        }
 
 
-    suspend fun createTaskItemReport(reportItem: ReportQueryItemEntity) = withContext(Dispatchers.IO) {
-        db.reportQueryDao().insert(reportItem)
-    }
+    suspend fun createTaskItemReport(reportItem: ReportQueryItemEntity) =
+        withContext(Dispatchers.IO) {
+            db.reportQueryDao().insert(reportItem)
+        }
 
     suspend fun isTaskCloseRequired(taskId: TaskId): Boolean = withContext(Dispatchers.IO) {
         db.taskItemDao().getAllForTask(taskId.id).none { it.state == TaskItemEntity.STATE_CREATED }

@@ -1,6 +1,5 @@
 package ru.relabs.kurjer.presentation.tasks
 
-import ru.relabs.kurjer.domain.models.DistrictType
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.canBeSelectedWith
@@ -85,7 +84,4 @@ object TasksMessages {
                 selectedTasks = s.selectedTasks.filter { it.id != taskId }
             )
         }
-
-    fun msgBibaClicked(): TasksMessage =
-        msgEffect(TasksEffects.effectNavigateBiba())
 }

@@ -43,20 +43,7 @@ object DatabaseTaskMapper {
             ?: throw MappingException("districtType", taskEntity.districtType),
         orderNumber = taskEntity.orderNumber,
         editionPhotoUrl = taskEntity.editionPhotoUrl,
-        storage = Task.Storage(
-            address = taskEntity.storage.address,
-            lat = taskEntity.storage.lat,
-            long = taskEntity.storage.long,
-            closeDistance = taskEntity.storage.closeDistance,
-            closes = StorageCloses(
-                taskId = taskEntity.storage.closes.taskId,
-                storageId = taskEntity.storage.closes.storageId,
-                closeDate = taskEntity.storage.closes.closeDate
-            ),
-            photoRequired = taskEntity.storage.photoRequired,
-            requirementsUpdateDate = taskEntity.storage.requirementsUpdateDate,
-            description = taskEntity.storage.description,
-        ),
+        storage = StorageMapper.fromEntity(taskEntity.storage),
         storageCloseFirstRequired = taskEntity.storageCloseFirstRequired
     )
 
@@ -87,22 +74,48 @@ object DatabaseTaskMapper {
         districtType = task.districtType.ordinal,
         orderNumber = task.orderNumber,
         editionPhotoUrl = task.editionPhotoUrl,
-        storage = StorageEntity(
-            address = task.storage.address,
-            lat = task.storage.lat,
-            long = task.storage.long,
-            closeDistance = task.storage.closeDistance,
-            closes = StorageClosesEntity(
-                taskId = task.storage.closes.taskId,
-                storageId = task.storage.closes.storageId,
-                closeDate = task.storage.closes.closeDate,
-            ),
-            photoRequired = task.storage.photoRequired,
-            requirementsUpdateDate = task.storage.requirementsUpdateDate,
-            description = task.storage.description
-        ),
+        storage = StorageMapper.toEntity(task.storage),
         storageCloseFirstRequired = task.storageCloseFirstRequired
     )
 
-    //TODO:Сделать отдельные мапперы
+    object StorageMapper {
+        fun fromEntity(storageEntity: StorageEntity): Task.Storage =
+            Task.Storage(
+                address = storageEntity.address,
+                lat = storageEntity.lat,
+                long = storageEntity.long,
+                closeDistance = storageEntity.closeDistance,
+                closes = StorageClosesMapper.fromEntity(storageEntity.closes),
+                photoRequired = storageEntity.photoRequired,
+                requirementsUpdateDate = storageEntity.requirementsUpdateDate,
+                description = storageEntity.description
+            )
+
+        fun toEntity(storage: Task.Storage): StorageEntity =
+            StorageEntity(
+                address = storage.address,
+                lat = storage.lat,
+                long = storage.long,
+                closeDistance = storage.closeDistance,
+                closes = StorageClosesMapper.toEntity(storage.closes),
+                photoRequired = storage.photoRequired,
+                requirementsUpdateDate = storage.requirementsUpdateDate,
+                description = storage.description
+            )
+    }
+
+    object StorageClosesMapper {
+        fun fromEntity(closesEntity: StorageClosesEntity): StorageCloses =
+            StorageCloses(
+                taskId = closesEntity.taskId,
+                storageId = closesEntity.storageId,
+                closeDate = closesEntity.closeDate
+            )
+
+        fun toEntity(closes: StorageCloses): StorageClosesEntity = StorageClosesEntity(
+            taskId = closes.taskId,
+            storageId = closes.storageId,
+            closeDate = closes.closeDate
+        )
+    }
 }

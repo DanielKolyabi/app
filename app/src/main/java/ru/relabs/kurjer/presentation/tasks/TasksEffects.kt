@@ -125,8 +125,4 @@ object TasksEffects {
     fun effectShowTaskSelectionDistrictError(): TasksEffect = { c, _ ->
         c.showSnackbar(R.string.task_list_district_different)
     }
-
-    fun effectNavigateBiba(): TasksEffect = { c, s ->
-        c.router.navigateTo(RootScreen.BibaScreen(s.selectedTasks.first().id))
-    }
 }

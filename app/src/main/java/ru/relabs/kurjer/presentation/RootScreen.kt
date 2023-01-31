@@ -5,7 +5,6 @@ import android.graphics.Color
 import androidx.fragment.app.Fragment
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.addresses.AddressesFragment
-import ru.relabs.kurjer.presentation.biba.BibaFragment
 import ru.relabs.kurjer.presentation.login.LoginFragment
 import ru.relabs.kurjer.presentation.photoViewer.PhotoViewerFragment
 import ru.relabs.kurjer.presentation.report.ReportFragment
@@ -80,9 +79,6 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
                 this.onAddressClicked = onAddressClicked
             }
         })
-
-    class BibaScreen(taskId: TaskId) :
-        RootScreen({ BibaFragment.newInstance(taskId) })
 
     class StorageScreen(taskId: TaskId) :
         RootScreen({ StorageFragment.newInstance(taskId) })

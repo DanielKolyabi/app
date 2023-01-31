@@ -26,6 +26,7 @@ import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.domain.useCases.LoginUseCase
 import ru.relabs.kurjer.domain.useCases.ReportUseCase
+import ru.relabs.kurjer.domain.useCases.StorageUseCase
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
 import java.io.File
@@ -55,7 +56,12 @@ val fileSystemModule = module {
 }
 
 val storagesModule = module {
-    single<SharedPreferences> { androidApplication().getSharedPreferences(get(Modules.SHARED_PREFERENCES_NAME), Context.MODE_PRIVATE) }
+    single<SharedPreferences> {
+        androidApplication().getSharedPreferences(
+            get(Modules.SHARED_PREFERENCES_NAME),
+            Context.MODE_PRIVATE
+        )
+    }
     single<AppPreferences> { AppPreferences(get<SharedPreferences>()) }
     single<AuthTokenStorage> { AuthTokenStorage(get<AppPreferences>()) }
     single<CurrentUserStorage> { CurrentUserStorage(get<AppPreferences>()) }
@@ -159,6 +165,11 @@ val useCasesModule = module {
             get<AuthTokenStorage>(),
             get<SettingsRepository>(),
             get<TaskEventController>()
+        )
+    }
+    single {
+        StorageUseCase(
+            get<DatabaseRepository>()
         )
     }
 }

@@ -4,19 +4,23 @@ import org.koin.core.KoinComponent
 import org.koin.core.inject
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
-import ru.relabs.kurjer.presentation.base.tea.ErrorContext
-import ru.relabs.kurjer.presentation.base.tea.ErrorContextImpl
-import ru.relabs.kurjer.presentation.base.tea.RouterContext
-import ru.relabs.kurjer.presentation.base.tea.RouterContextMainImpl
+import ru.relabs.kurjer.domain.useCases.StorageUseCase
+import ru.relabs.kurjer.presentation.base.tea.*
 
 data class StorageListState(
-    var tasks: List<Task>? = null
+    var tasks: List<Task> = emptyList(),
+    var loaders: Int = 0
 )
 
 class StorageListContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     ErrorContext by errorContext,
     RouterContext by RouterContextMainImpl(),
     KoinComponent {
-    val databaseRepository: DatabaseRepository by inject()
+    val storageUseCase: StorageUseCase by inject()
+
+
 }
 
+typealias StorageListMessage = ElmMessage<StorageListContext, StorageListState>
+typealias StorageListEffect = ElmEffect<StorageListContext, StorageListState>
+typealias StorageListRender = ElmRender<StorageListState>

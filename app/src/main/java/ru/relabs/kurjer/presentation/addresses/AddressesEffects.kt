@@ -93,9 +93,10 @@ object AddressesEffects {
         val storages = taskItems
             .distinctBy { it.taskId }
             .mapNotNull {
-                val task = c.databaseRepository.getTask(it.taskId)
-                if (task?.storageLat != null && task.storageLong != null) {
-                    YandexMapFragment.StorageLocation(task.storageLat, task.storageLong)
+                //TODO:mb fix
+                val storage = c.databaseRepository.getTask(it.taskId)?.storage
+                if (storage?.lat != null && storage?.long != null) {
+                    YandexMapFragment.StorageLocation(storage.lat, storage.long)
                 } else {
                     null
                 }

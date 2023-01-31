@@ -14,18 +14,22 @@ import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.*
-import ru.relabs.kurjer.presentation.biba.BibaContext
-import ru.relabs.kurjer.presentation.biba.BibaState
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.showDialog
 
 class StorageListFragment : BaseFragment() {
 
-    private val controller = defaultController(BibaState(), BibaContext())
+    private val controller = defaultController(StorageListState(), StorageListContext())
     private var renderJob: Job? = null
     private lateinit var binding: FragmentStorageListBinding
     private val storageListAdapter = DelegateAdapter(
-
+        StorageListAdapter.loadingAdapter(),
+        StorageListAdapter.storageItemAdapter {
+            uiScope.sendMessage(
+                controller,
+                StorageListMessages.msgStorageItemClicked(it)
+            )
+        }
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,13 +71,21 @@ class StorageListFragment : BaseFragment() {
         bindControls(binding)
 
         renderJob = uiScope.launch {
-            val renders = listOf<>(
-
+            val renders = listOf(
+                StorageListRenders.renderList(storageListAdapter)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
         }
+    }
 
+    private fun bindControls(binding: FragmentStorageListBinding) {
+        binding.ivMenu.setOnClickListener {
+            uiScope.sendMessage(
+                controller,
+                StorageListMessages.msgNavigateBack()
+            )
+        }
     }
 
     companion object {

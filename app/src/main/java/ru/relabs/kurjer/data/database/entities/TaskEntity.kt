@@ -4,8 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.google.gson.annotations.SerializedName
-import ru.relabs.kurjer.domain.models.StorageCloses
 
 import java.util.*
 
@@ -59,7 +57,7 @@ data class StorageEntity(
     @ColumnInfo(name = "storage_lat")
     var lat: Float,
     @ColumnInfo(name = "storage_long")
-    var long: Float,
+    var long2: Float,
     @ColumnInfo(name = "storage_close_distance")
     var closeDistance: Int,
     @Embedded

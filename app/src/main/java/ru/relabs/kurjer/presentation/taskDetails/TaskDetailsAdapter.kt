@@ -27,7 +27,7 @@ object TaskDetailsAdapter {
                     tv_copies.text = task.copies.toString()
                     tv_pack_count.text = task.packs.toString()
                     tv_remain.text = task.remain.toString()
-                    tv_storage.text = task.storageAddress
+                    tv_storage.text = task.storage.address
 
                     if (task.items.any { it.needPhoto || (it is TaskItem.Common && it.entrancesData.any { it.photoRequired }) }) {
                         need_photo_label.visibility = View.VISIBLE

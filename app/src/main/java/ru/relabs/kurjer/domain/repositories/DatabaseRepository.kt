@@ -147,7 +147,7 @@ class DatabaseRepository(
     }
 
     suspend fun getTasksByIds(taskIds: List<TaskId>): List<Task> = withContext(Dispatchers.IO) {
-        db.taskDao().getByIds(taskIds).map { DatabaseTaskMapper.fromEntity(it, db) }
+        db.taskDao().getByIds(taskIds.map { it.id }).map { DatabaseTaskMapper.fromEntity(it, db) }
     }
 
     suspend fun closeTaskById(taskId: TaskId, sendClosed: Boolean) =

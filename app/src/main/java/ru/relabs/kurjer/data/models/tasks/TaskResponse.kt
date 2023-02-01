@@ -36,9 +36,9 @@ data class TaskResponse(
     @SerializedName("order_number") val orderNumber: Int,
     @SerializedName("photo_paths") val photos: List<String>,
     @SerializedName("storage_close_distance") val storageCloseDistance: Int,
-    @SerializedName("storage_closes") val storageCloses: StorageClosesResponse,
+    @SerializedName("storage_closes") val storageCloses: List<StorageClosesResponse>,
     @SerializedName("storage_photo_required") val storagePhotoRequired: Boolean,
     @SerializedName("storage_close_first_required") val storageCloseFirstRequired: Boolean,
-    @SerializedName("storage_requirements_update_date") val storageRequirementsUpdateDate: Date,
+    @SerializedName("storage_close_first_update_time") val storageRequirementsUpdateDate: Date,
     @SerializedName("storage_description") val storageDescription : String
     )

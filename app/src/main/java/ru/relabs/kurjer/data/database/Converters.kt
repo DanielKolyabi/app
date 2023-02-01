@@ -11,6 +11,7 @@ import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import org.joda.time.format.DateTimeFormat
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntranceData
+import ru.relabs.kurjer.data.database.entities.StorageClosesEntity
 import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import java.util.*
 
@@ -19,6 +20,18 @@ class Converters {
     val gson = GsonBuilder()
         .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         .create()
+
+    @TypeConverter
+    fun closesToJson(value: List<StorageClosesEntity>): String {
+        val type = object : TypeToken<List<StorageClosesEntity>>() {}.type
+        return gson.toJson(value, type)
+    }
+
+    @TypeConverter
+    fun jsonToCloses(value: String): List<StorageClosesEntity> {
+        val type = object : TypeToken<List<StorageClosesEntity>>() {}.type
+        return gson.fromJson(value, type)
+    }
 
     @TypeConverter
     fun fromTimestamp(value: Long?): Date? {
@@ -65,10 +78,22 @@ class Converters {
     fun stringToEntranceDataList(value: String): List<ReportQueryItemEntranceData> {
         return try {
             gson
-                .getAdapter(TypeToken.getParameterized(List::class.java, ReportQueryItemEntranceData::class.java))
+                .getAdapter(
+                    TypeToken.getParameterized(
+                        List::class.java,
+                        ReportQueryItemEntranceData::class.java
+                    )
+                )
                 .fromJson(value) as List<ReportQueryItemEntranceData>
         } catch (e: Exception) {
-            jsonToIntPairList(value).map { ReportQueryItemEntranceData(it.first, it.second, "", false) }
+            jsonToIntPairList(value).map {
+                ReportQueryItemEntranceData(
+                    it.first,
+                    it.second,
+                    "",
+                    false
+                )
+            }
         }
     }
 
@@ -108,7 +133,11 @@ class Converters {
         return GPSCoordinatesModel(lat, long, Date())
     }
 
-    private fun tryParseDateWithFormat(formatString: String, timeString: String, locale: Locale = Locale.ENGLISH): Date? {
+    private fun tryParseDateWithFormat(
+        formatString: String,
+        timeString: String,
+        locale: Locale = Locale.ENGLISH
+    ): Date? {
         try {
             val format = DateTimeFormat.forPattern(formatString).withLocale(locale)
             val time = format.parseDateTime(timeString)

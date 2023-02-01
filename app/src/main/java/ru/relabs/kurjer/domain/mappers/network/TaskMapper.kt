@@ -52,11 +52,13 @@ object TaskMapper {
             lat = raw.storageLat,
             long = raw.storageLong,
             closeDistance = raw.storageCloseDistance,
-            closes = StorageCloses(
-                taskId = raw.storageCloses.taskId,
-                storageId = raw.storageCloses.storageId,
-                closeDate = raw.storageCloses.closeDate
-            ),
+            closes = raw.storageCloses.map {
+                StorageCloses(
+                    taskId = it.taskId,
+                    storageId = it.storageId,
+                    closeDate = it.closeDate
+                )
+            },
             photoRequired = raw.storagePhotoRequired,
             requirementsUpdateDate = raw.storageRequirementsUpdateDate,
             description = raw.storageDescription

@@ -63,7 +63,7 @@ data class Task(
         val lat: Float,
         val long: Float,
         val closeDistance: Int,
-        val closes: StorageCloses,
+        val closes: List<StorageCloses>,
         val photoRequired: Boolean,
         val requirementsUpdateDate: Date,
         val description: String

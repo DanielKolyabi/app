@@ -1,5 +1,7 @@
 package ru.relabs.kurjer.presentation.storageList
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.presentation.RootScreen
 
@@ -12,10 +14,12 @@ object StorageListEffects {
     }
 
     fun effectNavigateBack(): StorageListEffect = { c, s ->
-        c.router.exit()
+        withContext(Dispatchers.Main) {
+            c.router.exit()
+        }
     }
 
     fun navigateStorageScreen(taskId: TaskId): StorageListEffect = { c, s ->
-        c.router.navigateTo(RootScreen.StorageScreen(taskId))
+        withContext(Dispatchers.Main) { c.router.navigateTo(RootScreen.StorageScreen(taskId)) }
     }
 }

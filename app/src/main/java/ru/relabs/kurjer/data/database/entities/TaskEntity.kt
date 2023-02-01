@@ -56,12 +56,13 @@ data class StorageEntity(
     var address: String,
     @ColumnInfo(name = "storage_lat")
     var lat: Float,
+    //TODO:rename
     @ColumnInfo(name = "storage_long")
     var long2: Float,
     @ColumnInfo(name = "storage_close_distance")
     var closeDistance: Int,
-    @Embedded
-    var closes: StorageClosesEntity,
+    @ColumnInfo(name = "closes")
+    var closes: List<StorageClosesEntity>,
     @ColumnInfo(name = "storage_photo_required")
     var photoRequired: Boolean,
     @ColumnInfo(name = "storage_requirements_update_date")

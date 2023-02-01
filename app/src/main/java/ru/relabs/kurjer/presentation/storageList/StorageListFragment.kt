@@ -79,6 +79,11 @@ class StorageListFragment : BaseFragment() {
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        renderJob?.cancel()
+    }
+
     private fun bindControls(binding: FragmentStorageListBinding) {
         binding.ivMenu.setOnClickListener {
             uiScope.sendMessage(

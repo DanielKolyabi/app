@@ -81,6 +81,7 @@ object DatabaseTaskMapper {
     object StorageMapper {
         fun fromEntity(storageEntity: StorageEntity): Task.Storage =
             Task.Storage(
+                id = StorageId(storageEntity.id),
                 address = storageEntity.address,
                 lat = storageEntity.lat,
                 long = storageEntity.long2,
@@ -93,6 +94,7 @@ object DatabaseTaskMapper {
 
         fun toEntity(storage: Task.Storage): StorageEntity =
             StorageEntity(
+                id = storage.id.id,
                 address = storage.address,
                 lat = storage.lat,
                 long2 = storage.long,
@@ -105,16 +107,16 @@ object DatabaseTaskMapper {
     }
 
     object StorageClosesMapper {
-        fun fromEntity(closesEntity: StorageClosesEntity): StorageCloses =
-            StorageCloses(
-                taskId = closesEntity.taskId,
-                storageId = closesEntity.storageId,
+        fun fromEntity(closesEntity: StorageClosesEntity): StorageClosure =
+            StorageClosure(
+                taskId = TaskId(closesEntity.taskId),
+                storageId = StorageId(closesEntity.storageId),
                 closeDate = closesEntity.closeDate
             )
 
-        fun toEntity(closes: StorageCloses): StorageClosesEntity = StorageClosesEntity(
-            taskId = closes.taskId,
-            storageId = closes.storageId,
+        fun toEntity(closes: StorageClosure): StorageClosesEntity = StorageClosesEntity(
+            taskId = closes.taskId.id,
+            storageId = closes.storageId.id,
             closeDate = closes.closeDate
         )
     }

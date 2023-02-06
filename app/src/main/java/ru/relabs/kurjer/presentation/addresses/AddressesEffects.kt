@@ -95,7 +95,7 @@ object AddressesEffects {
             .mapNotNull {
                 //TODO:mb fix
                 val storage = c.databaseRepository.getTask(it.taskId)?.storage
-                if (storage?.lat != null && storage?.long != null) {
+                if (storage != null) {
                     YandexMapFragment.StorageLocation(storage.lat, storage.long)
                 } else {
                     null
@@ -119,14 +119,14 @@ object AddressesEffects {
     }
 
     fun effectNavigateStorage(): AddressesEffect = { c, s ->
-        val requiredTasks = s.tasks.filter { it.storageCloseFirstRequired }
-        if (requiredTasks.size == 1) {
+
+        if (s.tasks.size == 1) {
             withContext(Dispatchers.Main) {
-                c.router.navigateTo(RootScreen.StorageScreen(requiredTasks.first().id))
+                c.router.navigateTo(RootScreen.StorageReportScreen(s.tasks.map { it.id }))
             }
         } else {
             withContext(Dispatchers.Main) {
-                c.router.navigateTo(RootScreen.StorageListScreen(requiredTasks.map { it.id }))
+                c.router.navigateTo(RootScreen.StorageListScreen(s.tasks.map { it.id }))
             }
         }
         //TODO:Добавить обработку заданий с тем же складом не в сцепке

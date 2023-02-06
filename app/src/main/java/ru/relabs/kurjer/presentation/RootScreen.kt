@@ -8,7 +8,7 @@ import ru.relabs.kurjer.presentation.addresses.AddressesFragment
 import ru.relabs.kurjer.presentation.login.LoginFragment
 import ru.relabs.kurjer.presentation.photoViewer.PhotoViewerFragment
 import ru.relabs.kurjer.presentation.report.ReportFragment
-import ru.relabs.kurjer.presentation.storage.StorageFragment
+import ru.relabs.kurjer.presentation.storageReport.StorageReportFragment
 import ru.relabs.kurjer.presentation.storageList.StorageListFragment
 import ru.relabs.kurjer.presentation.taskDetails.IExaminedConsumer
 import ru.relabs.kurjer.presentation.taskDetails.TaskDetailsFragment
@@ -80,8 +80,8 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
             }
         })
 
-    class StorageScreen(taskId: TaskId) :
-        RootScreen({ StorageFragment.newInstance(taskId) })
+    class StorageReportScreen(taskIds: List<TaskId>) :
+        RootScreen({ StorageReportFragment.newInstance(taskIds) })
 
     class StorageListScreen(taskIds: List<TaskId>) :
         RootScreen({ StorageListFragment.newInstance(taskIds) })

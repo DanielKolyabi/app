@@ -1,11 +1,8 @@
 package ru.relabs.kurjer.domain.models
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
-import ru.relabs.kurjer.data.models.tasks.StorageClosesResponse
 import ru.relabs.kurjer.domain.mappers.MappingException
-import java.lang.RuntimeException
 import java.util.*
 
 @Parcelize
@@ -13,6 +10,9 @@ data class TaskId(val id: Int) : Parcelable
 
 @Parcelize
 data class CoupleType(val type: Int) : Parcelable
+
+@Parcelize
+data class StorageId(val id: Int) : Parcelable
 
 enum class DistrictType {
     Global,
@@ -59,11 +59,12 @@ data class Task(
 
     @Parcelize
     data class Storage(
+        val id: StorageId,
         val address: String,
         val lat: Float,
         val long: Float,
         val closeDistance: Int,
-        val closes: List<StorageCloses>,
+        val closes: List<StorageClosure>,
         val photoRequired: Boolean,
         val requirementsUpdateDate: Date,
         val description: String
@@ -71,9 +72,9 @@ data class Task(
 }
 
 @Parcelize
-data class StorageCloses(
-    val taskId: Int,
-    val storageId: Int,
+data class StorageClosure(
+    val taskId: TaskId,
+    val storageId: StorageId,
     val closeDate: Date
 ) : Parcelable
 

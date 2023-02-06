@@ -11,8 +11,8 @@ object StorageListMessages {
             StorageListEffects.effectLoadTasks(taskIds)
         )
 
-    fun msgStorageItemClicked(taskId: TaskId): StorageListMessage = msgEffect(
-        StorageListEffects.navigateStorageScreen(taskId)
+    fun msgStorageItemClicked(taskIds: List<TaskId>): StorageListMessage = msgEffect(
+        StorageListEffects.navigateStorageScreen(taskIds)
     )
 
     fun msgNavigateBack(): StorageListMessage = msgEffect(

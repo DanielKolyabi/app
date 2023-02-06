@@ -19,3 +19,7 @@ fun Date.formated(): String {
 fun Date.formatedWithSecs(): String {
     return DateTime(this).toString("dd.MM.yyyy HH:mm:ss")
 }
+
+fun Date.formattedTimeDate() : String {
+    return DateTime(this).toString("HH:mm dd.MM.yyyy")
+}

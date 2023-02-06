@@ -26,7 +26,7 @@ import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.domain.useCases.LoginUseCase
 import ru.relabs.kurjer.domain.useCases.ReportUseCase
-import ru.relabs.kurjer.domain.useCases.StorageUseCase
+import ru.relabs.kurjer.domain.useCases.TaskUseCase
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
 import java.io.File
@@ -168,7 +168,7 @@ val useCasesModule = module {
         )
     }
     single {
-        StorageUseCase(
+        TaskUseCase(
             get<DatabaseRepository>()
         )
     }

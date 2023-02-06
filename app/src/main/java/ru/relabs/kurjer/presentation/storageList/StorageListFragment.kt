@@ -42,7 +42,7 @@ class StorageListFragment : BaseFragment() {
         } else {
             controller.start(msgEmpty())
             showDialog(
-                getString(R.string.unknown_runtime_error_code, "af:100"),
+                getString(R.string.unknown_runtime_error_code, "slf:100"),
                 R.string.ok to {
                     uiScope.sendMessage(
                         controller,
@@ -82,6 +82,11 @@ class StorageListFragment : BaseFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         renderJob?.cancel()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        controller.stop()
     }
 
     private fun bindControls(binding: FragmentStorageListBinding) {

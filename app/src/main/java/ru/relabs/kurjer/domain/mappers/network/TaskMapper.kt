@@ -53,7 +53,7 @@ object TaskMapper {
             long = raw.storageLong,
             closeDistance = raw.storageCloseDistance,
             closes = raw.storageCloses.map {
-                StorageCloses(
+                StorageClosure(
                     taskId = it.taskId,
                     storageId = it.storageId,
                     closeDate = it.closeDate

@@ -35,6 +35,7 @@ data class TaskResponse(
     @SerializedName("district_type") val districtType: Int,
     @SerializedName("order_number") val orderNumber: Int,
     @SerializedName("photo_paths") val photos: List<String>,
+    @SerializedName("storage_id") val storageId: Int,
     @SerializedName("storage_close_distance") val storageCloseDistance: Int,
     @SerializedName("storage_closes") val storageCloses: List<StorageClosesResponse>,
     @SerializedName("storage_photo_required") val storagePhotoRequired: Boolean,

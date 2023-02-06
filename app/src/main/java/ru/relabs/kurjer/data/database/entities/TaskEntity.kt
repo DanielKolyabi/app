@@ -52,6 +52,8 @@ data class TaskEntity(
 )
 
 data class StorageEntity(
+    @ColumnInfo(name = "storage_id")
+    var id: Int,
     @ColumnInfo(name = "storage_address")
     var address: String,
     @ColumnInfo(name = "storage_lat")

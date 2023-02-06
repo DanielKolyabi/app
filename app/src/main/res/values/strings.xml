@@ -117,4 +117,6 @@
     <string name="report_close_with_unfinished_item_warning">&lt;b>Аввалги домни ëпинг, ëки расмга олганингизни удалить килинг. Сунгра кейинги домни ëпишингиз мумкин.&lt;/b> Закрой дом или удали фото в задании %s по адресу: %s !!!"</string>
     <string name="btn_storage_check">Отметка на складе</string>
     <string name="storage_addresses">Адреса складов</string>
+    <string name="confirm_storage">подтвердить склад</string>
+    <string name="closure_date">1. Склад подтверждён. Ombor tasdiqlandi.\n%s</string>
 </resources>

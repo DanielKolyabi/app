@@ -6,8 +6,9 @@ import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskItemPhoto
 
 
-sealed class StorageReportItem{
-    data class Single(val hasPhoto: Boolean):  StorageReportItem()
-    data class Photo(val photo: TaskItemPhoto, val photoUri: Uri):  StorageReportItem()
-    data class Closure(val task: Task, val closure: StorageClosure):  StorageReportItem()
+sealed class StorageReportItem {
+    data class Single(val hasPhoto: Boolean) : StorageReportItem()
+    data class Photo(val photo: TaskItemPhoto, val photoUri: Uri) : StorageReportItem()
+    data class Closure(val idx: Int, val task: Task, val closure: StorageClosure) :
+        StorageReportItem()
 }

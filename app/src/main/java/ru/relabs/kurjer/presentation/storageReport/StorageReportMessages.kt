@@ -25,6 +25,6 @@ object StorageReportMessages {
     }
 
     fun msgRemovePhotoClicked(): StorageReportMessage = {
-
+        TODO("Not yet implemented")
     }
 }

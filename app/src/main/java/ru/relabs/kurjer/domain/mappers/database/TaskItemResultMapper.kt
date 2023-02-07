@@ -1,9 +1,10 @@
-package ru.relabs.kurjer.domain.mappers
+package ru.relabs.kurjer.domain.mappers.database
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.TaskItemResultEntity
+import ru.relabs.kurjer.domain.mappers.TaskItemEntranceResultMapper
 import ru.relabs.kurjer.domain.models.TaskItemId
 import ru.relabs.kurjer.domain.models.TaskItemResult
 import ru.relabs.kurjer.domain.models.TaskItemResultId

@@ -8,6 +8,8 @@ object SettingsMapper {
     fun fromRaw(raw: SettingsResponse) = AppSettings(
         isCloseRadiusRequired = !raw.radius.closeAnyDistance,
         isPhotoRadiusRequired = !raw.radius.photoAnyDistance,
+        isStorageCloseRadiusRequired = !raw.radius.storageCloseAnyDistance,
+        isStoragePhotoRadiusRequired = !raw.radius.storagePhotoAnyDistance,
         gpsRefreshTimes = GpsRefreshTimes(
             close = raw.gpsRefreshTimes.close,
             photo = raw.gpsRefreshTimes.photo

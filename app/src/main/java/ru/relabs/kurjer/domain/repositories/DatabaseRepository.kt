@@ -10,7 +10,7 @@ import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.*
 import ru.relabs.kurjer.domain.mappers.ReportEntranceSelectionMapper
 import ru.relabs.kurjer.domain.mappers.TaskItemEntranceResultMapper
-import ru.relabs.kurjer.domain.mappers.TaskItemResultMapper
+import ru.relabs.kurjer.domain.mappers.database.TaskItemResultMapper
 import ru.relabs.kurjer.domain.mappers.database.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.PathsProvider

@@ -64,17 +64,17 @@ object StorageReportAdapter {
             }
         )
 
-    //TODO:пофиксить отображение номера
     fun closure(): IAdapterDelegate<StorageReportItem> = delegateDefine(
         { it is StorageReportItem.Closure },
         { p ->
             holderDefine(
                 p,
                 R.layout.holder_storage_closure,
-                { it as StorageReportItem.Closure }) { (task, closure) ->
+                { it as StorageReportItem.Closure }) { (idx, task, closure) ->
                 with(itemView) {
                     tv_closure_date.text = resources.getString(
                         R.string.closure_date,
+                        idx,
                         closure.closeDate.formattedTimeDate()
                     )
                     tv_closure_description.text = task.listName

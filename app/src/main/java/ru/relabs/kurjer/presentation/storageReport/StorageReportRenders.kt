@@ -34,10 +34,11 @@ object StorageReportRenders {
             { it.tasks },
             { tasks ->
                 val newItems = tasks.flatMap { task ->
-                    task.storage.closes.map {
+                    task.storage.closes.mapIndexed { index, storageClosure ->
                         StorageReportItem.Closure(
+                            index,
                             task,
-                            it
+                            storageClosure
                         )
                     }
                 }.sortedBy { it.closure.closeDate }
@@ -50,10 +51,12 @@ object StorageReportRenders {
         )
 
     fun renderPhotos(adapter: DelegateAdapter<StorageReportItem>): StorageReportRender = renderT(
-
+        {},
+        {}
     )
 
-    fun renderDescription() {
-
-    }
+    fun renderDescription(): StorageReportRender = renderT(
+        {},
+        {}
+    )
 }

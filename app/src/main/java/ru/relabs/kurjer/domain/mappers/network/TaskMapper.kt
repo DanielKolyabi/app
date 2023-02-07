@@ -48,14 +48,15 @@ object TaskMapper {
         orderNumber = raw.orderNumber,
         editionPhotoUrl = raw.photos.firstOrNull(),
         storage = Task.Storage(
+            id = StorageId(raw.storageId),
             address = raw.storageAddress,
             lat = raw.storageLat,
             long = raw.storageLong,
             closeDistance = raw.storageCloseDistance,
             closes = raw.storageCloses.map {
                 StorageClosure(
-                    taskId = it.taskId,
-                    storageId = it.storageId,
+                    taskId = TaskId(it.taskId),
+                    storageId = StorageId(it.storageId),
                     closeDate = it.closeDate
                 )
             },

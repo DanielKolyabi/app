@@ -9,14 +9,13 @@ object StorageListRenders {
     fun renderList(adapter: DelegateAdapter<StorageListItem>): StorageListRender = renderT(
         { it.tasks to it.loaders },
         { (tasks, loaders) ->
-
             val newItems = if (loaders > 0) {
                 listOf(StorageListItem.Loader)
             } else {
-                tasks.groupBy { it.storage }
+                tasks.groupBy { it.storage.id.id }
                     .map {
                         StorageListItem.StorageAddress(
-                            it.key,
+                            it.value.first().storage,
                             it.value
                         )
                     }

@@ -20,6 +20,7 @@ import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.*
+import ru.relabs.kurjer.presentation.report.ListClickInterceptor
 import ru.relabs.kurjer.uiOld.helpers.HintHelper
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.showDialog
@@ -39,7 +40,7 @@ class StorageReportFragment : BaseFragment() {
             uiScope.sendMessage(controller, StorageReportMessages.msgPhotoClicked())
         },
         StorageReportAdapter.photo {
-            uiScope.sendMessage(controller, StorageReportMessages.msgRemovePhotoClicked(it))
+//            uiScope.sendMessage(controller, StorageReportMessages.msgRemovePhotoClicked(it))
         }
     )
 
@@ -77,44 +78,17 @@ class StorageReportFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val hintHelper = HintHelper(hint_container, "", true, requireActivity())
-        binding.root.viewTreeObserver.addOnGlobalLayoutListener(object :
-            ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                binding.root.height.takeIf { it > 0 }?.let { height ->
-                    if ((binding.rvCloses.visible && binding.rvCloses.height != 0) || !binding.rvCloses.visible) {
-                        binding.root.viewTreeObserver?.removeOnGlobalLayoutListener(this)
-                    }
-                    hintHelper.maxHeight =
-                        height - binding.topAppBar.height - binding.rvCloses.height
-                }
-            }
-        })
-        val closesListListener = object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                if (binding.rvCloses.visible && binding.rvCloses.height != 0) {
-                    binding.root.height.takeIf { it > 0 }?.let { height ->
-                        binding.rvCloses.viewTreeObserver?.removeOnGlobalLayoutListener(this)
-                        hintHelper.maxHeight =
-                            height - binding.topAppBar.height - binding.rvCloses.height
-                    }
-                }
-            }
-        }
-        binding.rvCloses.viewTreeObserver?.addOnGlobalLayoutListener(closesListListener)
-        lifecycle.addObserver(object : LifecycleObserver {
-            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-            fun onDestroy() {
-                binding.rvCloses.viewTreeObserver?.removeOnGlobalLayoutListener(closesListListener)
-            }
-        })
 
+//        val listInterceptor = ListClickInterceptor()
         binding.rvCloses.layoutManager =
-            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         binding.rvCloses.adapter = closesAdapter
 
         binding.rvPhotos.layoutManager =
-            LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         binding.rvPhotos.adapter = photosAdapter
+//        binding.rvPhotos.addOnItemTouchListener(listInterceptor)
+
 
         bindControls(binding)
         renderJob = uiScope.launch {
@@ -124,7 +98,7 @@ class StorageReportFragment : BaseFragment() {
                 StorageReportRenders.renderTitle(binding.tvTitle),
                 StorageReportRenders.renderClosesList(closesAdapter),
                 StorageReportRenders.renderPhotos(photosAdapter),
-                StorageReportRenders.renderDescription(binding.etDescription),
+//                StorageReportRenders.renderDescription(binding.etDescription),
 
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
@@ -143,7 +117,14 @@ class StorageReportFragment : BaseFragment() {
     }
 
     private fun bindControls(binding: FragmentStorageReportBinding) {
-
+        binding.ivMenu.setOnClickListener {
+            uiScope.sendMessage(
+                controller,
+                StorageReportMessages.msgNavigateBack()
+            )
+        }
+        binding.btnShowMap.setOnClickListener { }
+        binding.btnClose.setOnClickListener { }
     }
 
     companion object {

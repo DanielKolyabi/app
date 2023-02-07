@@ -25,8 +25,7 @@ object StorageListAdapter {
                         } else {
                             tv_storage_address.setTextColor(resources.getColorCompat(R.color.black))
                         }
-                        //TODO:Как сделать отображение?
-//                        tv_storage_description.text =
+                        tv_storage_description.text = tasks.joinToString("\n") { it.listName }
                         setOnClickListener { onClick(tasks.map { it.id }) }
                     }
                 }

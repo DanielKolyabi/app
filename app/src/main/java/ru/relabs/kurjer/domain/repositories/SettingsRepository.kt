@@ -17,6 +17,12 @@ class SettingsRepository(
     var closeGpsUpdateTime: GpsRefreshTimes = loadSavedGPSRefreshTimes()
     var isCloseRadiusRequired: Boolean = sharedPreferences.getBoolean(RADIUS_REQUIRED_KEY, true)
     var isPhotoRadiusRequired: Boolean = sharedPreferences.getBoolean(PHOTO_REQUIRED_KEY, true)
+    var isStorageCloseRadiusRequired: Boolean = sharedPreferences.getBoolean(
+        STORAGE_RADIUS_REQUIRED_KEY, true
+    )
+    var isStoragePhotoRadiusRequired: Boolean = sharedPreferences.getBoolean(
+        STORAGE_PHOTO_REQUIRED_KEY, true
+    )
     var canSkipUpdates: Boolean = loadCanSkipUpdates()
     var canSkipUnfinishedTaskItem: Boolean = loadCanSkipUnfinishedTaskItem()
 
@@ -53,10 +59,13 @@ class SettingsRepository(
             is Right -> {
                 isCloseRadiusRequired = r.value.isCloseRadiusRequired
                 isPhotoRadiusRequired = r.value.isPhotoRadiusRequired
+                isStorageCloseRadiusRequired = r.value.isStorageCloseRadiusRequired
+                isStoragePhotoRadiusRequired = r.value.isStoragePhotoRadiusRequired
                 closeGpsUpdateTime = r.value.gpsRefreshTimes
                 canSkipUpdates = r.value.canSkipUpdates
                 canSkipUnfinishedTaskItem = r.value.canSkipUnfinishedTaskitem
                 saveRadius(isCloseRadiusRequired, isPhotoRadiusRequired)
+                saveStorageRadius(isStorageCloseRadiusRequired, isStoragePhotoRadiusRequired)
                 saveUpdatesSkipping(canSkipUpdates)
                 saveUnfinishedTaskItemSkipping(canSkipUnfinishedTaskItem)
                 saveGPSRefreshTime(closeGpsUpdateTime)
@@ -104,9 +113,21 @@ class SettingsRepository(
         editor.apply()
     }
 
+    private fun saveStorageRadius(
+        isStorageCloseRadiusRequired: Boolean,
+        isStoragePhotoRadiusRequired: Boolean
+    ) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(RADIUS_REQUIRED_KEY, isStorageCloseRadiusRequired)
+        editor.putBoolean(PHOTO_REQUIRED_KEY, isStoragePhotoRadiusRequired)
+        editor.apply()
+    }
+
     companion object {
         const val RADIUS_REQUIRED_KEY = "radius_required"
         const val PHOTO_REQUIRED_KEY = "photo_required"
+        const val STORAGE_RADIUS_REQUIRED_KEY = "storage_radius_required"
+        const val STORAGE_PHOTO_REQUIRED_KEY = "storage_photo_required"
         const val CLOSE_GPS_KEY = "close_gps"
         const val UPDATES_SKIP_KEY = "can_skip_updates"
         const val UNFINISHED_TASK_ITEMS_SKIP_KEY = "can_skip_unfinished_task_items"

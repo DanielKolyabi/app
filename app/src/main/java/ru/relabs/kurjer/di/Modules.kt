@@ -16,17 +16,11 @@ import ru.relabs.kurjer.data.database.migrations.Migrations
 import ru.relabs.kurjer.domain.controllers.ServiceEventController
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.providers.*
-import ru.relabs.kurjer.domain.repositories.DatabaseRepository
-import ru.relabs.kurjer.domain.repositories.DeliveryRepository
-import ru.relabs.kurjer.domain.repositories.PauseRepository
-import ru.relabs.kurjer.domain.repositories.SettingsRepository
+import ru.relabs.kurjer.domain.repositories.*
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
-import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
-import ru.relabs.kurjer.domain.useCases.LoginUseCase
-import ru.relabs.kurjer.domain.useCases.ReportUseCase
-import ru.relabs.kurjer.domain.useCases.TaskUseCase
+import ru.relabs.kurjer.domain.useCases.*
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.Router
 import java.io.File
@@ -137,6 +131,7 @@ val repositoryModule = module {
             get<CurrentUserStorage>()
         )
     }
+    single { StorageRepository(get<AppDatabase>()) }
 }
 val useCasesModule = module {
     single<LoginUseCase> {
@@ -170,6 +165,11 @@ val useCasesModule = module {
     single {
         TaskUseCase(
             get<DatabaseRepository>()
+        )
+    }
+    single {
+        StorageReportUseCase(
+            get<StorageRepository>(), get<PathsProvider>()
         )
     }
 }

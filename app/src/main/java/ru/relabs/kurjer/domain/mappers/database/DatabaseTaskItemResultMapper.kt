@@ -9,7 +9,7 @@ import ru.relabs.kurjer.domain.models.TaskItemId
 import ru.relabs.kurjer.domain.models.TaskItemResult
 import ru.relabs.kurjer.domain.models.TaskItemResultId
 
-object TaskItemResultMapper {
+object DatabaseTaskItemResultMapper {
     suspend fun fromEntity(db: AppDatabase, entity: TaskItemResultEntity): TaskItemResult = withContext(Dispatchers.IO) {
         TaskItemResult(
             id = TaskItemResultId(entity.id),

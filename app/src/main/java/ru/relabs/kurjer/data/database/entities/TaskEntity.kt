@@ -57,10 +57,9 @@ data class StorageEntity(
     @ColumnInfo(name = "storage_address")
     var address: String,
     @ColumnInfo(name = "storage_lat")
-    var lat: Float,
-    //TODO:rename
+    var latitude: Float,
     @ColumnInfo(name = "storage_long")
-    var long2: Float,
+    var longitude: Float,
     @ColumnInfo(name = "storage_close_distance")
     var closeDistance: Int,
     @ColumnInfo(name = "closes")

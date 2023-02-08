@@ -5,12 +5,11 @@ import ru.relabs.kurjer.domain.models.StorageId
 import ru.relabs.kurjer.domain.models.TaskId
 import java.util.*
 
-data class ReportId(val id: Int)
+data class StorageReportId(val id: Int)
 
 data class StorageReport(
-    val id: ReportId,
+    val id: StorageReportId,
     val storageId: StorageId,
-    val photo: StorageReportPhoto,
     val taskIds: List<TaskId>,
     val closeTime: Date?,
     val gps: GPSCoordinatesModel,

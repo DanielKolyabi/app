@@ -7,11 +7,10 @@ import kotlinx.android.synthetic.main.holder_report_photo.view.*
 import kotlinx.android.synthetic.main.holder_report_photo_single.view.*
 import kotlinx.android.synthetic.main.holder_storage_closure.view.*
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.domain.models.TaskItemPhoto
+import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
 import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
 import ru.relabs.kurjer.presentation.base.recycler.holderDefine
-import ru.relabs.kurjer.presentation.report.ReportPhotoItem
 import ru.relabs.kurjer.uiOld.helpers.formattedTimeDate
 import kotlinx.android.synthetic.main.holder_report_photo.view.iv_photo as photo
 import kotlinx.android.synthetic.main.holder_report_photo_single.view.iv_photo as singlePhoto
@@ -25,7 +24,7 @@ object StorageReportAdapter {
                 holderDefine(
                     p,
                     R.layout.holder_report_photo_single,
-                    { it as StorageReportItem.Single }) { (hasPhoto) ->
+                    { it as StorageReportItem.Single }) { (required, hasPhoto) ->
                     itemView.setOnClickListener {
                         onPhotoClicked()
                     }
@@ -33,14 +32,15 @@ object StorageReportAdapter {
                     itemView.singlePhoto.imageTintList = ColorStateList.valueOf(
                         when {
                             hasPhoto -> Color.parseColor("#FF435CDC")
-                            else -> Color.parseColor("#FFED0D81")
+                            required -> Color.parseColor("#FFED0D81")
+                            else -> Color.BLACK
                         }
                     )
                 }
             }
         )
 
-    fun photo(onRemoveClicked: (TaskItemPhoto) -> Unit): IAdapterDelegate<StorageReportItem> =
+    fun photo(onRemoveClicked: (StorageReportPhoto) -> Unit): IAdapterDelegate<StorageReportItem> =
         delegateDefine(
             { it is StorageReportItem.Photo },
             { p ->
@@ -55,11 +55,6 @@ object StorageReportAdapter {
                     Glide.with(itemView)
                         .load(uri)
                         .into(itemView.photo)
-
-                    itemView.tv_entrance_number.text = when (photo.entranceNumber.number) {
-                        -1 -> "С"
-                        else -> photo.entranceNumber.number.toString()
-                    }
                 }
             }
         )

@@ -1,14 +1,16 @@
 package ru.relabs.kurjer.domain.models.storage
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import java.util.*
 
 data class StorageReportPhoto(
     val id: StoragePhotoId,
-    val UUID: String,
-    val reportId: ReportId,
+    val uuid: String,
+    val storageReportId: StorageReportId,
     val gps: GPSCoordinatesModel,
     val time: Date
 )
-
-data class StoragePhotoId(val id:Int)
+@Parcelize
+data class StoragePhotoId(val id:Int): Parcelable

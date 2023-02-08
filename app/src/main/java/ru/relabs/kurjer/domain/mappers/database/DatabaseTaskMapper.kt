@@ -83,8 +83,8 @@ object DatabaseTaskMapper {
             Task.Storage(
                 id = StorageId(storageEntity.id),
                 address = storageEntity.address,
-                lat = storageEntity.lat,
-                long = storageEntity.long2,
+                lat = storageEntity.latitude,
+                long = storageEntity.longitude,
                 closeDistance = storageEntity.closeDistance,
                 closes = storageEntity.closes.map { StorageClosesMapper.fromEntity(it) },
                 photoRequired = storageEntity.photoRequired,
@@ -96,8 +96,8 @@ object DatabaseTaskMapper {
             StorageEntity(
                 id = storage.id.id,
                 address = storage.address,
-                lat = storage.lat,
-                long2 = storage.long,
+                latitude = storage.lat,
+                longitude = storage.long,
                 closeDistance = storage.closeDistance,
                 closes = storage.closes.map { StorageClosesMapper.toEntity(it) },
                 photoRequired = storage.photoRequired,

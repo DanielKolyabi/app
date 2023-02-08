@@ -9,7 +9,7 @@ import java.util.*
 
 class PathsProvider(
     private val filesRootDir: File
-){
+) {
     private val updatesPath = File(filesRootDir, "updates").apply {
         mkdirs()
     }
@@ -26,6 +26,16 @@ class PathsProvider(
 
     fun getCrashLogFile(): File {
         return File(filesRootDir, "crash.log")
+    }
+
+    fun getStoragePhotoFileById(reportId: Int, uuid: UUID): File {
+        return File(getStoragePhotoFolderById(reportId), "$uuid.jpg")
+    }
+
+    private fun getStoragePhotoFolderById(reportId: Int): File {
+        val storageDir = File(photoDir, reportId.toString())
+        if (!storageDir.exists()) storageDir.mkdirs()
+        return storageDir
     }
 
     fun getTaskItemPhotoFolderById(taskItemID: Int): File {

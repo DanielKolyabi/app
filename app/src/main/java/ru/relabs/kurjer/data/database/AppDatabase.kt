@@ -5,6 +5,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import ru.relabs.kurjer.data.database.daos.*
 import ru.relabs.kurjer.data.database.entities.*
+import ru.relabs.kurjer.data.database.entities.storage.StorageReportEntity
+import ru.relabs.kurjer.data.database.entities.storage.StorageReportPhotoEntity
 
 /**
  * Created by ProOrange on 30.08.2018.
@@ -13,7 +15,8 @@ import ru.relabs.kurjer.data.database.entities.*
     entities = [AddressEntity::class, TaskEntity::class, TaskItemEntity::class,
         TaskItemPhotoEntity::class, TaskItemResultEntity::class, TaskItemResultEntranceEntity::class,
         SendQueryItemEntity::class, ReportQueryItemEntity::class, EntranceDataEntity::class,
-        FirmRejectReason::class], version = 51
+        FirmRejectReason::class, StorageReportEntity::class, StorageReportPhotoEntity::class],
+    version = 51
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -27,4 +30,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun reportQueryDao(): ReportQueryDao
     abstract fun entranceDataDao(): EntranceDataEntityDao
     abstract fun firmRejectReasonDao(): FirmRejectReasonDao
+    abstract fun storageReportDao(): StorageReportDao
+    abstract fun storagePhotoDao(): StoragePhotoDao
 }

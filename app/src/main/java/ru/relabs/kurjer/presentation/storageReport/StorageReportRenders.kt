@@ -6,16 +6,16 @@ import androidx.recyclerview.widget.DiffUtil
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
-import ru.relabs.kurjer.presentation.report.ReportRender
 import ru.relabs.kurjer.uiOld.helpers.HintHelper
 import ru.relabs.kurjer.utils.extensions.visible
 
 
 object StorageReportRenders {
-    fun renderLoading(view: View): StorageReportRender = renderT(
-        { it.loaders > 0 },
-        { loading ->
+    fun renderLoading(view: View, gpsView: View): StorageReportRender = renderT(
+        { (it.loaders > 0) to it.isGPSLoading },
+        { (loading, gps) ->
             view.visible = loading
+            gpsView.visible = gps
         }
     )
 
@@ -51,8 +51,20 @@ object StorageReportRenders {
         )
 
     fun renderPhotos(adapter: DelegateAdapter<StorageReportItem>): StorageReportRender = renderT(
-        {},
-        {}
+        { it.storagePhotos to it.tasks },
+        { (photos, tasks) ->
+            val photosRequired = tasks.any { it.storage.photoRequired }
+            val hasPhoto = photos.isNotEmpty()
+            val newItems = listOf(
+                StorageReportItem.Single(photosRequired, hasPhoto)
+            ) + photos.map { StorageReportItem.Photo(it.photo, it.uri) }
+
+            val diff = DiffUtil.calculateDiff(DefaultListDiffCallback(adapter.items, newItems))
+
+            adapter.items.clear()
+            adapter.items.addAll(newItems)
+            diff.dispatchUpdatesTo(adapter)
+        }
     )
 
     fun renderDescription(): StorageReportRender = renderT(

@@ -13,8 +13,8 @@ interface StorageReportDao {
     @Query("SELECT * FROM storage_reports WHERE id = :id")
     fun getById(id: Int): StorageReportEntity
 
-    @Query("SELECT * FROM storage_reports WHERE storage_id = :id")
-    fun getByStorageId(id: Int): List<StorageReportEntity>
+    @Query("SELECT * FROM storage_reports WHERE storage_id = :id AND is_closed = :isClosed")
+    fun getOpenedByStorageId(id: Int, isClosed: Boolean): List<StorageReportEntity>?
 
     @Query("SELECT * FROM storage_reports WHERE id = :id")
     fun getByIdWithPhotos(id: Int): StorageReportWithPhoto

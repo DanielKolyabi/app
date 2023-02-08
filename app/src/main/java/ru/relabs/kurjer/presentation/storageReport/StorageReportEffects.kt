@@ -269,7 +269,17 @@ object StorageReportEffects {
     }
 
     fun effectRemovePhoto(removedPhoto: StorageReportPhoto): StorageReportEffect = { c, s ->
-    c.storageReportUseCase.removePhoto(removedPhoto)
+        c.storageReportUseCase.removePhoto(removedPhoto)
+    }
+
+    fun effectUpdateDescription(text: String): StorageReportEffect = { c, s ->
+        when (val report = s.storageReport) {
+            null -> c.showError("re:103", true)
+            else -> {
+                val updated = c.storageReportUseCase.updateReport(report.copy(description = text))
+                messages.send(StorageReportMessages.msgSavedReportLoaded(updated))
+            }
+        }
     }
 }
 

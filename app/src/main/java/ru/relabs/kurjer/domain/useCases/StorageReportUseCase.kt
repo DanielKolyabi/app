@@ -2,6 +2,8 @@ package ru.relabs.kurjer.domain.useCases
 
 import android.location.Location
 import androidx.core.net.toUri
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.domain.models.StorageId
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
@@ -57,6 +59,11 @@ class StorageReportUseCase(
         )
         file.delete()
         storageRepository.deletePhotoById(removedPhoto.id.id)
+    }
+
+    suspend fun updateReport(report: StorageReport): StorageReport = withContext(Dispatchers.IO){
+        storageRepository.updateReport(report)
+        storageRepository.getReportById(report.id)
     }
 
 }

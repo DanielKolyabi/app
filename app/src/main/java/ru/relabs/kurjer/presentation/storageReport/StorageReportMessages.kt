@@ -47,9 +47,10 @@ object StorageReportMessages {
     )
 
     fun msgRemovePhotoClicked(removedPhoto: StorageReportPhoto): StorageReportMessage =
-        msgEffects({ state -> state.copy(storagePhotos = state.storagePhotos.filter { photo -> photo.photo != removedPhoto }) },{
-            listOf(StorageReportEffects.effectRemovePhoto(removedPhoto))
-        })
+        msgEffects({ state -> state.copy(storagePhotos = state.storagePhotos.filter { photo -> photo.photo != removedPhoto }) },
+            {
+                listOf(StorageReportEffects.effectRemovePhoto(removedPhoto))
+            })
 
 
     fun msgGPSLoading(enabled: Boolean): StorageReportMessage =
@@ -78,4 +79,14 @@ object StorageReportMessages {
         CustomLog.writeToFile("New photo added to list ${newPhoto.photo.uuid}")
         it.copy(storagePhotos = it.storagePhotos + listOf(newPhoto))
     }
+
+    fun msgDescriptionChanged(text: String): StorageReportMessage =
+        msgEffect(StorageReportEffects.effectValidateReportExistenceAnd {
+            msgEffect(
+                StorageReportEffects.effectUpdateDescription(text)
+            )
+        })
+
+    fun msgSavedReportLoaded(updated: StorageReport): StorageReportMessage =
+        msgState { it.copy(storageReport = updated) }
 }

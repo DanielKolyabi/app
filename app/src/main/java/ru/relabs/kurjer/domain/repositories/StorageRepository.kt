@@ -70,5 +70,13 @@ class StorageRepository(db: AppDatabase) {
         photoDao.deleteById(id)
     }
 
+    fun updateReport(report: StorageReport) {
+        reportDao.update(StorageReportMapper.toEntity(report))
+    }
+
+    fun getReportById(id: StorageReportId): StorageReport {
+        return StorageReportMapper.fromEntity(reportDao.getById(id.id))
+    }
+
 
 }

@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
 import android.text.Html
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,9 +26,11 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.databinding.FragmentStorageReportBinding
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
+import ru.relabs.kurjer.presentation.base.TextChangeListener
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.*
+import ru.relabs.kurjer.presentation.report.ListClickInterceptor
 import ru.relabs.kurjer.presentation.report.ReportFragment
 import ru.relabs.kurjer.uiOld.helpers.HintHelper
 import ru.relabs.kurjer.utils.CustomLog
@@ -98,7 +101,7 @@ class StorageReportFragment : BaseFragment() {
 
         val hintHelper = HintHelper(hint_container, "", true, requireActivity())
 
-//        val listInterceptor = ListClickInterceptor()
+        val listInterceptor = ListClickInterceptor()
         binding.rvCloses.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         binding.rvCloses.adapter = closesAdapter
@@ -106,10 +109,14 @@ class StorageReportFragment : BaseFragment() {
         binding.rvPhotos.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         binding.rvPhotos.adapter = photosAdapter
-//        binding.rvPhotos.addOnItemTouchListener(listInterceptor)
+        binding.rvPhotos.addOnItemTouchListener(listInterceptor)
 
+        val descriptionTextWatcher = TextChangeListener {
+            if (binding.etDescription.hasFocus())
+                uiScope.sendMessage(controller, StorageReportMessages.msgDescriptionChanged(it))
+        }
+        bindControls(binding, descriptionTextWatcher)
 
-        bindControls(binding)
         renderJob = uiScope.launch {
             val renders = listOf(
                 StorageReportRenders.renderLoading(binding.loading, binding.tvGpsLoading),
@@ -117,8 +124,7 @@ class StorageReportFragment : BaseFragment() {
                 StorageReportRenders.renderTitle(binding.tvTitle),
                 StorageReportRenders.renderClosesList(closesAdapter),
                 StorageReportRenders.renderPhotos(photosAdapter),
-//                StorageReportRenders.renderDescription(binding.etDescription),
-
+                StorageReportRenders.renderDescription(binding.etDescription,descriptionTextWatcher)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
@@ -141,13 +147,14 @@ class StorageReportFragment : BaseFragment() {
         controller.stop()
     }
 
-    private fun bindControls(binding: FragmentStorageReportBinding) {
+    private fun bindControls(binding: FragmentStorageReportBinding, descriptionTextWatcher: TextWatcher) {
         binding.ivMenu.setOnClickListener {
             uiScope.sendMessage(
                 controller,
                 StorageReportMessages.msgNavigateBack()
             )
         }
+        binding.etDescription.addTextChangedListener(descriptionTextWatcher)
         binding.btnShowMap.setOnClickListener { }
         binding.btnClose.setOnClickListener { }
     }

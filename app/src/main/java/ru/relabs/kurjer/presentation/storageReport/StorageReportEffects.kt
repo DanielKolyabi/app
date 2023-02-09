@@ -8,7 +8,10 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
+import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
+import ru.relabs.kurjer.presentation.base.tea.wrapInLoaders
+import ru.relabs.kurjer.uiOld.fragments.YandexMapFragment
 import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.extensions.isLocationExpired
 import java.io.File
@@ -17,15 +20,10 @@ import java.util.*
 
 object StorageReportEffects {
 
-    fun effectLoadData(taskIds: List<TaskId>): StorageReportEffect = { c, s ->
-        messages.send(StorageReportMessages.msgAddLoaders(1))
-        effectLoadTasks(taskIds)
-        effectLoadReport()
-        effectLoadPhotos()
-        messages.send(StorageReportMessages.msgAddLoaders(1))
-    }
 
-    private fun effectLoadPhotos(): StorageReportEffect = { c, s ->
+    fun effectLoadPhotos(): StorageReportEffect = wrapInLoaders({
+        StorageReportMessages.msgAddLoaders(it)
+    }) { c, s ->
         val photos =
             s.storageReport?.id?.let { c.storageReportUseCase.getPhotosWithUriByReportId(it) }
         if (photos != null) {
@@ -33,7 +31,9 @@ object StorageReportEffects {
         }
     }
 
-    private fun effectLoadTasks(taskIds: List<TaskId>): StorageReportEffect = { c, s ->
+    fun effectLoadTasks(taskIds: List<TaskId>): StorageReportEffect = wrapInLoaders({
+        StorageReportMessages.msgAddLoaders(it)
+    }) { c, s ->
         val tasks = c.taskUseCase.getTasksByIds(taskIds)
         messages.send(StorageReportMessages.msgTasksLoaded(tasks))
     }
@@ -44,10 +44,12 @@ object StorageReportEffects {
         }
     }
 
-    private fun effectLoadReport(): StorageReportEffect = { c, s ->
-        val storageId = s.tasks.first().storage.id
-        val reports = c.storageReportUseCase.getReportsByStorageId(storageId)
-        if (reports != null) {
+    fun effectReloadReport(): StorageReportEffect = wrapInLoaders({
+        StorageReportMessages.msgAddLoaders(it)
+    }) { c, s ->
+        val storageId = s.tasks.firstOrNull()?.storage?.id
+        val reports = storageId?.let { c.storageReportUseCase.getReportsByStorageId(it) }
+        if (!reports.isNullOrEmpty()) {
             messages.send(StorageReportMessages.msgReportLoaded(reports.first()))
         }
     }
@@ -57,7 +59,7 @@ object StorageReportEffects {
             if (s.storageReport == null) {
                 messages.send(StorageReportMessages.msgAddLoaders(1))
                 c.storageReportUseCase.createNewStorageReport(s.tasks)
-                effectLoadReport()
+                effectReloadReport()(c, s)
                 messages.send(StorageReportMessages.msgAddLoaders(1))
             }
             messages.send(msgFactory())
@@ -65,16 +67,14 @@ object StorageReportEffects {
 
     fun effectValidateRadiusAndRequestPhoto(): StorageReportEffect = { c, s ->
         val id = s.storageReport?.id ?: StorageReportId(0)
-        CustomLog.writeToFile("Request photo (${id.id}) with raidus validation")
-        effectValidatePhotoRadiusAnd({ msgEffect(effectRequestPhoto(id)) }, false)
+        effectValidatePhotoRadiusAnd({ msgEffect(effectRequestPhoto(id)) }, false)(c, s)
     }
 
     private fun effectRequestPhoto(id: StorageReportId): StorageReportEffect = { c, s ->
         when (s.storageReport) {
-            null -> c.showError("re:100", true)
+            null -> c.showError("sre:100", true)
             else -> {
                 val photoUUID = UUID.randomUUID()
-                CustomLog.writeToFile("Request photo ${id.id} ${photoUUID}")
                 val photoFile = c.storageReportUseCase.getStoragePhotoFile(id, photoUUID)
                 withContext(Dispatchers.Main) {
                     c.requestPhoto(id, photoFile, photoUUID)
@@ -91,7 +91,7 @@ object StorageReportEffects {
     ): StorageReportEffect = { c, s ->
         messages.send(StorageReportMessages.msgAddLoaders(1))
         when (s.storageReport) {
-            null -> c.showError("re:106", true)
+            null -> c.showError("sre:106", true)
             else -> {
                 val storage = s.tasks.first().storage
                 val location = c.locationProvider.lastReceivedLocation()
@@ -105,14 +105,6 @@ object StorageReportEffects {
                 } ?: Int.MAX_VALUE.toDouble()
 
                 val locationNotValid = location == null || Date(location.time).isLocationExpired()
-                CustomLog.writeToFile(
-                    "Validate photo radius (valid: ${!locationNotValid}): " +
-                            "${location?.latitude}, ${location?.longitude}, ${location?.time}, " +
-                            "photoRadiusRequired: ${c.settingsRepository.isStoragePhotoRadiusRequired}, " +
-                            "allowedDistance: ${storage.closeDistance}, " +
-                            "distance: $distance, " +
-                            "storage: ${storage.id.id}"
-                )
 
                 if (locationNotValid && withLocationLoading) {
                     coroutineScope {
@@ -203,7 +195,6 @@ object StorageReportEffects {
         targetFile: File,
         uuid: UUID
     ): StorageReportEffect = { c, s ->
-        CustomLog.writeToFile("Save photo ($uuid) with radius validation")
         effectValidatePhotoRadiusAnd({
             msgEffect(
                 effectSavePhotoFromFile(
@@ -213,7 +204,7 @@ object StorageReportEffects {
                     uuid
                 )
             )
-        }, true)
+        }, true)(c, s)
     }
 
     private fun effectSavePhotoFromFile(
@@ -228,7 +219,6 @@ object StorageReportEffects {
         } else {
             val bmp = BitmapFactory.decodeStream(contentResolver.openInputStream(photoUri))
             if (bmp == null) {
-                CustomLog.writeToFile("Photo creation failed. Uri: ${photoUri}, File: ${targetFile.path}")
                 messages.send(msgEffect(effectShowPhotoError(7)))
             } else {
                 effectSavePhotoFromBitmap(storageReportId, bmp, targetFile, uuid)(c, s)
@@ -279,6 +269,22 @@ object StorageReportEffects {
                 val updated = c.storageReportUseCase.updateReport(report.copy(description = text))
                 messages.send(StorageReportMessages.msgSavedReportLoaded(updated))
             }
+        }
+    }
+
+    fun navigateMap(): StorageReportEffect = { c, s ->
+        withContext(Dispatchers.Main) {
+            val storage = s.tasks.first().storage
+            c.router.navigateTo(
+                RootScreen.YandexMap(
+                    storages = listOf(
+                        YandexMapFragment.StorageLocation(
+                            storage.lat,
+                            storage.long
+                        )
+                    )
+                ) {}
+            )
         }
     }
 }

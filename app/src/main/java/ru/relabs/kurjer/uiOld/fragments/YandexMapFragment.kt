@@ -88,7 +88,12 @@ class YandexMapFragment : Fragment() {
         my_position.setOnClickListener {
             mapview.map.move(
                 userLocationLayer.cameraPosition()
-                    ?: CameraPosition(Point(userLocation?.latitude ?: 0.0, userLocation?.longitude ?: 0.0), 14f, 0f, 0f)
+                    ?: CameraPosition(
+                        Point(
+                            userLocation?.latitude ?: 0.0,
+                            userLocation?.longitude ?: 0.0
+                        ), 14f, 0f, 0f
+                    )
             )
         }
 
@@ -102,7 +107,12 @@ class YandexMapFragment : Fragment() {
 
         showAddresses(addresses)
         showStorages(storages)
-        makeFocus(addresses)
+        if (addresses.isNotEmpty()) {
+            makeFocus(addresses)
+        } else {
+            makeFocus(storages)
+        }
+
     }
 
     private fun showStorages(storages: List<StorageLocation>) {
@@ -132,36 +142,47 @@ class YandexMapFragment : Fragment() {
     }
 
 
-    private fun getCameraPosition(coloredAddresses: List<AddressWithColor>): CameraPosition {
+    private fun getCameraPosition(coloredAddresses: List<Locatable>): CameraPosition {
         val userLocation = locationProvider.lastReceivedLocation()
         when {
             coloredAddresses.isEmpty() -> {
-                return CameraPosition(Point(userLocation?.latitude ?: 0.0, userLocation?.longitude ?: 0.0), 14f, 0f, 0f)
+                return CameraPosition(
+                    Point(
+                        userLocation?.latitude ?: 0.0,
+                        userLocation?.longitude ?: 0.0
+                    ), 14f, 0f, 0f
+                )
             }
             coloredAddresses.size == 1 -> {
-                val address = coloredAddresses.first().address
+                val (lat, long) = coloredAddresses.first().getLocation()
                 return CameraPosition(
-                    Point(address.lat.toDouble(), address.long.toDouble()),
+                    Point(lat.toDouble(), long.toDouble()),
                     14f, 0f, 0f
                 )
             }
             else -> {
-                val filtered = coloredAddresses.filter { it.address.lat != 0f && it.address.long != 0f }
-                val minLat = filtered.minBy { it.address.lat }?.address?.lat?.toDouble()
-                val maxLat = filtered.maxBy { it.address.lat }?.address?.lat?.toDouble()
-                val minLong = filtered.minBy { it.address.long }?.address?.long?.toDouble()
-                val maxLong = filtered.maxBy { it.address.long }?.address?.long?.toDouble()
+                val filtered = coloredAddresses
+                    .map { it.getLocation() }
+                    .filter { it.first != 0f && it.second != 0f }
+                val minLat = filtered.minBy { it.first }?.first?.toDouble()
+                val maxLat = filtered.maxBy { it.first }?.first?.toDouble()
+                val minLong = filtered.minBy { it.second }?.second?.toDouble()
+                val maxLong = filtered.maxBy { it.second }?.second?.toDouble()
                 if (minLat == null || maxLat == null || minLong == null || maxLong == null) {
                     return getCameraPosition(listOfNotNull(coloredAddresses.firstOrNull()))
-
                 }
-                return mapview?.map?.cameraPosition(BoundingBox(Point(minLat, minLong), Point(maxLat, maxLong)))
+                return mapview?.map?.cameraPosition(
+                    BoundingBox(
+                        Point(minLat, minLong),
+                        Point(maxLat, maxLong)
+                    )
+                )
                     ?: getCameraPosition(listOfNotNull(coloredAddresses.firstOrNull()))
             }
         }
     }
 
-    fun makeFocus(addresses: List<AddressWithColor>) {
+    fun makeFocus(addresses: List<Locatable>) {
         mapview?.map?.move(savedCameraPosition ?: getCameraPosition(addresses))
     }
 
@@ -233,18 +254,32 @@ class YandexMapFragment : Fragment() {
     data class StorageLocation(
         val storageLat: Float,
         val storageLong: Float
-    ) : Parcelable
+    ) : Parcelable, Locatable {
+        override fun getLocation(): Coordinates {
+            return storageLat to storageLong
+        }
+    }
 
     @Parcelize
     data class AddressWithColor(
         val address: Address,
         val color: Int
-    ) : Parcelable
+    ) : Parcelable, Locatable {
+        override fun getLocation(): Coordinates {
+            return address.lat to address.long
+        }
+    }
+
+    interface Locatable {
+        fun getLocation(): Coordinates
+    }
 
     private enum class IconType {
         Address, Storage
     }
 }
+
+private typealias Coordinates = Pair<Float, Float>
 
 
 class ColoredIconProvider(val context: Context, val color: Int) : ImageProvider() {
@@ -256,7 +291,11 @@ class ColoredIconProvider(val context: Context, val color: Int) : ImageProvider(
         val drawable = context.resources.getDrawable(R.drawable.house_map_icon)
         val filter = PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY)
         drawable.colorFilter = filter
-        val bmp = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+        val bmp = Bitmap.createBitmap(
+            drawable.intrinsicWidth,
+            drawable.intrinsicHeight,
+            Bitmap.Config.ARGB_8888
+        )
         val canvas = Canvas(bmp)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)

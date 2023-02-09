@@ -155,7 +155,7 @@ class StorageReportFragment : BaseFragment() {
             )
         }
         binding.etDescription.addTextChangedListener(descriptionTextWatcher)
-        binding.btnShowMap.setOnClickListener { }
+        binding.btnShowMap.setOnClickListener { uiScope.sendMessage(controller, StorageReportMessages.msgMapClicked()) }
         binding.btnClose.setOnClickListener { }
     }
 

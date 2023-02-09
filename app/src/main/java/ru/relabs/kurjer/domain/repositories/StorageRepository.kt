@@ -62,7 +62,6 @@ class StorageRepository(db: AppDatabase) {
 
         val photoEntity = StorageReportPhotoEntity(0, uuid.toString(), reportId.id, gps, Date())
         val id = photoDao.insert(photoEntity)
-        CustomLog.writeToFile("Save photo $id srId=${reportId.id} uuid=$uuid")
         StorageReportPhotoMapper.fromEntity(photoEntity.copy(id = id.toInt()))
     }
 

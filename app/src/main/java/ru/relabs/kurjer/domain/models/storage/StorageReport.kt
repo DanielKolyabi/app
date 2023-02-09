@@ -1,11 +1,13 @@
 package ru.relabs.kurjer.domain.models.storage
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import ru.relabs.kurjer.domain.models.StorageId
 import ru.relabs.kurjer.domain.models.TaskId
 import java.util.*
-
-data class StorageReportId(val id: Int)
+@Parcelize
+data class StorageReportId(val id: Int): Parcelable
 
 data class StorageReport(
     val id: StorageReportId,

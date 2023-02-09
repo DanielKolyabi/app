@@ -69,3 +69,20 @@ object CommonMessages {
         }
     }
 }
+
+inline fun <Ctx, State> wrapInLoaders(
+    crossinline loaderMessageFactory: (loaderDelta: Int) -> ElmMessage<Ctx, State>,
+    crossinline body: suspend ChannelWrapper<Ctx, State>.(Ctx, State) -> Unit
+): ElmEffect<Ctx, State> = { c, s ->
+    wrapInLoaders(loaderMessageFactory) { body(c, s) }
+}
+
+suspend inline fun <Ctx, State, R> ChannelWrapper<Ctx, State>.wrapInLoaders(
+    loaderMessageFactory: (loaderDelta: Int) -> ElmMessage<Ctx, State>,
+    body: () -> R
+): R {
+    this.messages.send(loaderMessageFactory(1))
+    val r = body()
+    this.messages.send(loaderMessageFactory(-1))
+    return r
+}

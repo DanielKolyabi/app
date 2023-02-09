@@ -16,6 +16,9 @@ class PathsProvider(
     private val photoDir = File(filesRootDir, "photos").apply {
         mkdirs()
     }
+    private val storagePhotoDir = File(filesRootDir, "storage_photos").apply {
+        mkdirs()
+    }
     private val mapDir = File(filesRootDir, "maps").apply {
         mkdirs()
     }
@@ -33,7 +36,7 @@ class PathsProvider(
     }
 
     private fun getStoragePhotoFolderById(reportId: Int): File {
-        val storageDir = File(photoDir, reportId.toString())
+        val storageDir = File(storagePhotoDir, reportId.toString())
         if (!storageDir.exists()) storageDir.mkdirs()
         return storageDir
     }

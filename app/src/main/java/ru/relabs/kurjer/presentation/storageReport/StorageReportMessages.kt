@@ -14,12 +14,11 @@ import java.io.File
 import java.util.*
 
 object StorageReportMessages {
-    fun msgInit(taskIds: List<TaskId>): StorageReportMessage = msgEffects({
-        it
-    },
+    fun msgInit(taskIds: List<TaskId>): StorageReportMessage = msgEffects(
+        { it },
         {
             listOf(
-                StorageReportEffects.effectLoadData(taskIds)
+                StorageReportEffects.effectLoadTasks(taskIds)
             )
         }
     )
@@ -28,15 +27,18 @@ object StorageReportMessages {
         StorageReportEffects.effectNavigateBack()
     )
 
-    fun msgTasksLoaded(tasks: List<Task>): StorageReportMessage =
-        msgState { it.copy(tasks = tasks) }
+    fun msgTasksLoaded(tasks: List<Task>): StorageReportMessage = msgEffects(
+        { it.copy(tasks = tasks) },
+        { listOf(StorageReportEffects.effectReloadReport()) }
+    )
 
     fun msgAddLoaders(i: Int): StorageReportMessage =
         msgState { it.copy(loaders = it.loaders + i) }
 
-    fun msgReportLoaded(report: StorageReport): StorageReportMessage = msgState {
-        it.copy(storageReport = report)
-    }
+    fun msgReportLoaded(report: StorageReport): StorageReportMessage = msgEffects(
+        { it.copy(storageReport = report) },
+        { listOf(StorageReportEffects.effectLoadPhotos()) }
+    )
 
     fun msgPhotosLoaded(photos: List<StoragePhotoWithUri>): StorageReportMessage = msgState {
         it.copy(storagePhotos = photos)
@@ -46,11 +48,12 @@ object StorageReportMessages {
         StorageReportEffects.effectValidateReportExistenceAnd { msgEffect(StorageReportEffects.effectValidateRadiusAndRequestPhoto()) }
     )
 
-    fun msgRemovePhotoClicked(removedPhoto: StorageReportPhoto): StorageReportMessage =
-        msgEffects({ state -> state.copy(storagePhotos = state.storagePhotos.filter { photo -> photo.photo != removedPhoto }) },
-            {
-                listOf(StorageReportEffects.effectRemovePhoto(removedPhoto))
-            })
+    fun msgRemovePhotoClicked(removedPhoto: StorageReportPhoto): StorageReportMessage = msgEffects(
+        { state -> state.copy(storagePhotos = state.storagePhotos.filter { photo -> photo.photo != removedPhoto }) },
+        {
+            listOf(StorageReportEffects.effectRemovePhoto(removedPhoto))
+        }
+    )
 
 
     fun msgGPSLoading(enabled: Boolean): StorageReportMessage =
@@ -89,4 +92,8 @@ object StorageReportMessages {
 
     fun msgSavedReportLoaded(updated: StorageReport): StorageReportMessage =
         msgState { it.copy(storageReport = updated) }
+
+    fun msgMapClicked(): StorageReportMessage =
+        msgEffect(StorageReportEffects.navigateMap())
+
 }

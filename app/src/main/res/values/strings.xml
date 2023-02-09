@@ -120,5 +120,5 @@
     <string name="confirm_storage">подтвердить склад</string>
     <string name="closure_date">%d. Склад подтверждён. Ombor tasdiqlandi.\n%s</string>
     <string name="storage_report_close_location_far_warning">Ты не у склада\nSiz omborda emassiz</string>
-    <string name="storage_close_location_far_error">Ты не у склада! Подойди и попробуй еще \nSiz omborda emassiz! Keling va qayta urinib ko'ring</string>
+    <string name="storage_close_location_far_error">Ты не у склада! Подойди и попробуй еще \nSiz omborda emassiz! Yaqinlashing va qaytadan urining</string>
 </resources>

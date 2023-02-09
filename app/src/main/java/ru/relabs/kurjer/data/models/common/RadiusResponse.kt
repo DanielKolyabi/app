@@ -8,6 +8,6 @@ import com.google.gson.annotations.SerializedName
 data class RadiusResponse(
     @SerializedName("closeAnyRadius") val closeAnyDistance: Boolean,
     @SerializedName("photoAnyDistance") val photoAnyDistance: Boolean,
-    @SerializedName("storage_close_any_radius") val storageCloseAnyDistance: Boolean,
-    @SerializedName("storage_photo_any_radius") val storagePhotoAnyDistance: Boolean
+    @SerializedName("storageCloseAnyRadius") val storageCloseAnyDistance: Boolean,
+    @SerializedName("storagePhotoAnyRadius") val storagePhotoAnyDistance: Boolean
 )

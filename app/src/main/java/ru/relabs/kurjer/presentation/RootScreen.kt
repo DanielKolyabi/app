@@ -45,7 +45,7 @@ sealed class RootScreen(protected val fabric: () -> Fragment) : SupportAppScreen
         RootScreen({ PhotoViewerFragment.newInstance(imagePaths) })
 
     class YandexMap(
-        taskItems: List<TaskItem>,
+        taskItems: List<TaskItem> = emptyList(),
         storages: List<YandexMapFragment.StorageLocation> = emptyList(),
         onAddressClicked: (Address) -> Unit
     ) :

@@ -130,5 +130,6 @@ object AddressesEffects {
             }
         }
         //TODO:Добавить обработку заданий с тем же складом не в сцепке
+        val storageIds = s.tasks.map { it.storage.id }
     }
 }

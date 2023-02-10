@@ -6,21 +6,22 @@ import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.storage.StorageReportEntity
 import ru.relabs.kurjer.data.database.entities.storage.StorageReportPhotoEntity
+import ru.relabs.kurjer.data.database.entities.storage.StorageReportRequestEntity
 import ru.relabs.kurjer.domain.mappers.database.StorageReportMapper
 import ru.relabs.kurjer.domain.mappers.database.StorageReportPhotoMapper
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.models.storage.StorageReport
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
-import ru.relabs.kurjer.utils.CustomLog
 import java.util.*
 
 class StorageRepository(db: AppDatabase) {
 
     private val reportDao = db.storageReportDao()
     private val photoDao = db.storagePhotoDao()
+    private val reportRequestDao = db.storageReportRequestDao()
 
-    suspend fun getReportsByStorageId(storageId: StorageId): List<StorageReport>? =
+    suspend fun getOpenedReportsByStorageId(storageId: StorageId): List<StorageReport>? =
         withContext(Dispatchers.IO) {
             reportDao.getOpenedByStorageId(storageId.id, false)
                 ?.map { StorageReportMapper.fromEntity(it) }
@@ -32,22 +33,21 @@ class StorageRepository(db: AppDatabase) {
                 .map { StorageReportPhotoMapper.fromEntity(it) }
         }
 
-    suspend fun createNewReport(tasks: List<Task>) {
+    suspend fun createNewReport(storageId: StorageId, taskIds: List<TaskId>): Int =
         withContext(Dispatchers.IO) {
-            val task = tasks.first()
             reportDao.insert(
                 StorageReportEntity(
                     id = 0,
-                    storageId = task.storage.id.id,
-                    taskIds = tasks.map { it.id.id },
-                    closeTime = null,
+                    storageId = storageId.id,
+                    taskIds = taskIds.map { it.id },
                     gps = GPSCoordinatesModel(0.0, 0.0, Date(0)),
                     description = "",
-                    isClosed = false
+                    isClosed = false,
+                    closeData = null
                 )
-            )
+            ).toInt()
         }
-    }
+
 
     suspend fun savePhoto(
         reportId: StorageReportId,
@@ -65,17 +65,54 @@ class StorageRepository(db: AppDatabase) {
         StorageReportPhotoMapper.fromEntity(photoEntity.copy(id = id.toInt()))
     }
 
-    fun deletePhotoById(id: Int) {
-        photoDao.deleteById(id)
+    suspend fun deletePhotoById(id: Int) {
+        withContext(Dispatchers.IO) {
+            photoDao.deleteById(id)
+        }
     }
 
-    fun updateReport(report: StorageReport) {
-        reportDao.update(StorageReportMapper.toEntity(report))
+    suspend fun updateReport(report: StorageReport) {
+        withContext(Dispatchers.IO) {
+            reportDao.update(StorageReportMapper.toEntity(report))
+        }
     }
 
-    fun getReportById(id: StorageReportId): StorageReport {
-        return StorageReportMapper.fromEntity(reportDao.getById(id.id))
+    suspend fun getReportById(id: StorageReportId): StorageReport {
+        return withContext(Dispatchers.IO) { StorageReportMapper.fromEntity(reportDao.getById(id.id)) }
     }
 
+    suspend fun createReportRequest(
+        storageReportId: StorageReportId,
+        taskId: TaskId,
+        token: String
+    ) {
+        withContext(Dispatchers.IO) {
+            reportRequestDao.insert(
+                StorageReportRequestEntity(
+                    0,
+                    storageReportId.id,
+                    taskId.id,
+                    token
+                )
+            )
+        }
+    }
+
+    suspend fun deleteReports(reports: List<StorageReport>) {
+        withContext(Dispatchers.IO) {
+            reportDao.deleteList(reports.map { StorageReportMapper.toEntity(it) })
+        }
+
+    }
+
+    suspend fun getNextQuery(): StorageReportRequestEntity? = withContext(Dispatchers.IO) {
+        reportRequestDao.all.firstOrNull()
+    }
+
+    suspend fun removeStorageReportQuery(storageReportQuery: StorageReportRequestEntity) {
+        withContext(Dispatchers.IO) {
+            reportRequestDao.delete(storageReportQuery)
+        }
+    }
 
 }

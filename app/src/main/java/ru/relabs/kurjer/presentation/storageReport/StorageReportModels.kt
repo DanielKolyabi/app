@@ -10,7 +10,6 @@ import ru.relabs.kurjer.domain.models.storage.StorageReport
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 import ru.relabs.kurjer.domain.providers.LocationProvider
-import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.useCases.StorageReportUseCase
 import ru.relabs.kurjer.domain.useCases.TaskUseCase
@@ -35,16 +34,17 @@ class StorageReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl
     val taskUseCase: TaskUseCase by inject()
     val storageReportUseCase: StorageReportUseCase by inject()
     val locationProvider: LocationProvider by inject()
-    val pauseRepository: PauseRepository by inject()
     val settingsRepository: SettingsRepository by inject()
 
     var showError: suspend (code: String, isFatal: Boolean) -> Unit = { _, _ -> }
-    var showCloseError: (msgRes: Int, showNext: Boolean, location: Location?, rejectReason: String?, msgFormat: Array<Any>) -> Unit = { _, _, _, _, _ -> }
+    var showCloseError: (msgRes: Int, showNext: Boolean, location: Location?, msgFormat: Array<Any>) -> Unit =
+        { _, _, _, _ -> }
     var requestPhoto: (id: StorageReportId, targetFile: File, uuid: UUID) -> Unit = { _, _, _ -> }
     var contentResolver: () -> ContentResolver? = { null }
+    var getBatteryLevel: () -> Float? = { null }
     var showPausedWarning: () -> Unit = {}
     var showPhotosWarning: () -> Unit = {}
-    var showPreCloseDialog: (location: Location?, rejectReason: String?) -> Unit = { _, _ -> }
+    var showPreCloseDialog: (location: Location?) -> Unit = { _ -> }
 
 }
 

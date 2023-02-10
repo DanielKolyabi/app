@@ -1,8 +1,10 @@
 package ru.relabs.kurjer.domain.mappers.database
 
+import ru.relabs.kurjer.data.database.entities.storage.ReportCloseDataEntity
 import ru.relabs.kurjer.data.database.entities.storage.StorageReportEntity
 import ru.relabs.kurjer.domain.models.StorageId
 import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.storage.ReportCloseData
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.models.storage.StorageReport
 
@@ -11,10 +13,10 @@ object StorageReportMapper {
         id = StorageReportId(entity.id),
         storageId = StorageId(entity.storageId),
         taskIds = entity.taskIds.map { TaskId(it) },
-        closeTime = entity.closeTime,
         gps = entity.gps,
         description = entity.description,
-        isClosed = entity.isClosed
+        isClosed = entity.isClosed,
+        closeData = dataFromEntity(entity.closeData)
     )
 
 
@@ -22,9 +24,37 @@ object StorageReportMapper {
         id = report.id.id,
         storageId = report.storageId.id,
         taskIds = report.taskIds.map { it.id },
-        closeTime = report.closeTime,
         gps = report.gps,
         description = report.description,
         isClosed = report.isClosed,
+        closeData = dataToEntity(report.closeData)
     )
+
+    private fun dataFromEntity(entity: ReportCloseDataEntity?) = when (entity) {
+        null -> null
+        else -> {
+            ReportCloseData(
+                entity.closeTime,
+                entity.batteryLevel,
+                entity.deviceRadius,
+                entity.deviceCloseAnyDistance,
+                entity.deviceAllowedDistance,
+                entity.isPhotoRequired,
+            )
+        }
+    }
+
+    private fun dataToEntity(data: ReportCloseData?) = when (data) {
+        null -> null
+        else -> {
+            ReportCloseDataEntity(
+                data.closeTime,
+                data.batteryLevel,
+                data.deviceRadius,
+                data.deviceCloseAnyDistance,
+                data.deviceAllowedDistance,
+                data.isPhotoRequired,
+            )
+        }
+    }
 }

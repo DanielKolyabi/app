@@ -2,6 +2,7 @@ package ru.relabs.kurjer.presentation.storageReport
 
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.view.View
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.holder_report_photo.view.*
 import kotlinx.android.synthetic.main.holder_report_photo_single.view.*
@@ -48,6 +49,7 @@ object StorageReportAdapter {
                     p,
                     R.layout.holder_report_photo,
                     { it as StorageReportItem.Photo }) { (photo, uri) ->
+                    itemView.tv_entrance_number.visibility = View.GONE
                     itemView.iv_remove.setOnClickListener {
                         onRemoveClicked(photo)
                     }

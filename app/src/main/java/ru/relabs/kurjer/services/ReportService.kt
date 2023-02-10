@@ -21,12 +21,14 @@ import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
+import ru.relabs.kurjer.data.database.entities.storage.StorageReportRequestEntity
 import ru.relabs.kurjer.domain.controllers.ServiceEvent
 import ru.relabs.kurjer.domain.controllers.ServiceEventController
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
+import ru.relabs.kurjer.domain.repositories.StorageRepository
 import ru.relabs.kurjer.utils.*
 
 
@@ -40,6 +42,7 @@ class ReportService : Service(), KoinComponent {
     private val databaseRepository: DatabaseRepository by inject()
     private val taskEventController: TaskEventController by inject()
     private val serviceEventController: ServiceEventController by inject()
+    private val storageRepository: StorageRepository by inject()
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
@@ -86,7 +89,7 @@ class ReportService : Service(), KoinComponent {
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
                     val sendQuery = databaseRepository.getNextSendQuery()
                     val reportQuery = databaseRepository.getNextReportQuery()
-
+                    val storageReportQuery = storageRepository.getNextQuery()
                     when {
                         reportQuery != null -> {
                             when (val r = sendReportQuery(reportQuery)) {
@@ -103,6 +106,15 @@ class ReportService : Service(), KoinComponent {
                                 is Right -> {
                                     isTaskSended = true
                                     databaseRepository.removeSendQuery(sendQuery)
+                                }
+                            }
+                        }
+                        storageReportQuery != null -> {
+                            when (val r = sendStorageReportQuery(storageReportQuery)) {
+                                is Left -> r.value.log()
+                                is Right -> {
+                                    isTaskSended = true
+                                    storageRepository.removeStorageReportQuery(storageReportQuery)
                                 }
                             }
                         }
@@ -168,7 +180,8 @@ class ReportService : Service(), KoinComponent {
     fun startTaskClosingTimer(fromPause: Boolean = false) {
         pauseDisableJob?.cancel()
         timelimitNotificationStartTime =
-            System.currentTimeMillis() - ((TIMELIMIT_NOTIFICATION_TIMEOUT - timeUntilRun).takeIf { timeUntilRun != 0 && fromPause } ?: 0)
+            System.currentTimeMillis() - ((TIMELIMIT_NOTIFICATION_TIMEOUT - timeUntilRun).takeIf { timeUntilRun != 0 && fromPause }
+                ?: 0)
         timeUntilRun = 0
     }
 
@@ -191,6 +204,8 @@ class ReportService : Service(), KoinComponent {
             .from(this)
             .notify(1, notification(text, state))
     }
+    private suspend fun sendStorageReportQuery(item: StorageReportRequestEntity): Either<java.lang.Exception, Unit> =
+        repository.sendStorageReport(item)
 
     private suspend fun sendReportQuery(item: ReportQueryItemEntity): Either<java.lang.Exception, Unit> =
         repository.sendReport(item)
@@ -205,7 +220,8 @@ class ReportService : Service(), KoinComponent {
     fun pauseTaskClosingTimer(startTime: Long, endTime: Long) {
         val timeLimitStart = timelimitNotificationStartTime ?: return
         timelimitNotificationStartTime = null
-        timeUntilRun = (timeLimitStart + TIMELIMIT_NOTIFICATION_TIMEOUT - System.currentTimeMillis()).toInt()
+        timeUntilRun =
+            (timeLimitStart + TIMELIMIT_NOTIFICATION_TIMEOUT - System.currentTimeMillis()).toInt()
         pauseDisableJob?.cancel()
         pauseDisableJob = scope.launch {
             delay((endTime - currentTimestamp()) * 1000)
@@ -221,7 +237,11 @@ class ReportService : Service(), KoinComponent {
         super.onDestroy()
     }
 
-    private fun notification(body: String, status: ServiceState, update: Boolean = false): Notification {
+    private fun notification(
+        body: String,
+        status: ServiceState,
+        update: Boolean = false
+    ): Notification {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannel = NotificationChannel(
@@ -229,7 +249,9 @@ class ReportService : Service(), KoinComponent {
                     R.string.app_name
                 ), NotificationManager.IMPORTANCE_HIGH
             )
-            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(notificationChannel)
+            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(
+                notificationChannel
+            )
         }
 
         val ic = when (status) {
@@ -243,18 +265,20 @@ class ReportService : Service(), KoinComponent {
             lastState = status
         }
 
-        val millisToClose = CLOSE_SERVICE_TIMEOUT - (System.currentTimeMillis() - lastActivityResumeTime)
-        val closeNotifyText = if (status == ServiceState.IDLE && !lastActivityRunningState && millisToClose > 0) {
-            val secondsToClose = millisToClose / 1000
-            val timeWithUnit = if (secondsToClose < 60) {
-                secondsToClose to "сек"
+        val millisToClose =
+            CLOSE_SERVICE_TIMEOUT - (System.currentTimeMillis() - lastActivityResumeTime)
+        val closeNotifyText =
+            if (status == ServiceState.IDLE && !lastActivityRunningState && millisToClose > 0) {
+                val secondsToClose = millisToClose / 1000
+                val timeWithUnit = if (secondsToClose < 60) {
+                    secondsToClose to "сек"
+                } else {
+                    (secondsToClose / 60).toInt() to "мин"
+                }
+                " Закрытие через ${timeWithUnit.first} ${timeWithUnit.second}."
             } else {
-                (secondsToClose / 60).toInt() to "мин"
+                ""
             }
-            " Закрытие через ${timeWithUnit.first} ${timeWithUnit.second}."
-        } else {
-            ""
-        }
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))

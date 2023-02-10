@@ -13,8 +13,17 @@ data class StorageReport(
     val id: StorageReportId,
     val storageId: StorageId,
     val taskIds: List<TaskId>,
-    val closeTime: Date?,
     val gps: GPSCoordinatesModel,
     val description: String,
-    val isClosed: Boolean
+    val isClosed: Boolean,
+    val closeData: ReportCloseData?
+)
+
+data class ReportCloseData(
+    val closeTime: Date,
+    val batteryLevel: Int,
+    val deviceRadius: Int,
+    val deviceCloseAnyDistance: Boolean,
+    val deviceAllowedDistance: Int,
+    val isPhotoRequired: Boolean
 )

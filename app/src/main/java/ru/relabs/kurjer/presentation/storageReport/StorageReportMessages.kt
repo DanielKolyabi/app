@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.presentation.storageReport
 
+import android.location.Location
 import android.net.Uri
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
@@ -95,5 +96,14 @@ object StorageReportMessages {
 
     fun msgMapClicked(): StorageReportMessage =
         msgEffect(StorageReportEffects.navigateMap())
+
+    fun msgCloseClicked(): StorageReportMessage =
+        msgEffect(StorageReportEffects.effectCloseCheck(true))
+
+    fun msgPerformClose(location: Location?): StorageReportMessage =
+        msgEffect(StorageReportEffects.effectPerformClose(location))
+
+    fun msgInterruptPause(): StorageReportMessage =
+        msgEffect(StorageReportEffects.effectInterruptPause())
 
 }

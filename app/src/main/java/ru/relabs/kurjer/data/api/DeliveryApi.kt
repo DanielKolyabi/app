@@ -9,6 +9,7 @@ import ru.relabs.kurjer.data.models.common.SettingsResponse
 import ru.relabs.kurjer.data.models.common.StatusResponse
 import ru.relabs.kurjer.data.models.pause.PauseTimeResponse
 import ru.relabs.kurjer.data.models.pause.PauseTimesResponse
+import ru.relabs.kurjer.data.models.storage.StorageReportRequest
 import ru.relabs.kurjer.data.models.tasks.TaskResponse
 
 interface DeliveryApi {
@@ -102,4 +103,13 @@ interface DeliveryApi {
 
     @GET("/api/v1/reject_reasons")
     suspend fun getAvailableFirmRejectReasons(@Query("token") token: String): List<String>
+
+    @POST("/api/v1/tasks/{id}/storage_report")
+    @Multipart
+    suspend fun sendStorageReport(
+        @Path("id") id: Int,
+        @Part("data") reportObject: StorageReportRequest,
+        @Part photoParts: MutableList<MultipartBody.Part>,
+        @Query("token") token: String
+    )
 }

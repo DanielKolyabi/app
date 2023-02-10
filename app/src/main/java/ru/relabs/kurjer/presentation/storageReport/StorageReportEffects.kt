@@ -2,6 +2,7 @@ package ru.relabs.kurjer.presentation.storageReport
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.location.Location
 import android.net.Uri
 import kotlinx.coroutines.*
 import ru.relabs.kurjer.R
@@ -57,9 +58,14 @@ object StorageReportEffects {
     fun effectValidateReportExistenceAnd(msgFactory: () -> StorageReportMessage): StorageReportEffect =
         { c, s ->
             if (s.storageReport == null) {
+                val storageId = s.tasks.firstOrNull()?.storage?.id
                 messages.send(StorageReportMessages.msgAddLoaders(1))
-                c.storageReportUseCase.createNewStorageReport(s.tasks)
-                effectReloadReport()(c, s)
+                val report = storageId?.let {
+                    c.storageReportUseCase.createNewStorageReport(
+                        it,
+                        s.tasks.map { task -> task.id })
+                }
+                report?.let { messages.send(StorageReportMessages.msgReportLoaded(it)) }
                 messages.send(StorageReportMessages.msgAddLoaders(1))
             }
             messages.send(msgFactory())
@@ -88,101 +94,102 @@ object StorageReportEffects {
         msgFactory: () -> StorageReportMessage,
         withAnyRadiusWarning: Boolean,
         withLocationLoading: Boolean = true
-    ): StorageReportEffect = { c, s ->
-        messages.send(StorageReportMessages.msgAddLoaders(1))
+    ): StorageReportEffect = wrapInLoaders({
+        StorageReportMessages.msgAddLoaders(it)
+    }) { c, s ->
         when (s.storageReport) {
             null -> c.showError("sre:106", true)
             else -> {
-                val storage = s.tasks.first().storage
-                val location = c.locationProvider.lastReceivedLocation()
-                val distance = location?.let {
-                    calculateDistance(
-                        location.latitude,
-                        location.longitude,
-                        storage.lat.toDouble(),
-                        storage.long.toDouble()
-                    )
-                } ?: Int.MAX_VALUE.toDouble()
+                if (s.tasks.isNotEmpty()) {
+                    val storage = s.tasks.first().storage
+                    val location = c.locationProvider.lastReceivedLocation()
+                    val distance = location?.let {
+                        calculateDistance(
+                            location.latitude,
+                            location.longitude,
+                            storage.lat.toDouble(),
+                            storage.long.toDouble()
+                        )
+                    } ?: Int.MAX_VALUE.toDouble()
 
-                val locationNotValid = location == null || Date(location.time).isLocationExpired()
+                    val locationNotValid =
+                        location == null || Date(location.time).isLocationExpired()
 
-                if (locationNotValid && withLocationLoading) {
-                    coroutineScope {
-                        messages.send(StorageReportMessages.msgAddLoaders(1))
-                        messages.send(StorageReportMessages.msgGPSLoading(true))
-                        val delayJob =
-                            async { delay(c.settingsRepository.closeGpsUpdateTime.photo * 1000L) }
-                        val gpsJob = async(Dispatchers.Default) {
-                            c.locationProvider.updatesChannel().apply {
-                                receive()
-                                cancel()
+                    if (locationNotValid && withLocationLoading) {
+                        coroutineScope {
+                            messages.send(StorageReportMessages.msgAddLoaders(1))
+                            messages.send(StorageReportMessages.msgGPSLoading(true))
+                            val delayJob =
+                                async { delay(c.settingsRepository.closeGpsUpdateTime.photo * 1000L) }
+                            val gpsJob = async(Dispatchers.Default) {
+                                c.locationProvider.updatesChannel().apply {
+                                    receive()
+                                    cancel()
+                                }
                             }
-                        }
-                        listOf(delayJob, gpsJob).awaitFirst()
-                        listOf(delayJob, gpsJob).forEach {
-                            if (it.isActive) {
-                                it.cancel()
+                            listOf(delayJob, gpsJob).awaitFirst()
+                            listOf(delayJob, gpsJob).forEach {
+                                if (it.isActive) {
+                                    it.cancel()
+                                }
                             }
-                        }
-                        messages.send(StorageReportMessages.msgGPSLoading(false))
-                        messages.send(StorageReportMessages.msgAddLoaders(-1))
-                        messages.send(
-                            msgEffect(
-                                effectValidatePhotoRadiusAnd(
-                                    msgFactory,
-                                    withAnyRadiusWarning,
-                                    false
+                            messages.send(StorageReportMessages.msgGPSLoading(false))
+                            messages.send(StorageReportMessages.msgAddLoaders(-1))
+                            messages.send(
+                                msgEffect(
+                                    effectValidatePhotoRadiusAnd(
+                                        msgFactory,
+                                        withAnyRadiusWarning,
+                                        false
+                                    )
                                 )
                             )
-                        )
-                    }
-                } else {
-                    if (!c.settingsRepository.isStoragePhotoRadiusRequired) {
-                        //https://git.relabs.ru/kurier/app/-/issues/87 если юзер может делать фото и закрывать дома вне радиуса - ему нужно показывать диалог (он админ).
-                        //Если же он может только делать фото, ему о диалоге знать не надо, что бы не особо пользовался этим
-                        val shouldSuppressDialog = c.settingsRepository.isStorageCloseRadiusRequired
-
-                        if (distance > storage.closeDistance && withAnyRadiusWarning && !shouldSuppressDialog) {
-                            withContext(Dispatchers.Main) {
-                                c.showCloseError(
-                                    R.string.storage_report_close_location_far_warning,
-                                    false,
-                                    null,
-                                    null,
-                                    emptyArray()
-                                )
-                            }
                         }
-                        messages.send(msgFactory())
                     } else {
-                        when {
-                            locationNotValid -> withContext(Dispatchers.Main) {
-                                c.showCloseError(
-                                    R.string.report_close_location_null_error,
-                                    false,
-                                    null,
-                                    null,
-                                    emptyArray()
-                                )
-                            }
-                            distance > storage.closeDistance -> withContext(Dispatchers.Main) {
-                                c.showCloseError(
-                                    R.string.storage_close_location_far_error,
-                                    false,
-                                    null,
-                                    null,
-                                    emptyArray()
-                                )
-                            }
-                            else ->
-                                messages.send(msgFactory())
+                        if (!c.settingsRepository.isStoragePhotoRadiusRequired) {
+                            //https://git.relabs.ru/kurier/app/-/issues/87 если юзер может делать фото и закрывать дома вне радиуса - ему нужно показывать диалог (он админ).
+                            //Если же он может только делать фото, ему о диалоге знать не надо, что бы не особо пользовался этим
+                            val shouldSuppressDialog =
+                                c.settingsRepository.isStorageCloseRadiusRequired
 
+                            if (distance > storage.closeDistance && withAnyRadiusWarning && !shouldSuppressDialog) {
+                                withContext(Dispatchers.Main) {
+                                    c.showCloseError(
+                                        R.string.storage_report_close_location_far_warning,
+                                        false,
+                                        null,
+                                        emptyArray()
+                                    )
+                                }
+                            }
+                            messages.send(msgFactory())
+                        } else {
+                            when {
+                                locationNotValid -> withContext(Dispatchers.Main) {
+                                    c.showCloseError(
+                                        R.string.report_close_location_null_error,
+                                        false,
+                                        null,
+                                        emptyArray()
+                                    )
+                                }
+                                distance > storage.closeDistance -> withContext(Dispatchers.Main) {
+                                    c.showCloseError(
+                                        R.string.storage_close_location_far_error,
+                                        false,
+                                        null,
+                                        emptyArray()
+                                    )
+                                }
+                                else ->
+                                    messages.send(msgFactory())
+
+                            }
                         }
                     }
                 }
             }
         }
-        messages.send(StorageReportMessages.msgAddLoaders(-1))
     }
 
     fun effectShowPhotoError(errorCode: Int): StorageReportEffect = { c, s ->
@@ -234,7 +241,7 @@ object StorageReportEffects {
     ): StorageReportEffect = { c, s ->
         CustomLog.writeToFile("Save photo ${storageReportId.id} ${uuid}")
         when (val report = s.storageReport) {
-            null -> c.showError("re:102", true)
+            null -> c.showError("sre:102", true)
             else -> {
                 when (savePhotoFromBitmapToFile(bitmap, targetFile)) {
                     is Left -> messages.send(StorageReportMessages.msgPhotoError(6))
@@ -264,7 +271,7 @@ object StorageReportEffects {
 
     fun effectUpdateDescription(text: String): StorageReportEffect = { c, s ->
         when (val report = s.storageReport) {
-            null -> c.showError("re:103", true)
+            null -> c.showError("sre:103", true)
             else -> {
                 val updated = c.storageReportUseCase.updateReport(report.copy(description = text))
                 messages.send(StorageReportMessages.msgSavedReportLoaded(updated))
@@ -274,18 +281,138 @@ object StorageReportEffects {
 
     fun navigateMap(): StorageReportEffect = { c, s ->
         withContext(Dispatchers.Main) {
-            val storage = s.tasks.first().storage
-            c.router.navigateTo(
-                RootScreen.YandexMap(
-                    storages = listOf(
-                        YandexMapFragment.StorageLocation(
-                            storage.lat,
-                            storage.long
+            val storage = s.tasks.firstOrNull()?.storage
+            if (storage != null) {
+                c.router.navigateTo(
+                    RootScreen.YandexMap(
+                        storages = listOf(
+                            YandexMapFragment.StorageLocation(
+                                storage.lat,
+                                storage.long
+                            )
                         )
-                    )
-                ) {}
-            )
+                    ) {}
+                )
+            }
         }
+    }
+
+    fun effectCloseCheck(withLocationLoading: Boolean): StorageReportEffect = wrapInLoaders({
+        StorageReportMessages.msgAddLoaders(it)
+    }) { c, s ->
+        val storage = s.tasks.firstOrNull()?.storage
+        val location = c.storageReportUseCase.getLastLocation()
+
+        if (storage == null) {
+            withContext(Dispatchers.Main) {
+                c.showError("sre:1", true)
+            }
+        } else if (s.storageReport == null) {
+            withContext(Dispatchers.Main) {
+                c.showPhotosWarning()
+            }
+        } else if (s.storagePhotos.isEmpty()) {
+            withContext(Dispatchers.Main) {
+                c.showPhotosWarning()
+            }
+        } else if (c.storageReportUseCase.checkPause()) {
+            withContext(Dispatchers.Main) {
+                c.showPausedWarning()
+            }
+        } else if (withLocationLoading && (location == null || Date(location.time).isLocationExpired())) {
+            coroutineScope {
+                messages.send(StorageReportMessages.msgAddLoaders(1))
+                messages.send(StorageReportMessages.msgGPSLoading(true))
+                c.storageReportUseCase.loadNewLocation(this)
+                messages.send(StorageReportMessages.msgGPSLoading(false))
+                messages.send(StorageReportMessages.msgAddLoaders(-1))
+                messages.send(msgEffect(effectCloseCheck(false)))
+            }
+        } else {
+
+            val distance = location?.let {
+                calculateDistance(
+                    location.latitude,
+                    location.longitude,
+                    storage.lat.toDouble(),
+                    storage.long.toDouble()
+                )
+            } ?: Int.MAX_VALUE.toDouble()
+
+            val required = c.storageReportUseCase.getCloseRadiusRequirement()
+            withContext(Dispatchers.Main) {
+                if (required) {
+                    when {
+                        location == null -> {
+                            c.showCloseError(
+                                R.string.report_close_location_null_error,
+                                false,
+                                null,
+                                emptyArray()
+                            )
+                        }
+                        distance > storage.closeDistance -> {
+                            c.showCloseError(
+                                R.string.storage_close_location_far_error,
+                                false,
+                                null,
+                                emptyArray()
+                            )
+                        }
+                        else -> {
+                            c.showPreCloseDialog(location)
+                        }
+                    }
+                } else {
+                    when {
+                        location == null -> {
+                            c.showCloseError(
+                                R.string.report_close_location_null_warning,
+                                true,
+                                null,
+                                emptyArray()
+                            )
+                        }
+                        distance > storage.closeDistance -> {
+                            c.showCloseError(
+                                R.string.storage_report_close_location_far_warning,
+                                true,
+                                null,
+                                emptyArray()
+                            )
+                        }
+                        else -> {
+                            c.showPreCloseDialog(location)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun effectPerformClose(location: Location?): StorageReportEffect =
+        wrapInLoaders({ StorageReportMessages.msgAddLoaders(it) }) { c, s ->
+            when (val report = s.storageReport) {
+                null -> {
+                    c.showError("sre:2", true)
+                }
+                else -> {
+                    if (s.tasks.isNotEmpty()) {
+                        effectInterruptPause()(c, s)
+                        val storage = s.tasks.first().storage
+                        c.storageReportUseCase.createStorageReportRequests(
+                            report, location, c.getBatteryLevel() ?: 0f, storage
+                        )
+                        messages.send(msgEffect(effectNavigateBack()))
+                    } else {
+                        c.showError("sre:3", true)
+                    }
+                }
+            }
+        }
+
+    fun effectInterruptPause(): StorageReportEffect = { c, s ->
+        c.storageReportUseCase.stopPause()
     }
 }
 

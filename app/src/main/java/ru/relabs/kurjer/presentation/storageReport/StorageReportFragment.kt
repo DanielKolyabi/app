@@ -1,7 +1,9 @@
 package ru.relabs.kurjer.presentation.storageReport
 
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Intent
+import android.content.IntentFilter
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
@@ -124,21 +126,36 @@ class StorageReportFragment : BaseFragment() {
                 StorageReportRenders.renderTitle(binding.tvTitle),
                 StorageReportRenders.renderClosesList(closesAdapter),
                 StorageReportRenders.renderPhotos(photosAdapter),
-                StorageReportRenders.renderDescription(binding.etDescription,descriptionTextWatcher)
+                StorageReportRenders.renderDescription(
+                    binding.etDescription,
+                    descriptionTextWatcher
+                )
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
         }
         controller.context.errorContext.attach(view)
+        controller.context.getBatteryLevel = ::getBatteryLevel
         controller.context.requestPhoto = ::requestPhoto
         controller.context.showCloseError = ::showCloseError
         controller.context.showError = ::showFatalError
+        controller.context.showPausedWarning = ::showPausedWarning
+        controller.context.showPhotosWarning = ::showPhotosWarning
+        controller.context.showPreCloseDialog = ::showPreCloseDialog
         controller.context.contentResolver = { requireContext().contentResolver }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         renderJob?.cancel()
+        controller.context.getBatteryLevel = { null }
+        controller.context.requestPhoto = { _, _, _ -> }
+        controller.context.showCloseError = { _, _, _, _ -> }
+        controller.context.showError = { _, _ -> }
+        controller.context.showPausedWarning = {}
+        controller.context.showPhotosWarning = {}
+        controller.context.contentResolver = { null }
+        controller.context.showPreCloseDialog = { _ -> }
         controller.context.errorContext.detach()
     }
 
@@ -147,7 +164,10 @@ class StorageReportFragment : BaseFragment() {
         controller.stop()
     }
 
-    private fun bindControls(binding: FragmentStorageReportBinding, descriptionTextWatcher: TextWatcher) {
+    private fun bindControls(
+        binding: FragmentStorageReportBinding,
+        descriptionTextWatcher: TextWatcher
+    ) {
         binding.ivMenu.setOnClickListener {
             uiScope.sendMessage(
                 controller,
@@ -155,8 +175,18 @@ class StorageReportFragment : BaseFragment() {
             )
         }
         binding.etDescription.addTextChangedListener(descriptionTextWatcher)
-        binding.btnShowMap.setOnClickListener { uiScope.sendMessage(controller, StorageReportMessages.msgMapClicked()) }
-        binding.btnClose.setOnClickListener { }
+        binding.btnShowMap.setOnClickListener {
+            uiScope.sendMessage(
+                controller,
+                StorageReportMessages.msgMapClicked()
+            )
+        }
+        binding.btnClose.setOnClickListener {
+            uiScope.sendMessage(
+                controller,
+                StorageReportMessages.msgCloseClicked()
+            )
+        }
     }
 
     private suspend fun showFatalError(code: String, isFatal: Boolean) =
@@ -174,15 +204,15 @@ class StorageReportFragment : BaseFragment() {
             Unit
         }
 
-    private fun showPreCloseDialog(location: Location?, rejectReason: String?) {
+    private fun showPreCloseDialog(location: Location?) {
         showDialog(
             R.string.report_close_ask,
-//            R.string.yes to {
-//                uiScope.sendMessage(
-//                    controller,
-//                   StorageReportMessages.msgPerformClose(location, rejectReason)
-//                )
-//            },
+            R.string.yes to {
+                uiScope.sendMessage(
+                    controller,
+                    StorageReportMessages.msgPerformClose(location)
+                )
+            },
             R.string.no to {},
             style = R.style.RedAlertDialog
         ).setOnDismissListener {
@@ -194,7 +224,6 @@ class StorageReportFragment : BaseFragment() {
         msgRes: Int,
         withPreClose: Boolean,
         location: Location? = null,
-        rejectReason: String?,
         vararg msgFormat: Any
     ) {
         val text = Html.fromHtml(resources.getString(msgRes, *msgFormat))
@@ -202,11 +231,34 @@ class StorageReportFragment : BaseFragment() {
             text,
             R.string.ok to {
                 if (withPreClose) {
-                    showPreCloseDialog(location, rejectReason)
+                    showPreCloseDialog(location)
                 }
             }
         ).setOnDismissListener {
 
+        }
+    }
+
+    private fun showPhotosWarning() {
+        showDialog(
+            R.string.report_close_no_photos,
+            R.string.ok to {}
+        ).setOnDismissListener {
+
+        }
+    }
+
+    private fun showPausedWarning() {
+        showDialog(
+            R.string.report_close_paused_warning,
+            R.string.ok to {
+                uiScope.sendMessage(
+                    controller,
+                    StorageReportMessages.msgInterruptPause()
+                )
+            },
+            R.string.cancel to {}
+        ).setOnDismissListener {
         }
     }
 
@@ -225,6 +277,16 @@ class StorageReportFragment : BaseFragment() {
             startActivityForResult(intent, REQUEST_PHOTO_CODE)
         } else {
             uiScope.sendMessage(controller, StorageReportMessages.msgPhotoError(1))
+        }
+    }
+
+    private fun getBatteryLevel(): Float? {
+        val ifilter = IntentFilter("android.intent.action.BATTERY_CHANGED")
+        val battery = context?.registerReceiver(null as BroadcastReceiver?, ifilter)
+        return battery?.let { it ->
+            val level = it.getIntExtra("level", -1)
+            val scale = it.getIntExtra("scale", -1)
+            level.toFloat() / scale.toFloat()
         }
     }
 

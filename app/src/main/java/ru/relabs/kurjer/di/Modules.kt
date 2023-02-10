@@ -114,7 +114,8 @@ val repositoryModule = module {
             get<FirebaseTokenProvider>(),
             get<AppDatabase>(),
             get<ApiProvider>().httpClient,
-            get<PathsProvider>()
+            get<PathsProvider>(),
+            get<StorageRepository>()
         )
     }
     single<SettingsRepository> {
@@ -169,7 +170,12 @@ val useCasesModule = module {
     }
     single {
         StorageReportUseCase(
-            get<StorageRepository>(), get<PathsProvider>()
+            get<StorageRepository>(),
+            get<PathsProvider>(),
+            get<PauseRepository>(),
+            get<LocationProvider>(),
+            get<SettingsRepository>(),
+            get<AuthTokenStorage>()
         )
     }
 }

@@ -11,7 +11,6 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository
-import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.services.ReportService
@@ -546,24 +545,10 @@ object ReportEffects {
                             s.selectedTask.task.storage.closes.sortedByDescending { it.closeDate }
 
 
-                        fun checkStorageClose(): Boolean =
-                            if (c.settingsRepository.isStorageCloseRadiusRequired) {
-                                when {
-                                    closes.isEmpty() || closes.first().closeDate < c.settingsRepository.closeLimit -> {
-                                        c.showCloseError(
-                                            R.string.storage_not_closed_error,
-                                            false,
-                                            null,
-                                            rejectReason,
-                                            emptyArray()
-                                        )
-                                        true
-                                    }
-                                    else -> {
-                                        false
-                                    }
-                                }
-                            } else {
+                        fun checkStorageClose(): Boolean {
+                            val isCloseRequired = s.selectedTask.task.storageCloseFirstRequired
+                            val isCloseNotExist = closes.isEmpty() || closes.first().closeDate < c.settingsRepository.closeLimit
+                            return if (isCloseRequired && isCloseNotExist) {
                                 c.showCloseError(
                                     R.string.storage_not_closed_error,
                                     false,
@@ -571,8 +556,11 @@ object ReportEffects {
                                     rejectReason,
                                     emptyArray()
                                 )
+                                true
+                            } else {
                                 false
                             }
+                        }
 
                         fun checkTaskClose(): Boolean =
                             if (c.settingsRepository.isCloseRadiusRequired) {

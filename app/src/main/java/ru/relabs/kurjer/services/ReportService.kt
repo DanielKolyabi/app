@@ -91,15 +91,6 @@ class ReportService : Service(), KoinComponent {
                     val reportQuery = databaseRepository.getNextReportQuery()
                     val storageReportQuery = storageRepository.getNextQuery()
                     when {
-                        reportQuery != null -> {
-                            when (val r = sendReportQuery(reportQuery)) {
-                                is Left -> r.value.log()
-                                is Right -> {
-                                    isTaskSended = true
-                                    databaseRepository.removeReport(reportQuery)
-                                }
-                            }
-                        }
                         sendQuery != null -> {
                             when (val r = sendSendQuery(sendQuery)) {
                                 is Left -> r.value.log()
@@ -115,6 +106,15 @@ class ReportService : Service(), KoinComponent {
                                 is Right -> {
                                     isTaskSended = true
                                     storageRepository.removeStorageReportQuery(storageReportQuery)
+                                }
+                            }
+                        }
+                        reportQuery != null -> {
+                            when (val r = sendReportQuery(reportQuery)) {
+                                is Left -> r.value.log()
+                                is Right -> {
+                                    isTaskSended = true
+                                    databaseRepository.removeReport(reportQuery)
                                 }
                             }
                         }

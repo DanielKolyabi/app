@@ -6,8 +6,9 @@ import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import ru.relabs.kurjer.domain.models.StorageId
 import ru.relabs.kurjer.domain.models.TaskId
 import java.util.*
+
 @Parcelize
-data class StorageReportId(val id: Int): Parcelable
+data class StorageReportId(val id: Int) : Parcelable
 
 data class StorageReport(
     val id: StorageReportId,
@@ -15,9 +16,11 @@ data class StorageReport(
     val taskIds: List<TaskId>,
     val gps: GPSCoordinatesModel,
     val description: String,
-    val isClosed: Boolean,
     val closeData: ReportCloseData?
-)
+) {
+    val isClosed: Boolean
+        get() = closeData != null
+}
 
 data class ReportCloseData(
     val closeTime: Date,

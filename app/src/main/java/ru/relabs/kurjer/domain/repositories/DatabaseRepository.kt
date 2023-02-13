@@ -10,12 +10,10 @@ import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.*
 import ru.relabs.kurjer.domain.mappers.ReportEntranceSelectionMapper
 import ru.relabs.kurjer.domain.mappers.TaskItemEntranceResultMapper
-import ru.relabs.kurjer.domain.mappers.database.DatabaseTaskItemResultMapper
 import ru.relabs.kurjer.domain.mappers.database.*
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
-import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import ru.relabs.kurjer.utils.*
 import java.util.*
 
@@ -365,9 +363,8 @@ class DatabaseRepository(
 
     suspend fun updateTaskItemResult(updatedReport: TaskItemResult): TaskItemResult =
         withContext(Dispatchers.IO) {
-            val newId =
-                db.taskItemResultsDao()
-                    .insert(DatabaseTaskItemResultMapper.fromModel(updatedReport))
+            val newId = db.taskItemResultsDao()
+                .insert(DatabaseTaskItemResultMapper.fromModel(updatedReport))
             db.entrancesDao().insertAll(
                 updatedReport.entrances.map {
                     TaskItemEntranceResultMapper.fromModel(

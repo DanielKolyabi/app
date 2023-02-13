@@ -122,14 +122,9 @@ class StorageReportUseCase(
             )
         } ?: Int.MAX_VALUE.toDouble()
 
-        val updatedReport = StorageReport(
-            report.id,
-            report.storageId,
-            report.taskIds,
-            getReportLocation(location),
-            report.description,
-            true,
-            ReportCloseData(
+        val updatedReport = report.copy(
+            gps = getReportLocation(location),
+            closeData = ReportCloseData(
                 Date(),
                 (batteryLevel * 100).roundToInt(),
                 distance.toInt(),
@@ -144,10 +139,9 @@ class StorageReportUseCase(
         storageRepository.updateReport(updatedReport)
         updatedReport.taskIds.forEach { taskId ->
             storageRepository.createReportRequest(report.id, taskId, tokenStorage.getToken() ?: "")
+            val storageClose = StorageClosure(taskId, storage.id, Date())
             val task = tasks.single { it.id == taskId }
-            val closes = task.storage.closes.toMutableList()
-            closes.add(StorageClosure(taskId, storage.id, Date()))
-            val newStorage = task.storage.copy(closes = closes)
+            val newStorage = task.storage.copy(closes = task.storage.closes + storageClose)
             databaseRepository.updateTask(task.copy(storage = newStorage))
         }
         val openedReports = storageRepository.getOpenedReportsByStorageId(storage.id)

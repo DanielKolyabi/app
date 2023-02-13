@@ -16,7 +16,8 @@ class SettingsRepository(
     private val sharedPreferences: SharedPreferences
 ) {
     val scope = CoroutineScope(Dispatchers.Main)
-    val closeLimit: Date = DateTime().withTime(4, 0, 0, 0).toDate()
+    val closeLimit: Date
+        get() = DateTime().withTime(4, 0, 0, 0).toDate()
     var closeGpsUpdateTime: GpsRefreshTimes = loadSavedGPSRefreshTimes()
     var isCloseRadiusRequired: Boolean = sharedPreferences.getBoolean(RADIUS_REQUIRED_KEY, true)
     var isPhotoRadiusRequired: Boolean = sharedPreferences.getBoolean(PHOTO_REQUIRED_KEY, true)

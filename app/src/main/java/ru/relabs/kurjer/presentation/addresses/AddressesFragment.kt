@@ -62,7 +62,7 @@ class AddressesFragment : BaseFragment() {
             uiScope.sendMessage(controller, AddressesMessages.msgSearch(""))
         },
         AddressesAdapter.storageAdapter {
-            uiScope.sendMessage(controller, AddressesMessages.msgStorageBtnClicked())
+            uiScope.sendMessage(controller, AddressesMessages.msgStorageClicked())
         }
 
     )
@@ -77,7 +77,12 @@ class AddressesFragment : BaseFragment() {
             controller.start(msgEmpty())
             showDialog(
                 getString(R.string.unknown_runtime_error_code, "af:100"),
-                R.string.ok to { uiScope.sendMessage(controller, AddressesMessages.msgNavigateBack()) }
+                R.string.ok to {
+                    uiScope.sendMessage(
+                        controller,
+                        AddressesMessages.msgNavigateBack()
+                    )
+                }
             )
         }
     }
@@ -98,7 +103,8 @@ class AddressesFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.rv_list.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
+        view.rv_list.layoutManager =
+            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
         view.rv_list.adapter = addressesAdapter
 
         bindControls(view)
@@ -113,9 +119,14 @@ class AddressesFragment : BaseFragment() {
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
         }
         controller.context.showImagePreview = {
-            ContextCompat.startActivity(requireContext(), IntentUtils.getImageViewIntent(it, requireContext()), null)
+            ContextCompat.startActivity(
+                requireContext(),
+                IntentUtils.getImageViewIntent(it, requireContext()),
+                null
+            )
         }
         controller.context.showSnackbar = { showSnackbar(getString(it)) }
+        controller.context.showStorageWarningDialog = ::showStorageWarningDialog
         controller.context.errorContext.attach(view)
     }
 
@@ -133,8 +144,20 @@ class AddressesFragment : BaseFragment() {
         super.onDestroyView()
         controller.context.showSnackbar = {}
         controller.context.showImagePreview = {}
+        controller.context.showStorageWarningDialog = {}
         renderJob?.cancel()
         controller.context.errorContext.detach()
+    }
+
+    private fun showStorageWarningDialog() {
+        showDialog(
+            R.string.unselected_tasks_warning,
+            R.string.ok to {
+                uiScope.sendMessage(
+                    controller,
+                    AddressesMessages.msgWarningShowed()
+                )
+            })
     }
 
     override fun interceptBackPressed(): Boolean {

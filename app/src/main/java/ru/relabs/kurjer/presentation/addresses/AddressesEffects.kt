@@ -9,6 +9,7 @@ import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.uiOld.fragments.YandexMapFragment
+import java.util.*
 
 /**
  * Created by Daniil Kurchanov on 02.04.2020.
@@ -118,8 +119,17 @@ object AddressesEffects {
         messages.send(AddressesMessages.msgSelectedListAddress(null))
     }
 
-    fun effectNavigateStorage(): AddressesEffect = { c, s ->
+    fun effectCheckTasks(): AddressesEffect = { c, s ->
+        val storageIds = s.tasks.map { it.storage.id }
+        val tasks = c.databaseRepository.getTasksByStorageId(storageIds)
+            .filter { it.state.state != TaskState.COMPLETED && it.state.state != TaskState.CANCELED }
+            .filter { it.endTime > Date() && it.startTime < Date() }
+        if (tasks.size != s.tasks.size) {
+            c.showStorageWarningDialog()
+        }
+    }
 
+    fun effectNavigateStorage(): AddressesEffect = { c, s ->
         if (s.tasks.size == 1) {
             withContext(Dispatchers.Main) {
                 c.router.navigateTo(RootScreen.StorageReportScreen(s.tasks.map { it.id }))
@@ -129,7 +139,5 @@ object AddressesEffects {
                 c.router.navigateTo(RootScreen.StorageListScreen(s.tasks.map { it.id }))
             }
         }
-        //TODO:Добавить обработку заданий с тем же складом не в сцепке
-        val storageIds = s.tasks.map { it.storage.id }
     }
 }

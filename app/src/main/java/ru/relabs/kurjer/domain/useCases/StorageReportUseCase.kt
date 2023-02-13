@@ -10,6 +10,7 @@ import ru.relabs.kurjer.domain.models.storage.StorageReport
 import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.providers.PathsProvider
+import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.repositories.StorageRepository
@@ -29,6 +30,7 @@ class StorageReportUseCase(
     private val locationProvider: LocationProvider,
     private val settingsRepository: SettingsRepository,
     private val tokenStorage: AuthTokenStorage,
+    private val databaseRepository: DatabaseRepository
 ) {
 
     suspend fun getReportsByStorageId(storageId: StorageId): List<StorageReport>? =
@@ -136,9 +138,17 @@ class StorageReportUseCase(
                 storage.photoRequired
             )
         )
+
+        val tasks = databaseRepository.getTasksByIds(report.taskIds)
+
         storageRepository.updateReport(updatedReport)
-        updatedReport.taskIds.forEach {
-            storageRepository.createReportRequest(report.id, it, tokenStorage.getToken() ?: "")
+        updatedReport.taskIds.forEach { taskId ->
+            storageRepository.createReportRequest(report.id, taskId, tokenStorage.getToken() ?: "")
+            val task = tasks.single { it.id == taskId }
+            val closes = task.storage.closes.toMutableList()
+            closes.add(StorageClosure(taskId, storage.id, Date()))
+            val newStorage = task.storage.copy(closes = closes)
+            databaseRepository.updateTask(task.copy(storage = newStorage))
         }
         val openedReports = storageRepository.getOpenedReportsByStorageId(storage.id)
         if (!openedReports.isNullOrEmpty()) {

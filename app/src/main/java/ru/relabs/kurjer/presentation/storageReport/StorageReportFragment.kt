@@ -243,9 +243,7 @@ class StorageReportFragment : BaseFragment() {
         showDialog(
             R.string.report_close_no_photos,
             R.string.ok to {}
-        ).setOnDismissListener {
-
-        }
+        )
     }
 
     private fun showPausedWarning() {

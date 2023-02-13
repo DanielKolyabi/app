@@ -3,8 +3,10 @@ package ru.relabs.kurjer.domain.repositories
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import kotlinx.coroutines.*
+import org.joda.time.DateTime
 import ru.relabs.kurjer.domain.models.GpsRefreshTimes
 import ru.relabs.kurjer.utils.Right
+import java.util.*
 
 /**
  * Created by Daniil Kurchanov on 13.01.2020.
@@ -14,6 +16,7 @@ class SettingsRepository(
     private val sharedPreferences: SharedPreferences
 ) {
     val scope = CoroutineScope(Dispatchers.Main)
+    val closeLimit: Date = DateTime().withTime(4, 0, 0, 0).toDate()
     var closeGpsUpdateTime: GpsRefreshTimes = loadSavedGPSRefreshTimes()
     var isCloseRadiusRequired: Boolean = sharedPreferences.getBoolean(RADIUS_REQUIRED_KEY, true)
     var isPhotoRadiusRequired: Boolean = sharedPreferences.getBoolean(PHOTO_REQUIRED_KEY, true)

@@ -2,7 +2,6 @@ package ru.relabs.kurjer.data.database.daos
 
 import androidx.room.*
 import ru.relabs.kurjer.data.database.entities.TaskEntity
-import ru.relabs.kurjer.domain.models.TaskId
 
 /**
  * Created by ProOrange on 30.08.2018.
@@ -25,6 +24,9 @@ interface TaskEntityDao {
     @Query("SELECT * FROM tasks WHERE id = :id")
     fun getById(id: Int): TaskEntity?
 
+    @Query("SELECT * FROM tasks WHERE storage_id in (:ids)")
+    fun getTasksByStorageId(ids: List<Int>): List<TaskEntity>
+
     @Update
     fun update(task: TaskEntity)
 
@@ -36,4 +38,5 @@ interface TaskEntityDao {
 
     @Delete
     fun delete(task: TaskEntity)
+
 }

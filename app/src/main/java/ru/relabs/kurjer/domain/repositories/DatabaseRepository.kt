@@ -366,7 +366,8 @@ class DatabaseRepository(
     suspend fun updateTaskItemResult(updatedReport: TaskItemResult): TaskItemResult =
         withContext(Dispatchers.IO) {
             val newId =
-                db.taskItemResultsDao().insert(DatabaseTaskItemResultMapper.fromModel(updatedReport))
+                db.taskItemResultsDao()
+                    .insert(DatabaseTaskItemResultMapper.fromModel(updatedReport))
             db.entrancesDao().insertAll(
                 updatedReport.entrances.map {
                     TaskItemEntranceResultMapper.fromModel(
@@ -562,6 +563,19 @@ class DatabaseRepository(
             }
         }
         return@withContext false
+    }
+
+    suspend fun getTasksByStorageId(storageIds: List<StorageId>): List<Task> =
+        withContext(Dispatchers.IO) {
+            db.taskDao().getTasksByStorageId(storageIds.map { it.id }).map {
+                DatabaseTaskMapper.fromEntity(it, db)
+            }
+        }
+
+    suspend fun updateTask(newTask: Task) {
+        withContext(Dispatchers.IO) {
+            db.taskDao().update(DatabaseTaskMapper.toEntity(newTask))
+        }
     }
 }
 

@@ -33,6 +33,7 @@ class AddressesContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) 
     val taskEventController: TaskEventController by inject()
     val pathsProvider: PathsProvider by inject()
 
+    var showStorageWarningDialog: () -> Unit = {}
     var showImagePreview: (File) -> Unit = {}
     var showSnackbar: (msgRes: Int) -> Unit = {}
 }
@@ -41,6 +42,6 @@ typealias AddressesMessage = ElmMessage<AddressesContext, AddressesState>
 typealias AddressesEffect = ElmEffect<AddressesContext, AddressesState>
 typealias AddressesRender = ElmRender<AddressesState>
 
-enum class AddressesSortingMethod{
+enum class AddressesSortingMethod {
     STANDARD, ALPHABETIC
 }

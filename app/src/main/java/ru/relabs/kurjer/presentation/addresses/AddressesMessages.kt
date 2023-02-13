@@ -115,7 +115,11 @@ object AddressesMessages {
         }
     )
 
-    fun msgStorageBtnClicked(): AddressesMessage = msgEffect(
+    fun msgStorageClicked(): AddressesMessage = msgEffect(
+        AddressesEffects.effectCheckTasks()
+    )
+
+    fun msgWarningShowed(): AddressesMessage = msgEffect(
         AddressesEffects.effectNavigateStorage()
     )
 }

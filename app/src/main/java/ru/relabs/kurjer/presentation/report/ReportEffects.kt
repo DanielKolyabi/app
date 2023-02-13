@@ -25,7 +25,10 @@ import java.util.*
  * Created by Daniil Kurchanov on 02.04.2020.
  */
 object ReportEffects {
-    fun effectLoadData(itemIds: List<Pair<TaskId, TaskItemId>>, selectedTaskItemId: TaskItemId): ReportEffect = { c, s ->
+    fun effectLoadData(
+        itemIds: List<Pair<TaskId, TaskItemId>>,
+        selectedTaskItemId: TaskItemId
+    ): ReportEffect = { c, s ->
         messages.send(ReportMessages.msgAddLoaders(1))
         val tasks = itemIds.mapNotNull { (taskId, taskItemId) ->
             val task = c.database.getTask(taskId)
@@ -95,9 +98,17 @@ object ReportEffects {
             c.showError("re:110", true)
         } else {
             val photos = c.database.getTaskItemPhotos(taskItem).map {
-                PhotoWithUri(it, c.pathsProvider.getTaskItemPhotoFile(taskItem, UUID.fromString(it.UUID)).toUri())
+                PhotoWithUri(
+                    it,
+                    c.pathsProvider.getTaskItemPhotoFile(taskItem, UUID.fromString(it.UUID)).toUri()
+                )
             }
-            messages.send(ReportMessages.msgTaskSelectionLoaded(TaskWithItem(task, taskItem), photos))
+            messages.send(
+                ReportMessages.msgTaskSelectionLoaded(
+                    TaskWithItem(task, taskItem),
+                    photos
+                )
+            )
 
             val report = c.database.getTaskItemResult(taskItem)
             messages.send(ReportMessages.msgSavedResultLoaded(report))
@@ -185,7 +196,8 @@ object ReportEffects {
                     coroutineScope {
                         messages.send(ReportMessages.msgAddLoaders(1))
                         messages.send(ReportMessages.msgGPSLoading(true))
-                        val delayJob = async { delay(c.settingsRepository.closeGpsUpdateTime.photo * 1000L) }
+                        val delayJob =
+                            async { delay(c.settingsRepository.closeGpsUpdateTime.photo * 1000L) }
                         val gpsJob = async(Dispatchers.Default) {
                             c.locationProvider.updatesChannel().apply {
                                 receive()
@@ -200,7 +212,15 @@ object ReportEffects {
                         }
                         messages.send(ReportMessages.msgGPSLoading(false))
                         messages.send(ReportMessages.msgAddLoaders(-1))
-                        messages.send(msgEffect(effectValidatePhotoRadiusAnd(msgFactory, withAnyRadiusWarning, false)))
+                        messages.send(
+                            msgEffect(
+                                effectValidatePhotoRadiusAnd(
+                                    msgFactory,
+                                    withAnyRadiusWarning,
+                                    false
+                                )
+                            )
+                        )
                     }
                 } else {
                     if (!c.settingsRepository.isPhotoRadiusRequired) {
@@ -210,17 +230,35 @@ object ReportEffects {
 
                         if (distance > selected.taskItem.closeRadius && withAnyRadiusWarning && !shouldSuppressDialog) {
                             withContext(Dispatchers.Main) {
-                                c.showCloseError(R.string.report_close_location_far_warning, false, null, null, emptyArray())
+                                c.showCloseError(
+                                    R.string.report_close_location_far_warning,
+                                    false,
+                                    null,
+                                    null,
+                                    emptyArray()
+                                )
                             }
                         }
                         messages.send(msgFactory())
                     } else {
                         when {
                             locationNotValid -> withContext(Dispatchers.Main) {
-                                c.showCloseError(R.string.report_close_location_null_error, false, null, null, emptyArray())
+                                c.showCloseError(
+                                    R.string.report_close_location_null_error,
+                                    false,
+                                    null,
+                                    null,
+                                    emptyArray()
+                                )
                             }
                             distance > selected.taskItem.closeRadius -> withContext(Dispatchers.Main) {
-                                c.showCloseError(R.string.report_close_location_far_error, false, null, null, emptyArray())
+                                c.showCloseError(
+                                    R.string.report_close_location_far_error,
+                                    false,
+                                    null,
+                                    null,
+                                    emptyArray()
+                                )
                             }
                             else ->
                                 messages.send(msgFactory())
@@ -262,7 +300,14 @@ object ReportEffects {
         multiplePhoto: Boolean
     ): ReportEffect = { c, s ->
         CustomLog.writeToFile("Request photo ($entranceNumber) with raidus validation")
-        effectValidatePhotoRadiusAnd({ msgEffect(effectRequestPhoto(entranceNumber, multiplePhoto)) }, false)(c, s)
+        effectValidatePhotoRadiusAnd({
+            msgEffect(
+                effectRequestPhoto(
+                    entranceNumber,
+                    multiplePhoto
+                )
+            )
+        }, false)(c, s)
     }
 
     fun effectRequestPhoto(entranceNumber: Int, multiplePhotos: Boolean): ReportEffect = { c, s ->
@@ -271,7 +316,8 @@ object ReportEffects {
             else -> {
                 val photoUUID = UUID.randomUUID()
                 CustomLog.writeToFile("Request photo ${entranceNumber} ${photoUUID}")
-                val photoFile = c.pathsProvider.getTaskItemPhotoFile(selectedTask.taskItem, photoUUID)
+                val photoFile =
+                    c.pathsProvider.getTaskItemPhotoFile(selectedTask.taskItem, photoUUID)
                 withContext(Dispatchers.Main) {
                     c.requestPhoto(entranceNumber, multiplePhotos, photoFile, photoUUID)
                 }
@@ -283,13 +329,17 @@ object ReportEffects {
         c.database.removePhoto(it)
     }
 
-    fun effectEntranceSelectionChanged(entrance: EntranceNumber, button: EntranceSelectionButton): ReportEffect = { c, s ->
-        fun applyButtonClick(selection: ReportEntranceSelection): ReportEntranceSelection = when (button) {
-            EntranceSelectionButton.Euro -> selection.copy(isEuro = !selection.isEuro)
-            EntranceSelectionButton.Watch -> selection.copy(isWatch = !selection.isWatch)
-            EntranceSelectionButton.Stack -> selection.copy(isStacked = !selection.isStacked)
-            EntranceSelectionButton.Reject -> selection.copy(isRejected = !selection.isRejected)
-        }
+    fun effectEntranceSelectionChanged(
+        entrance: EntranceNumber,
+        button: EntranceSelectionButton
+    ): ReportEffect = { c, s ->
+        fun applyButtonClick(selection: ReportEntranceSelection): ReportEntranceSelection =
+            when (button) {
+                EntranceSelectionButton.Euro -> selection.copy(isEuro = !selection.isEuro)
+                EntranceSelectionButton.Watch -> selection.copy(isWatch = !selection.isWatch)
+                EntranceSelectionButton.Stack -> selection.copy(isStacked = !selection.isStacked)
+                EntranceSelectionButton.Reject -> selection.copy(isRejected = !selection.isRejected)
+            }
 
         when (val affectedTask = s.selectedTask) {
             null -> c.showError("re:101", true)
@@ -315,11 +365,22 @@ object ReportEffects {
                 }
 
                 //Coupling
-                val newSelection = newResult?.entrances?.firstOrNull { it.entranceNumber == entrance }?.selection
-                if (newSelection != null && s.coupling.isCouplingEnabled(affectedTask.task, entrance)) {
+                val newSelection =
+                    newResult?.entrances?.firstOrNull { it.entranceNumber == entrance }?.selection
+                if (newSelection != null && s.coupling.isCouplingEnabled(
+                        affectedTask.task,
+                        entrance
+                    )
+                ) {
                     s.tasks
                         .filter { it.task.coupleType == affectedTask.task.coupleType && it.taskItem.state == TaskItemState.CREATED }
-                        .forEach { c.database.createOrUpdateTaskItemEntranceResultSelection(entrance, it.taskItem, newSelection) }
+                        .forEach {
+                            c.database.createOrUpdateTaskItemEntranceResultSelection(
+                                entrance,
+                                it.taskItem,
+                                newSelection
+                            )
+                        }
                 }
 
                 newResult?.let {
@@ -330,7 +391,12 @@ object ReportEffects {
     }
 
 
-    fun effectSavePhotoFromFile(entrance: Int, photoUri: Uri, targetFile: File, uuid: UUID): ReportEffect = { c, s ->
+    fun effectSavePhotoFromFile(
+        entrance: Int,
+        photoUri: Uri,
+        targetFile: File,
+        uuid: UUID
+    ): ReportEffect = { c, s ->
         val contentResolver = c.contentResolver()
         if (contentResolver == null) {
             messages.send(msgEffect(effectShowPhotoError(8)))
@@ -345,7 +411,12 @@ object ReportEffects {
         }
     }
 
-    fun effectSavePhotoFromBitmap(entrance: Int, bitmap: Bitmap, targetFile: File, uuid: UUID): ReportEffect = { c, s ->
+    fun effectSavePhotoFromBitmap(
+        entrance: Int,
+        bitmap: Bitmap,
+        targetFile: File,
+        uuid: UUID
+    ): ReportEffect = { c, s ->
         CustomLog.writeToFile("Save photo ${entrance} ${uuid}")
         when (val task = s.selectedTask) {
             null -> c.showError("re:102", true)
@@ -368,7 +439,8 @@ object ReportEffects {
             null -> c.showError("re:103", true)
             else -> {
                 s.tasks.filter { it.taskItem.state == TaskItemState.CREATED }.forEach { t ->
-                    val result = c.database.getTaskItemResult(t.taskItem) ?: createEmptyTaskResult(c.database, t.taskItem)
+                    val result = c.database.getTaskItemResult(t.taskItem)
+                        ?: createEmptyTaskResult(c.database, t.taskItem)
                     val updated = c.database.updateTaskItemResult(result.copy(description = text))
                     if (updated.taskItemId == selectedTask.taskItem.id) {
                         messages.send(ReportMessages.msgSavedResultLoaded(updated))
@@ -385,130 +457,206 @@ object ReportEffects {
                 val taskCoupleType = selected.task.coupleType
                 val currentCoupleState = s.coupling.isCouplingEnabled(selected.task, entrance)
                 if (s.tasks.filter { it.taskItem.state == TaskItemState.CREATED && it.task.coupleType == taskCoupleType }.size > 1) {
-                    messages.send(ReportMessages.msgCouplingChanged(taskCoupleType, entrance, !currentCoupleState))
-                }
-            }
-        }
-    }
-
-    fun effectCloseCheck(withLocationLoading: Boolean, rejectReason: String?): ReportEffect = { c, s ->
-        messages.send(ReportMessages.msgAddLoaders(1))
-        when (val selected = s.selectedTask) {
-            null -> c.showError("re:106", true)
-            else -> {
-                val taskItemRequiredPhotoExists = if (selected.taskItem.needPhoto) {
-                    s.selectedTaskPhotos.any { it.photo.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM }
-                } else {
-                    true
-                }
-
-                val requiredEntrancesPhotos = when (selected.taskItem) {
-                    is TaskItem.Common -> selected.taskItem.entrancesData
-                        .filter { it.photoRequired }
-                        .map { it.number }
-                    is TaskItem.Firm -> emptyList()
-                }
-
-                val entrancesRequiredPhotoExists = if (requiredEntrancesPhotos.isNotEmpty()) {
-                    requiredEntrancesPhotos.all { entranceNumber -> s.selectedTaskPhotos.any { it.photo.entranceNumber == entranceNumber } }
-                } else {
-                    true
-                }
-
-                val location = c.locationProvider.lastReceivedLocation()
-                CustomLog.writeToFile("GPS LOG: Close check with location(${location?.latitude}, ${location?.longitude}, ${Date(location?.time ?: 0).formatedWithSecs()})")
-
-                if (c.pauseRepository.isPaused) {
-                    withContext(Dispatchers.Main) {
-                        c.showPausedWarning()
-                    }
-                } else if (!taskItemRequiredPhotoExists || !entrancesRequiredPhotoExists) {
-                    withContext(Dispatchers.Main) {
-                        c.showPhotosWarning()
-                    }
-                } else if (withLocationLoading && (location == null || Date(location.time).isLocationExpired())) {
-                    coroutineScope {
-                        messages.send(ReportMessages.msgAddLoaders(1))
-                        messages.send(ReportMessages.msgGPSLoading(true))
-                        val delayJob = async { delay(c.settingsRepository.closeGpsUpdateTime.close * 1000L) }
-                        val gpsJob = async(Dispatchers.Default) {
-                            c.locationProvider.updatesChannel().apply {
-                                receive()
-                                CustomLog.writeToFile("GPS LOG: Received new location")
-                                cancel()
-                            }
-                        }
-                        listOf(delayJob, gpsJob).awaitFirst()
-                        delayJob.cancel()
-                        gpsJob.cancel()
-                        CustomLog.writeToFile("GPS LOG: Got force coordinates")
-                        messages.send(ReportMessages.msgGPSLoading(false))
-                        messages.send(ReportMessages.msgAddLoaders(-1))
-                        messages.send(msgEffect(effectCloseCheck(false, rejectReason)))
-                    }
-                } else {
-                    val distance = location?.let {
-                        calculateDistance(
-                            location.latitude,
-                            location.longitude,
-                            selected.taskItem.address.lat.toDouble(),
-                            selected.taskItem.address.long.toDouble()
+                    messages.send(
+                        ReportMessages.msgCouplingChanged(
+                            taskCoupleType,
+                            entrance,
+                            !currentCoupleState
                         )
-                    } ?: Int.MAX_VALUE.toDouble()
-
-                    val shadowClose: Boolean = withContext(Dispatchers.Main) {
-                        if (c.settingsRepository.isCloseRadiusRequired) {
-                            when {
-                                location == null -> {
-                                    c.showCloseError(R.string.report_close_location_null_error, false, null, rejectReason, emptyArray())
-                                    true
-                                }
-                                distance > selected.taskItem.closeRadius -> {
-                                    c.showCloseError(R.string.report_close_location_far_error, false, null, rejectReason, emptyArray())
-                                    true
-                                }
-                                else -> {
-                                    withContext(Dispatchers.Main) {
-                                        c.showPreCloseDialog(location, rejectReason)
-                                    }
-                                    false
-                                }
-                            }
-                        } else {
-                            when {
-                                location == null -> {
-                                    c.showCloseError(
-                                        R.string.report_close_location_null_warning,
-                                        true,
-                                        location,
-                                        rejectReason,
-                                        emptyArray()
-                                    )
-                                    false
-                                }
-                                distance > selected.taskItem.closeRadius -> {
-                                    c.showCloseError(R.string.report_close_location_far_warning, true, location, rejectReason, emptyArray())
-                                    false
-                                }
-                                else -> {
-                                    withContext(Dispatchers.Main) {
-                                        c.showPreCloseDialog(location, rejectReason)
-                                    }
-                                    false
-                                }
-                            }
-                        }
-                    }
-                    if (shadowClose) {
-                        effectClosePerform(false, location, rejectReason)(c, s)
-                    }
+                    )
                 }
             }
         }
-        messages.send(ReportMessages.msgAddLoaders(-1))
     }
 
-    fun effectClosePerform(withRemove: Boolean, location: Location?, rejectReason: String?): ReportEffect = { c, s ->
+    fun effectCloseCheck(withLocationLoading: Boolean, rejectReason: String?): ReportEffect =
+        { c, s ->
+            messages.send(ReportMessages.msgAddLoaders(1))
+            when (val selected = s.selectedTask) {
+                null -> c.showError("re:106", true)
+                else -> {
+                    val taskItemRequiredPhotoExists = if (selected.taskItem.needPhoto) {
+                        s.selectedTaskPhotos.any { it.photo.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM }
+                    } else {
+                        true
+                    }
+
+                    val requiredEntrancesPhotos = when (selected.taskItem) {
+                        is TaskItem.Common -> selected.taskItem.entrancesData
+                            .filter { it.photoRequired }
+                            .map { it.number }
+                        is TaskItem.Firm -> emptyList()
+                    }
+
+                    val entrancesRequiredPhotoExists = if (requiredEntrancesPhotos.isNotEmpty()) {
+                        requiredEntrancesPhotos.all { entranceNumber -> s.selectedTaskPhotos.any { it.photo.entranceNumber == entranceNumber } }
+                    } else {
+                        true
+                    }
+
+                    val location = c.locationProvider.lastReceivedLocation()
+                    CustomLog.writeToFile(
+                        "GPS LOG: Close check with location(${location?.latitude}, ${location?.longitude}, ${
+                            Date(
+                                location?.time ?: 0
+                            ).formatedWithSecs()
+                        })"
+                    )
+
+                    if (c.pauseRepository.isPaused) {
+                        withContext(Dispatchers.Main) {
+                            c.showPausedWarning()
+                        }
+                    } else if (!taskItemRequiredPhotoExists || !entrancesRequiredPhotoExists) {
+                        withContext(Dispatchers.Main) {
+                            c.showPhotosWarning()
+                        }
+                    } else if (withLocationLoading && (location == null || Date(location.time).isLocationExpired())) {
+                        coroutineScope {
+                            messages.send(ReportMessages.msgAddLoaders(1))
+                            messages.send(ReportMessages.msgGPSLoading(true))
+                            val delayJob =
+                                async { delay(c.settingsRepository.closeGpsUpdateTime.close * 1000L) }
+                            val gpsJob = async(Dispatchers.Default) {
+                                c.locationProvider.updatesChannel().apply {
+                                    receive()
+                                    CustomLog.writeToFile("GPS LOG: Received new location")
+                                    cancel()
+                                }
+                            }
+                            listOf(delayJob, gpsJob).awaitFirst()
+                            delayJob.cancel()
+                            gpsJob.cancel()
+                            CustomLog.writeToFile("GPS LOG: Got force coordinates")
+                            messages.send(ReportMessages.msgGPSLoading(false))
+                            messages.send(ReportMessages.msgAddLoaders(-1))
+                            messages.send(msgEffect(effectCloseCheck(false, rejectReason)))
+                        }
+                    } else {
+                        val distance = location?.let {
+                            calculateDistance(
+                                location.latitude,
+                                location.longitude,
+                                selected.taskItem.address.lat.toDouble(),
+                                selected.taskItem.address.long.toDouble()
+                            )
+                        } ?: Int.MAX_VALUE.toDouble()
+
+                        val closes =
+                            s.selectedTask.task.storage.closes.sortedByDescending { it.closeDate }
+
+
+                        fun checkStorageClose(): Boolean =
+                            if (c.settingsRepository.isStorageCloseRadiusRequired) {
+                                when {
+                                    closes.isEmpty() || closes.first().closeDate < c.settingsRepository.closeLimit -> {
+                                        c.showCloseError(
+                                            R.string.storage_not_closed_error,
+                                            false,
+                                            null,
+                                            rejectReason,
+                                            emptyArray()
+                                        )
+                                        true
+                                    }
+                                    else -> {
+                                        false
+                                    }
+                                }
+                            } else {
+                                c.showCloseError(
+                                    R.string.storage_not_closed_error,
+                                    false,
+                                    null,
+                                    rejectReason,
+                                    emptyArray()
+                                )
+                                false
+                            }
+
+                        fun checkTaskClose(): Boolean =
+                            if (c.settingsRepository.isCloseRadiusRequired) {
+                                when {
+                                    location == null -> {
+                                        c.showCloseError(
+                                            R.string.report_close_location_null_error,
+                                            false,
+                                            null,
+                                            rejectReason,
+                                            emptyArray()
+                                        )
+                                        true
+                                    }
+                                    distance > selected.taskItem.closeRadius -> {
+                                        c.showCloseError(
+                                            R.string.report_close_location_far_error,
+                                            false,
+                                            null,
+                                            rejectReason,
+                                            emptyArray()
+                                        )
+                                        true
+                                    }
+                                    else -> {
+                                        c.showPreCloseDialog(location, rejectReason)
+                                        false
+                                    }
+                                }
+                            } else {
+                                when {
+                                    location == null -> {
+                                        c.showCloseError(
+                                            R.string.report_close_location_null_warning,
+                                            true,
+                                            location,
+                                            rejectReason,
+                                            emptyArray()
+                                        )
+                                        false
+                                    }
+                                    distance > selected.taskItem.closeRadius -> {
+                                        c.showCloseError(
+                                            R.string.report_close_location_far_warning,
+                                            true,
+                                            location,
+                                            rejectReason,
+                                            emptyArray()
+                                        )
+                                        false
+                                    }
+                                    else -> {
+                                        c.showPreCloseDialog(location, rejectReason)
+                                        false
+                                    }
+                                }
+                            }
+
+                        val shadowClose: Boolean = withContext(Dispatchers.Main) {
+                            if (s.selectedTask.task.state.state == TaskState.STARTED && s.selectedTask.task.storage.requirementsUpdateDate > c.settingsRepository.closeLimit) {
+                                checkTaskClose()
+                            } else {
+                                if (checkStorageClose()) {
+                                    true
+                                } else {
+                                    checkTaskClose()
+                                }
+                            }
+                        }
+                        if (shadowClose) {
+                            effectClosePerform(false, location, rejectReason)(c, s)
+                        }
+                    }
+                }
+            }
+            messages.send(ReportMessages.msgAddLoaders(-1))
+        }
+
+
+    fun effectClosePerform(
+        withRemove: Boolean,
+        location: Location?,
+        rejectReason: String?
+    ): ReportEffect = { c, s ->
         messages.send(ReportMessages.msgAddLoaders(1))
         when (val selected = s.selectedTask) {
             null -> c.showError("re:107", true)
@@ -531,14 +679,20 @@ object ReportEffects {
         messages.send(ReportMessages.msgAddLoaders(-1))
     }
 
-    private fun savePhotoFromBitmapToFile(bitmap: Bitmap, targetFile: File): Either<Exception, File> = Either.of {
+    private fun savePhotoFromBitmapToFile(
+        bitmap: Bitmap,
+        targetFile: File
+    ): Either<Exception, File> = Either.of {
         val resized = ImageUtils.resizeBitmap(bitmap, 1024f, 768f)
         bitmap.recycle()
         ImageUtils.saveImage(resized, targetFile)
         targetFile
     }
 
-    private suspend fun createEmptyTaskResult(database: DatabaseRepository, taskItem: TaskItem): TaskItemResult {
+    private suspend fun createEmptyTaskResult(
+        database: DatabaseRepository,
+        taskItem: TaskItem
+    ): TaskItemResult {
         val result = TaskItemResult(
             id = TaskItemResultId(0),
             taskItemId = taskItem.id,
@@ -593,8 +747,11 @@ object ReportEffects {
     }
 
     fun effectShowDescriptionInput(number: EntranceNumber): ReportEffect = { c, s ->
-        val currentDescription = s.selectedTaskReport?.entrances?.firstOrNull { it.entranceNumber == number }?.userDescription ?: ""
-        val isTaskFinished = s.selectedTask?.task?.state?.state in listOf(TaskState.COMPLETED, TaskState.CANCELED)
+        val currentDescription =
+            s.selectedTaskReport?.entrances?.firstOrNull { it.entranceNumber == number }?.userDescription
+                ?: ""
+        val isTaskFinished =
+            s.selectedTask?.task?.state?.state in listOf(TaskState.COMPLETED, TaskState.CANCELED)
         withContext(Dispatchers.Main) {
             c.showDescriptionInputDialog(
                 number,
@@ -604,7 +761,10 @@ object ReportEffects {
         }
     }
 
-    fun effectChangeEntranceDescription(entranceNumber: EntranceNumber, description: String): ReportEffect = { c, s ->
+    fun effectChangeEntranceDescription(
+        entranceNumber: EntranceNumber,
+        description: String
+    ): ReportEffect = { c, s ->
         when (val affectedTask = s.selectedTask) {
             null -> c.showError("re:111", true)
             else -> {

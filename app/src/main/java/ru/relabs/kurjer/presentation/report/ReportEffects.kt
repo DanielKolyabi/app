@@ -501,8 +501,22 @@ object ReportEffects {
                             ).formatedWithSecs()
                         })"
                     )
-
-                    if (c.pauseRepository.isPaused) {
+                    val storageCloses = s.selectedTask.task.storage.closes.sortedByDescending { it.closeDate }
+                    val isStorageCloseNotExist =
+                        storageCloses.isEmpty() || storageCloses.first().closeDate < c.settingsRepository.closeLimit
+                    val isStorageCloseOptional = s.selectedTask.task.state.state == TaskState.STARTED
+                            && s.selectedTask.task.storage.requirementsUpdateDate > c.settingsRepository.closeLimit
+                    if (!isStorageCloseOptional && selected.task.storageCloseFirstRequired && isStorageCloseNotExist) {
+                        withContext(Dispatchers.Main) {
+                            c.showCloseError(
+                                R.string.storage_not_closed_error,
+                                false,
+                                null,
+                                rejectReason,
+                                emptyArray()
+                            )
+                        }
+                    } else if (c.pauseRepository.isPaused) {
                         withContext(Dispatchers.Main) {
                             c.showPausedWarning()
                         }
@@ -541,28 +555,8 @@ object ReportEffects {
                             )
                         } ?: Int.MAX_VALUE.toDouble()
 
-                        val closes =
-                            s.selectedTask.task.storage.closes.sortedByDescending { it.closeDate }
 
-
-                        fun checkStorageClose(): Boolean {
-                            val isCloseRequired = s.selectedTask.task.storageCloseFirstRequired
-                            val isCloseNotExist = closes.isEmpty() || closes.first().closeDate < c.settingsRepository.closeLimit
-                            return if (isCloseRequired && isCloseNotExist) {
-                                c.showCloseError(
-                                    R.string.storage_not_closed_error,
-                                    false,
-                                    null,
-                                    rejectReason,
-                                    emptyArray()
-                                )
-                                true
-                            } else {
-                                false
-                            }
-                        }
-
-                        fun checkTaskClose(): Boolean =
+                        val shadowClose: Boolean = withContext(Dispatchers.Main) {
                             if (c.settingsRepository.isCloseRadiusRequired) {
                                 when {
                                     location == null -> {
@@ -616,17 +610,6 @@ object ReportEffects {
                                         c.showPreCloseDialog(location, rejectReason)
                                         false
                                     }
-                                }
-                            }
-
-                        val shadowClose: Boolean = withContext(Dispatchers.Main) {
-                            if (s.selectedTask.task.state.state == TaskState.STARTED && s.selectedTask.task.storage.requirementsUpdateDate > c.settingsRepository.closeLimit) {
-                                checkTaskClose()
-                            } else {
-                                if (checkStorageClose()) {
-                                    true
-                                } else {
-                                    checkTaskClose()
                                 }
                             }
                         }

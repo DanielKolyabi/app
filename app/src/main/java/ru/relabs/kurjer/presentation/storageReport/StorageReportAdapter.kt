@@ -71,7 +71,7 @@ object StorageReportAdapter {
                 with(itemView) {
                     tv_closure_date.text = resources.getString(
                         R.string.closure_date,
-                        idx,
+                        idx + 1,
                         closure.closeDate.formattedTimeDate()
                     )
                     tv_closure_description.text = task.listName

@@ -10,23 +10,23 @@ plugins {
 }
 
 android {
-//    signingConfigs {
-//        create("config") {
-//            keyAlias = "kurjer"
-//            keyPassword = "1qazxsw2"
-//            storeFile = file("2017abix.dat")
-//            storePassword = "1qazxsw2"
-//            isV1SigningEnabled = true
-//            isV2SigningEnabled = true
-//        }
-//    }
+    signingConfigs {
+        create("config") {
+            keyAlias = "kurjer"
+            keyPassword = "1qazxsw2"
+            storeFile = file("2017abix.dat")
+            storePassword = "1qazxsw2"
+            isV1SigningEnabled = true
+            isV2SigningEnabled = true
+        }
+    }
     compileSdkVersion(29)
     defaultConfig {
         applicationId = "abix.kurjer"
         minSdkVersion(21)
         targetSdkVersion(29)
-        versionCode = 199
-        versionName = "199"
+        versionCode = 200
+        versionName = "200"
         buildConfigField("Boolean", "FEATURE_PHOTO_RADIUS", "true")
     }
     flavorDimensions("server")
@@ -44,12 +44,12 @@ android {
     buildTypes {
         getByName("debug") {
             buildConfigField("String", "YA_KEY", "\"9be78b32-1265-4157-bf15-999b8d747a5c\"")
-//            signingConfig = signingConfigs.getByName("config")
+            signingConfig = signingConfigs.getByName("config")
         }
         getByName("release") {
             buildConfigField("String", "YA_KEY", "\"9be78b32-1265-4157-bf15-999b8d747a5c\"")
             isMinifyEnabled = false
-//            signingConfig = signingConfigs.getByName("config")
+            signingConfig = signingConfigs.getByName("config")
         }
     }
 

@@ -8,6 +8,6 @@ data class StorageClosesResponse(
     val taskId: Int,
     @SerializedName("storage_id")
     val storageId: Int,
-    @SerializedName("close_date")
+    @SerializedName("close_time")
     val closeDate: Date
 )

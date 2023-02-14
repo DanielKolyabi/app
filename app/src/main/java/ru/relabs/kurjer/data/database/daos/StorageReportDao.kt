@@ -15,6 +15,9 @@ interface StorageReportDao {
     @Query("SELECT * FROM storage_reports WHERE storage_id = :id AND is_closed = :isClosed")
     fun getOpenedByStorageId(id: Int, isClosed: Boolean): List<StorageReportEntity>?
 
+    @Query("DELETE FROM storage_reports WHERE id = :id")
+    fun deleteById(id: Int)
+
     @Update
     fun update(report: StorageReportEntity)
 

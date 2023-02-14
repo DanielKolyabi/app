@@ -7,7 +7,7 @@ import org.koin.core.KoinComponent
 import org.koin.core.inject
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
 
-object Migrations: KoinComponent {
+object Migrations : KoinComponent {
     private val preferences by inject<SharedPreferences>()
 
     fun getMigrations(): Array<Migration> = arrayOf(
@@ -32,6 +32,7 @@ object Migrations: KoinComponent {
         migration_45_46,
         migration_46_47,
         migration_47_48,
+        migration_48_53
     )
 
 
@@ -220,9 +221,15 @@ object Migrations: KoinComponent {
             database.execSQL("ALTER TABLE task_item_photos ADD COLUMN photo_date INTEGER NOT NULL DEFAULT 0")
         }
     }
-    private val migration_48_49 = object : Migration(48, 49) {
+    private val migration_48_53 = object : Migration(48, 53) {
         override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("ALTER TABLE task_item_photos ADD COLUMN photo_date INTEGER NOT NULL DEFAULT 0")
+            database.execSQL("CREATE TABLE `storage_report_photos` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT NOT NULL, `report_id` INTEGER NOT NULL, `gps` TEXT NOT NULL, `time` INTEGER NOT NULL);")
+            database.execSQL("CREATE TABLE `storage_report_query` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `storage_report_id` INTEGER NOT NULL, `task_id` INTEGER NOT NULL, `token` TEXT NOT NULL);")
+            database.execSQL("CREATE TABLE `storage_reports` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `storage_id` INTEGER NOT NULL, `task_ids` TEXT NOT NULL, `gps` TEXT NOT NULL, `description` TEXT NOT NULL, `is_closed` INTEGER NOT NULL, `close_time` INTEGER, `battery_level` INTEGER, `device_radius` INTEGER, `device_close_any_distance` INTEGER, `device_allowed_distance` INTEGER, `is_photo_required` INTEGER);")
+            database.execSQL("DROP TABLE tasks;")
+            database.execSQL("DROP TABLE task_items;")
+            database.execSQL("CREATE TABLE `tasks` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `edition` INTEGER NOT NULL, `copies` INTEGER NOT NULL, `packs` INTEGER NOT NULL, `remain` INTEGER NOT NULL, `area` INTEGER NOT NULL, `state` INTEGER NOT NULL, `start_time` INTEGER NOT NULL, `end_time` INTEGER NOT NULL, `brigade` INTEGER NOT NULL, `brigadier` TEXT NOT NULL, `rast_map_url` TEXT NOT NULL, `user_id` INTEGER NOT NULL, `city` TEXT NOT NULL, `iteration` INTEGER NOT NULL, `couple_type` INTEGER NOT NULL, `by_other_user` INTEGER NOT NULL, `delivery_type` INTEGER NOT NULL, `listSort` TEXT NOT NULL, `districtType` INTEGER NOT NULL, `orderNumber` INTEGER NOT NULL, `edition_photo_url` TEXT, `storage_close_first_required` INTEGER NOT NULL, `storage_id` INTEGER NOT NULL, `storage_address` TEXT NOT NULL, `storage_lat` REAL NOT NULL, `storage_long` REAL NOT NULL, `storage_close_distance` INTEGER NOT NULL, `closes` TEXT NOT NULL, `storage_photo_required` INTEGER NOT NULL, `storage_requirements_update_date` INTEGER NOT NULL, `storage_description` TEXT NOT NULL, PRIMARY KEY(`id`));\n")
+            database.execSQL("CREATE TABLE `task_items` (`address_id` INTEGER NOT NULL, `state` INTEGER NOT NULL, `id` INTEGER NOT NULL, `notes` TEXT NOT NULL, `entrances` TEXT NOT NULL, `subarea` INTEGER NOT NULL, `bypass` INTEGER NOT NULL, `copies` INTEGER NOT NULL, `task_id` INTEGER NOT NULL, `need_photo` INTEGER NOT NULL, `is_firm` INTEGER NOT NULL, `office_name` TEXT NOT NULL, `firm_name` TEXT NOT NULL, `close_radius` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`task_id`) REFERENCES `tasks`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE );")
         }
     }
 }

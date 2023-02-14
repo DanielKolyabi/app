@@ -132,7 +132,7 @@ val repositoryModule = module {
             get<CurrentUserStorage>()
         )
     }
-    single { StorageRepository(get<AppDatabase>()) }
+    single { StorageRepository(get<AppDatabase>(), get<PathsProvider>()) }
 }
 val useCasesModule = module {
     single<LoginUseCase> {

@@ -65,7 +65,6 @@ class StorageReportUseCase(
     }
 
     suspend fun removePhoto(removedPhoto: StorageReportPhoto) {
-        CustomLog.writeToFile("Remove photo srid=${removedPhoto.storageReportId.id} ti=${removedPhoto.uuid}")
         val file = pathsProvider.getStoragePhotoFileById(
             removedPhoto.storageReportId.id,
             UUID.fromString(removedPhoto.uuid)
@@ -142,7 +141,7 @@ class StorageReportUseCase(
             val storageClose = StorageClosure(taskId, storage.id, Date())
             val task = tasks.single { it.id == taskId }
             val newStorage = task.storage.copy(closes = task.storage.closes + storageClose)
-            databaseRepository.updateTask(task.copy(storage = newStorage))
+            databaseRepository.updateTask(task.copy(storage = newStorage, state = task.state.copy(state = TaskState.STARTED)))
         }
         val openedReports = storageRepository.getOpenedReportsByStorageId(storage.id)
         if (!openedReports.isNullOrEmpty()) {

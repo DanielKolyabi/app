@@ -13,9 +13,10 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.models.storage.StorageReport
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
+import ru.relabs.kurjer.domain.providers.PathsProvider
 import java.util.*
 
-class StorageRepository(db: AppDatabase) {
+class StorageRepository(db: AppDatabase, private val pathsProvider: PathsProvider) {
 
     private val reportDao = db.storageReportDao()
     private val photoDao = db.storagePhotoDao()
@@ -112,6 +113,31 @@ class StorageRepository(db: AppDatabase) {
     suspend fun removeStorageReportQuery(storageReportQuery: StorageReportRequestEntity) {
         withContext(Dispatchers.IO) {
             reportRequestDao.delete(storageReportQuery)
+        }
+    }
+
+    suspend fun isReportHasQuery(storageReportId: Int): Boolean = withContext(Dispatchers.IO) {
+        reportRequestDao.getByReportId(storageReportId).isNotEmpty()
+    }
+
+    suspend fun deletePhotosReportById(storageReportId: Int) {
+        withContext(Dispatchers.IO) {
+            val photos = photoDao.getByStorageReportId(storageReportId)
+            photos.forEach {
+                val file = pathsProvider.getStoragePhotoFileById(
+                    it.reportId,
+                    UUID.fromString(it.UUID)
+                )
+                file.delete()
+                photoDao.deleteById(it.id)
+            }
+
+        }
+    }
+
+    suspend fun deleteReport(storageReportId: Int) {
+        withContext(Dispatchers.IO) {
+            reportDao.deleteById(storageReportId)
         }
     }
 

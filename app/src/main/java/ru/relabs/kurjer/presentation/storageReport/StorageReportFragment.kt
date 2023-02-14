@@ -47,7 +47,6 @@ class StorageReportFragment : BaseFragment() {
 
     private val controller = defaultController(StorageReportState(), StorageReportContext())
     private var renderJob: Job? = null
-    private lateinit var binding: FragmentStorageReportBinding
     private val closesAdapter = DelegateAdapter(
         StorageReportAdapter.closure()
     )
@@ -87,12 +86,13 @@ class StorageReportFragment : BaseFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentStorageReportBinding.inflate(inflater, container, false)
+        val binding = FragmentStorageReportBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val binding = FragmentStorageReportBinding.bind(view)
         newPhotoData = savedInstanceState?.getParcelable<StoragePhotoData>(
             PHOTO_DATA_KEY
         )?.also {

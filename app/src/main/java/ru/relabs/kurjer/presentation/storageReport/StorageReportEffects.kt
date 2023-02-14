@@ -66,7 +66,7 @@ object StorageReportEffects {
                         s.tasks.map { task -> task.id })
                 }
                 report?.let { messages.send(StorageReportMessages.msgReportLoaded(it)) }
-                messages.send(StorageReportMessages.msgAddLoaders(1))
+                messages.send(StorageReportMessages.msgAddLoaders(-1))
             }
             messages.send(msgFactory())
         }

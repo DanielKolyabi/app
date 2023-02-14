@@ -85,7 +85,6 @@ class ReportService : Service(), KoinComponent {
         looperJob = scope.launch {
             while (isActive) {
                 var isTaskSended = false
-
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
                     val sendQuery = databaseRepository.getNextSendQuery()
                     val reportQuery = databaseRepository.getNextReportQuery()
@@ -106,6 +105,10 @@ class ReportService : Service(), KoinComponent {
                                 is Right -> {
                                     isTaskSended = true
                                     storageRepository.removeStorageReportQuery(storageReportQuery)
+                                    if (!storageRepository.isReportHasQuery(storageReportQuery.storageReportId)) {
+                                        storageRepository.deletePhotosReportById(storageReportQuery.storageReportId)
+                                        storageRepository.deleteReport(storageReportQuery.storageReportId)
+                                    }
                                 }
                             }
                         }

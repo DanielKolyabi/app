@@ -15,7 +15,6 @@ object StorageReportMapper {
         taskIds = entity.taskIds.map { TaskId(it) },
         gps = entity.gps,
         description = entity.description,
-        isClosed = entity.isClosed,
         closeData = dataFromEntity(entity.closeData)
     )
 
@@ -26,7 +25,7 @@ object StorageReportMapper {
         taskIds = report.taskIds.map { it.id },
         gps = report.gps,
         description = report.description,
-        isClosed = report.isClosed,
+        isClosed = report.closeData != null,
         closeData = dataToEntity(report.closeData)
     )
 

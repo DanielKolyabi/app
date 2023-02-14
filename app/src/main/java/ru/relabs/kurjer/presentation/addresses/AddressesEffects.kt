@@ -125,7 +125,9 @@ object AddressesEffects {
             .filter { it.state.state != TaskState.COMPLETED && it.state.state != TaskState.CANCELED }
             .filter { it.endTime > Date() && it.startTime < Date() }
         if (tasks.size != s.tasks.size) {
-            c.showStorageWarningDialog()
+            withContext(Dispatchers.Main) {
+                c.showStorageWarningDialog()
+            }
         }
     }
 

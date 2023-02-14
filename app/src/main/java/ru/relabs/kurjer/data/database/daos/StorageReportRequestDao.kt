@@ -14,6 +14,9 @@ interface StorageReportRequestDao {
     @Query("SELECT * FROM storage_report_query WHERE task_id = :id")
     fun getByTaskId(id: Int): List<StorageReportRequestEntity>
 
+    @Query("SELECT * FROM storage_report_query WHERE storage_report_id = :storageReportId")
+    fun getByReportId(storageReportId: Int): List<StorageReportRequestEntity>
+
     @Update
     fun update(address: StorageReportRequestEntity)
 
@@ -25,4 +28,5 @@ interface StorageReportRequestDao {
 
     @Delete
     fun delete(request: StorageReportRequestEntity)
+
 }

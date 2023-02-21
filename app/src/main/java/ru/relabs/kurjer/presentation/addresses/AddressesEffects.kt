@@ -128,6 +128,8 @@ object AddressesEffects {
             withContext(Dispatchers.Main) {
                 c.showStorageWarningDialog()
             }
+        } else {
+            effectNavigateStorage()(c, s)
         }
     }
 

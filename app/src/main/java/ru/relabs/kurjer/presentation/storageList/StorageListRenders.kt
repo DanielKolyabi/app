@@ -12,7 +12,7 @@ object StorageListRenders {
             val newItems = if (loaders > 0) {
                 listOf(StorageListItem.Loader)
             } else {
-                tasks.groupBy { it.storage.id.id }
+                tasks.groupBy { it.name to it.edition }
                     .map {
                         StorageListItem.StorageAddress(
                             it.value.first().storage,

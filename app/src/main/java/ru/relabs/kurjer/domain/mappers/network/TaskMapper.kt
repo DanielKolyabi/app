@@ -64,6 +64,6 @@ object TaskMapper {
             requirementsUpdateDate = raw.storageRequirementsUpdateDate,
             description = raw.storageDescription
         ),
-        storageCloseFirstRequired = true
+        storageCloseFirstRequired = raw.storageCloseFirstRequired
     )
 }

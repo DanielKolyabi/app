@@ -9,6 +9,7 @@ object StorageListEffects {
     fun effectLoadTasks(taskIds: List<TaskId>): StorageListEffect = { c, s ->
         messages.send(StorageListMessages.msgAddLoaders(1))
         val tasks = c.taskUseCase.getTasksByIds(taskIds)
+            .map { StorageListState.TaskWrapper(it, c.storageReportUseCase.isReportActuallyRequired(it)) }
         messages.send(StorageListMessages.msgTasksLoaded(tasks))
         messages.send(StorageListMessages.msgAddLoaders(-1))
     }

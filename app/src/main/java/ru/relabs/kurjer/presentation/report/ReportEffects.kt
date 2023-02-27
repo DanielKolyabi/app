@@ -501,12 +501,8 @@ object ReportEffects {
                             ).formatedWithSecs()
                         })"
                     )
-                    val storageCloses = s.selectedTask.task.storage.closes.sortedByDescending { it.closeDate }
-                    val isStorageCloseNotExist =
-                        storageCloses.isEmpty() || storageCloses.first().closeDate < c.settingsRepository.closeLimit
-                    val isStorageCloseOptional = s.selectedTask.task.state.state == TaskState.STARTED
-                            && s.selectedTask.task.storage.requirementsUpdateDate > c.settingsRepository.closeLimit
-                    if (!isStorageCloseOptional && selected.task.storageCloseFirstRequired && isStorageCloseNotExist) {
+
+                    if (c.storageReportUseCase.isReportActuallyRequired(selected.task)) {
                         withContext(Dispatchers.Main) {
                             c.showCloseError(
                                 R.string.storage_not_closed_error,

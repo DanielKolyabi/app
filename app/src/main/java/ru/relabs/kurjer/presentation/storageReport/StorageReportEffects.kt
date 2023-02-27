@@ -309,9 +309,9 @@ object StorageReportEffects {
             }
         } else if (s.storageReport == null) {
             withContext(Dispatchers.Main) {
-                c.showPhotosWarning()
+                c.showError("sre:2", true)
             }
-        } else if (s.storagePhotos.isEmpty()) {
+        } else if (s.storagePhotos.isEmpty() && storage.photoRequired) {
             withContext(Dispatchers.Main) {
                 c.showPhotosWarning()
             }

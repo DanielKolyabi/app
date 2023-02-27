@@ -98,7 +98,9 @@ object StorageReportMessages {
         msgEffect(StorageReportEffects.navigateMap())
 
     fun msgCloseClicked(): StorageReportMessage =
-        msgEffect(StorageReportEffects.effectCloseCheck(true))
+        msgEffect(StorageReportEffects.effectValidateReportExistenceAnd {
+            msgEffect(StorageReportEffects.effectCloseCheck(true))
+        })
 
     fun msgPerformClose(location: Location?): StorageReportMessage =
         msgEffect(StorageReportEffects.effectPerformClose(location))

@@ -19,7 +19,7 @@ object StorageListMessages {
         StorageListEffects.effectNavigateBack()
     )
 
-    fun msgTasksLoaded(tasks: List<Task>): StorageListMessage =
+    fun msgTasksLoaded(tasks: List<StorageListState.TaskWrapper>): StorageListMessage =
         msgState { it.copy(tasks = tasks) }
 
     fun msgAddLoaders(i: Int): StorageListMessage =

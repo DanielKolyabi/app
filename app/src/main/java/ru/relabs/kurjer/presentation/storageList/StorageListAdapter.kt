@@ -20,13 +20,13 @@ object StorageListAdapter {
                     { it as StorageListItem.StorageAddress }) { (storage, tasks) ->
                     with(itemView) {
                         tv_storage_address.text = storage.address
-                        if (tasks.any { it.storageCloseFirstRequired }) {
+                        if (tasks.any { it.isStorageActuallyRequired }) {
                             tv_storage_address.setTextColor(resources.getColorCompat(R.color.colorFuchsia))
                         } else {
                             tv_storage_address.setTextColor(resources.getColorCompat(R.color.black))
                         }
-                        tv_storage_description.text = tasks.joinToString("\n") { it.listName }
-                        setOnClickListener { onClick(tasks.map { it.id }) }
+                        tv_storage_description.text = tasks.joinToString("\n") { it.task.listName }
+                        setOnClickListener { onClick(tasks.map { it.task.id }) }
                     }
                 }
             }

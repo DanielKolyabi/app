@@ -14,6 +14,7 @@ import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.useCases.ReportUseCase
+import ru.relabs.kurjer.domain.useCases.StorageReportUseCase
 import ru.relabs.kurjer.presentation.base.tea.*
 import java.io.File
 import java.util.*
@@ -55,6 +56,7 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     val taskEventController: TaskEventController by inject()
     val pathsProvider: PathsProvider by inject()
     val deliveryRepository: DeliveryRepository by inject()
+    val storageReportUseCase: StorageReportUseCase by inject()
 
     var showError: suspend (code: String, isFatal: Boolean) -> Unit = { _, _ -> }
     var requestPhoto: (entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID) -> Unit = { _, _, _, _ -> }

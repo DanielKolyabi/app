@@ -629,6 +629,9 @@ object ReportEffects {
             null -> c.showError("re:107", true)
             else -> {
                 effectInterruptPause()(c, s)
+                if (selected.taskItem is TaskItem.Common) {
+                    c.database.updateTaskItem(selected.taskItem.copy(closeTime = Date()))
+                }
                 c.reportUseCase.createReport(
                     selected.task,
                     selected.taskItem,

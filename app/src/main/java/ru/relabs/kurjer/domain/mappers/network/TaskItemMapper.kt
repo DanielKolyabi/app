@@ -8,7 +8,7 @@ import ru.relabs.kurjer.domain.models.TaskItemId
 import ru.relabs.kurjer.domain.models.TaskItemState
 
 object TaskItemMapper {
-    fun fromRaw(raw: TaskItemResponse): TaskItem = when(raw.isFirm){
+    fun fromRaw(raw: TaskItemResponse): TaskItem = when (raw.isFirm) {
         true -> fromRawFirm(raw)
         false -> fromRawAddress(raw)
     }
@@ -31,7 +31,8 @@ object TaskItemMapper {
         firmName = raw.firmName,
         closeRadius = raw.closeRadius
     )
-    private fun fromRawAddress(raw: TaskItemResponse): TaskItem.Common =  TaskItem.Common(
+
+    private fun fromRawAddress(raw: TaskItemResponse): TaskItem.Common = TaskItem.Common(
         id = TaskItemId(raw.id),
         address = AddressMapper.fromRaw(raw.address),
         state = when (raw.state) {
@@ -48,6 +49,7 @@ object TaskItemMapper {
         entrancesData = raw.entrancesData.map {
             EntranceMapper.fromRaw(it)
         },
-        closeRadius = raw.closeRadius
+        closeRadius = raw.closeRadius,
+        closeTime = raw.closeTime
     )
 }

@@ -40,7 +40,8 @@ object DatabaseTaskItemMapper {
             entrancesData = db.entranceDataDao().getAllForTaskItem(taskItem.id).map {
                 DatabaseEntranceDataMapper.fromEntity(it)
             },
-            closeRadius = taskItem.closeRadius
+            closeRadius = taskItem.closeRadius,
+            closeTime = taskItem.closeTime
         )
     }
 
@@ -59,7 +60,8 @@ object DatabaseTaskItemMapper {
             isFirm = false,
             firmName = "",
             officeName = "",
-            closeRadius = taskItem.closeRadius
+            closeRadius = taskItem.closeRadius,
+            closeTime = taskItem.closeTime
         )
         is TaskItem.Firm -> TaskItemEntity(
             id = taskItem.id.id,
@@ -75,7 +77,8 @@ object DatabaseTaskItemMapper {
             isFirm = true,
             firmName = taskItem.firmName,
             officeName = taskItem.office,
-            closeRadius = taskItem.closeRadius
+            closeRadius = taskItem.closeRadius,
+            closeTime = null
         )
     }
 

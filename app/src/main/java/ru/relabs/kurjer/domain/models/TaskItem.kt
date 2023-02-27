@@ -4,12 +4,14 @@ import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 import ru.relabs.kurjer.domain.mappers.MappingException
+import java.util.Date
 
 @Parcelize
 data class TaskItemId(val id: Int) : Parcelable
 
 sealed class TaskItem : Parcelable {
     abstract val closeRadius: Int
+
     @Parcelize
     data class Common(
         val id: TaskItemId,
@@ -22,7 +24,8 @@ sealed class TaskItem : Parcelable {
         val taskId: TaskId,
         val needPhoto: Boolean,
         val entrancesData: List<TaskItemEntrance>,
-        override val closeRadius: Int
+        override val closeRadius: Int,
+        val closeTime: Date?
     ) : TaskItem()
 
     @Parcelize

@@ -158,8 +158,9 @@ class StorageReportUseCase(
         val storageCloses = task.storage.closes.sortedByDescending { it.closeDate }
         val isStorageCloseNotExist =
             storageCloses.isEmpty() || storageCloses.first().closeDate < settingsRepository.closeLimit
-        val isStorageCloseOptional = task.state.state == TaskState.STARTED
-                && task.storage.requirementsUpdateDate > settingsRepository.closeLimit
+        val isStorageCloseOptional =
+            task.items.any { it is TaskItem.Common && it.closeTime != null && it.closeTime > settingsRepository.closeLimit }
+                    && task.storage.requirementsUpdateDate > settingsRepository.closeLimit
         return if (isStorageCloseOptional) {
             false
         } else {

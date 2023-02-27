@@ -480,7 +480,7 @@ class DatabaseRepository(
             val parentTaskId = taskItemEntity?.taskId
 
             taskItemEntity
-                ?.copy(state = TaskItemEntity.STATE_CLOSED)
+                ?.copy(state = TaskItemEntity.STATE_CLOSED, closeTime = Date())
                 ?.let { db.taskItemDao().update(it) }
 
             parentTaskId?.let { taskId ->
@@ -572,6 +572,12 @@ class DatabaseRepository(
     suspend fun updateTask(newTask: Task) {
         withContext(Dispatchers.IO) {
             db.taskDao().update(DatabaseTaskMapper.toEntity(newTask))
+        }
+    }
+
+    suspend fun updateTaskItem(taskItem: TaskItem) {
+        withContext(Dispatchers.IO) {
+            db.taskItemDao().update(DatabaseTaskItemMapper.toEntity(taskItem))
         }
     }
 }

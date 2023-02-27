@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
+import java.util.Date
 
 /**
  * Created by ProOrange on 31.08.2018.
@@ -41,7 +42,9 @@ data class TaskItemEntity(
     @ColumnInfo(name = "firm_name")
     val firmName: String,
     @ColumnInfo(name = "close_radius")
-    val closeRadius: Int
+    val closeRadius: Int,
+    @ColumnInfo(name = "close_time")
+    val closeTime: Date?
 ) {
     companion object {
         const val STATE_CLOSED = 1

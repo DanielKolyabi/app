@@ -369,7 +369,7 @@ object StorageReportEffects {
                             c.showCloseError(
                                 R.string.report_close_location_null_warning,
                                 true,
-                                null,
+                                location,
                                 emptyArray()
                             )
                         }
@@ -377,7 +377,7 @@ object StorageReportEffects {
                             c.showCloseError(
                                 R.string.storage_report_close_location_far_warning,
                                 true,
-                                null,
+                                location,
                                 emptyArray()
                             )
                         }

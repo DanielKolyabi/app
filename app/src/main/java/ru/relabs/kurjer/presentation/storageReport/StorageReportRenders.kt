@@ -1,14 +1,17 @@
 package ru.relabs.kurjer.presentation.storageReport
 
+import android.content.res.Resources
 import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
+import ru.relabs.kurjer.R
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
 import ru.relabs.kurjer.uiOld.helpers.HintHelper
+import ru.relabs.kurjer.utils.extensions.getColorCompat
 import ru.relabs.kurjer.utils.extensions.renderText
 import ru.relabs.kurjer.utils.extensions.visible
 
@@ -24,7 +27,12 @@ object StorageReportRenders {
 
     fun renderTitle(view: TextView): StorageReportRender = renderT(
         { it.tasks },
-        { view.text = it.firstOrNull()?.storage?.address }
+        {
+            view.text = it.firstOrNull()?.storage?.address
+            if (it.firstOrNull()?.storageCloseFirstRequired == true) {
+                view.setTextColor(view.resources.getColorCompat(R.color.colorFuchsia))
+            }
+        }
     )
 
     fun renderHint(hintHelper: HintHelper): StorageReportRender = renderT(

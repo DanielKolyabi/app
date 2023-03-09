@@ -51,6 +51,9 @@ data class Task(
     val listName: String
         get() = "${name} №${edition}, ${copies}экз., (${brigade}бр/${area}уч)"
 
+    val storageListName: String
+        get() = "${name} №${edition}, (${brigade}бр/${area}уч), ${copies}экз., ${packs}пач., ${remain}шт."
+
     @Parcelize
     data class State(
         val state: TaskState,

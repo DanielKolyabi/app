@@ -15,28 +15,30 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/tv_storage_address"
+        android:id="@+id/tv_storage_description"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:fontFamily="@string/text_font"
         android:gravity="center"
-        android:textSize="22sp"
+        android:textColor="@color/black"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Чечерский проезд, 62" />
 
     <TextView
-        android:id="@+id/tv_storage_description"
+        android:id="@+id/tv_storage_address"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:gravity="center"
+        android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_storage_address"
+        app:layout_constraintTop_toBottomOf="@id/tv_storage_description"
         tools:text="Чечерский проезд, 62" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

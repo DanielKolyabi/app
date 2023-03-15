@@ -134,14 +134,8 @@ object AddressesEffects {
     }
 
     fun effectNavigateStorage(): AddressesEffect = { c, s ->
-        if (s.tasks.size == 1) {
-            withContext(Dispatchers.Main) {
-                c.router.navigateTo(RootScreen.StorageReportScreen(s.tasks.map { it.id }))
-            }
-        } else {
-            withContext(Dispatchers.Main) {
-                c.router.navigateTo(RootScreen.StorageListScreen(s.tasks.map { it.id }))
-            }
+        withContext(Dispatchers.Main) {
+            c.router.navigateTo(RootScreen.StorageListScreen(s.tasks.map { it.id }))
         }
     }
 }

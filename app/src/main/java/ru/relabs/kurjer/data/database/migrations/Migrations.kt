@@ -34,6 +34,7 @@ object Migrations : KoinComponent {
         migration_47_48,
         migration_48_53,
         migration_53_54,
+        migration_54_55,
 
         )
 
@@ -239,6 +240,11 @@ object Migrations : KoinComponent {
     private val migration_53_54 = object : Migration(53, 54) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("ALTER TABLE task_items ADD COLUMN close_time INTEGER")
+        }
+    }
+    private val migration_54_55 = object : Migration(54, 55) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE tasks ADD COLUMN display_name TEXT NOT NULL DEFAULT ''")
         }
     }
 }

@@ -44,7 +44,8 @@ object DatabaseTaskMapper {
         orderNumber = taskEntity.orderNumber,
         editionPhotoUrl = taskEntity.editionPhotoUrl,
         storage = StorageMapper.fromEntity(taskEntity.storage),
-        storageCloseFirstRequired = taskEntity.storageCloseFirstRequired
+        storageCloseFirstRequired = taskEntity.storageCloseFirstRequired,
+        displayName = taskEntity.displayName
     )
 
     fun toEntity(task: Task): TaskEntity = TaskEntity(
@@ -75,7 +76,8 @@ object DatabaseTaskMapper {
         orderNumber = task.orderNumber,
         editionPhotoUrl = task.editionPhotoUrl,
         storage = StorageMapper.toEntity(task.storage),
-        storageCloseFirstRequired = task.storageCloseFirstRequired
+        storageCloseFirstRequired = task.storageCloseFirstRequired,
+        displayName = task.displayName
     )
 
     object StorageMapper {

@@ -45,7 +45,8 @@ data class Task(
     val orderNumber: Int,
     val editionPhotoUrl: String?,
     val storage: Storage,
-    val storageCloseFirstRequired: Boolean
+    val storageCloseFirstRequired: Boolean,
+    val displayName : String
 ) : Parcelable {
 
     val listName: String

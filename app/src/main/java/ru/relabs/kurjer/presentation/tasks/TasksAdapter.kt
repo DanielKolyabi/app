@@ -2,6 +2,8 @@ package ru.relabs.kurjer.presentation.tasks
 
 import android.graphics.Color
 import android.graphics.PorterDuff
+import android.os.Build
+import android.text.Html
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import androidx.core.widget.addTextChangedListener
@@ -26,7 +28,11 @@ object TasksAdapter {
         { p ->
             holderDefine(p, R.layout.holder_task, { it as TasksItem.TaskItem }) { (task, isTasksWithSameAddressPresented, isSelected) ->
                 with(itemView) {
-                    tv_title.text = task.listName
+                    tv_title.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        Html.fromHtml(task.displayName, Html.FROM_HTML_MODE_COMPACT)
+                    } else {
+                        Html.fromHtml(task.displayName)
+                    }
                     when (isSelected) {
                         true -> iv_selected.setImageResource(R.drawable.ic_chain_enabled)
                         false -> iv_selected.setImageResource(R.drawable.ic_chain_disabled)

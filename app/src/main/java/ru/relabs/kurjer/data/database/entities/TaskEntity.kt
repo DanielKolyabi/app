@@ -48,7 +48,9 @@ data class TaskEntity(
     @Embedded
     var storage: StorageEntity,
     @ColumnInfo(name = "storage_close_first_required")
-    var storageCloseFirstRequired: Boolean
+    var storageCloseFirstRequired: Boolean,
+    @ColumnInfo(name = "display_name")
+    var displayName: String
 )
 
 data class StorageEntity(

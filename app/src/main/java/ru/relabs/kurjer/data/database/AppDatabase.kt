@@ -17,7 +17,7 @@ import ru.relabs.kurjer.data.database.entities.storage.StorageReportRequestEntit
         TaskItemPhotoEntity::class, TaskItemResultEntity::class, TaskItemResultEntranceEntity::class,
         SendQueryItemEntity::class, ReportQueryItemEntity::class, EntranceDataEntity::class,
         FirmRejectReason::class, StorageReportEntity::class, StorageReportPhotoEntity::class, StorageReportRequestEntity::class],
-    version = 54
+    version = 55
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

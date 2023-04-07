@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
+import com.github.terrakok.cicerone.Router
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Circle
@@ -23,7 +24,6 @@ import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.Address
 import ru.relabs.kurjer.domain.providers.LocationProvider
-import ru.terrakok.cicerone.Router
 
 private const val ADDRESS_RADIUS = 20f
 private const val STORAGE_RADIUS = 10f

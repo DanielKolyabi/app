@@ -3,8 +3,8 @@ package ru.relabs.kurjer.presentation.report
 import android.content.ContentResolver
 import android.location.Location
 import android.net.Uri
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.domain.providers.LocationProvider

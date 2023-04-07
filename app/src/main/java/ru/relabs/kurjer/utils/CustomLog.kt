@@ -7,6 +7,8 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import org.joda.time.DateTime
 import org.koin.core.KoinComponent
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.koin.core.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.domain.providers.PathsProvider

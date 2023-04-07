@@ -7,10 +7,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.github.terrakok.cicerone.Router
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
-import ru.terrakok.cicerone.Router
 
 class PhotoViewerFragment : BaseFragment() {
     val router: Router by inject()

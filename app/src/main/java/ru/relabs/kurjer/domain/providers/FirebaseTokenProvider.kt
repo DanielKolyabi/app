@@ -24,6 +24,7 @@ class FirebaseTokenProvider(
         if(savedToken != null){
             savedToken
         }else{
+
             val token = FirebaseInstanceId.getInstance().instanceIdAsync().token.let{
                 FirebaseToken(it)
             }

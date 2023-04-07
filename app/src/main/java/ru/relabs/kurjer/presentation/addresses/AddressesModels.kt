@@ -1,7 +1,7 @@
 package ru.relabs.kurjer.presentation.addresses
 
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.Address
 import ru.relabs.kurjer.domain.models.Task

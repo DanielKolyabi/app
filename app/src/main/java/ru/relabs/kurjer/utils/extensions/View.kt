@@ -47,10 +47,10 @@ fun EditText.renderText(text: String, listener: TextWatcher? = null) {
 
 fun RecyclerView.onFragmentDestroyView() {
     this.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-        override fun onViewDetachedFromWindow(v: View?) {
-            this@onFragmentDestroyView?.adapter = null
+        override fun onViewAttachedToWindow(v: View) {
+            this@onFragmentDestroyView.adapter = null
         }
 
-        override fun onViewAttachedToWindow(v: View?) {}
+        override fun onViewDetachedFromWindow(v: View) {}
     })
 }

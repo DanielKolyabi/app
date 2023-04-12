@@ -116,13 +116,13 @@ object AddressesRenders {
         val colorAnimationFrom = getValueAnimator(targetColor, colorFrom, view, 500)
         onAnimationEnd?.let {
             colorAnimationFrom.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
+                override fun onAnimationEnd(animation: Animator) {
                     it()
                 }
             })
         }
         colorAnimationTo.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator?) {
+            override fun onAnimationEnd(animation: Animator) {
                 colorAnimationFrom.start()
             }
         })

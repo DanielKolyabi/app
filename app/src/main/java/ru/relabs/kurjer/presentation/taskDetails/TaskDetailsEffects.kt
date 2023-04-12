@@ -20,7 +20,7 @@ object TaskDetailsEffects {
 
     fun effectNavigateTaskItemDetails(taskItem: TaskItem): TaskDetailsEffect = { c, s ->
         withContext(Dispatchers.Main) {
-            c.router.navigateTo(RootScreen.TaskItemDetails(taskItem))
+            c.router.navigateTo(RootScreen.taskItemDetails(taskItem))
         }
     }
 
@@ -34,7 +34,7 @@ object TaskDetailsEffects {
                 withContext(Dispatchers.Main) {
                     when (editionPhotoPath) {
                         null -> c.router.exit()
-                        else -> c.router.replaceScreen(RootScreen.ImagePreview(listOf(editionPhotoPath)))
+                        else -> c.router.replaceScreen(RootScreen.imagePreview(listOf(editionPhotoPath)))
                     }
                 }
             }

@@ -61,6 +61,7 @@ class PauseRepository(
                 lunchDuration = r.value.lunch.toInt()
                 loadDuration = r.value.loading.toInt()
             }
+            else -> Unit
         }
     }
 
@@ -218,6 +219,7 @@ class PauseRepository(
                 putPauseEndTime(PauseType.Load, r.value.loading.end)
                 putPauseEndTime(PauseType.Lunch, r.value.lunch.end)
             }
+            is Left -> Unit
         }
     }
 

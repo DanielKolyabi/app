@@ -1,15 +1,15 @@
 package ru.relabs.kurjer.utils.extensions
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.suspendCancellableCoroutine
 import ru.relabs.kurjer.utils.Either
 
 /**
  * Created by Daniil Kurchanov on 21.01.2020.
  */
-suspend fun FirebaseInstanceId.instanceIdSuspend() = suspendCancellableCoroutine<String> { cont ->
-    instanceId.addOnCompleteListener { task ->
+suspend fun FirebaseMessaging.instanceIdSuspend() = suspendCancellableCoroutine<String> { cont ->
+    token.addOnCompleteListener { task ->
         if (!task.isSuccessful) {
             if(cont.isActive){
                 cont.resumeWith(Result.failure(task.exception ?: RuntimeException("Firebase token retrieve failed. Task failed")))
@@ -17,7 +17,7 @@ suspend fun FirebaseInstanceId.instanceIdSuspend() = suspendCancellableCoroutine
         }
         try {
             if(cont.isActive){
-                when (val token = task.result?.token) {
+                when (val token = task.result) {
                     null -> cont.resumeWith(Result.failure(RuntimeException("Firebase token retrieve failed. Token is null")))
                     else -> cont.resumeWith(Result.success(token))
                 }
@@ -39,7 +39,7 @@ suspend fun FirebaseInstanceId.instanceIdSuspend() = suspendCancellableCoroutine
     }
 }
 
-suspend fun FirebaseInstanceId.getFirebaseToken(): Either<Exception, String> {
+suspend fun FirebaseMessaging.getFirebaseToken(): Either<Exception, String> {
     return Either.of {
         this.instanceIdSuspend()
     }

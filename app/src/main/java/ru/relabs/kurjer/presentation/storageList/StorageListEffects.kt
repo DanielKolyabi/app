@@ -21,6 +21,6 @@ object StorageListEffects {
     }
 
     fun navigateStorageScreen(taskIds: List<TaskId>): StorageListEffect = { c, s ->
-        withContext(Dispatchers.Main) { c.router.navigateTo(RootScreen.StorageReportScreen(taskIds)) }
+        withContext(Dispatchers.Main) { c.router.navigateTo(RootScreen.storageReportScreen(taskIds)) }
     }
 }

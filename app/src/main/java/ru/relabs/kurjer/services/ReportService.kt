@@ -1,16 +1,20 @@
 package ru.relabs.kurjer.services
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.*
@@ -127,6 +131,7 @@ class ReportService : Service(), KoinComponent {
                                     CustomLog.writeToFile("UPDATE: merge is needed")
                                     taskEventController.send(TaskEvent.TasksUpdateRequired(false))
                                 }
+                                is Left -> Unit
                             }
                             lastTasksChecking = System.currentTimeMillis()
                         }
@@ -188,6 +193,7 @@ class ReportService : Service(), KoinComponent {
         timeUntilRun = 0
     }
 
+    @SuppressLint("MissingPermission")
     private suspend fun updateNotificationText() {
         val isNetworkAvailable = NetworkHelper.isNetworkAvailable(applicationContext)
         val count = databaseRepository.getQueryItemsCount()
@@ -207,6 +213,7 @@ class ReportService : Service(), KoinComponent {
             .from(this)
             .notify(1, notification(text, state))
     }
+
     private suspend fun sendStorageReportQuery(item: StorageReportRequestEntity): Either<java.lang.Exception, Unit> =
         repository.sendStorageReport(item)
 

@@ -26,13 +26,13 @@ object NetworkHelper {
         context ?: return false
         val wifiManager = context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
             ?: return false
-        return wifiManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnected
+        return wifiManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI)?.isConnected ?: false
     }
 
     private fun isMobileDataEnabled(context: Context?): Boolean {
         context ?: return false
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val isNetworkConnecting = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).isConnectedOrConnecting
+        val isNetworkConnecting = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE)?.isConnectedOrConnecting ?: false
         val isMobileDataEnabled = try {
             val cmClass = Class.forName(cm.javaClass.name)
             val method = cmClass.getDeclaredMethod("getMobileDataEnabled")

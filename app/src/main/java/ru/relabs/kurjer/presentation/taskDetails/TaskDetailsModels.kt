@@ -1,9 +1,7 @@
 package ru.relabs.kurjer.presentation.taskDetails
 
-import org.koin.core.KoinComponent
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.inject
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.repositories.DatabaseRepository

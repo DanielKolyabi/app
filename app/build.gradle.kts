@@ -65,6 +65,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
     namespace = "ru.relabs.kurjer"
+    packagingOptions {
+        resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
+    }
 }
 
 tasks {
@@ -93,7 +96,6 @@ dependencies {
 
     // Koin
     implementation("io.insert-koin:koin-android:${Config.Versions.koin}")
-//    implementation("org.koin:koin-android-ext:${Config.Versions.koin}")
 
     // androidx
     implementation("androidx.core:core-ktx:1.9.0")
@@ -125,7 +127,7 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics:18.3.6")
 
     //Various
-    implementation("com.yandex.android:mapkit:3.3.1")
+    implementation("com.yandex.android:maps.mobile:4.3.1-full")
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.github.instacart.truetime-android:library:3.5")
     implementation("joda-time:joda-time:2.10.1")

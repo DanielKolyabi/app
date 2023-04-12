@@ -21,7 +21,7 @@ class GPSFeatureChecker(a: Activity) : FeatureChecker(a) {
     }
 
     private fun showLocationRequest() {
-        if(requestShowed) return
+        if (requestShowed) return
 
         val a = activity ?: return
         val googleApiClient = GoogleApiClient.Builder(a)
@@ -48,7 +48,7 @@ class GPSFeatureChecker(a: Activity) : FeatureChecker(a) {
 
                 LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
                     debug("Location settings are not satisfied. Show the user a dialog to upgrade location settings ")
-                    status.startResolutionForResult(activity, 999)
+                    activity?.let { status.startResolutionForResult(it, 999) }
                 }
 
                 LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE ->

@@ -284,7 +284,7 @@ object StorageReportEffects {
             val storage = s.tasks.firstOrNull()?.storage
             if (storage != null) {
                 c.router.navigateTo(
-                    RootScreen.YandexMap(
+                    RootScreen.yandexMap(
                         storages = listOf(
                             YandexMapFragment.StorageLocation(
                                 storage.lat,

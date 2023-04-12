@@ -2,7 +2,6 @@ package ru.relabs.kurjer.presentation.tasks
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
@@ -24,7 +23,7 @@ object TasksEffects {
 
     fun effectNavigateTaskInfo(task: Task): TasksEffect = { c, s ->
         withContext(Dispatchers.Main) {
-            c.router.navigateTo(RootScreen.TaskInfo(task, c.examinedConsumer))
+            c.router.navigateTo(RootScreen.taskInfo(task, c.examinedConsumer))
         }
     }
 
@@ -49,13 +48,13 @@ object TasksEffects {
             .filter { it.exists() }
             .map { it.path }
         withContext(Dispatchers.Main) {
-            if(photos.isNotEmpty()){
+            if (photos.isNotEmpty()) {
                 c.router.newChain(
-                    RootScreen.Addresses(s.selectedTasks),
-                    RootScreen.ImagePreview(photos)
+                    RootScreen.addresses(s.selectedTasks),
+                    RootScreen.imagePreview(photos)
                 )
-            }else{
-                c.router.navigateTo(RootScreen.Addresses(s.selectedTasks))
+            } else {
+                c.router.navigateTo(RootScreen.addresses(s.selectedTasks))
             }
         }
     }
@@ -116,6 +115,7 @@ object TasksEffects {
                                 c.showUpdateRequiredOnVisible(c.settingsRepository.canSkipUpdates)
                             }
                         }
+                        is TaskEvent.TaskItemClosed -> Unit
                     }
                 }
             }

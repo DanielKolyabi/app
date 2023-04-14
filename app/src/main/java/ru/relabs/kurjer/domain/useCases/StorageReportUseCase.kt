@@ -110,7 +110,8 @@ class StorageReportUseCase(
         report: StorageReport,
         location: Location?,
         batteryLevel: Float,
-        storage: Task.Storage
+        storage: Task.Storage,
+        withClose: Boolean
     ) {
         val distance = location?.let {
             calculateDistance(
@@ -132,17 +133,24 @@ class StorageReportUseCase(
                 storage.photoRequired
             )
         )
+        if (withClose) {
+            val tasks = databaseRepository.getTasksByIds(report.taskIds)
 
-        val tasks = databaseRepository.getTasksByIds(report.taskIds)
-
-        storageRepository.updateReport(updatedReport)
-        updatedReport.taskIds.forEach { taskId ->
-            storageRepository.createReportRequest(report.id, taskId, tokenStorage.getToken() ?: "")
-            val storageClose = StorageClosure(taskId, storage.id, Date())
-            val task = tasks.single { it.id == taskId }
-            val newStorage = task.storage.copy(closes = task.storage.closes + storageClose)
-            databaseRepository.updateTask(task.copy(storage = newStorage, state = task.state.copy(state = TaskState.STARTED)))
+            storageRepository.updateReport(updatedReport)
+            updatedReport.taskIds.forEach { taskId ->
+                storageRepository.createReportRequest(report.id, taskId, tokenStorage.getToken() ?: "")
+                val storageClose = StorageClosure(taskId, storage.id, Date())
+                val task = tasks.single { it.id == taskId }
+                val newStorage = task.storage.copy(closes = task.storage.closes + storageClose)
+                databaseRepository.updateTask(task.copy(storage = newStorage, state = task.state.copy(state = TaskState.STARTED)))
+            }
+        } else {
+            storageRepository.updateReport(updatedReport)
+            updatedReport.taskIds.forEach { taskId ->
+                storageRepository.createReportRequest(report.id, taskId, tokenStorage.getToken() ?: "")
+            }
         }
+
         val openedReports = storageRepository.getOpenedReportsByStorageId(storage.id)
         if (!openedReports.isNullOrEmpty()) {
             storageRepository.deleteReports(openedReports)

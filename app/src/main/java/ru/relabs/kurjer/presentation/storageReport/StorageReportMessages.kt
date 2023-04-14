@@ -103,7 +103,7 @@ object StorageReportMessages {
         })
 
     fun msgPerformClose(location: Location?): StorageReportMessage =
-        msgEffect(StorageReportEffects.effectPerformClose(location))
+        msgEffect(StorageReportEffects.effectPerformClose(location, true))
 
     fun msgInterruptPause(): StorageReportMessage =
         msgEffect(StorageReportEffects.effectInterruptPause())

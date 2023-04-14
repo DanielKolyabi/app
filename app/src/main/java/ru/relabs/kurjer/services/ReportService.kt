@@ -1,6 +1,5 @@
 package ru.relabs.kurjer.services
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
@@ -8,13 +7,11 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.*
@@ -30,9 +27,10 @@ import ru.relabs.kurjer.domain.controllers.ServiceEvent
 import ru.relabs.kurjer.domain.controllers.ServiceEventController
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
-import ru.relabs.kurjer.domain.repositories.DatabaseRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
+import ru.relabs.kurjer.domain.repositories.QueryRepository
 import ru.relabs.kurjer.domain.repositories.StorageRepository
+import ru.relabs.kurjer.domain.useCases.ReportUseCase
 import ru.relabs.kurjer.utils.*
 
 
@@ -43,7 +41,8 @@ const val TASK_CHECK_DELAY = 10 * 60 * 1000
 
 class ReportService : Service(), KoinComponent {
     private val repository: DeliveryRepository by inject()
-    private val databaseRepository: DatabaseRepository by inject()
+    private val queryRepository: QueryRepository by inject()
+    private val reportUseCase: ReportUseCase by inject()
     private val taskEventController: TaskEventController by inject()
     private val serviceEventController: ServiceEventController by inject()
     private val storageRepository: StorageRepository by inject()
@@ -90,8 +89,8 @@ class ReportService : Service(), KoinComponent {
             while (isActive) {
                 var isTaskSended = false
                 if (NetworkHelper.isNetworkAvailable(applicationContext)) {
-                    val sendQuery = databaseRepository.getNextSendQuery()
-                    val reportQuery = databaseRepository.getNextReportQuery()
+                    val sendQuery = queryRepository.getNextSendQuery()
+                    val reportQuery = queryRepository.getNextReportQuery()
                     val storageReportQuery = storageRepository.getNextQuery()
                     when {
                         sendQuery != null -> {
@@ -99,7 +98,7 @@ class ReportService : Service(), KoinComponent {
                                 is Left -> r.value.log()
                                 is Right -> {
                                     isTaskSended = true
-                                    databaseRepository.removeSendQuery(sendQuery)
+                                    queryRepository.removeSendQuery(sendQuery)
                                 }
                             }
                         }
@@ -121,13 +120,13 @@ class ReportService : Service(), KoinComponent {
                                 is Left -> r.value.log()
                                 is Right -> {
                                     isTaskSended = true
-                                    databaseRepository.removeReport(reportQuery)
+                                    queryRepository.removeReport(reportQuery)
                                 }
                             }
                         }
                         System.currentTimeMillis() - lastTasksChecking > TASK_CHECK_DELAY -> {
                             when (val tasks = repository.getTasks()) {
-                                is Right -> if (databaseRepository.isMergeNeeded(tasks.value)) {
+                                is Right -> if (reportUseCase.isMergeNeeded(tasks.value)) {
                                     CustomLog.writeToFile("UPDATE: merge is needed")
                                     taskEventController.send(TaskEvent.TasksUpdateRequired(false))
                                 }
@@ -170,7 +169,7 @@ class ReportService : Service(), KoinComponent {
         if (System.currentTimeMillis() > startTime + TIMELIMIT_NOTIFICATION_TIMEOUT) {
             scope.launch {
                 timelimitNotificationStartTime = null
-                if (!databaseRepository.isOpenedTasksExists()) {
+                if (!reportUseCase.isOpenedTasksExists()) {
                     return@launch
                 }
                 withContext(Dispatchers.Main) {
@@ -196,7 +195,7 @@ class ReportService : Service(), KoinComponent {
     @SuppressLint("MissingPermission")
     private suspend fun updateNotificationText() {
         val isNetworkAvailable = NetworkHelper.isNetworkAvailable(applicationContext)
-        val count = databaseRepository.getQueryItemsCount()
+        val count = queryRepository.getQueryItemsCount()
         val state = if (!isNetworkAvailable) {
             ServiceState.UNAVAILABLE
         } else if (count > 0) {

@@ -29,7 +29,7 @@ object TaskDetailsEffects {
         when (val t = s.task) {
             null -> c.showFatalError("tde:101")
             else -> {
-                c.onExamine(c.database.examineTask(t))
+                c.onExamine(c.taskRepository.examineTask(t))
                 val editionPhotoPath = c.pathsProvider.getEditionPhotoFile(t).takeIf { it.exists() }?.path
                 withContext(Dispatchers.Main) {
                     when (editionPhotoPath) {

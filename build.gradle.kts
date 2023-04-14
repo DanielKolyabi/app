@@ -21,11 +21,6 @@ allprojects {
         google()
         jcenter()
         maven("https://jitpack.io")
-        configurations.all {
-            resolutionStrategy {
-                force("com.google.android.gms:play-services-location:21.0.1")
-            }
-        }
     }
 }
 

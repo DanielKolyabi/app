@@ -29,4 +29,10 @@ interface TaskItemResultEntranceEntityDao {
 
     @Delete
     fun delete(task: TaskItemResultEntranceEntity)
+
+    @Query("DELETE FROM task_item_result_entrances")
+    suspend fun deleteAll()
+
+    @Query("DELETE FROM task_item_result_entrances WHERE task_item_result_id in (:ids)")
+    suspend fun deleteByTaskItemResultIds(ids: List<Int>)
 }

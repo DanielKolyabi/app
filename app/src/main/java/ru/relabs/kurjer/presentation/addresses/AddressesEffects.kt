@@ -18,7 +18,7 @@ object AddressesEffects {
     fun effectLoadTasks(taskIds: List<TaskId>): AddressesEffect = { c, s ->
         messages.send(AddressesMessages.msgAddLoaders(1))
         val tasks = taskIds.mapNotNull {
-            c.databaseRepository.getTask(it)
+            c.taskRepository.getTask(it)
         }
         messages.send(AddressesMessages.msgTasksLoaded(tasks))
         messages.send(AddressesMessages.msgAddLoaders(-1))
@@ -64,9 +64,9 @@ object AddressesEffects {
     fun effectValidateTasks(): AddressesEffect = { c, s ->
         messages.send(AddressesMessages.msgAddLoaders(1))
         s.tasks.forEach { t ->
-            val updatedTask = c.databaseRepository.getTask(t.id) ?: return@forEach
+            val updatedTask = c.taskRepository.getTask(t.id) ?: return@forEach
             if (updatedTask.items.none { it.state == TaskItemState.CREATED }) {
-                c.databaseRepository.closeTaskById(updatedTask.id, true)
+                c.taskRepository.closeTaskById(updatedTask.id.id)
             }
             if (!(updatedTask.state.state == TaskState.EXAMINED || updatedTask.state.state == TaskState.STARTED)) {
                 messages.send(AddressesMessages.msgRemoveTask(updatedTask.id))
@@ -95,7 +95,7 @@ object AddressesEffects {
             .distinctBy { it.taskId }
             .mapNotNull {
                 //TODO:mb fix
-                val storage = c.databaseRepository.getTask(it.taskId)?.storage
+                val storage = c.taskRepository.getTask(it.taskId)?.storage
                 if (storage != null) {
                     YandexMapFragment.StorageLocation(storage.lat, storage.long)
                 } else {
@@ -121,7 +121,7 @@ object AddressesEffects {
 
     fun effectCheckTasks(): AddressesEffect = { c, s ->
         val storageIds = s.tasks.map { it.storage.id }
-        val tasks = c.databaseRepository.getTasksByStorageId(storageIds)
+        val tasks = c.taskRepository.getTasksByStorageId(storageIds)
             .filter { it.state.state != TaskState.COMPLETED && it.state.state != TaskState.CANCELED }
             .filter { it.endTime > Date() && it.startTime < Date() }
         if (tasks.size != s.tasks.size) {

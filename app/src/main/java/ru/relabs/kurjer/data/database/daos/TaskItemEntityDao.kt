@@ -35,4 +35,10 @@ interface TaskItemEntityDao {
 
     @Query("DELETE FROM task_items WHERE id = :id")
     fun deleteById(id: Int)
+
+    @Query("DELETE FROM task_items")
+    suspend fun deleteAll()
+
+    @Query("DELETE FROM task_items WHERE task_id = :id")
+    suspend fun deleteByTaskId(id: Int)
 }

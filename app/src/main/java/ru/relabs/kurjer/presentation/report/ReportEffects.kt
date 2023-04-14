@@ -6,11 +6,10 @@ import android.location.Location
 import android.net.Uri
 import androidx.core.net.toUri
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.*
-import ru.relabs.kurjer.domain.repositories.DatabaseRepository
+import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.services.ReportService
@@ -30,7 +29,7 @@ object ReportEffects {
     ): ReportEffect = { c, s ->
         messages.send(ReportMessages.msgAddLoaders(1))
         val tasks = itemIds.mapNotNull { (taskId, taskItemId) ->
-            val task = c.database.getTask(taskId)
+            val task = c.taskRepository.getTask(taskId)
             val item = task?.items?.firstOrNull { it.id == taskItemId }
 
             if (task != null && item != null) {
@@ -61,7 +60,7 @@ object ReportEffects {
                             taskWithItem.taskItem.entrancesData.map {
                                 val isCouplingEnabled =
                                     activeTaskWithItems.count { taskWithItem.task.coupleType == it.task.coupleType } > 1 &&
-                                            c.database.getTaskItemResult(taskWithItem.taskItem) == null
+                                            c.taskRepository.getTaskItemResult(taskWithItem.taskItem) == null
 
                                 (it.number to taskWithItem.task.coupleType) to isCouplingEnabled
                             }
@@ -92,11 +91,11 @@ object ReportEffects {
         }
         messages.send(ReportMessages.msgAddLoaders(1))
         val task = s.tasks.firstOrNull { it.taskItem.id == id }?.task
-        val taskItem = c.database.getTaskItem(id)
+        val taskItem = c.taskRepository.getTaskItem(id)
         if (task == null || taskItem == null) {
             c.showError("re:110", true)
         } else {
-            val photos = c.database.getTaskItemPhotos(taskItem).map {
+            val photos = c.photoRepository.getTaskItemPhotos(taskItem).map {
                 PhotoWithUri(
                     it,
                     c.pathsProvider.getTaskItemPhotoFile(taskItem, UUID.fromString(it.UUID)).toUri()
@@ -109,7 +108,7 @@ object ReportEffects {
                 )
             )
 
-            val report = c.database.getTaskItemResult(taskItem)
+            val report = c.taskRepository.getTaskItemResult(taskItem)
             messages.send(ReportMessages.msgSavedResultLoaded(report))
 
             if (s.isEntranceSelectionChanged) {
@@ -126,8 +125,8 @@ object ReportEffects {
     ): ReportEffect = { c, s ->
         if (!c.settingsRepository.canSkipUnfinishedTaskItem) {
             messages.send(ReportMessages.msgAddLoaders(1))
-            val unfinishedTaskItem = c.database.getUnfinishedItemPhotos()
-                .map { c.database.getTaskItem(it.taskItemId) }
+            val unfinishedTaskItem = c.photoRepository.getUnfinishedItemPhotos()
+                .map { c.taskRepository.getTaskItem(it.taskItemId) }
                 .firstOrNull()
                 ?.takeIf {
                     it.id != s.selectedTask?.taskItem?.id
@@ -137,7 +136,7 @@ object ReportEffects {
             when (unfinishedTaskItem) {
                 null -> messages.send(msgFactory())
                 else -> {
-                    val unfinishedTask = c.database.getTask(unfinishedTaskItem.taskId)
+                    val unfinishedTask = c.taskRepository.getTask(unfinishedTaskItem.taskId)
                     if (unfinishedTask == null) {
                         messages.send(msgFactory())
                     } else {
@@ -325,7 +324,7 @@ object ReportEffects {
     }
 
     fun effectRemovePhoto(it: TaskItemPhoto): ReportEffect = { c, s ->
-        c.database.removePhoto(it)
+        c.photoRepository.removePhoto(it)
     }
 
     fun effectEntranceSelectionChanged(
@@ -343,7 +342,7 @@ object ReportEffects {
         when (val affectedTask = s.selectedTask) {
             null -> c.showError("re:101", true)
             else -> {
-                val newResult = c.database.createOrUpdateTaskItemEntranceResultSelection(
+                val newResult = c.taskRepository.createOrUpdateTaskItemEntranceResultSelection(
                     entrance,
                     affectedTask.taskItem
                 ) { selection ->
@@ -374,7 +373,7 @@ object ReportEffects {
                     s.tasks
                         .filter { it.task.coupleType == affectedTask.task.coupleType && it.taskItem.state == TaskItemState.CREATED }
                         .forEach {
-                            c.database.createOrUpdateTaskItemEntranceResultSelection(
+                            c.taskRepository.createOrUpdateTaskItemEntranceResultSelection(
                                 entrance,
                                 it.taskItem,
                                 newSelection
@@ -424,7 +423,7 @@ object ReportEffects {
                     is Left -> messages.send(ReportMessages.msgPhotoError(6))
                     is Right -> {
                         val location = c.locationProvider.lastReceivedLocation()
-                        val photo = c.database.savePhoto(entrance, task.taskItem, uuid, location)
+                        val photo = c.photoRepository.savePhoto(entrance, task.taskItem, uuid, location)
                         val path = c.pathsProvider.getTaskItemPhotoFile(task.taskItem, uuid)
                         messages.send(ReportMessages.msgNewPhoto(PhotoWithUri(photo, path.toUri())))
                     }
@@ -438,9 +437,9 @@ object ReportEffects {
             null -> c.showError("re:103", true)
             else -> {
                 s.tasks.filter { it.taskItem.state == TaskItemState.CREATED }.forEach { t ->
-                    val result = c.database.getTaskItemResult(t.taskItem)
-                        ?: createEmptyTaskResult(c.database, t.taskItem)
-                    val updated = c.database.updateTaskItemResult(result.copy(description = text))
+                    val result = c.taskRepository.getTaskItemResult(t.taskItem)
+                        ?: createEmptyTaskResult(c.taskRepository, t.taskItem)
+                    val updated = c.taskRepository.updateTaskItemResult(result.copy(description = text))
                     if (updated.taskItemId == selectedTask.taskItem.id) {
                         messages.send(ReportMessages.msgSavedResultLoaded(updated))
                     }
@@ -630,7 +629,7 @@ object ReportEffects {
             else -> {
                 effectInterruptPause()(c, s)
                 if (selected.taskItem is TaskItem.Common) {
-                    c.database.updateTaskItem(selected.taskItem.copy(closeTime = Date()))
+                    c.taskRepository.updateTaskItem(selected.taskItem.copy(closeTime = Date()))
                 }
                 c.reportUseCase.createReport(
                     selected.task,
@@ -660,7 +659,7 @@ object ReportEffects {
     }
 
     private suspend fun createEmptyTaskResult(
-        database: DatabaseRepository,
+        taskRepository: TaskRepository,
         taskItem: TaskItem
     ): TaskItemResult {
         val result = TaskItemResult(
@@ -672,7 +671,7 @@ object ReportEffects {
             gps = GPSCoordinatesModel(0.0, 0.0, Date()),
             isPhotoRequired = taskItem.needPhoto
         )
-        return database.updateTaskItemResult(result)
+        return taskRepository.updateTaskItemResult(result)
     }
 
     fun effectInterruptPause(): ReportEffect = { c, s ->
@@ -739,7 +738,7 @@ object ReportEffects {
         when (val affectedTask = s.selectedTask) {
             null -> c.showError("re:111", true)
             else -> {
-                c.database.createOrUpdateTaskItemEntranceResult(
+                c.taskRepository.createOrUpdateTaskItemEntranceResult(
                     entranceNumber,
                     affectedTask.taskItem
                 ) {

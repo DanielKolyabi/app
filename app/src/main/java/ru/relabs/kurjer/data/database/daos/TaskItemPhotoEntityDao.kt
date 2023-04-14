@@ -28,11 +28,14 @@ interface TaskItemPhotoEntityDao {
     fun insertAll(task: List<TaskItemPhotoEntity>)
 
     @Delete
-    fun delete(task: TaskItemPhotoEntity)
+    suspend fun delete(task: TaskItemPhotoEntity)
 
     @Query("DELETE FROM task_item_photos WHERE task_item_id = :taskItemId")
     fun deleteByTaskItemId(taskItemId: Int)
 
     @Query("DELETE FROM task_item_photos WHERE id = :photoId")
-    fun deleteById(photoId: Int)
+    suspend fun deleteById(photoId: Int)
+
+    @Query("DELETE FROM task_item_photos")
+    suspend fun deleteAll()
 }

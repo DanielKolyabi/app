@@ -5,7 +5,7 @@ import org.koin.core.component.inject
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.providers.PathsProvider
-import ru.relabs.kurjer.domain.repositories.DatabaseRepository
+import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.presentation.base.tea.*
@@ -27,7 +27,7 @@ class TasksContext(val examinedConsumer: TasksFragment, val errorContext: ErrorC
     KoinComponent {
 
     val deliveryRepository: DeliveryRepository by inject()
-    val databaseRepository: DatabaseRepository by inject()
+    val taskRepository: TaskRepository by inject()
     val taskEventController: TaskEventController by inject()
     val settingsRepository: SettingsRepository by inject()
     val pathsProvider: PathsProvider by inject()

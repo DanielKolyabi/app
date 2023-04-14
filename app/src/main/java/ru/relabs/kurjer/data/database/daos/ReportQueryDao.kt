@@ -31,5 +31,5 @@ interface ReportQueryDao {
     fun insertAll(address: List<ReportQueryItemEntity>)
 
     @Delete
-    fun delete(address: ReportQueryItemEntity)
+    suspend fun delete(address: ReportQueryItemEntity)
 }

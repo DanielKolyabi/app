@@ -23,4 +23,7 @@ interface EntranceDataEntityDao {
 
     @Query("DELETE FROM entrances_data WHERE task_item_id = :taskItemId")
     fun deleteAllForTaskItem(taskItemId: Int)
+
+    @Query("DELETE FROM entrances_data")
+    suspend fun deleteAll()
 }

@@ -128,7 +128,7 @@ dependencies {
 
     //Various
     implementation("com.yandex.android:maps.mobile:4.3.1-full")
-    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.android.gms:play-services-location:20.0.0")
     implementation("com.github.instacart.truetime-android:library:3.5")
     implementation("joda-time:joda-time:2.10.1")
     implementation("com.mikepenz:materialdrawer:7.0.0-rc08")

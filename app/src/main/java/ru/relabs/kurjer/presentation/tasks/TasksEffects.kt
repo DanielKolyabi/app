@@ -66,7 +66,7 @@ object TasksEffects {
             var tasksCreated = false
 
             when (val r = c.deliveryRepository.getTasks()) {
-                is Right -> c.databaseRepository.mergeTasks(r.value).collect {
+                is Right -> c.taskRepository.mergeTasks(r.value).collect {
                     when (it) {
                         is MergeResult.TaskCreated -> {
                             c.deliveryRepository.loadTaskMap(it.task)
@@ -92,7 +92,7 @@ object TasksEffects {
             c.showSnackbar(message)
             c.deliveryRepository.getFirmRejectReasons(true)
         }
-        messages.send(TasksMessages.msgTasksLoaded(c.databaseRepository.getTasks()))
+        messages.send(TasksMessages.msgTasksLoaded(c.taskRepository.getTasks()))
         messages.send(TasksMessages.msgAddLoaders(-1))
     }
 

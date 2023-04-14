@@ -1,10 +1,8 @@
 package ru.relabs.kurjer.domain.controllers
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 
-@ExperimentalCoroutinesApi
 open class BaseEventController<T> {
     private val eventChannel = MutableSharedFlow<T>(
         replay = 0,

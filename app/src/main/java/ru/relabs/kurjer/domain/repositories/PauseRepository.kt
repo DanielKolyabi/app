@@ -29,7 +29,7 @@ fun PauseType.toInt() = when (this) {
 class PauseRepository(
     private val api: DeliveryRepository,
     private val sharedPreferences: SharedPreferences,
-    private val db: DatabaseRepository,
+    private val queryRepository: QueryRepository,
     private val userStorage: CurrentUserStorage
 ) {
 
@@ -174,7 +174,7 @@ class PauseRepository(
         ReportService.instance?.pauseTaskClosingTimer(pauseTime, pauseEndTime)
         putPauseStartTime(type, pauseTime)
         if (withNotify) {
-            db.putSendQuery(SendQueryData.PauseStart(type, pauseTime))
+            queryRepository.putSendQuery(SendQueryData.PauseStart(type, pauseTime))
         }
     }
 
@@ -190,7 +190,7 @@ class PauseRepository(
         putPauseEndTime(type, pauseTime)
         ReportService.instance?.startTaskClosingTimer(true)
         if (withNotify) {
-            val r = db.putSendQuery(SendQueryData.PauseStop(type, pauseTime))
+            val r = queryRepository.putSendQuery(SendQueryData.PauseStop(type, pauseTime))
             debug("$r")
         }
     }

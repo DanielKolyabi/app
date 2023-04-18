@@ -73,7 +73,7 @@ class PlayServicesLocationProvider(
         if (!checkPermission()) {
             CustomLog.writeToFile("GPS LOG: No permission")
             lastReceivedLocation?.let {
-                channel.trySend(it).isSuccess
+                channel.trySend(it)
             }
             return channel
         }
@@ -83,7 +83,7 @@ class PlayServicesLocationProvider(
                 if (!channel.isClosedForSend) {
                     location?.let {
                         CustomLog.writeToFile("GPS LOG: Fastest method, ${Date(location.time).formatedWithSecs()}")
-                        channel.trySend(it).isSuccess
+                        channel.trySend(it)
                     }
                 }
             }
@@ -105,7 +105,7 @@ class PlayServicesLocationProvider(
                     if (location != null) {
                         channel.trySend(location)
                     } else if (lastLocation != null) {
-                        channel.trySend(lastLocation).isSuccess
+                        channel.trySend(lastLocation)
                     }
                 }
                 lastReceivedLocation = locationResult.lastLocation
@@ -204,7 +204,7 @@ class NativeLocationProvider(
 
         if (!checkPermission()) {
             lastReceivedLocation?.let {
-                channel.trySend(it).isSuccess
+                channel.trySend(it)
             }
             return channel
         }
@@ -218,14 +218,14 @@ class NativeLocationProvider(
             }
 
             loc?.let {
-                channel.trySend(loc).isSuccess
+                channel.trySend(loc)
             }
         }
         val callback: LocationListener = object : LocationListener {
             override fun onLocationChanged(locationResult: Location) {
                 locationResult
                 if (!channel.isClosedForSend) {
-                    channel.trySend(locationResult).isSuccess
+                    channel.trySend(locationResult)
                 }
                 lastReceivedLocation = locationResult
             }

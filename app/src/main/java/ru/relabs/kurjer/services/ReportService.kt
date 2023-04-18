@@ -31,6 +31,7 @@ import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.QueryRepository
 import ru.relabs.kurjer.domain.repositories.StorageRepository
 import ru.relabs.kurjer.domain.useCases.ReportUseCase
+import ru.relabs.kurjer.domain.useCases.TaskUseCase
 import ru.relabs.kurjer.utils.*
 
 
@@ -43,6 +44,7 @@ class ReportService : Service(), KoinComponent {
     private val repository: DeliveryRepository by inject()
     private val queryRepository: QueryRepository by inject()
     private val reportUseCase: ReportUseCase by inject()
+    private val taskUseCase: TaskUseCase by inject()
     private val taskEventController: TaskEventController by inject()
     private val serviceEventController: ServiceEventController by inject()
     private val storageRepository: StorageRepository by inject()
@@ -126,7 +128,7 @@ class ReportService : Service(), KoinComponent {
                         }
                         System.currentTimeMillis() - lastTasksChecking > TASK_CHECK_DELAY -> {
                             when (val tasks = repository.getTasks()) {
-                                is Right -> if (reportUseCase.isMergeNeeded(tasks.value)) {
+                                is Right -> if (taskUseCase.isMergeNeeded(tasks.value)) {
                                     CustomLog.writeToFile("UPDATE: merge is needed")
                                     taskEventController.send(TaskEvent.TasksUpdateRequired(false))
                                 }
@@ -169,7 +171,7 @@ class ReportService : Service(), KoinComponent {
         if (System.currentTimeMillis() > startTime + TIMELIMIT_NOTIFICATION_TIMEOUT) {
             scope.launch {
                 timelimitNotificationStartTime = null
-                if (!reportUseCase.isOpenedTasksExists()) {
+                if (!taskUseCase.isOpenedTasksExists()) {
                     return@launch
                 }
                 withContext(Dispatchers.Main) {

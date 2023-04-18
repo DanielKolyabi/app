@@ -107,7 +107,7 @@ object AddressesEffects {
         withContext(Dispatchers.Main) {
             c.router.navigateTo(
                 RootScreen.yandexMap(taskItems, storages) {
-                    messages.trySend(msgEffect(effectYandexMapAddressSelected(it))).isSuccess
+                    messages.trySend(msgEffect(effectYandexMapAddressSelected(it)))
                 }
             )
         }

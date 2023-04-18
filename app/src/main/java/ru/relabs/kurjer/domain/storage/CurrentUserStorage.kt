@@ -12,17 +12,17 @@ class CurrentUserStorage(private val appPreferences: AppPreferences) {
 
     fun saveCurrentUserLogin(login: UserLogin) {
         appPreferences.saveCurrentUserLogin(login)
-        currentUser.trySend(login).isSuccess
+        currentUser.trySend(login)
     }
 
     fun getCurrentUserLogin(): UserLogin? {
         val user = appPreferences.getCurrentUserLogin()
-        currentUser.trySend(user).isSuccess
+        currentUser.trySend(user)
         return user
     }
 
     fun resetCurrentUserLogin() {
-        currentUser.trySend(null).isSuccess
+        currentUser.trySend(null)
         appPreferences.resetCurrentUserLogin()
     }
 

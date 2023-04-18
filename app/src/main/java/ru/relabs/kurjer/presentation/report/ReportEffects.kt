@@ -409,7 +409,7 @@ object ReportEffects {
         }
     }
 
-    fun effectSavePhotoFromBitmap(
+    private fun effectSavePhotoFromBitmap(
         entrance: Int,
         bitmap: Bitmap,
         targetFile: File,
@@ -438,7 +438,7 @@ object ReportEffects {
             else -> {
                 s.tasks.filter { it.taskItem.state == TaskItemState.CREATED }.forEach { t ->
                     val result = c.taskRepository.getTaskItemResult(t.taskItem)
-                        ?: createEmptyTaskResult(c.taskRepository, t.taskItem)
+                        ?: c.taskRepository.createEmptyTaskResult(t.taskItem)
                     val updated = c.taskRepository.updateTaskItemResult(result.copy(description = text))
                     if (updated.taskItemId == selectedTask.taskItem.id) {
                         messages.send(ReportMessages.msgSavedResultLoaded(updated))
@@ -658,22 +658,6 @@ object ReportEffects {
         targetFile
     }
 
-    private suspend fun createEmptyTaskResult(
-        taskRepository: TaskRepository,
-        taskItem: TaskItem
-    ): TaskItemResult {
-        val result = TaskItemResult(
-            id = TaskItemResultId(0),
-            taskItemId = taskItem.id,
-            closeTime = null,
-            description = "",
-            entrances = emptyList(),
-            gps = GPSCoordinatesModel(0.0, 0.0, Date()),
-            isPhotoRequired = taskItem.needPhoto
-        )
-        return taskRepository.updateTaskItemResult(result)
-    }
-
     fun effectInterruptPause(): ReportEffect = { c, s ->
         if (c.pauseRepository.isPaused) {
             c.pauseRepository.stopPause(withNotify = true)
@@ -695,7 +679,7 @@ object ReportEffects {
             }
         }
     }
-
+ 
     private fun effectEventTaskItemClosed(taskItemId: TaskItemId): ReportEffect = { c, s ->
         s.tasks
             .firstOrNull { t -> t.taskItem.id == taskItemId }

@@ -383,7 +383,22 @@ class TaskRepository(
             taskItemDao.update(DatabaseTaskItemMapper.toEntity(taskItem))
         }
     }
+
+    suspend fun createEmptyTaskResult(taskItem: TaskItem): TaskItemResult
+    {
+        val result = TaskItemResult(
+            id = TaskItemResultId(0),
+            taskItemId = taskItem.id,
+            closeTime = null,
+            description = "",
+            entrances = emptyList(),
+            gps = GPSCoordinatesModel(0.0, 0.0, Date()),
+            isPhotoRequired = taskItem.needPhoto
+        )
+        return updateTaskItemResult(result)
+    }
 }
+
 
 sealed class MergeResult {
     data class TaskCreated(val task: Task) : MergeResult()

@@ -45,7 +45,7 @@ object AddressesRenders {
                 AddressesItem.Sorting(sorting).takeIf { tasks.size == 1 },
                 AddressesItem.Search(searchFilter).takeIf { tasks.isNotEmpty() },
                 AddressesItem.Loading.takeIf { tasks.isEmpty() && loading },
-                AddressesItem.Storage.takeIf { tasks.isNotEmpty() }
+                AddressesItem.Storage.takeIf { tasks.isNotEmpty() && tasks.any { it.deliveryType == TaskDeliveryType.Address } }
             ) +
                     filteredTasks +
                     listOfNotNull(

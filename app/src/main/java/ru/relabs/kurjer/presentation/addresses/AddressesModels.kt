@@ -32,7 +32,6 @@ class AddressesContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) 
     val taskEventController: TaskEventController by inject()
     val pathsProvider: PathsProvider by inject()
 
-    var showStorageWarningDialog: () -> Unit = {}
     var showImagePreview: (File) -> Unit = {}
     var showSnackbar: (msgRes: Int) -> Unit = {}
 }

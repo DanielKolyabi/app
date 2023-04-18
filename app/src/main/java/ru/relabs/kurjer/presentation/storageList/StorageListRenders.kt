@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.presentation.storageList
 
 import androidx.recyclerview.widget.DiffUtil
+import ru.relabs.kurjer.domain.models.TaskDeliveryType
 import ru.relabs.kurjer.presentation.base.DefaultListDiffCallback
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.renderT
@@ -12,7 +13,8 @@ object StorageListRenders {
             val newItems = if (loaders > 0) {
                 listOf(StorageListItem.Loader)
             } else {
-                tasks.groupBy { Triple(it.task.name, it.task.edition, it.isStorageActuallyRequired) to it.task.storage.id }
+                tasks.filter { it.task.deliveryType == TaskDeliveryType.Address }
+                    .groupBy { Triple(it.task.name, it.task.edition, it.isStorageActuallyRequired) to it.task.storage.id }
                     .map {
                         StorageListItem.StorageAddress(
                             it.value.first().task.storage,

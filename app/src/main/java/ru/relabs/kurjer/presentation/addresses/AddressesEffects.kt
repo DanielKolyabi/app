@@ -119,20 +119,6 @@ object AddressesEffects {
         messages.send(AddressesMessages.msgSelectedListAddress(null))
     }
 
-    fun effectCheckTasks(): AddressesEffect = { c, s ->
-        val storageIds = s.tasks.map { it.storage.id }
-        val tasks = c.taskRepository.getTasksByStorageId(storageIds)
-            .filter { it.state.state != TaskState.COMPLETED && it.state.state != TaskState.CANCELED }
-            .filter { it.endTime > Date() && it.startTime < Date() }
-        if (tasks.size != s.tasks.size) {
-            withContext(Dispatchers.Main) {
-                c.showStorageWarningDialog()
-            }
-        } else {
-            effectNavigateStorage()(c, s)
-        }
-    }
-
     fun effectNavigateStorage(): AddressesEffect = { c, s ->
         withContext(Dispatchers.Main) {
             c.router.navigateTo(RootScreen.storageListScreen(s.tasks.map { it.id }))

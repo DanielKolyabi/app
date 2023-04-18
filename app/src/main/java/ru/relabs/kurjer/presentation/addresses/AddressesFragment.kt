@@ -126,7 +126,6 @@ class AddressesFragment : BaseFragment() {
             )
         }
         controller.context.showSnackbar = { showSnackbar(getString(it)) }
-        controller.context.showStorageWarningDialog = ::showStorageWarningDialog
         controller.context.errorContext.attach(view)
     }
 
@@ -144,20 +143,8 @@ class AddressesFragment : BaseFragment() {
         super.onDestroyView()
         controller.context.showSnackbar = {}
         controller.context.showImagePreview = {}
-        controller.context.showStorageWarningDialog = {}
         renderJob?.cancel()
         controller.context.errorContext.detach()
-    }
-
-    private fun showStorageWarningDialog() {
-        showDialog(
-            R.string.unselected_tasks_warning,
-            R.string.ok to {
-                uiScope.sendMessage(
-                    controller,
-                    AddressesMessages.msgWarningShowed()
-                )
-            })
     }
 
     override fun interceptBackPressed(): Boolean {

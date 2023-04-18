@@ -340,7 +340,7 @@ object StorageReportEffects {
             } ?: Int.MAX_VALUE.toDouble()
 
             val required = c.storageReportUseCase.getCloseRadiusRequirement()
-            withContext(Dispatchers.Main) {
+            val shadowClose: Boolean = withContext(Dispatchers.Main) {
                 if (required) {
                     when {
                         location == null -> {
@@ -350,6 +350,7 @@ object StorageReportEffects {
                                 null,
                                 emptyArray()
                             )
+                            true
                         }
                         distance > storage.closeDistance -> {
                             c.showCloseError(
@@ -358,9 +359,11 @@ object StorageReportEffects {
                                 null,
                                 emptyArray()
                             )
+                            true
                         }
                         else -> {
                             c.showPreCloseDialog(location)
+                            false
                         }
                     }
                 } else {
@@ -372,6 +375,7 @@ object StorageReportEffects {
                                 location,
                                 emptyArray()
                             )
+                            false
                         }
                         distance > storage.closeDistance -> {
                             c.showCloseError(
@@ -380,17 +384,22 @@ object StorageReportEffects {
                                 location,
                                 emptyArray()
                             )
+                            false
                         }
                         else -> {
                             c.showPreCloseDialog(location)
+                            false
                         }
                     }
                 }
             }
+            if (shadowClose) {
+                effectPerformClose(location, false)(c, s)
+            }
         }
     }
 
-    fun effectPerformClose(location: Location?): StorageReportEffect =
+    fun effectPerformClose(location: Location?, withClose: Boolean): StorageReportEffect =
         wrapInLoaders({ StorageReportMessages.msgAddLoaders(it) }) { c, s ->
             when (val report = s.storageReport) {
                 null -> {
@@ -401,9 +410,11 @@ object StorageReportEffects {
                         effectInterruptPause()(c, s)
                         val storage = s.tasks.first().storage
                         c.storageReportUseCase.createStorageReportRequests(
-                            report, location, c.getBatteryLevel() ?: 0f, storage
+                            report, location, c.getBatteryLevel() ?: 0f, storage, withClose
                         )
-                        messages.send(msgEffect(effectNavigateBack()))
+                        if (withClose) {
+                            messages.send(msgEffect(effectNavigateBack()))
+                        }
                     } else {
                         c.showError("sre:3", true)
                     }

@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
+import com.github.terrakok.cicerone.Router
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Circle
@@ -23,7 +24,6 @@ import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.Address
 import ru.relabs.kurjer.domain.providers.LocationProvider
-import ru.terrakok.cicerone.Router
 
 private const val ADDRESS_RADIUS = 20f
 private const val STORAGE_RADIUS = 10f
@@ -80,8 +80,10 @@ class YandexMapFragment : Fragment() {
         mapview.map.isRotateGesturesEnabled = false
 
         mapview.map.move(CameraPosition(point, 14f, 0f, 0f))
-        userLocationLayer = mapview.map.userLocationLayer
-        userLocationLayer.isEnabled = true
+        userLocationLayer = MapKitFactory.getInstance().createUserLocationLayer(mapview.mapWindow).apply {
+            isVisible = true
+        }
+
 
         val userLocation = locationProvider.lastReceivedLocation()
 
@@ -308,9 +310,16 @@ inline fun MapObjectCollection.forEach(crossinline block: (MapObject) -> Unit) {
         override fun onPolygonVisited(p0: PolygonMapObject) = block(p0)
         override fun onCircleVisited(p0: CircleMapObject) = block(p0)
         override fun onPolylineVisited(p0: PolylineMapObject) = block(p0)
-        override fun onColoredPolylineVisited(p0: ColoredPolylineMapObject) = block(p0)
         override fun onPlacemarkVisited(p0: PlacemarkMapObject) = block(p0)
         override fun onCollectionVisitEnd(p0: MapObjectCollection) {}
+        override fun onClusterizedCollectionVisitStart(p0: ClusterizedPlacemarkCollection): Boolean {
+            return true
+        }
+
+        override fun onClusterizedCollectionVisitEnd(p0: ClusterizedPlacemarkCollection) {
+            block(p0)
+        }
+
         override fun onCollectionVisitStart(p0: MapObjectCollection): Boolean = true
     })
 }

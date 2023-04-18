@@ -1,5 +1,9 @@
 package ru.relabs.kurjer.utils
 
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 /**
  * Created by Daniil Kurchanov on 05.11.2019.
  */
@@ -34,3 +38,8 @@ inline infix fun <L, R, U> Either<L, R>.bind(transform: (R) -> Either<L, U>): Ei
         is Left -> this
     }
 }
+
+suspend fun <T> io(
+    dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    block: suspend () -> T
+) = Either.of { withContext(dispatcher) { block() } }

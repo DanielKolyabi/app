@@ -15,6 +15,13 @@ import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
+import androidx.fragment.app.FragmentTransaction.TRANSIT_FRAGMENT_FADE
+import com.github.terrakok.cicerone.Cicerone
+import com.github.terrakok.cicerone.Command
+import com.github.terrakok.cicerone.NavigatorHolder
+import com.github.terrakok.cicerone.androidx.AppNavigator
+import com.github.terrakok.cicerone.androidx.FragmentScreen
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
@@ -46,7 +53,6 @@ import ru.relabs.kurjer.utils.*
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
 import ru.relabs.kurjer.utils.extensions.showSnackbar
-import ru.terrakok.cicerone.NavigatorHolder
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -61,7 +67,21 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     private val locationProvider: LocationProvider by inject()
     private lateinit var navigationDrawer: Drawer
 
-    private val navigator = CiceroneNavigator(this)
+    private val navigator = object : AppNavigator(this, R.id.fragment_container) {
+        override fun setupFragmentTransaction(
+            screen: FragmentScreen,
+            fragmentTransaction: FragmentTransaction,
+            currentFragment: Fragment?,
+            nextFragment: Fragment
+        ) {
+            fragmentTransaction.setTransition(TRANSIT_FRAGMENT_FADE)
+        }
+
+        override fun applyCommands(commands: Array<out Command>) {
+            hideKeyboard()
+            super.applyCommands(commands)
+        }
+    }
 
     private val featureCheckersContainer = FeatureCheckersContainer(this, locationProvider, uiScope)
     private val systemWatchersContainer = SystemWatchersContainer(
@@ -360,6 +380,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                 is FileNotFoundException -> showSnackbar(resources.getString(R.string.crash_log_not_found))
                 else -> showSnackbar(resources.getString(R.string.unknown_runtime_error))
             }
+            is Right -> Unit
         }
         return false
     }
@@ -433,7 +454,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
         uiScope.launch(Dispatchers.IO) {
             locationProvider.updatesChannel().apply {
-                receiveOrNull()
+                receiveCatching().getOrNull()
                 try {
                     if (isActive) {
                         cancel()

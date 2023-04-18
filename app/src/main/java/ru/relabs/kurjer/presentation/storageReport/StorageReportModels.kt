@@ -3,8 +3,8 @@ package ru.relabs.kurjer.presentation.storageReport
 import android.content.ContentResolver
 import android.location.Location
 import android.net.Uri
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.storage.StorageReport
 import ru.relabs.kurjer.domain.models.storage.StorageReportId

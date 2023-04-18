@@ -1,7 +1,6 @@
 package ru.relabs.kurjer.presentation.addresses
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.*
@@ -19,7 +18,7 @@ object AddressesEffects {
     fun effectLoadTasks(taskIds: List<TaskId>): AddressesEffect = { c, s ->
         messages.send(AddressesMessages.msgAddLoaders(1))
         val tasks = taskIds.mapNotNull {
-            c.databaseRepository.getTask(it)
+            c.taskRepository.getTask(it)
         }
         messages.send(AddressesMessages.msgTasksLoaded(tasks))
         messages.send(AddressesMessages.msgAddLoaders(-1))
@@ -42,7 +41,7 @@ object AddressesEffects {
             .filter { it.second.address.id == item.address.id }
 
         withContext(Dispatchers.Main) {
-            c.router.navigateTo(RootScreen.Report(sameAddressItems, item))
+            c.router.navigateTo(RootScreen.report(sameAddressItems, item))
         }
     }
 
@@ -55,6 +54,7 @@ object AddressesEffects {
                             messages.send(AddressesMessages.msgRemoveTask(it.taskId))
                         is TaskEvent.TaskItemClosed ->
                             messages.send(AddressesMessages.msgTaskItemClosed(it.taskItemId))
+                        is TaskEvent.TasksUpdateRequired -> Unit
                     }
                 }
             }
@@ -64,9 +64,9 @@ object AddressesEffects {
     fun effectValidateTasks(): AddressesEffect = { c, s ->
         messages.send(AddressesMessages.msgAddLoaders(1))
         s.tasks.forEach { t ->
-            val updatedTask = c.databaseRepository.getTask(t.id) ?: return@forEach
+            val updatedTask = c.taskRepository.getTask(t.id) ?: return@forEach
             if (updatedTask.items.none { it.state == TaskItemState.CREATED }) {
-                c.databaseRepository.closeTaskById(updatedTask.id, true)
+                c.taskRepository.closeTaskById(updatedTask.id.id)
             }
             if (!(updatedTask.state.state == TaskState.EXAMINED || updatedTask.state.state == TaskState.STARTED)) {
                 messages.send(AddressesMessages.msgRemoveTask(updatedTask.id))
@@ -84,7 +84,7 @@ object AddressesEffects {
         withContext(Dispatchers.Main) {
             when {
                 imagesToShow.isEmpty() -> c.showSnackbar(R.string.image_map_or_production_not_found)
-                else -> c.router.navigateTo(RootScreen.ImagePreview(imagesToShow.map { it.path }))
+                else -> c.router.navigateTo(RootScreen.imagePreview(imagesToShow.map { it.path }))
             }
         }
         messages.send(AddressesMessages.msgAddLoaders(-1))
@@ -95,7 +95,7 @@ object AddressesEffects {
             .distinctBy { it.taskId }
             .mapNotNull {
                 //TODO:mb fix
-                val storage = c.databaseRepository.getTask(it.taskId)?.storage
+                val storage = c.taskRepository.getTask(it.taskId)?.storage
                 if (storage != null) {
                     YandexMapFragment.StorageLocation(storage.lat, storage.long)
                 } else {
@@ -106,8 +106,8 @@ object AddressesEffects {
 
         withContext(Dispatchers.Main) {
             c.router.navigateTo(
-                RootScreen.YandexMap(taskItems, storages) {
-                    messages.offer(msgEffect(effectYandexMapAddressSelected(it)))
+                RootScreen.yandexMap(taskItems, storages) {
+                    messages.trySend(msgEffect(effectYandexMapAddressSelected(it)))
                 }
             )
         }
@@ -121,7 +121,7 @@ object AddressesEffects {
 
     fun effectNavigateStorage(): AddressesEffect = { c, s ->
         withContext(Dispatchers.Main) {
-            c.router.navigateTo(RootScreen.StorageListScreen(s.tasks.map { it.id }))
+            c.router.navigateTo(RootScreen.storageListScreen(s.tasks.map { it.id }))
         }
     }
 }

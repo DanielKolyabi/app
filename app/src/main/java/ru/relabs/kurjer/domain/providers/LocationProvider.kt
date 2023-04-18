@@ -58,7 +58,7 @@ class PlayServicesLocationProvider(
 
     private val backgroundCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
-            CustomLog.writeToFile("GPS LOG: BG Receive ${Date(result.lastLocation.time).formatedWithSecs()}")
+            CustomLog.writeToFile("GPS LOG: BG Receive ${result.lastLocation?.let { Date(it.time).formatedWithSecs() }}")
             lastReceivedLocation = result.lastLocation
         }
     }
@@ -73,7 +73,7 @@ class PlayServicesLocationProvider(
         if (!checkPermission()) {
             CustomLog.writeToFile("GPS LOG: No permission")
             lastReceivedLocation?.let {
-                channel.offer(it)
+                channel.trySend(it)
             }
             return channel
         }
@@ -83,7 +83,7 @@ class PlayServicesLocationProvider(
                 if (!channel.isClosedForSend) {
                     location?.let {
                         CustomLog.writeToFile("GPS LOG: Fastest method, ${Date(location.time).formatedWithSecs()}")
-                        channel.offer(it)
+                        channel.trySend(it)
                     }
                 }
             }
@@ -103,9 +103,9 @@ class PlayServicesLocationProvider(
                                 "lastLocation: ${Date(lastLocation?.time ?: 0).formatedWithSecs()}"
                     )
                     if (location != null) {
-                        channel.offer(location)
+                        channel.trySend(location)
                     } else if (lastLocation != null) {
-                        channel.offer(lastLocation)
+                        channel.trySend(lastLocation)
                     }
                 }
                 lastReceivedLocation = locationResult.lastLocation
@@ -189,13 +189,11 @@ class NativeLocationProvider(
         }
 
     private val backgroundCallback = object : LocationListener {
-        override fun onLocationChanged(location: Location?) {
+        override fun onLocationChanged(location: Location) {
             lastReceivedLocation = location
         }
 
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-        override fun onProviderEnabled(provider: String?) {}
-        override fun onProviderDisabled(provider: String?) {}
     }
     private var isBackgroundRunning = false
 
@@ -206,7 +204,7 @@ class NativeLocationProvider(
 
         if (!checkPermission()) {
             lastReceivedLocation?.let {
-                channel.offer(it)
+                channel.trySend(it)
             }
             return channel
         }
@@ -220,21 +218,19 @@ class NativeLocationProvider(
             }
 
             loc?.let {
-                channel.offer(loc)
+                channel.trySend(loc)
             }
         }
         val callback: LocationListener = object : LocationListener {
-            override fun onLocationChanged(locationResult: Location?) {
-                locationResult ?: return
+            override fun onLocationChanged(locationResult: Location) {
+                locationResult
                 if (!channel.isClosedForSend) {
-                    channel.offer(locationResult)
+                    channel.trySend(locationResult)
                 }
                 lastReceivedLocation = locationResult
             }
 
             override fun onStatusChanged(p0: String?, p1: Int, p2: Bundle?) {}
-            override fun onProviderEnabled(p0: String?) {}
-            override fun onProviderDisabled(p0: String?) {}
         }
 
         val shouldRunBackgroundAfter = isBackgroundRunning

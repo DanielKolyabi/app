@@ -1,24 +1,28 @@
 package ru.relabs.kurjer.domain.useCases
 
 import android.location.Location
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntranceData
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.mappers.ReportEntranceSelectionMapper
 import ru.relabs.kurjer.domain.models.*
-import ru.relabs.kurjer.domain.repositories.DatabaseRepository
+import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.repositories.QueryRepository
+import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.calculateDistance
 import java.util.*
 import kotlin.math.roundToInt
 
 class ReportUseCase(
-    private val databaseRepository: DatabaseRepository,
-    private val pauseRepository: PauseRepository,
+    private val taskRepository: TaskRepository,
+    private val queryRepository: QueryRepository,
     private val tokenStorage: AuthTokenStorage,
     private val settingsRepository: SettingsRepository,
     private val taskEventController: TaskEventController
@@ -33,7 +37,7 @@ class ReportUseCase(
         isRejected: Boolean,
         rejectReason: String
     ) {
-        val result = databaseRepository.getTaskItemResult(taskItem)
+        val result = taskRepository.getTaskItemResult(taskItem)
         val distance = location?.let {
             calculateDistance(
                 location.latitude,
@@ -79,13 +83,13 @@ class ReportUseCase(
             isPhotoRequired = result?.isPhotoRequired ?: taskItem.needPhoto
         )
 
-        databaseRepository.createTaskItemReport(reportItem)
+        queryRepository.createTaskItemReport(reportItem)
 
         if (isCloseTaskRequired) {
-            databaseRepository.closeTaskItem(taskItem)
+            taskRepository.closeTaskItem(taskItem.id)
             taskEventController.send(TaskEvent.TaskItemClosed(taskItem.id))
-            if (databaseRepository.isTaskCloseRequired(taskItem.taskId)) {
-                databaseRepository.closeTaskById(taskItem.taskId, true)
+            if (taskRepository.isTaskCloseRequired(taskItem.taskId)) {
+                taskRepository.closeTaskById(taskItem.taskId.id)
                 taskEventController.send(TaskEvent.TaskClosed(taskItem.taskId))
             }
         }

@@ -1,10 +1,10 @@
 package ru.relabs.kurjer.presentation.taskDetails
 
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.providers.PathsProvider
-import ru.relabs.kurjer.domain.repositories.DatabaseRepository
+import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.presentation.base.tea.*
 import java.io.File
 
@@ -23,7 +23,7 @@ class TaskDetailsContext(val errorContext: ErrorContextImpl = ErrorContextImpl()
     KoinComponent {
 
     var onExamine: (Task) -> Unit = {}
-    val database: DatabaseRepository by inject()
+    val taskRepository: TaskRepository by inject()
     val pathsProvider: PathsProvider by inject()
 
     var showFatalError: suspend (String) -> Unit = {}

@@ -15,6 +15,9 @@ interface TaskItemResultEntityDao {
     @Query("SELECT * FROM task_item_results WHERE id = :id")
     fun getById(id: Int): TaskItemResultEntity
 
+    @Query("SELECT * FROM task_item_results WHERE task_item_id in (:ids)")
+    suspend fun getByIds(ids: List<Int>): List<TaskItemResultEntity>
+
     @Query("SELECT * FROM task_item_results WHERE task_item_id = :id")
     fun getByTaskItemId(id: Int): TaskItemResultEntity?
 
@@ -29,4 +32,10 @@ interface TaskItemResultEntityDao {
 
     @Delete
     fun delete(task: TaskItemResultEntity)
+
+    @Query("DELETE FROM task_item_results")
+    suspend fun deleteAll()
+
+    @Query("DELETE FROM task_item_results WHERE task_item_id in (:ids)")
+    suspend fun deleteByTaskItemIds(ids: List<Int>)
 }

@@ -39,4 +39,10 @@ interface TaskEntityDao {
     @Delete
     fun delete(task: TaskEntity)
 
+    @Query("DELETE FROM tasks")
+    suspend fun deleteAll()
+
+    @Query("DELETE FROM tasks WHERE id = :id")
+    suspend fun deleteById(id: Int)
+
 }

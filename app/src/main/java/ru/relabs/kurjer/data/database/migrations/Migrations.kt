@@ -3,8 +3,8 @@ package ru.relabs.kurjer.data.database.migrations
 import android.content.SharedPreferences
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
 
 object Migrations : KoinComponent {

@@ -5,6 +5,7 @@ import androidx.core.content.edit
 import kotlinx.coroutines.*
 import org.joda.time.DateTime
 import ru.relabs.kurjer.domain.models.GpsRefreshTimes
+import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import java.util.*
 
@@ -74,6 +75,7 @@ class SettingsRepository(
                 saveUnfinishedTaskItemSkipping(canSkipUnfinishedTaskItem)
                 saveGPSRefreshTime(closeGpsUpdateTime)
             }
+            is Left -> Unit
         }
     }
 

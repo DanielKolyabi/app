@@ -4,6 +4,9 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.os.StrictMode
+import com.github.terrakok.cicerone.Cicerone
+import com.github.terrakok.cicerone.NavigatorHolder
+import com.github.terrakok.cicerone.Router
 import com.instacart.library.truetime.TrueTime
 import com.yandex.mapkit.MapKitFactory
 import kotlinx.coroutines.CoroutineScope
@@ -14,9 +17,6 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import ru.relabs.kurjer.di.*
 import ru.relabs.kurjer.utils.CustomLog
-import ru.terrakok.cicerone.Cicerone
-import ru.terrakok.cicerone.NavigatorHolder
-import ru.terrakok.cicerone.Router
 import java.util.*
 
 
@@ -32,7 +32,7 @@ class DeliveryApp : Application() {
     val router: Router
         get() = cicerone.router
     val navigatorHolder: NavigatorHolder
-        get() = cicerone.navigatorHolder
+        get() = cicerone.getNavigatorHolder()
 
     override fun onCreate() {
         super.onCreate()

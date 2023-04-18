@@ -2,9 +2,8 @@ package ru.relabs.kurjer.presentation.host
 
 import android.net.Uri
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.controllers.ServiceEvent
@@ -27,17 +26,17 @@ object HostEffects {
             if (c.repository.isAuthenticated() && c.loginUseCase.isAutologinEnabled()) {
                 c.loginUseCase.loginOffline()
                 withContext(Dispatchers.Main) {
-                    c.router.newRootScreen(RootScreen.Tasks(true))
+                    c.router.newRootScreen(RootScreen.tasks(true))
                 }
                 withContext(Dispatchers.IO) {
-                    when (val result = FirebaseInstanceId.getInstance().getFirebaseToken()) {
+                    when (val result = FirebaseMessaging.getInstance().getFirebaseToken()) {
                         is Right -> c.repository.updatePushToken(FirebaseToken(result.value))
                         is Left -> FirebaseCrashlytics.getInstance().log("Can't get firebase token")
                     }
                 }
             } else {
                 withContext(Dispatchers.Main) {
-                    c.router.newRootScreen(RootScreen.Login)
+                    c.router.newRootScreen(RootScreen.login())
                 }
             }
         }
@@ -46,7 +45,7 @@ object HostEffects {
     fun effectLogout(): HostEffect = { c, s ->
         c.loginUseCase.logout()
         withContext(Dispatchers.Main) {
-            c.router.newRootScreen(RootScreen.Login)
+            c.router.newRootScreen(RootScreen.login())
         }
     }
 
@@ -212,6 +211,8 @@ object HostEffects {
                                 c.showTaskUpdateRequired(c.settings.canSkipUpdates)
                             }
                         }
+                        is TaskEvent.TaskClosed -> Unit
+                        is TaskEvent.TaskItemClosed -> Unit
                     }
                 }
             }
@@ -242,7 +243,7 @@ object HostEffects {
 
     fun effectNavigateUpdateTaskList(): HostEffect = { c, s ->
         withContext(Dispatchers.Main) {
-            c.router.newRootScreen(RootScreen.Tasks(true))
+            c.router.newRootScreen(RootScreen.tasks(true))
         }
     }
 

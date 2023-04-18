@@ -6,14 +6,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.TaskItemId
 import ru.relabs.kurjer.domain.providers.FirebaseToken
 import ru.relabs.kurjer.domain.providers.LocationProvider
-import ru.relabs.kurjer.domain.repositories.DatabaseRepository
+import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.PauseType
@@ -28,7 +28,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
     private val pauseRepository: PauseRepository by inject()
     private val scope = CoroutineScope(Dispatchers.Main)
     private val taskEventsController: TaskEventController by inject()
-    private val databaseRepository: DatabaseRepository by inject()
+    private val taskRepository: TaskRepository by inject()
     private val locationProvider: LocationProvider by inject()
     private val currentUserStorage: CurrentUserStorage by inject()
 
@@ -69,7 +69,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
                 ?.let { TaskItemId(it) }
                 ?.let { taskItemId ->
                     taskEventsController.send(TaskEvent.TaskItemClosed(taskItemId))
-                    databaseRepository.closeTaskItem(taskItemId, true)
+                    taskRepository.closeTaskItem(taskItemId, true)
                 }
         }
         if (data.containsKey("pause_start")) {

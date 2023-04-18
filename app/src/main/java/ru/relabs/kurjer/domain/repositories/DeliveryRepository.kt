@@ -313,19 +313,6 @@ class DeliveryRepository(
             availableFirmRejectReasons
         }
 
-    //Could be sended in other user session
-    suspend fun startPause(pauseType: PauseType, token: String, startTime: Long): EitherE<Boolean> =
-        anonymousRequest {
-            deliveryApi.startPause(token, pauseType.toInt(), startTime)
-            true
-        }
-
-    suspend fun stopPause(pauseType: PauseType, token: String, stopTime: Long): EitherE<Boolean> =
-        anonymousRequest {
-            deliveryApi.stopPause(token, pauseType.toInt(), stopTime)
-            true
-        }
-
     private fun currentTime(): String = DateTime().toString("yyyy-MM-dd'T'HH:mm:ss")
 
     private suspend inline fun <T> authenticatedRequest(crossinline block: suspend (token: String) -> T): EitherE<T> {
@@ -349,7 +336,6 @@ class DeliveryRepository(
                 }
             } catch (e: Exception) {
                 debug("UnknownException $e")
-//            FirebaseCrashlytics.getInstance().recordException(e)
                 Left(DomainException.UnknownException)
             }
         }

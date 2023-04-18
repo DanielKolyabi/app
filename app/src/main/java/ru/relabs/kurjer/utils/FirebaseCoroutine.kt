@@ -1,7 +1,6 @@
 package ru.relabs.kurjer.utils
 
-import com.google.firebase.iid.FirebaseInstanceId
-import com.google.firebase.iid.InstanceIdResult
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -9,14 +8,14 @@ import kotlin.coroutines.suspendCoroutine
 /**
  * Created by Daniil Kurchanov on 13.01.2020.
  */
-suspend fun FirebaseInstanceId.instanceIdAsync() = suspendCoroutine<InstanceIdResult> { cont ->
-    instanceId.addOnSuccessListener {
+suspend fun FirebaseMessaging.instanceIdAsync() = suspendCoroutine<String> { cont ->
+    token.addOnSuccessListener {
         cont.resume(it)
     }
-    instanceId.addOnCanceledListener {
+    token.addOnCanceledListener {
         cont.resumeWithException(RuntimeException("Coroutine canceled"))
     }
-    instanceId.addOnFailureListener {
+    token.addOnFailureListener {
         cont.resumeWithException(it)
     }
 }

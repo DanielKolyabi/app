@@ -1,7 +1,7 @@
 package ru.relabs.kurjer.presentation.storageList
 
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.useCases.StorageReportUseCase
 import ru.relabs.kurjer.domain.useCases.TaskUseCase

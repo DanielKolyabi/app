@@ -20,7 +20,7 @@ object TaskDetailsEffects {
 
     fun effectNavigateTaskItemDetails(taskItem: TaskItem): TaskDetailsEffect = { c, s ->
         withContext(Dispatchers.Main) {
-            c.router.navigateTo(RootScreen.TaskItemDetails(taskItem))
+            c.router.navigateTo(RootScreen.taskItemDetails(taskItem))
         }
     }
 
@@ -29,12 +29,12 @@ object TaskDetailsEffects {
         when (val t = s.task) {
             null -> c.showFatalError("tde:101")
             else -> {
-                c.onExamine(c.database.examineTask(t))
+                c.onExamine(c.taskRepository.examineTask(t))
                 val editionPhotoPath = c.pathsProvider.getEditionPhotoFile(t).takeIf { it.exists() }?.path
                 withContext(Dispatchers.Main) {
                     when (editionPhotoPath) {
                         null -> c.router.exit()
-                        else -> c.router.replaceScreen(RootScreen.ImagePreview(listOf(editionPhotoPath)))
+                        else -> c.router.replaceScreen(RootScreen.imagePreview(listOf(editionPhotoPath)))
                     }
                 }
             }

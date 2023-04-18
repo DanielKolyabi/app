@@ -6,8 +6,8 @@ import android.os.Environment
 import android.util.Log
 import androidx.core.content.FileProvider
 import org.joda.time.DateTime
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import java.io.*
@@ -16,7 +16,7 @@ import java.io.*
  * Created by ProOrange on 02.10.2018.
  */
 
-object CustomLog: KoinComponent {
+object CustomLog : KoinComponent {
     private val pathsProvider: PathsProvider by inject()
 
     fun getStacktraceAsString(e: Throwable): String {
@@ -62,7 +62,7 @@ object CustomLog: KoinComponent {
 
             Log.d("CustomLog", currentStacktrace)
         } catch (e: Exception) {
-            Log.e("ExceptionHandler", e.message)
+            Log.e("ExceptionHandler", e.message ?: "")
         }
     }
 }

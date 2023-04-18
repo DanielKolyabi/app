@@ -3,6 +3,9 @@ package ru.relabs.kurjer.di
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
+import androidx.room.util.query
+import com.github.terrakok.cicerone.NavigatorHolder
+import com.github.terrakok.cicerone.Router
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidApplication
@@ -21,8 +24,6 @@ import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.domain.useCases.*
-import ru.terrakok.cicerone.NavigatorHolder
-import ru.terrakok.cicerone.Router
 import java.io.File
 
 object Modules {
@@ -97,11 +98,20 @@ val storagesModule = module {
 
 val repositoryModule = module {
 
-    single<DatabaseRepository> {
-        DatabaseRepository(
+    single { PhotoRepository(db = get(), pathsProvider = get()) }
+    single {
+        QueryRepository(
+            db = get(),
+            authTokenStorage = get(),
+            baseUrl = get(Modules.DELIVERY_URL),
+            pathsProvider = get()
+        )
+    }
+    single<TaskRepository> {
+        TaskRepository(
             get<AppDatabase>(),
-            get<AuthTokenStorage>(),
-            get<String>(Modules.DELIVERY_URL),
+            photoRepository = get(),
+            queryRepository = get(),
             get<PathsProvider>()
         )
     }
@@ -128,7 +138,7 @@ val repositoryModule = module {
         PauseRepository(
             get<DeliveryRepository>(),
             get<SharedPreferences>(),
-            get<DatabaseRepository>(),
+            queryRepository = get(),
             get<CurrentUserStorage>()
         )
     }
@@ -139,7 +149,7 @@ val useCasesModule = module {
         LoginUseCase(
             get<DeliveryRepository>(),
             get<CurrentUserStorage>(),
-            get<DatabaseRepository>(),
+            get<TaskRepository>(),
             get<SettingsRepository>(),
             get<AuthTokenStorage>(),
             get<PauseRepository>(),
@@ -156,8 +166,8 @@ val useCasesModule = module {
 
     single<ReportUseCase> {
         ReportUseCase(
-            get<DatabaseRepository>(),
-            get<PauseRepository>(),
+            get<TaskRepository>(),
+            queryRepository = get(),
             get<AuthTokenStorage>(),
             get<SettingsRepository>(),
             get<TaskEventController>()
@@ -165,7 +175,7 @@ val useCasesModule = module {
     }
     single {
         TaskUseCase(
-            get<DatabaseRepository>()
+            get<TaskRepository>()
         )
     }
     single {
@@ -176,7 +186,7 @@ val useCasesModule = module {
             get<LocationProvider>(),
             get<SettingsRepository>(),
             get<AuthTokenStorage>(),
-            get<DatabaseRepository>()
+            get<TaskRepository>()
         )
     }
 }

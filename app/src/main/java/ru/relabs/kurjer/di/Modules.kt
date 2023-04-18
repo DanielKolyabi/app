@@ -3,7 +3,6 @@ package ru.relabs.kurjer.di
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
-import androidx.room.util.query
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import kotlinx.coroutines.CoroutineScope
@@ -117,7 +116,7 @@ val repositoryModule = module {
     }
     single<DeliveryRepository> {
         DeliveryRepository(
-            get<ApiProvider>().practisApi,
+            get<ApiProvider>().deliveryApi,
             get<AuthTokenStorage>(),
             get<DeviceUUIDProvider>(),
             get<DeviceUniqueIdProvider>(),

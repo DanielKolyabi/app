@@ -58,6 +58,11 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.3.2"
     }
 
     compileOptions {
@@ -132,4 +137,16 @@ dependencies {
     implementation("com.github.instacart.truetime-android:library:3.5")
     implementation("joda-time:joda-time:2.10.1")
     implementation("com.mikepenz:materialdrawer:7.0.0-rc08")
+
+    //Compose
+    val composeBom = platform("androidx.compose:compose-bom:2022.10.00")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+    implementation("androidx.compose.material:material")
+    implementation("androidx.compose.foundation:foundation")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.activity:activity-compose:1.7.0")
+
 }

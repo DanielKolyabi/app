@@ -91,6 +91,8 @@ abstract class ElmController<EffectCtx, State>(default: State, val context: Effe
     private val _states = BroadcastChannel<State>(Channel.BUFFERED)
 
     val messages: SendChannel<ElmMessage<EffectCtx, State>> get() = _messages
+    val currentState: State
+        get() = state
 
     fun start(init: ElmMessage<EffectCtx, State>) {
         scope.launch {

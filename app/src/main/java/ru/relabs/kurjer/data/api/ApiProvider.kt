@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 
 class ApiProvider(deliveryUrl: String) {
     val httpClient: OkHttpClient
-    val practisApi: DeliveryApi
+    val deliveryApi: DeliveryApi
 
     private val timeoutInterceptor: Interceptor = object : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
@@ -41,7 +41,7 @@ class ApiProvider(deliveryUrl: String) {
 
     init {
         httpClient = buildClient()
-        practisApi = buildRetrofit(httpClient, deliveryUrl).create()
+        deliveryApi = buildRetrofit(httpClient, deliveryUrl).create()
     }
 
     private fun buildRetrofit(client: OkHttpClient, baseUrl: String): Retrofit {

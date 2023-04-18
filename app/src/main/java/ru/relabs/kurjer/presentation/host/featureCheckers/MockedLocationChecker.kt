@@ -22,7 +22,7 @@ class MockedLocationChecker(
         scope.launch(Dispatchers.IO) {
             locationProvider.location.collect {
                 if(it?.isFromMockProvider == true){
-//                   isMockedLocationFound = true
+                   isMockedLocationFound = true
                 }
             }
         }

@@ -35,6 +35,7 @@ object Migrations : KoinComponent {
         migration_48_53,
         migration_53_54,
         migration_54_55,
+        migration_55_56,
 
         )
 
@@ -224,6 +225,7 @@ object Migrations : KoinComponent {
             database.execSQL("ALTER TABLE task_item_photos ADD COLUMN photo_date INTEGER NOT NULL DEFAULT 0")
         }
     }
+
     private val migration_48_53 = object : Migration(48, 53) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("CREATE TABLE `storage_report_photos` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `uuid` TEXT NOT NULL, `report_id` INTEGER NOT NULL, `gps` TEXT NOT NULL, `time` INTEGER NOT NULL);")
@@ -245,6 +247,13 @@ object Migrations : KoinComponent {
     private val migration_54_55 = object : Migration(54, 55) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("ALTER TABLE tasks ADD COLUMN display_name TEXT NOT NULL DEFAULT ''")
+        }
+    }
+    // language=sql
+    private val migration_55_56 = object : Migration(55, 56) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("DROP TABLE entrances_data;")
+            database.execSQL("CREATE TABLE `entrances_data` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `task_item_id` INTEGER NOT NULL, `number` INTEGER NOT NULL, `apartments_count` INTEGER NOT NULL, `is_euro_boxes` INTEGER NOT NULL, `has_lookout` INTEGER NOT NULL, `is_stacked` INTEGER NOT NULL, `is_refused` INTEGER NOT NULL, `photo_required` INTEGER NOT NULL, FOREIGN KEY(`task_item_id`) REFERENCES `task_items`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE );")
         }
     }
 }

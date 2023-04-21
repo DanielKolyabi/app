@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.services
 
+import android.util.Log
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
@@ -13,10 +14,10 @@ import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.TaskItemId
 import ru.relabs.kurjer.domain.providers.FirebaseToken
 import ru.relabs.kurjer.domain.providers.LocationProvider
-import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.PauseType
+import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.utils.CustomLog
 
@@ -47,6 +48,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
     }
 
     suspend fun processMessageData(data: Map<String, String>) {
+        data.keys.forEach { Log.d("FMS", it) }
         if (data.containsKey("request_gps")) {
             scope.launch {
                 val coordinates = locationProvider.lastReceivedLocation()

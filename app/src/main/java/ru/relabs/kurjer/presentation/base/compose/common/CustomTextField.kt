@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
@@ -82,7 +81,7 @@ fun CustomTextField(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val lineColor by animateColorAsState(if (isFocused) ColorFuchsia else Color.DarkGray)
+    val lineColor by animateColorAsState(if (isFocused) ColorFuchsia else ColorGrayBase)
     val (options, actions) = keyboardAction.toKeyboardProperties()
     BasicTextField(
         value = value,
@@ -97,7 +96,7 @@ fun CustomTextField(
                             Text(
                                 text = placeholder,
                                 fontFamily = FontFamily.SansSerif,
-                                color = Color.DarkGray
+                                color = ColorGrayBase
                             )
                             innerTextField()
                         }

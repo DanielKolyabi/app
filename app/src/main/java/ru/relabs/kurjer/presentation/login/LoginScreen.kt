@@ -6,10 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -86,19 +83,23 @@ private fun Logo(modifier: Modifier = Modifier) {
 @Composable
 private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifier: Modifier = Modifier) {
     val login by watchAsState { it.login.login }
+    var loginInput by remember { mutableStateOf(login) }
     val password by watchAsState { it.password }
     val isChecked by watchAsState { it.isPasswordRemembered }
 
     val passwordFocusRequester = remember { FocusRequester() }
     val context = LocalContext.current
+    LaunchedEffect(loginInput) {
+        sendMessage(LoginMessages.msgLoginChanged(UserLogin(loginInput)))
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
     ) {
         CustomTextField(
-            value = login,
-            onValueChange = { sendMessage(LoginMessages.msgLoginChanged(UserLogin(it))) },
+            value = loginInput,
+            onValueChange = { loginInput = it },
             placeholder = stringResource(R.string.login_placeholder),
             maxLines = 1,
             keyboardAction = CustomTextKeyboardAction.Next(passwordFocusRequester),

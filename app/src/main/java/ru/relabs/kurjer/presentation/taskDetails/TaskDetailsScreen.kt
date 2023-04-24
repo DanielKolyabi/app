@@ -1,17 +1,16 @@
 package ru.relabs.kurjer.presentation.taskDetails
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.Button
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -46,11 +45,7 @@ fun TaskDetailsScreen(
                 AppBar(
                     R.drawable.ic_back_new,
                     stringResource(id = R.string.task_details_title),
-                    { sendMessage(TaskDetailsMessages.msgNavigateBack()) },
-                    Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .background(ColorPrimary)
+                    { sendMessage(TaskDetailsMessages.msgNavigateBack()) }
                 )
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
                     item {
@@ -131,89 +126,138 @@ private fun ListHeader(modifier: Modifier = Modifier) {
 
 @Composable
 private fun PageHeader(task: Task, photoRequired: Boolean, modifier: Modifier = Modifier) {
+    var maxWidth by remember { mutableStateOf(0.dp) }
+    val density = LocalDensity.current
     Column(modifier = modifier) {
-        Row() {
+        Row {
             Icon(
                 painter = painterResource(R.drawable.ic_info),
-                contentDescription = null
+                contentDescription = null,
+                modifier = Modifier.size(32.dp)
             )
             Spacer(Modifier.width(8.dp))
             Column {
-                Text(
-                    text = stringResource(R.string.edition_label),
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight(800)
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = stringResource(R.string.dates_label),
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight(800)
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = stringResource(R.string.brigade_label),
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight(800)
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = stringResource(R.string.prints_count_label),
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight(800)
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = stringResource(R.string.storage_label),
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight(800)
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = stringResource(R.string.task_details_publisher, task.name, task.edition))
-                Spacer(Modifier.height(2.dp))
-                Text(text = stringResource(R.string.task_details_date_rande, task.startTime.formated(), task.endTime.formated()))
-                Row() {
-                    Text(text = task.brigade.toString())
-                    Spacer(Modifier.width(16.dp))
+                Row {
                     Text(
-                        text = stringResource(R.string.area_label),
+                        text = stringResource(R.string.edition_label),
                         fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight(800),
+                        modifier = Modifier
+                            .onSizeChanged {
+                                with(density) {
+                                    if (it.width.toDp() > maxWidth)
+                                        maxWidth = it.width.toDp()
+                                }
+                            }
+                            .then(if (maxWidth.value != 0f) Modifier.width(maxWidth) else Modifier)
                     )
-                    Text(text = task.area.toString())
-                    Spacer(Modifier.width(16.dp))
-                    Text(
-                        text = stringResource(R.string.city_label),
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(text = task.city)
+                    Text(text = stringResource(R.string.task_details_publisher, task.name, task.edition))
                 }
                 Spacer(Modifier.height(2.dp))
-                Row() {
-                    Text(text = task.copies.toString())
-                    Spacer(Modifier.width(16.dp))
+                Row {
                     Text(
-                        text = stringResource(R.string.city_label),
+                        text = stringResource(R.string.dates_label),
                         fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight(800),
+                        modifier = Modifier
+                            .onSizeChanged {
+                                with(density) {
+                                    if (it.width.toDp() > maxWidth)
+                                        maxWidth = it.width.toDp()
+                                }
+                            }
+                            .then(if (maxWidth.value != 0f) Modifier.width(maxWidth) else Modifier)
                     )
-                    Text(text = task.packs.toString())
-                    Spacer(Modifier.width(16.dp))
-                    Text(
-                        text = stringResource(R.string.city_label),
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(text = task.remain.toString())
+                    Text(text = stringResource(R.string.task_details_date_rande, task.startTime.formated(), task.endTime.formated()))
                 }
-                Text(text = task.storage.address)
+                Spacer(Modifier.height(2.dp))
+                Row {
+                    Text(
+                        text = stringResource(R.string.brigade_label),
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .onSizeChanged {
+                                with(density) {
+                                    if (it.width.toDp() > maxWidth)
+                                        maxWidth = it.width.toDp()
+                                }
+                            }
+                            .then(if (maxWidth.value != 0f) Modifier.width(maxWidth) else Modifier)
+                    )
+                    Row {
+                        Text(text = task.brigade.toString())
+                        Spacer(Modifier.width(16.dp))
+                        Text(
+                            text = stringResource(R.string.area_label),
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(text = task.area.toString())
+                        Spacer(Modifier.width(16.dp))
+                        Text(
+                            text = stringResource(R.string.city_label),
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(text = task.city)
+                    }
+                }
+                Spacer(Modifier.height(2.dp))
+                Row {
+                    Text(
+                        text = stringResource(R.string.prints_count_label),
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .onSizeChanged {
+                                with(density) {
+                                    if (it.width.toDp() > maxWidth)
+                                        maxWidth = it.width.toDp()
+                                }
+                            }
+                            .then(if (maxWidth.value != 0f) Modifier.width(maxWidth) else Modifier)
+                    )
+                    Row {
+                        Text(text = task.copies.toString())
+                        Spacer(Modifier.width(16.dp))
+                        Text(
+                            text = stringResource(R.string.city_label),
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(text = task.packs.toString())
+                        Spacer(Modifier.width(16.dp))
+                        Text(
+                            text = stringResource(R.string.city_label),
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(text = task.remain.toString())
+                    }
+                }
+                Spacer(Modifier.height(2.dp))
+                Row {
+                    Text(
+                        text = stringResource(R.string.storage_label),
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .onSizeChanged {
+                                with(density) {
+                                    if (it.width.toDp() > maxWidth)
+                                        maxWidth = it.width.toDp()
+                                }
+                            }
+                            .then(if (maxWidth.value != 0f) Modifier.width(maxWidth) else Modifier)
+                    )
+                    Text(text = task.storage.address)
+                }
             }
         }
         if (photoRequired) {
             Row {
-                Spacer(Modifier.width(34.dp))
+                Spacer(Modifier.width(40.dp))
                 Text(
                     text = stringResource(R.string.task_details_photos_required),
                     color = ColorFuchsia
@@ -281,13 +325,25 @@ private fun ElmScaffoldContext<TaskDetailsContext, TaskDetailsState>.ListItem(it
 
 @Composable
 private fun ElmScaffoldContext<TaskDetailsContext, TaskDetailsState>.Buttons(modifier: Modifier = Modifier) {
+    val examinedButtonVisible by watchAsState { it.task?.state?.state == TaskState.CREATED }
     Row(modifier = modifier) {
-        Button(onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)) {
-            Text(text = stringResource(R.string.show_map_button_text))
+        DeliveryButton(
+            stringResource(R.string.show_map_button_text).uppercase(),
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 2.dp)
+        ) {
+            sendMessage(TaskDetailsMessages.msgOpenMap())
         }
-        Button(onClick = { /*TODO*/ }, modifier = Modifier.weight(1f)) {
-            Text(text = stringResource(R.string.examine_button_text))
+        if (examinedButtonVisible) {
+            DeliveryButton(
+                stringResource(R.string.examine_button_text).uppercase(),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 2.dp)
+            ) {
+                sendMessage(TaskDetailsMessages.msgExamineClicked())
+            }
         }
-
     }
 }

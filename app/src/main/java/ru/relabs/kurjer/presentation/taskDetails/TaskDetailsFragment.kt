@@ -5,9 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.fragment_task_details.view.*
 import kotlinx.coroutines.Dispatchers
@@ -15,12 +15,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.presentation.base.compose.common.DeliveryTheme
+import ru.relabs.kurjer.presentation.base.compose.common.themes.DeliveryTheme
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
+import ru.relabs.kurjer.utils.IntentUtils
 import ru.relabs.kurjer.utils.extensions.showDialog
+import ru.relabs.kurjer.utils.extensions.showSnackbar
 
 
 /**
@@ -72,9 +74,9 @@ class TaskDetailsFragment : BaseFragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-               DeliveryTheme {
-                   TaskDetailsScreen(controller)
-               }
+                DeliveryTheme {
+                    TaskDetailsScreen(controller)
+                }
             }
         }
 //        return inflater.inflate(R.layout.fragment_task_details, container, false)
@@ -99,13 +101,13 @@ class TaskDetailsFragment : BaseFragment() {
 //            launch { controller.stateFlow().collect(rendersCollector(renders)) }
 //            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
 //        }
-//        controller.context.errorContext.attach(view)
-//        controller.context.showSnackbar = { withContext(Dispatchers.Main) { showSnackbar(resources.getString(it)) } }
-//        controller.context.showImagePreview = {
-//            withContext(Dispatchers.Main) {
-//                ContextCompat.startActivity(requireContext(), IntentUtils.getImageViewIntent(it, requireContext()), null)
-//            }
-//        }
+        controller.context.errorContext.attach(view)
+        controller.context.showSnackbar = { withContext(Dispatchers.Main) { showSnackbar(resources.getString(it)) } }
+        controller.context.showImagePreview = {
+            withContext(Dispatchers.Main) {
+                ContextCompat.startActivity(requireContext(), IntentUtils.getImageViewIntent(it, requireContext()), null)
+            }
+        }
     }
 
     override fun onAttach(context: Context) {

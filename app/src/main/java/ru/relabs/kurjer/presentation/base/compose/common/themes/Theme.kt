@@ -1,16 +1,21 @@
-package ru.relabs.kurjer.presentation.base.compose.common
+package ru.relabs.kurjer.presentation.base.compose.common.themes
 
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
+import ru.relabs.kurjer.presentation.base.compose.common.ColorGrayBase
 
 @Composable
 fun DeliveryTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(typography = Typography) {
+
         content()
     }
 }
@@ -26,7 +31,7 @@ private val Typography = Typography(
     subtitle2 = TextStyle(color = ColorGrayBase, letterSpacing = 0.sp),
     body1 = TextStyle(color = ColorGrayBase, letterSpacing = 0.sp, fontSize = 14.sp),
     body2 = TextStyle(color = ColorGrayBase, letterSpacing = 0.sp),
-    button = TextStyle(color = ColorGrayBase, letterSpacing = 0.sp),
+    button = TextStyle(color = Color.White, letterSpacing = 0.sp),
     caption = TextStyle(color = ColorGrayBase, letterSpacing = 0.sp),
     overline = TextStyle(color = ColorGrayBase, letterSpacing = 0.sp),
 )

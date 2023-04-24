@@ -1,12 +1,14 @@
 package ru.relabs.kurjer.presentation.base.compose.common
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -20,19 +22,29 @@ fun AppBar(
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(modifier = modifier) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .background(ColorPrimary)
+    ) {
         Icon(
             painter = painterResource(painterId),
             contentDescription = null,
-            Modifier
+            tint = Color.Unspecified,
+            modifier = Modifier
+                .size(48.dp)
                 .padding(8.dp)
-                .clickable() {
+                .clickable {
                     onBackClicked()
                 }
         )
+        Spacer(Modifier.width(16.dp))
         Text(
             text = title,
             maxLines = 2,
+            color = Color.White,
             fontFamily = FontFamily.SansSerif,
             fontWeight = FontWeight.Medium,
             fontSize = 20.sp

@@ -36,17 +36,17 @@ fun TaskDetailsScreen(
     val task by watchAsState { it.task }
     val photoRequired by watchAsState { it.photoRequired }
 
-    LoadableContainer(isLoading = isLoading) {
+    AppBarLoadableContainer(
+        isLoading = isLoading,
+        painterId = R.drawable.ic_back_new,
+        title = stringResource(id = R.string.task_details_title),
+        onBackClicked = { sendMessage(TaskDetailsMessages.msgNavigateBack()) },
+    ) {
         Box {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                AppBar(
-                    R.drawable.ic_back_new,
-                    stringResource(id = R.string.task_details_title),
-                    { sendMessage(TaskDetailsMessages.msgNavigateBack()) }
-                )
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
                     item {
                         task?.let {

@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.presentation.base.compose.common
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -19,12 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 sealed class CustomTextKeyboardAction {
     protected abstract val keyboardType: KeyboardType
@@ -82,21 +87,26 @@ fun CustomTextField(
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
     val lineColor by animateColorAsState(if (isFocused) ColorFuchsia else ColorGrayBase)
+    val lineHeight by animateDpAsState(if (isFocused) 2.dp else 1.dp)
     val (options, actions) = keyboardAction.toKeyboardProperties()
+
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
         maxLines = maxLines,
+        textStyle = TextStyle(fontWeight = FontWeight.Medium, fontSize = 16.sp),
         interactionSource = interactionSource,
         decorationBox = { innerTextField ->
             Box {
-                Box(modifier = Modifier.padding(vertical = 12.dp)) {
+                Box(modifier = Modifier.padding(vertical = 10.dp)) {
                     if (value.isEmpty() && placeholder != null) {
                         Box(contentAlignment = Alignment.CenterStart) {
                             Text(
                                 text = placeholder,
+                                fontSize = 16.sp,
                                 fontFamily = FontFamily.SansSerif,
-                                color = ColorGrayBase
+                                fontWeight = FontWeight.Medium,
+                                color = ColorGrayBase.copy(alpha = 0.8f)
                             )
                             innerTextField()
                         }
@@ -107,7 +117,7 @@ fun CustomTextField(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(1.dp)
+                        .height(lineHeight)
                         .align(Alignment.BottomCenter)
                         .background(lineColor)
                 )
@@ -117,6 +127,7 @@ fun CustomTextField(
         keyboardActions = actions,
         keyboardOptions = options,
         cursorBrush = SolidColor(ColorFuchsia.copy(alpha = 0.8F)),
-        modifier = modifier.focusRequester(focusRequester)
+        modifier = modifier
+            .focusRequester(focusRequester)
     )
 }

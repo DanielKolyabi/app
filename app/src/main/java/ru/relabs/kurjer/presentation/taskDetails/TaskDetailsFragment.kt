@@ -32,15 +32,6 @@ import ru.relabs.kurjer.utils.extensions.showSnackbar
 class TaskDetailsFragment : BaseFragment() {
 
     private val controller = defaultController(TaskDetailsState(), TaskDetailsContext())
-    private var renderJob: Job? = null
-
-    private val taskDetailsAdapter = DelegateAdapter(
-        TaskDetailsAdapter.pageHeaderAdapter(),
-        TaskDetailsAdapter.listHeaderAdapter(),
-        TaskDetailsAdapter.listItemAdapter {
-            uiScope.sendMessage(controller, TaskDetailsMessages.msgInfoClicked(it))
-        }
-    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +43,7 @@ class TaskDetailsFragment : BaseFragment() {
         controller.context.onExamine = { (targetFragment as? IExaminedConsumer)?.onExamined(it) }
     }
 
-    fun showFatalError(errCode: String) {
+    private fun showFatalError(errCode: String) {
         showDialog(
             resources.getString(R.string.fatal_error_title, errCode),
             R.string.ok to { uiScope.sendMessage(controller, TaskDetailsMessages.msgNavigateBack()) }
@@ -70,7 +61,7 @@ class TaskDetailsFragment : BaseFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
@@ -79,28 +70,10 @@ class TaskDetailsFragment : BaseFragment() {
                 }
             }
         }
-//        return inflater.inflate(R.layout.fragment_task_details, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-//        val layoutManager =
-//            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-//        view.rv_list.layoutManager = layoutManager
-//        view.rv_list.adapter = taskDetailsAdapter
-//
-//        bindControls(view)
-
-//        renderJob = uiScope.launch {
-//            val renders = listOf(
-//                TaskDetailsRenders.renderLoading(view.loading),
-//                TaskDetailsRenders.renderList(taskDetailsAdapter),
-//                TaskDetailsRenders.renderExamine(view.btn_examined)
-//            )
-//            launch { controller.stateFlow().collect(rendersCollector(renders)) }
-//            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
-//        }
         controller.context.errorContext.attach(view)
         controller.context.showSnackbar = { withContext(Dispatchers.Main) { showSnackbar(resources.getString(it)) } }
         controller.context.showImagePreview = {
@@ -120,23 +93,8 @@ class TaskDetailsFragment : BaseFragment() {
         controller.context.showFatalError = {}
     }
 
-    private fun bindControls(view: View) {
-        view.iv_menu.setOnClickListener {
-            uiScope.sendMessage(controller, TaskDetailsMessages.msgNavigateBack())
-        }
-
-        view.btn_examined.setOnClickListener {
-            uiScope.sendMessage(controller, TaskDetailsMessages.msgExamineClicked())
-        }
-
-        view.btn_map.setOnClickListener {
-            uiScope.sendMessage(controller, TaskDetailsMessages.msgOpenMap())
-        }
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
-        renderJob?.cancel()
         controller.context.showSnackbar = {}
     }
 

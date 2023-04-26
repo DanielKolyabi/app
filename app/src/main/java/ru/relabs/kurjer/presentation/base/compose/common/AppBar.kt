@@ -51,3 +51,20 @@ fun AppBar(
         )
     }
 }
+
+@Composable
+fun AppBarLoadableContainer(
+    isLoading: Boolean,
+    painterId: Int,
+    title: String,
+    onBackClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Column(modifier = modifier)
+    {
+        AppBar(painterId = painterId, title = title, onBackClicked = onBackClicked)
+        LoadableContainer(isLoading = isLoading, content = content)
+    }
+
+}

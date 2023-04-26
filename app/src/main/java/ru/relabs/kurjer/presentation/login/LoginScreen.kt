@@ -26,6 +26,7 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffold
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffoldContext
+import ru.relabs.kurjer.presentation.base.compose.common.ColorGrayBase
 import ru.relabs.kurjer.presentation.base.compose.common.CustomTextField
 import ru.relabs.kurjer.presentation.base.compose.common.CustomTextKeyboardAction
 import ru.relabs.kurjer.presentation.base.compose.common.LoadableContainer
@@ -65,6 +66,7 @@ fun LoginScreen(
 private fun Version(modifier: Modifier = Modifier) {
     Text(
         text = stringResource(R.string.app_version_label, BuildConfig.VERSION_CODE),
+        color = ColorGrayBase,
         modifier = modifier
     )
 }
@@ -85,12 +87,16 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
     val login by watchAsState { it.login.login }
     var loginInput by remember { mutableStateOf(login) }
     val password by watchAsState { it.password }
+    var passwordInput by remember { mutableStateOf(password) }
     val isChecked by watchAsState { it.isPasswordRemembered }
 
     val passwordFocusRequester = remember { FocusRequester() }
     val context = LocalContext.current
     LaunchedEffect(loginInput) {
         sendMessage(LoginMessages.msgLoginChanged(UserLogin(loginInput)))
+    }
+    LaunchedEffect(passwordInput) {
+        sendMessage(LoginMessages.msgPasswordChanged(passwordInput))
     }
 
     Column(
@@ -105,12 +111,12 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
             keyboardAction = CustomTextKeyboardAction.Next(passwordFocusRequester),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp)
+                .padding(horizontal = 12.dp, vertical = 6.dp)
         )
         Spacer(Modifier.height(8.dp))
         CustomTextField(
-            value = password,
-            onValueChange = { sendMessage(LoginMessages.msgPasswordChanged(it)) },
+            value = passwordInput,
+            onValueChange = { passwordInput = it },
             placeholder = stringResource(R.string.password_placeholder),
             maxLines = 1,
             visualTransformation = PasswordVisualTransformation(),
@@ -121,7 +127,7 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
             focusRequester = passwordFocusRequester,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp)
+                .padding(horizontal = 12.dp, vertical = 6.dp)
         )
         Spacer(Modifier.height(16.dp))
         Row(
@@ -156,14 +162,14 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.LoginButton(modifier: M
         elevation = ButtonDefaults.elevation(2.dp),
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
             .imePadding()
     ) {
         Text(
             text = stringResource(R.string.login_button_text).uppercase(),
             color = colorResource(R.color.white),
             letterSpacing = 0.sp,
-            modifier = Modifier.padding(vertical = 2.dp)
+            modifier = Modifier.padding(vertical = 4.dp)
         )
     }
 }

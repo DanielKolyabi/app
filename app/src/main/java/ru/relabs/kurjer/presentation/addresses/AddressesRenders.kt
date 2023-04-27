@@ -34,9 +34,9 @@ object AddressesRenders {
         { (data, searchFilter) ->
             val (tasks, sorting, loading) = data
             val filteredTasks = getSortedTasks(tasks, sorting, searchFilter)
-            val allTaskItemsCount = tasks.map { it.items.size }.sum()
+            val allTaskItemsCount = tasks.sumOf { it.items.size }
             val filteredTaskItemsCount = if (searchFilter.isNotEmpty()) {
-                tasks.map { it.items.filter { ti -> SearchUtils.isMatches(ti.address.name, searchFilter) }.size }.sum()
+                tasks.sumOf { it.items.filter { ti -> SearchUtils.isMatches(ti.address.name, searchFilter) }.size }
             } else {
                 allTaskItemsCount
             }

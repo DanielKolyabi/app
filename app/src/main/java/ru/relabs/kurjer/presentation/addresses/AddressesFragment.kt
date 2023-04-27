@@ -4,19 +4,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import kotlinx.android.synthetic.main.fragment_addresses.view.*
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.presentation.base.compose.common.themes.DeliveryTheme
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
-import ru.relabs.kurjer.presentation.base.tea.*
-import ru.relabs.kurjer.utils.IntentUtils
-import ru.relabs.kurjer.utils.debug
+import ru.relabs.kurjer.presentation.base.tea.defaultController
+import ru.relabs.kurjer.presentation.base.tea.msgEmpty
+import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.utils.extensions.showDialog
 import ru.relabs.kurjer.utils.extensions.showSnackbar
 
@@ -28,7 +26,7 @@ import ru.relabs.kurjer.utils.extensions.showSnackbar
 class AddressesFragment : BaseFragment() {
 
     private val controller = defaultController(AddressesState(), AddressesContext())
-    private var renderJob: Job? = null
+//    private var renderJob: Job? = null
 
     private val addressesAdapter = DelegateAdapter(
         AddressesAdapter.commonTaskItemDelegate(
@@ -97,34 +95,42 @@ class AddressesFragment : BaseFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_addresses, container, false)
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                DeliveryTheme {
+                    AddressesScreen(controller)
+                }
+            }
+        }
+//        return inflater.inflate(R.layout.fragment_addresses, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.rv_list.layoutManager =
-            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-        view.rv_list.adapter = addressesAdapter
-
-        bindControls(view)
-
-        renderJob = uiScope.launch {
-            val renders = listOf(
-                AddressesRenders.renderLoading(view.loading),
-                AddressesRenders.renderList(addressesAdapter),
-                AddressesRenders.renderTargetListAddress(addressesAdapter, view.rv_list)
-            )
-            launch { controller.stateFlow().collect(rendersCollector(renders)) }
-            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
-        }
-        controller.context.showImagePreview = {
-            ContextCompat.startActivity(
-                requireContext(),
-                IntentUtils.getImageViewIntent(it, requireContext()),
-                null
-            )
-        }
+//        view.rv_list.layoutManager =
+//            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
+//        view.rv_list.adapter = addressesAdapter
+//
+//        bindControls(view)
+//
+//        renderJob = uiScope.launch {
+//            val renders = listOf(
+//                AddressesRenders.renderLoading(view.loading),
+//                AddressesRenders.renderList(addressesAdapter),
+//                AddressesRenders.renderTargetListAddress(addressesAdapter, view.rv_list)
+//            )
+//            launch { controller.stateFlow().collect(rendersCollector(renders)) }
+//            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
+//        }
+//        controller.context.showImagePreview = {
+//            ContextCompat.startActivity(
+//                requireContext(),
+//                IntentUtils.getImageViewIntent(it, requireContext()),
+//                null
+//            )
+//        }
         controller.context.showSnackbar = { showSnackbar(getString(it)) }
         controller.context.errorContext.attach(view)
     }
@@ -143,7 +149,7 @@ class AddressesFragment : BaseFragment() {
         super.onDestroyView()
         controller.context.showSnackbar = {}
         controller.context.showImagePreview = {}
-        renderJob?.cancel()
+//        renderJob?.cancel()
         controller.context.errorContext.detach()
     }
 

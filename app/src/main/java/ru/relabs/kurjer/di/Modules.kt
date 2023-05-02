@@ -188,6 +188,11 @@ val useCasesModule = module {
             get<TaskRepository>()
         )
     }
+    factory {
+        TextSizeRepository(
+            sharedPreferences = get()
+        )
+    }
 }
 
 val eventControllers = module {

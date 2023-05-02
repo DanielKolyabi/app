@@ -168,7 +168,13 @@ private fun PageHeader(task: Task, photoRequired: Boolean, modifier: Modifier = 
                             }
                             .then(if (maxWidth.value != 0f) Modifier.width(maxWidth) else Modifier)
                     )
-                    Text(text = stringResource(R.string.task_details_date_rande, task.startTime.formated(), task.endTime.formated()))
+                    Text(
+                        text = stringResource(
+                            R.string.task_details_date_rande,
+                            task.startTime.formated(),
+                            task.endTime.formated()
+                        )
+                    )
                 }
                 Spacer(Modifier.height(2.dp))
                 Row {
@@ -268,7 +274,10 @@ private fun PageHeader(task: Task, photoRequired: Boolean, modifier: Modifier = 
 }
 
 @Composable
-private fun ElmScaffoldContext<TaskDetailsContext, TaskDetailsState>.ListItem(item: TaskItem, modifier: Modifier = Modifier) {
+private fun ElmScaffoldContext<TaskDetailsContext, TaskDetailsState>.ListItem(
+    item: TaskItem,
+    modifier: Modifier = Modifier
+) {
     Column(modifier = modifier) {
         Divider(color = ColorSeparator, thickness = 2.dp)
         Row(

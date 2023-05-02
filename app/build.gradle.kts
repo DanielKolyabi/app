@@ -118,6 +118,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:${Config.Versions.glide}")
     implementation("com.github.bumptech.glide:okhttp3-integration:${Config.Versions.glide}")
     kapt("com.github.bumptech.glide:compiler:${Config.Versions.glide}")
+    implementation("com.github.bumptech.glide:compose:1.0.0-alpha.1")
 
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")

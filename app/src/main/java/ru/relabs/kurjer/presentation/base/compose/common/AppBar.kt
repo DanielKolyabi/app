@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorPrimary
 
 @Composable
 fun AppBar(
@@ -61,8 +62,7 @@ fun AppBarLoadableContainer(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    Column(modifier = modifier)
-    {
+    Column(modifier = modifier) {
         AppBar(painterId = painterId, title = title, onBackClicked = onBackClicked)
         LoadableContainer(isLoading = isLoading, content = content)
     }

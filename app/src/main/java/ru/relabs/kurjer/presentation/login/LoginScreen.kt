@@ -3,16 +3,14 @@ package ru.relabs.kurjer.presentation.login
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -26,10 +24,8 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffold
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffoldContext
-import ru.relabs.kurjer.presentation.base.compose.common.ColorGrayBase
-import ru.relabs.kurjer.presentation.base.compose.common.CustomTextField
-import ru.relabs.kurjer.presentation.base.compose.common.CustomTextKeyboardAction
-import ru.relabs.kurjer.presentation.base.compose.common.LoadableContainer
+import ru.relabs.kurjer.presentation.base.compose.common.*
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGrayBase
 import ru.relabs.kurjer.presentation.base.tea.ElmController
 import ru.relabs.kurjer.utils.NetworkHelper
 
@@ -144,6 +140,7 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
                 text = stringResource(R.string.remember_password),
                 fontFamily = FontFamily.SansSerif,
                 fontWeight = FontWeight.Medium,
+                color = Color.Black,
                 fontSize = 24.sp,
                 modifier = Modifier.padding(start = 16.dp)
             )
@@ -154,22 +151,13 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
 @Composable
 private fun ElmScaffoldContext<LoginContext, LoginState>.LoginButton(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    Button(
-        onClick = { sendMessage(LoginMessages.msgLoginClicked(NetworkHelper.isNetworkEnabled(context))) },
-        colors = ButtonDefaults.buttonColors(
-            backgroundColor = colorResource(R.color.colorFuchsia)
-        ),
-        elevation = ButtonDefaults.elevation(2.dp),
+    DeliveryButton(
+        text = stringResource(R.string.login_button_text).uppercase(),
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 10.dp)
             .imePadding()
+            .padding(horizontal = 12.dp, vertical = 12.dp)
     ) {
-        Text(
-            text = stringResource(R.string.login_button_text).uppercase(),
-            color = colorResource(R.color.white),
-            letterSpacing = 0.sp,
-            modifier = Modifier.padding(vertical = 4.dp)
-        )
+        sendMessage(LoginMessages.msgLoginClicked(NetworkHelper.isNetworkEnabled(context)))
     }
 }

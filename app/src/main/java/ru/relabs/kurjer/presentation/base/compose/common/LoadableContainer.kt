@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
 
 @Composable
 fun LoadableContainer(

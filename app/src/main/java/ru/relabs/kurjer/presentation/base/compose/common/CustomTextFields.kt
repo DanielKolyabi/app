@@ -30,6 +30,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGrayBase
 
 sealed class CustomTextKeyboardAction {
     protected abstract val keyboardType: KeyboardType

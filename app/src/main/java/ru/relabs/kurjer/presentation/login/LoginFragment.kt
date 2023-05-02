@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.presentation.base.compose.common.themes.DeliveryTheme
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
@@ -39,7 +40,9 @@ class LoginFragment : BaseFragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                LoginScreen(controller)
+                DeliveryTheme {
+                    LoginScreen(controller)
+                }
             }
         }
     }

@@ -23,6 +23,9 @@ import ru.relabs.kurjer.domain.models.*
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffold
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffoldContext
 import ru.relabs.kurjer.presentation.base.compose.common.*
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGrayBase
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorSeparator
 import ru.relabs.kurjer.presentation.base.tea.ElmController
 import ru.relabs.kurjer.uiOld.helpers.formated
 
@@ -141,7 +144,7 @@ private fun PageHeader(task: Task, photoRequired: Boolean, modifier: Modifier = 
                     Text(
                         text = stringResource(R.string.edition_label),
                         fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight(800),
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .onSizeChanged {
                                 with(density) {
@@ -158,7 +161,7 @@ private fun PageHeader(task: Task, photoRequired: Boolean, modifier: Modifier = 
                     Text(
                         text = stringResource(R.string.dates_label),
                         fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight(800),
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .onSizeChanged {
                                 with(density) {
@@ -331,7 +334,7 @@ private fun ElmScaffoldContext<TaskDetailsContext, TaskDetailsState>.Buttons(mod
             stringResource(R.string.show_map_button_text).uppercase(),
             modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 2.dp)
+                .padding(horizontal = 2.dp, vertical = 12.dp)
         ) {
             sendMessage(TaskDetailsMessages.msgOpenMap())
         }
@@ -340,7 +343,7 @@ private fun ElmScaffoldContext<TaskDetailsContext, TaskDetailsState>.Buttons(mod
                 stringResource(R.string.examine_button_text).uppercase(),
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 2.dp)
+                    .padding(horizontal = 2.dp, vertical = 12.dp)
             ) {
                 sendMessage(TaskDetailsMessages.msgExamineClicked())
             }

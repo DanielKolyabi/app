@@ -5,65 +5,55 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.github.terrakok.cicerone.Router
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
+import ru.relabs.kurjer.presentation.base.tea.defaultController
 
 class PhotoViewerFragment : BaseFragment() {
-    val router: Router by inject()
-    var currentPhoto = 0
-    var photoPaths = emptyList<String>()
+    val controller = defaultController(PhotoViewerState(), PhotoViewerContext())
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_photo_view, container, false)
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent { PhotoViewerScreen(controller) }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (savedInstanceState != null) {
-            currentPhoto = savedInstanceState
+            val currentPhoto = savedInstanceState
                 .getInt(SAVE_INDEX_KEY, -1)
                 .takeIf { it != -1 }
-                ?: return router.exit()
-            photoPaths = savedInstanceState.getStringArrayList(SAVE_PHOTO_PATHS_KEY)
+                ?: return controller.start(PhotoViewerMessages.msgNavigateBack())
+            val photoPaths = savedInstanceState.getStringArrayList(SAVE_PHOTO_PATHS_KEY)
                 ?.takeIf { it.isNotEmpty() }
-                ?: return router.exit()
+                ?: return controller.start(PhotoViewerMessages.msgNavigateBack())
+            controller.start(PhotoViewerMessages.msgInit(currentPhoto, photoPaths))
         } else {
-            currentPhoto = 0
-            photoPaths = arguments
+            val currentPhoto = 0
+            val photoPaths = arguments
                 ?.getStringArrayList(ARG_PHOTO_PATH_KEY)
                 ?.takeIf { it.isNotEmpty() }
-                ?: return router.exit()
-        }
-
-        loadImage(view as ImageView, photoPaths[currentPhoto])
-
-        view.setOnClickListener {
-            currentPhoto++
-            if (currentPhoto >= photoPaths.size) {
-                router.exit()
-            } else {
-                loadImage(view, photoPaths[currentPhoto])
-            }
+                ?: return controller.start(PhotoViewerMessages.msgNavigateBack())
+            controller.start(PhotoViewerMessages.msgInit(currentPhoto, photoPaths))
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        controller.stop()
+    }
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(SAVE_INDEX_KEY, currentPhoto)
-        outState.putStringArrayList(SAVE_PHOTO_PATHS_KEY, ArrayList(photoPaths))
-    }
-
-    private fun loadImage(view: ImageView, path: String) {
-        Glide
-            .with(requireContext())
-            .load(path)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .skipMemoryCache(true)
-            .into(view)
+        outState.putInt(SAVE_INDEX_KEY, controller.currentState.currentPhoto)
+        outState.putStringArrayList(SAVE_PHOTO_PATHS_KEY, ArrayList(controller.currentState.photoPaths))
     }
 
     companion object {

@@ -1,4 +1,4 @@
-package ru.relabs.kurjer.presentation.base.compose.common.themes
+package ru.relabs.kurjer.presentation.base.compose.common
 
 import androidx.compose.ui.graphics.Color
 
@@ -9,3 +9,5 @@ val ColorSeparator = Color(0xFFAAAAAA)
 val ColorGrayBase = Color(0xFF808080)
 val ColorButtonLight = Color(0xffd6d7d7)
 val ColorTextDisabled = Color(0xFFCCCCCC)
+val ColorGradientStart= Color(0x30ffffff)
+val ColorGradientEnd= Color(0x40000000)

@@ -55,6 +55,7 @@ object AddressesEffects {
                         is TaskEvent.TaskItemClosed ->
                             messages.send(AddressesMessages.msgTaskItemClosed(it.taskItemId))
                         is TaskEvent.TasksUpdateRequired -> Unit
+                        is TaskEvent.TaskStorageClosed -> Unit
                     }
                 }
             }

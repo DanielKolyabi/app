@@ -1,22 +1,29 @@
 package ru.relabs.kurjer.services
 
+import android.util.Log
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.joda.time.DateTime
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
+import ru.relabs.kurjer.domain.models.StorageClosure
+import ru.relabs.kurjer.domain.models.StorageId
+import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.TaskItemId
 import ru.relabs.kurjer.domain.providers.FirebaseToken
 import ru.relabs.kurjer.domain.providers.LocationProvider
-import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.PauseType
+import ru.relabs.kurjer.domain.repositories.StorageRepository
+import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.utils.CustomLog
 
@@ -42,11 +49,37 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
 
     override fun onMessageReceived(msg: RemoteMessage) {
         scope.launch(Dispatchers.IO) {
-            processMessageData(msg.data)
+            processMessageDataLegacy(msg.data)
+
+            val type = msg.data["type"]
+            type?.let {
+                processMessageData(it, msg.data)
+            }
         }
     }
 
-    suspend fun processMessageData(data: Map<String, String>) {
+    private suspend fun processMessageData(type: String, data: Map<String, String>) {
+        when (type) {
+            "storage_close" -> {
+                val taskId = data["task_id"]?.toIntOrNull() ?: return
+                val storageId = data["storage_id"]?.toIntOrNull() ?: return
+                val closeTime = data["close_time"]?.let { DateTime.parse(it).toDate() } ?: return
+                Log.d("zxc", taskId.toString())
+                val newClosure = StorageClosure(TaskId(taskId), StorageId(storageId), closeTime)
+                val task = taskRepository.getTask(TaskId(taskId))
+                if (task != null) {
+                    val newStorage = task.storage.copy(closes = task.storage.closes + newClosure)
+                    taskRepository.updateTask(task.copy(storage = newStorage))
+                    taskEventsController.send(TaskEvent.TaskStorageClosed(TaskId(taskId), StorageId(storageId), closeTime))
+                }
+            }
+
+            else -> FirebaseCrashlytics.getInstance().recordException(RuntimeException("Unknown type = $type"))
+        }
+    }
+
+    @Deprecated("Shouldn't be used for any new push, because of \"type\" field")
+    private suspend fun processMessageDataLegacy(data: Map<String, String>) {
         if (data.containsKey("request_gps")) {
             scope.launch {
                 val coordinates = locationProvider.lastReceivedLocation()

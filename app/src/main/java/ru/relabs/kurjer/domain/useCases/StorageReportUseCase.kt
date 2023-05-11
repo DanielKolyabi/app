@@ -162,17 +162,18 @@ class StorageReportUseCase(
         else -> GPSCoordinatesModel(location.latitude, location.longitude, Date(location.time))
     }
 
-    fun isReportActuallyRequired(task: Task): Boolean {
-        val storageCloses = task.storage.closes.sortedByDescending { it.closeDate }
+    suspend fun isReportActuallyRequired(task: Task): Boolean {
+        val dbTask = taskRepository.getTask(task.id) ?: return false
+        val storageCloses = dbTask.storage.closes.sortedByDescending { it.closeDate }
         val isStorageCloseNotExist =
             storageCloses.isEmpty() || storageCloses.first().closeDate < settingsRepository.closeLimit
         val isStorageCloseOptional =
-            task.items.any { it is TaskItem.Common && it.closeTime != null && it.closeTime > settingsRepository.closeLimit }
-                    && task.storage.requirementsUpdateDate > settingsRepository.closeLimit
+            dbTask.items.any { it is TaskItem.Common && it.closeTime != null && it.closeTime > settingsRepository.closeLimit }
+                    && dbTask.storage.requirementsUpdateDate > settingsRepository.closeLimit
         return if (isStorageCloseOptional) {
             false
         } else {
-            task.storageCloseFirstRequired && isStorageCloseNotExist
+            dbTask.storageCloseFirstRequired && isStorageCloseNotExist
         }
     }
 }

@@ -4,8 +4,14 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
 import android.net.Uri
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
@@ -13,10 +19,17 @@ import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.wrapInLoaders
 import ru.relabs.kurjer.uiOld.fragments.YandexMapFragment
-import ru.relabs.kurjer.utils.*
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.Either
+import ru.relabs.kurjer.utils.ImageUtils
+import ru.relabs.kurjer.utils.Left
+import ru.relabs.kurjer.utils.Right
+import ru.relabs.kurjer.utils.awaitFirst
+import ru.relabs.kurjer.utils.calculateDistance
 import ru.relabs.kurjer.utils.extensions.isLocationExpired
 import java.io.File
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 
 object StorageReportEffects {
@@ -173,6 +186,7 @@ object StorageReportEffects {
                                         emptyArray()
                                     )
                                 }
+
                                 distance > storage.closeDistance -> withContext(Dispatchers.Main) {
                                     c.showCloseError(
                                         R.string.storage_close_location_far_error,
@@ -181,6 +195,7 @@ object StorageReportEffects {
                                         emptyArray()
                                     )
                                 }
+
                                 else ->
                                     messages.send(msgFactory())
 
@@ -352,6 +367,7 @@ object StorageReportEffects {
                             )
                             true
                         }
+
                         distance > storage.closeDistance -> {
                             c.showCloseError(
                                 R.string.storage_close_location_far_error,
@@ -361,6 +377,7 @@ object StorageReportEffects {
                             )
                             true
                         }
+
                         else -> {
                             c.showPreCloseDialog(location)
                             false
@@ -377,6 +394,7 @@ object StorageReportEffects {
                             )
                             false
                         }
+
                         distance > storage.closeDistance -> {
                             c.showCloseError(
                                 R.string.storage_report_close_location_far_warning,
@@ -386,6 +404,7 @@ object StorageReportEffects {
                             )
                             false
                         }
+
                         else -> {
                             c.showPreCloseDialog(location)
                             false
@@ -405,6 +424,7 @@ object StorageReportEffects {
                 null -> {
                     c.showError("sre:2", true)
                 }
+
                 else -> {
                     if (s.tasks.isNotEmpty()) {
                         effectInterruptPause()(c, s)
@@ -424,6 +444,24 @@ object StorageReportEffects {
 
     fun effectInterruptPause(): StorageReportEffect = { c, s ->
         c.storageReportUseCase.stopPause()
+    }
+
+    fun launchEventConsumer(): StorageReportEffect = { c, s ->
+        coroutineScope {
+            launch {
+                c.taskEventController.subscribe().collect { event ->
+                    when (event) {
+                        is TaskEvent.TaskClosed -> Unit
+                        is TaskEvent.TaskItemClosed -> Unit
+                        is TaskEvent.TasksUpdateRequired -> Unit
+                        is TaskEvent.TaskStorageClosed -> {
+                            if (s.tasks.any { it.id == event.taskId })
+                                messages.send(msgEffect(effectLoadTasks(s.tasks.map { it.id })))
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

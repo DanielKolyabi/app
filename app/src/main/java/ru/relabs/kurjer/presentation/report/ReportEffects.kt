@@ -674,6 +674,7 @@ object ReportEffects {
                         is TaskEvent.TaskItemClosed ->
                             messages.send(msgEffect(effectEventTaskItemClosed(event.taskItemId)))
                         is TaskEvent.TasksUpdateRequired -> Unit
+                        is TaskEvent.TaskStorageClosed -> Unit
                     }
                 }
             }

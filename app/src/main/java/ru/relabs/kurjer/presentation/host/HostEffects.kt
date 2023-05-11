@@ -213,6 +213,7 @@ object HostEffects {
                         }
                         is TaskEvent.TaskClosed -> Unit
                         is TaskEvent.TaskItemClosed -> Unit
+                        is TaskEvent.TaskStorageClosed -> Unit
                     }
                 }
             }

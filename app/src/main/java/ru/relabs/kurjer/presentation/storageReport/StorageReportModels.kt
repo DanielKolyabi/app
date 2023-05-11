@@ -5,6 +5,7 @@ import android.location.Location
 import android.net.Uri
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.storage.StorageReport
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
@@ -35,6 +36,7 @@ class StorageReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl
     val storageReportUseCase: StorageReportUseCase by inject()
     val locationProvider: LocationProvider by inject()
     val settingsRepository: SettingsRepository by inject()
+    val taskEventController: TaskEventController by inject()
 
     var showError: suspend (code: String, isFatal: Boolean) -> Unit = { _, _ -> }
     var showCloseError: (msgRes: Int, showNext: Boolean, location: Location?, msgFormat: Array<Any>) -> Unit =

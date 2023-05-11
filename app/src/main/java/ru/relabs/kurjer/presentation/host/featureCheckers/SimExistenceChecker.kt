@@ -9,7 +9,8 @@ class SimExistenceChecker(a: Activity) : FeatureChecker(a) {
     private var requestShowed = false
 
     override fun isFeatureEnabled(): Boolean {
-        return NetworkHelper.isSIMInserted(activity)
+//        return NetworkHelper.isSIMInserted(activity)
+        return true
     }
 
     override fun requestFeature() {

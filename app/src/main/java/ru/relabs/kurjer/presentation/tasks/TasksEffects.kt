@@ -116,6 +116,7 @@ object TasksEffects {
                             }
                         }
                         is TaskEvent.TaskItemClosed -> Unit
+                        is TaskEvent.TaskStorageClosed -> Unit
                     }
                 }
             }

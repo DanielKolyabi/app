@@ -26,7 +26,7 @@ import ru.relabs.kurjer.utils.CustomLog
 class HintHelper(
     val hintContainer: View,
     private var expanded: Boolean = true,
-    val preferences: SharedPreferences,
+    private val preferences: SharedPreferences,
 ) {
     var text: CharSequence = ""
         set(value) {

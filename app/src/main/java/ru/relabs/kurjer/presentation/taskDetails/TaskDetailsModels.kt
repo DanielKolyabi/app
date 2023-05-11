@@ -55,4 +55,3 @@ class TaskDetailsContext(val errorContext: ErrorContextImpl = ErrorContextImpl()
 
 typealias TaskDetailsMessage = ElmMessage<TaskDetailsContext, TaskDetailsState>
 typealias TaskDetailsEffect = ElmEffect<TaskDetailsContext, TaskDetailsState>
-typealias TaskDetailsRender = ElmRender<TaskDetailsState>

@@ -1,4 +1,4 @@
-package ru.relabs.kurjer.presentation.base.compose.common
+package ru.relabs.kurjer.presentation.base.compose.common.themes
 
 import androidx.compose.ui.graphics.Color
 

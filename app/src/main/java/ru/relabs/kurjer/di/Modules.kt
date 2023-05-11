@@ -189,8 +189,8 @@ val useCasesModule = module {
         )
     }
     factory {
-        TextSizeRepository(
-            sharedPreferences = get()
+        TextSizeStorage(
+            preferences = get<SharedPreferences>()
         )
     }
 }

@@ -63,7 +63,7 @@ class ReportFragment : BaseFragment() {
     private var nextPhotoData: ReportPhotoData? = null
 
     private val controller = defaultController(ReportState(), ReportContext())
-    private var renderJob: Job? = null
+//    private var renderJob: Job? = null
     private var isCloseClicked = false
 
     private val tasksAdapter = DelegateAdapter(
@@ -123,6 +123,8 @@ class ReportFragment : BaseFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+//        return inflater.inflate(R.layout.fragment_report, container, false)
+
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
@@ -142,70 +144,70 @@ class ReportFragment : BaseFragment() {
             CustomLog.writeToFile("Request Photo: Photo Data Restored ${it}")
         }
 
-        val hintHelper = HintHelper(hint_container, "", true, requireActivity())
-        report_root.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                report_root?.height?.takeIf { it > 0 }?.let { height ->
-                    if ((rv_tasks.visible && rv_tasks.height != 0) || !rv_tasks.visible) {
-                        report_root?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
-                    }
-                    hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
-                }
-            }
-        })
-        val tasksListListener = object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                if (rv_tasks?.visible == true && rv_tasks?.height != 0) {
-                    report_root?.height?.takeIf { it > 0 }?.let { height ->
-                        rv_tasks?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
-                        hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
-                    }
-                }
-            }
-        }
-        rv_tasks?.viewTreeObserver?.addOnGlobalLayoutListener(tasksListListener)
-        lifecycle.addObserver(object: LifecycleObserver{
-            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-            fun onDestroy(){
-                rv_tasks?.viewTreeObserver?.removeOnGlobalLayoutListener(tasksListListener)
-            }
-        })
+//        val hintHelper = HintHelper(hint_container, "", true, requireActivity())
+//        report_root.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+//            override fun onGlobalLayout() {
+//                report_root?.height?.takeIf { it > 0 }?.let { height ->
+//                    if ((rv_tasks.visible && rv_tasks.height != 0) || !rv_tasks.visible) {
+//                        report_root?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+//                    }
+//                    hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
+//                }
+//            }
+//        })
+//        val tasksListListener = object : ViewTreeObserver.OnGlobalLayoutListener {
+//            override fun onGlobalLayout() {
+//                if (rv_tasks?.visible == true && rv_tasks?.height != 0) {
+//                    report_root?.height?.takeIf { it > 0 }?.let { height ->
+//                        rv_tasks?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+//                        hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
+//                    }
+//                }
+//            }
+//        }
+//        rv_tasks?.viewTreeObserver?.addOnGlobalLayoutListener(tasksListListener)
+//        lifecycle.addObserver(object: LifecycleObserver{
+//            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+//            fun onDestroy(){
+//                rv_tasks?.viewTreeObserver?.removeOnGlobalLayoutListener(tasksListListener)
+//            }
+//        })
 
-        val listInterceptor = ListClickInterceptor()
+//        val listInterceptor = ListClickInterceptor()
 
-        view.rv_tasks.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
-        view.rv_tasks.adapter = tasksAdapter
+//        view.rv_tasks.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
+//        view.rv_tasks.adapter = tasksAdapter
 
-        view.rv_entrances.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-        view.rv_entrances.adapter = entrancesAdapter
-        view.rv_entrances.addOnItemTouchListener(listInterceptor)
+//        view.rv_entrances.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
+//        view.rv_entrances.adapter = entrancesAdapter
+//        view.rv_entrances.addOnItemTouchListener(listInterceptor)
 
-        view.rv_photos.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
-        view.rv_photos.adapter = photosAdapter
-        view.rv_photos.addOnItemTouchListener(listInterceptor)
+//        view.rv_photos.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
+//        view.rv_photos.adapter = photosAdapter
+//        view.rv_photos.addOnItemTouchListener(listInterceptor)
 
-        val descriptionTextWatcher = TextChangeListener {
-            if (view.et_description.hasFocus())
-                uiScope.sendMessage(controller, ReportMessages.msgDescriptionChanged(it))
-        }
-        bindControls(view, descriptionTextWatcher)
+//        val descriptionTextWatcher = TextChangeListener {
+//            if (view.et_description.hasFocus())
+//                uiScope.sendMessage(controller, ReportMessages.msgDescriptionChanged(it))
+//        }
+//        bindControls(view, descriptionTextWatcher)
 
-        renderJob = uiScope.launch {
-            val renders = listOf(
-                ReportRenders.renderLoading(view.loading, view.tv_gps_loading),
-                ReportRenders.renderTasks(tasksAdapter, view.rv_tasks),
-                ReportRenders.renderPhotos(photosAdapter),
-                ReportRenders.renderEntrances(entrancesAdapter, view.rv_entrances),
-                ReportRenders.renderTitle(view.tv_title),
-                ReportRenders.renderDescription(view.et_description, descriptionTextWatcher),
-                ReportRenders.renderNotes(hintHelper),
-                ReportRenders.renderTaskItemAvailability(listInterceptor, view.et_description, view.btn_close, view.btn_reject),
-                ReportRenders.renderRejectButton(view.btn_reject),
-                ReportRenders.renderFirmFullAddress(view.tv_firm_full_address)
-            )
-            launch { controller.stateFlow().collect(rendersCollector(renders)) }
-            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
-        }
+//        renderJob = uiScope.launch {
+//            val renders = listOf(
+//                ReportRenders.renderLoading(view.loading, view.tv_gps_loading),
+//                ReportRenders.renderTasks(tasksAdapter, view.rv_tasks),
+//                ReportRenders.renderPhotos(photosAdapter),
+//                ReportRenders.renderEntrances(entrancesAdapter, view.rv_entrances),
+//                ReportRenders.renderTitle(view.tv_title),
+//                ReportRenders.renderDescription(view.et_description, descriptionTextWatcher),
+//                ReportRenders.renderNotes(hintHelper),
+//                ReportRenders.renderTaskItemAvailability(listInterceptor, view.et_description, view.btn_close, view.btn_reject),
+//                ReportRenders.renderRejectButton(view.btn_reject),
+//                ReportRenders.renderFirmFullAddress(view.tv_firm_full_address)
+//            )
+//            launch { controller.stateFlow().collect(rendersCollector(renders)) }
+//            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
+//        }
         controller.context.errorContext.attach(view)
         controller.context.requestPhoto = ::requestPhoto
         controller.context.hideKeyboard = ::hideKeyboard
@@ -403,7 +405,7 @@ class ReportFragment : BaseFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        renderJob?.cancel()
+//        renderJob?.cancel()
         controller.context.showError = { _, _ -> }
         controller.context.hideKeyboard = {}
         controller.context.requestPhoto = { _, _, _, _ -> }

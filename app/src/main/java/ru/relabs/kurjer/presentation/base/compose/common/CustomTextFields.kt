@@ -6,7 +6,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -203,4 +207,54 @@ fun SearchTextField(
         modifier = modifier
             .focusRequester(focusRequester)
     )
+}
+
+@Composable
+fun DescriptionTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String? = null,
+    maxLines: Int = Int.MAX_VALUE,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    keyboardAction: CustomTextKeyboardAction = CustomTextKeyboardAction.Default,
+    focusRequester: FocusRequester = remember { FocusRequester() }
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val (options, actions) = keyboardAction.toKeyboardProperties()
+
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        maxLines = maxLines,
+        textStyle = TextStyle(fontWeight = FontWeight.Medium, fontSize = 16.sp),
+        interactionSource = interactionSource,
+        decorationBox = { innerTextField ->
+            Box {
+                Box(modifier = Modifier.padding(vertical = 10.dp)) {
+                    if (value.isEmpty() && placeholder != null) {
+                        Box(contentAlignment = Alignment.CenterStart) {
+                            Text(
+                                text = placeholder,
+                                fontSize = 16.sp,
+                                fontFamily = FontFamily.SansSerif,
+                                fontWeight = FontWeight.Medium,
+                                color = ColorGrayBase.copy(alpha = 0.8f)
+                            )
+                            innerTextField()
+                        }
+                    } else {
+                        innerTextField()
+                    }
+                }
+            }
+        },
+        visualTransformation = visualTransformation,
+        keyboardActions = actions,
+        keyboardOptions = options,
+        cursorBrush = SolidColor(ColorFuchsia.copy(alpha = 0.8F)),
+        modifier = modifier
+            .focusRequester(focusRequester)
+    )
+
 }

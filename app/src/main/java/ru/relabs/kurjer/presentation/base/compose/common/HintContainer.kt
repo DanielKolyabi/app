@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.relabs.kurjer.R
@@ -35,10 +37,10 @@ import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGradientEnd
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGradientStart
 
 @Composable
-fun HintContainer(hintText: String, textSizeStorage: TextSizeStorage, modifier: Modifier = Modifier) {
+fun HintContainer(hintText: String, textSizeStorage: TextSizeStorage, maxHeight: Dp = 250.dp, modifier: Modifier = Modifier) {
     val textSize by remember { textSizeStorage.textSize }.collectAsState()
     var expanded by remember { mutableStateOf(true) }
-    val containerHeight by animateDpAsState(if (expanded) 250.dp else 30.dp)
+    val containerHeight by animateDpAsState(if (expanded) maxHeight else 30.dp)
 
     Box(
         modifier

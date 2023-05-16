@@ -17,7 +17,6 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.FragmentTransaction.TRANSIT_FRAGMENT_FADE
-import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.Command
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.androidx.AppNavigator
@@ -28,14 +27,18 @@ import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.holder.DimenHolder
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
 import com.mikepenz.materialize.util.UIUtils
-import kotlinx.android.synthetic.main.activity_host.*
-import kotlinx.android.synthetic.main.nav_header.view.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.receiveOrNull
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.databinding.ActivityHostBinding
+import ru.relabs.kurjer.databinding.NavHeaderBinding
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.repositories.PauseType
@@ -49,10 +52,16 @@ import ru.relabs.kurjer.presentation.customViews.drawables.NavDrawerBackgroundDr
 import ru.relabs.kurjer.presentation.host.featureCheckers.FeatureCheckersContainer
 import ru.relabs.kurjer.presentation.host.systemWatchers.SystemWatchersContainer
 import ru.relabs.kurjer.services.ReportService
-import ru.relabs.kurjer.utils.*
+import ru.relabs.kurjer.utils.ClipboardHelper
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.IntentUtils
+import ru.relabs.kurjer.utils.Left
+import ru.relabs.kurjer.utils.MyExceptionHandler
+import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
 import ru.relabs.kurjer.utils.extensions.showSnackbar
+import ru.relabs.kurjer.utils.log
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -103,6 +112,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                     isFullScreen = fragment.isFullScreen
                 )
             )
+
             else -> updateAppBar(AppBarSettings())
         }
     }
@@ -112,8 +122,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         systemWatchersContainer.mockedLocation.getAllMockGPSApps().takeIf { it.isNotEmpty() }?.let {
             CustomLog.writeToFile("MockGPS Apps: " + it.joinToString { ", " })
         }
-
-        setContentView(R.layout.activity_host)
+        val binding = ActivityHostBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler())
         controller.start(HostMessages.msgInit(savedInstanceState != null))
@@ -121,8 +131,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
             val renders = listOfNotNull(
                 HostRenders.renderDrawer(navigationDrawer),
                 HostRenders.renderFullScreen(window),
-                HostRenders.renderLoader(loading_overlay),
-                HostRenders.renderUpdateLoading(loading_overlay, pb_loading, tv_loader),
+                HostRenders.renderLoader(binding.loadingOverlay),
+                HostRenders.renderUpdateLoading(binding.loadingOverlay, binding.pbLoading, binding.tvLoader),
                 (navigationDrawer.drawerItems.first { it.identifier == NAVIGATION_INFO } as? MenuDrawerItem)?.let {
                     HostRenders.renderAppInfo(it, resources, navigationDrawer)
                 }
@@ -283,6 +293,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                     resources.getString(R.string.copied_to_clipboard),
                     resources.getString(R.string.send) to { sendDeviceUUID(text) }
                 )
+
             is Left ->
                 showSnackbar(resources.getString(R.string.unknown_runtime_error))
         }
@@ -380,6 +391,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                 is FileNotFoundException -> showSnackbar(resources.getString(R.string.crash_log_not_found))
                 else -> showSnackbar(resources.getString(R.string.unknown_runtime_error))
             }
+
             is Right -> Unit
         }
         return false
@@ -400,7 +412,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
     private fun inflateNavigationHeader(): View {
         val header = LayoutInflater.from(this).inflate(R.layout.nav_header, null, false)
-        header.text_container.setPadding(0, UIUtils.getStatusBarHeight(this), 0, 0)
+        val binding = NavHeaderBinding.bind(header)
+        binding.textContainer.setPadding(0, UIUtils.getStatusBarHeight(this), 0, 0)
         return header
     }
 

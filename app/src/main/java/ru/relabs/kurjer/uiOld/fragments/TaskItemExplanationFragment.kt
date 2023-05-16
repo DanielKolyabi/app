@@ -7,8 +7,8 @@ import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.fragment_task_item_explanation.view.*
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.databinding.FragmentTaskItemExplanationBinding
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.notes
 
@@ -29,8 +29,9 @@ class TaskItemExplanationFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val binding = FragmentTaskItemExplanationBinding.bind(view)
         with(view){
-            val noteTextViews = listOf(note1_text, note2_text, note3_text)
+            val noteTextViews = listOf(binding.note1Text, binding.note2Text, binding.note3Text)
             item.notes.forEachIndexed { i, note ->
                 if(!note.isNullOrBlank()){
                     noteTextViews[2-i].text = Html.fromHtml(note)

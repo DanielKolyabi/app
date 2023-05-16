@@ -4,17 +4,15 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.View
 import com.bumptech.glide.Glide
-import kotlinx.android.synthetic.main.holder_report_photo.view.*
-import kotlinx.android.synthetic.main.holder_report_photo_single.view.*
-import kotlinx.android.synthetic.main.holder_storage_closure.view.*
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.databinding.HolderReportPhotoBinding
+import ru.relabs.kurjer.databinding.HolderReportPhotoSingleBinding
+import ru.relabs.kurjer.databinding.HolderStorageClosureBinding
 import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
 import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
 import ru.relabs.kurjer.presentation.base.recycler.holderDefine
 import ru.relabs.kurjer.uiOld.helpers.formattedTimeDate
-import kotlinx.android.synthetic.main.holder_report_photo.view.iv_photo as photo
-import kotlinx.android.synthetic.main.holder_report_photo_single.view.iv_photo as singlePhoto
 
 object StorageReportAdapter {
 
@@ -26,11 +24,12 @@ object StorageReportAdapter {
                     p,
                     R.layout.holder_report_photo_single,
                     { it as StorageReportItem.Single }) { (required, hasPhoto) ->
-                    itemView.setOnClickListener {
+                    val binding = HolderReportPhotoSingleBinding.bind(itemView)
+                    binding.root.setOnClickListener {
                         onPhotoClicked()
                     }
 
-                    itemView.singlePhoto.imageTintList = ColorStateList.valueOf(
+                    binding.ivPhoto.imageTintList = ColorStateList.valueOf(
                         when {
                             hasPhoto -> Color.parseColor("#FF435CDC")
                             required -> Color.parseColor("#FFED0D81")
@@ -49,14 +48,15 @@ object StorageReportAdapter {
                     p,
                     R.layout.holder_report_photo,
                     { it as StorageReportItem.Photo }) { (photo, uri) ->
-                    itemView.tv_entrance_number.visibility = View.GONE
-                    itemView.iv_remove.setOnClickListener {
+                    val binding = HolderReportPhotoBinding.bind(itemView)
+                    binding.tvEntranceNumber.visibility = View.GONE
+                    binding.ivRemove.setOnClickListener {
                         onRemoveClicked(photo)
                     }
 
                     Glide.with(itemView)
                         .load(uri)
-                        .into(itemView.photo)
+                        .into(binding.ivPhoto)
                 }
             }
         )
@@ -68,14 +68,13 @@ object StorageReportAdapter {
                 p,
                 R.layout.holder_storage_closure,
                 { it as StorageReportItem.Closure }) { (idx, task, closure) ->
-                with(itemView) {
-                    tv_closure_date.text = resources.getString(
-                        R.string.closure_date,
-                        idx + 1,
-                        closure.closeDate.formattedTimeDate()
-                    )
-                    tv_closure_description.text = task.listName
-                }
+                val binding = HolderStorageClosureBinding.bind(itemView)
+                binding.tvClosureDate.text = binding.root.resources.getString(
+                    R.string.closure_date,
+                    idx + 1,
+                    closure.closeDate.formattedTimeDate()
+                )
+                binding.tvClosureDescription.text = task.listName
             }
         }
     )

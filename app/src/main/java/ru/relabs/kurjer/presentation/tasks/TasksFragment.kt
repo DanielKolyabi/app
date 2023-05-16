@@ -5,13 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
-import kotlinx.android.synthetic.main.fragment_tasks.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.databinding.FragmentTasksBinding
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.fragment.FragmentStyleable
@@ -84,19 +83,20 @@ class TasksFragment : BaseFragment(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val binding = FragmentTasksBinding.bind(view)
 
         val layoutManager =
             LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-        view.rv_list.layoutManager = layoutManager
-        view.rv_list.adapter = tasksAdapter
+        binding.rvList.layoutManager = layoutManager
+        binding.rvList.adapter = tasksAdapter
 
-        bindControls(view)
+        bindControls(binding)
 
         renderJob = uiScope.launch {
             val renders = listOf(
                 TasksRenders.renderList(tasksAdapter),
-                TasksRenders.renderLoading(view.loading),
-                TasksRenders.renderStartButton(view.btn_start)
+                TasksRenders.renderLoading(binding.loading),
+                TasksRenders.renderStartButton(binding.btnStart)
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
@@ -134,14 +134,14 @@ class TasksFragment : BaseFragment(),
         }
     }
 
-    private fun bindControls(view: View) {
-        view.iv_menu.setOnClickListener {
+    private fun bindControls(binding: FragmentTasksBinding) {
+        binding.ivMenu.setOnClickListener {
             (activity as? HostActivity)?.changeNavigationDrawerState()
         }
-        view.btn_start.setOnClickListener {
+        binding.btnStart.setOnClickListener {
             uiScope.sendMessage(controller, TasksMessages.msgStartClicked())
         }
-        view.iv_update.setOnClickListener {
+        binding.ivUpdate.setOnClickListener {
             uiScope.sendMessage(controller, TasksMessages.msgRefresh())
         }
     }

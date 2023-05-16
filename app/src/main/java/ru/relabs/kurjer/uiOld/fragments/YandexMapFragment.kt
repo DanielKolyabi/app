@@ -18,10 +18,10 @@ import com.yandex.mapkit.map.*
 import com.yandex.mapkit.user_location.UserLocationLayer
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.android.parcel.Parcelize
-import kotlinx.android.synthetic.main.fragment_yandex_map.*
-import kotlinx.android.synthetic.main.fragment_yandex_map.view.*
+
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.databinding.FragmentYandexMapBinding
 import ru.relabs.kurjer.domain.models.Address
 import ru.relabs.kurjer.domain.providers.LocationProvider
 
@@ -47,6 +47,7 @@ class YandexMapFragment : Fragment() {
         }
         false
     }
+    private lateinit var binding: FragmentYandexMapBinding
 
     var onAddressClicked: ((Address) -> Unit)? = null
 
@@ -64,8 +65,9 @@ class YandexMapFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_yandex_map, container, false)
+    ): View {
+        binding = FragmentYandexMapBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -77,18 +79,18 @@ class YandexMapFragment : Fragment() {
             Point(it.latitude, it.longitude)
         } ?: Point(0.0, 0.0)
 
-        mapview.map.isRotateGesturesEnabled = false
+        binding.mapview.map.isRotateGesturesEnabled = false
 
-        mapview.map.move(CameraPosition(point, 14f, 0f, 0f))
-        userLocationLayer = MapKitFactory.getInstance().createUserLocationLayer(mapview.mapWindow).apply {
+        binding.mapview.map.move(CameraPosition(point, 14f, 0f, 0f))
+        userLocationLayer = MapKitFactory.getInstance().createUserLocationLayer(binding.mapview.mapWindow).apply {
             isVisible = true
         }
 
 
         val userLocation = locationProvider.lastReceivedLocation()
 
-        my_position.setOnClickListener {
-            mapview.map.move(
+        binding.myPosition.setOnClickListener {
+            binding.mapview.map.move(
                 userLocationLayer.cameraPosition()
                     ?: CameraPosition(
                         Point(
@@ -99,7 +101,7 @@ class YandexMapFragment : Fragment() {
             )
         }
 
-        view.iv_menu.setOnClickListener {
+        binding.ivMenu.setOnClickListener {
             if (!exitInitialized) {
                 router.exit()
                 exitInitialized = true
@@ -118,21 +120,21 @@ class YandexMapFragment : Fragment() {
     }
 
     private fun showStorages(storages: List<StorageLocation>) {
-        mapview.map.mapObjects.forEach {
+        binding.mapview.map.mapObjects.forEach {
             if (it.userData == IconType.Storage) {
-                mapview.map.mapObjects.remove(it)
+                binding.mapview.map.mapObjects.remove(it)
             }
         }
 
         storages.forEach {
-            mapview.map.mapObjects.addPlacemark(
+            binding.mapview.map.mapObjects.addPlacemark(
                 Point(it.storageLat.toDouble(), it.storageLong.toDouble()),
-                ColoredIconProvider(mapview.context, Color.BLACK)
+                ColoredIconProvider(binding.mapview.context, Color.BLACK)
             ).apply {
                 userData = IconType.Storage
             }
 
-            mapview.map.mapObjects.addCircle(
+            binding.mapview.map.mapObjects.addCircle(
                 Circle(Point(it.storageLat.toDouble(), it.storageLong.toDouble()), STORAGE_RADIUS),
                 Color.BLACK,
                 2f,
@@ -155,6 +157,7 @@ class YandexMapFragment : Fragment() {
                     ), 14f, 0f, 0f
                 )
             }
+
             coloredAddresses.size == 1 -> {
                 val (lat, long) = coloredAddresses.first().getLocation()
                 return CameraPosition(
@@ -162,6 +165,7 @@ class YandexMapFragment : Fragment() {
                     14f, 0f, 0f
                 )
             }
+
             else -> {
                 val filtered = coloredAddresses
                     .map { it.getLocation() }
@@ -173,7 +177,7 @@ class YandexMapFragment : Fragment() {
                 if (minLat == null || maxLat == null || minLong == null || maxLong == null) {
                     return getCameraPosition(listOfNotNull(coloredAddresses.firstOrNull()))
                 }
-                return mapview?.map?.cameraPosition(
+                return binding.mapview.map?.cameraPosition(
                     BoundingBox(
                         Point(minLat, minLong),
                         Point(maxLat, maxLong)
@@ -185,7 +189,7 @@ class YandexMapFragment : Fragment() {
     }
 
     fun makeFocus(addresses: List<Locatable>) {
-        mapview?.map?.move(savedCameraPosition ?: getCameraPosition(addresses))
+        binding.mapview.map?.move(savedCameraPosition ?: getCameraPosition(addresses))
     }
 
     fun showAddresses(addresses: List<AddressWithColor>) {
@@ -198,13 +202,13 @@ class YandexMapFragment : Fragment() {
             val ctx = context ?: return
             val point = Point(address.lat.toDouble(), address.long.toDouble())
 
-            mapview.map.mapObjects
+            binding.mapview.map.mapObjects
                 .addPlacemark(point, ColoredIconProvider(ctx, coloredAddress.color))
                 .apply {
                     userData = address
                 }
 
-            mapview.map.mapObjects.addCircle(
+            binding.mapview.map.mapObjects.addCircle(
                 Circle(point, ADDRESS_RADIUS),
                 R.color.colorPrimary,
                 2f,
@@ -219,20 +223,20 @@ class YandexMapFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         if (addresses.size > 1) {
-            savedCameraPosition = mapview?.map?.cameraPosition
+            savedCameraPosition = binding.mapview?.map?.cameraPosition
         }
     }
 
     override fun onStop() {
         super.onStop()
         MapKitFactory.getInstance().onStop()
-        mapview.onStop()
+        binding.mapview.onStop()
     }
 
     override fun onStart() {
         super.onStart()
         MapKitFactory.getInstance().onStart()
-        mapview.onStart()
+        binding.mapview.onStart()
     }
 
 

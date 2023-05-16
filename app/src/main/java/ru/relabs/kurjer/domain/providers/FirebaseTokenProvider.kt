@@ -2,7 +2,7 @@ package ru.relabs.kurjer.domain.providers
 
 import android.os.Parcelable
 import com.google.firebase.messaging.FirebaseMessaging
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.utils.Either
 import ru.relabs.kurjer.utils.instanceIdAsync

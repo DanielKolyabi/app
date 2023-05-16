@@ -11,9 +11,9 @@ import android.view.Window
 import android.widget.AdapterView
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.DialogFragment
-import kotlinx.android.synthetic.main.dialog_reject.view.*
-import kotlinx.android.synthetic.main.holder_spinner.view.*
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.databinding.DialogRejectBinding
+import ru.relabs.kurjer.databinding.HolderSpinnerBinding
 import ru.relabs.kurjer.presentation.base.SpinnerAdapter
 import ru.relabs.kurjer.utils.extensions.visible
 
@@ -41,9 +41,11 @@ class RejectFirmDialog(val reasons: List<String>, val onRejected: (reason: Strin
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         isCancelable = true
+        val binding = DialogRejectBinding.bind(view)
 
         val adapter = SpinnerAdapter<RejectReason>(requireContext(), R.layout.holder_spinner) { v, data ->
-            v.tv_content.text = data?.name ?: ""
+            val adapterBinding = HolderSpinnerBinding.bind(v)
+            adapterBinding.tvContent.text = data?.name ?: ""
         }
         adapter.addAll(
             reasons.map { RejectReason(it, false) } +
@@ -51,29 +53,29 @@ class RejectFirmDialog(val reasons: List<String>, val onRejected: (reason: Strin
                         RejectReason("Другое", true)
                     )
         )
-        view.sp_reason.adapter = adapter
+        binding.spReason.adapter = adapter
 
-        view.sp_reason.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        binding.spReason.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val fragView = this@RejectFirmDialog.view
-                fragView?.et_reason?.visible = adapter.getItem(position)?.shouldExpandDescription == true
-                fragView?.btn_reject?.isEnabled =
-                    adapter.getItem(position)?.shouldExpandDescription == false || ((fragView?.et_reason?.text?.length ?: 0) >= 5)
+                binding.etReason.visible = adapter.getItem(position)?.shouldExpandDescription == true
+                binding.btnReject.isEnabled =
+                    adapter.getItem(position)?.shouldExpandDescription == false || (( binding.etReason.text?.length ?: 0) >= 5)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        view.et_reason.doAfterTextChanged {
+        binding.etReason.doAfterTextChanged {
             val isReasonVisible =
-                view?.sp_reason?.selectedItemPosition?.let { adapter.getItem(it)?.shouldExpandDescription == false } ?: false
-            view?.btn_reject?.isEnabled = isReasonVisible || ((view?.et_reason?.text?.length ?: 0) >= 5)
+               binding.spReason.selectedItemPosition.let { adapter.getItem(it)?.shouldExpandDescription == false }
+            binding.btnReject.isEnabled = isReasonVisible || (( binding.etReason.text?.length ?: 0) >= 5)
         }
 
-        view.btn_reject.setOnClickListener {
-            val item = adapter.getItem(view.sp_reason.selectedItemPosition)
+        binding.btnReject.setOnClickListener {
+            val item = adapter.getItem(binding.spReason.selectedItemPosition)
             if (item?.shouldExpandDescription == true) {
-                onRejected(view.et_reason.text.toString())
+                onRejected(binding.etReason.text.toString())
             } else {
                 onRejected(item?.name ?: "")
             }

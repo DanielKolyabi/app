@@ -17,8 +17,7 @@ import android.view.ViewGroup
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import kotlinx.android.parcel.Parcelize
-import kotlinx.android.synthetic.main.include_hint_container.*
+import kotlinx.parcelize.Parcelize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -26,6 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.databinding.FragmentStorageReportBinding
+import ru.relabs.kurjer.databinding.IncludeHintContainerBinding
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.presentation.base.TextChangeListener
@@ -101,7 +101,7 @@ class StorageReportFragment : BaseFragment() {
             CustomLog.writeToFile("Request Photo: Photo Data Restored ${it}")
         }
 
-        val hintHelper = HintHelper(hint_container, "", true, requireActivity())
+//        val hintHelper = HintHelper(hint_container, "", true, requireActivity())
 
         val listInterceptor = ListClickInterceptor()
         binding.rvCloses.layoutManager =
@@ -122,7 +122,7 @@ class StorageReportFragment : BaseFragment() {
         renderJob = uiScope.launch {
             val renders = listOf(
                 StorageReportRenders.renderLoading(binding.loading, binding.tvGpsLoading),
-                StorageReportRenders.renderHint(hintHelper),
+//                StorageReportRenders.renderHint(hintHelper),
                 StorageReportRenders.renderTitle(binding.tvTitle),
                 StorageReportRenders.renderClosesList(closesAdapter),
                 StorageReportRenders.renderPhotos(photosAdapter),

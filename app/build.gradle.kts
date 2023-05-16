@@ -3,10 +3,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.android.application")
     kotlin("android")
-    kotlin("android.extensions")
-    kotlin("kapt")
+    id ("kotlin-parcelize")
     id("com.google.firebase.crashlytics")
     id("com.google.gms.google-services")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -62,7 +62,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.3.2"
+        kotlinCompilerExtensionVersion = "1.4.1"
     }
 
     compileOptions {
@@ -84,13 +84,10 @@ tasks {
     }
 }
 
-androidExtensions {
-    isExperimental = true
-}
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to "*.jar")))
-    implementation("com.google.android.material:material:1.8.0")
+    implementation("com.google.android.material:material:1.9.0")
 
     debugImplementation("com.amitshekhar.android:debug-db:1.0.4")
 
@@ -103,7 +100,7 @@ dependencies {
     implementation("io.insert-koin:koin-android:${Config.Versions.koin}")
 
     // androidx
-    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.constraintlayout:constraintlayout:2.2.0-alpha09")
     implementation("androidx.recyclerview:recyclerview:1.3.0")
@@ -111,13 +108,13 @@ dependencies {
 
     //Room
     implementation("androidx.room:room-runtime:2.5.1")
-    kapt("androidx.room:room-compiler:2.5.1")
+    ksp("androidx.room:room-compiler:2.5.1")
     implementation("androidx.room:room-ktx:2.5.1")
 
     // Glide
     implementation("com.github.bumptech.glide:glide:${Config.Versions.glide}")
     implementation("com.github.bumptech.glide:okhttp3-integration:${Config.Versions.glide}")
-    kapt("com.github.bumptech.glide:compiler:${Config.Versions.glide}")
+    ksp("com.github.bumptech.glide:compiler:${Config.Versions.glide}")
     implementation("com.github.bumptech.glide:compose:1.0.0-alpha.1")
 
     // Retrofit
@@ -130,7 +127,7 @@ dependencies {
 
     // Firebase
     implementation("com.google.firebase:firebase-messaging:23.1.2")
-    implementation("com.google.firebase:firebase-crashlytics:18.3.6")
+    implementation("com.google.firebase:firebase-crashlytics:18.3.7")
 
     //Various
     implementation("com.yandex.android:maps.mobile:4.3.1-full")

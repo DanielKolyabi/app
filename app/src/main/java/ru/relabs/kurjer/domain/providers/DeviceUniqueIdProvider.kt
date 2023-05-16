@@ -7,7 +7,7 @@ import android.media.MediaDrm
 import android.os.Build
 import android.os.Parcelable
 import android.telephony.TelephonyManager
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import ru.relabs.kurjer.utils.CustomLog
 import java.util.*
 

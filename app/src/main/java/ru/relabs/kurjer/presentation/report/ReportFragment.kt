@@ -16,41 +16,25 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.FileProvider
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.android.parcel.Parcelize
-import kotlinx.android.synthetic.main.fragment_report.*
-import kotlinx.android.synthetic.main.fragment_report.view.*
-import kotlinx.android.synthetic.main.include_hint_container.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.*
-import ru.relabs.kurjer.presentation.base.TextChangeListener
 import ru.relabs.kurjer.presentation.base.compose.common.themes.DeliveryTheme
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.*
 import ru.relabs.kurjer.presentation.dialogs.RejectFirmDialog
-import ru.relabs.kurjer.presentation.login.LoginScreen
-import ru.relabs.kurjer.uiOld.helpers.HintHelper
 import ru.relabs.kurjer.utils.CustomLog
-import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
-import ru.relabs.kurjer.utils.extensions.visible
 import java.io.File
 import java.util.*
 
@@ -63,32 +47,33 @@ class ReportFragment : BaseFragment() {
     private var nextPhotoData: ReportPhotoData? = null
 
     private val controller = defaultController(ReportState(), ReportContext())
-//    private var renderJob: Job? = null
+
+    //    private var renderJob: Job? = null
     private var isCloseClicked = false
 
-    private val tasksAdapter = DelegateAdapter(
-        ReportAdapter.task {
-            uiScope.sendMessage(controller, ReportMessages.msgTaskSelected(it.id))
-        }
-    )
-
-    private val photosAdapter = DelegateAdapter(
-        ReportAdapter.photoSingle {
-            uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(null, false))
-        },
-        ReportAdapter.photo {
-            uiScope.sendMessage(controller, ReportMessages.msgRemovePhotoClicked(it))
-        }
-    )
-
-    private val entrancesAdapter = DelegateAdapter(
-        ReportAdapter.entrance(
-            { entrance, button -> uiScope.sendMessage(controller, ReportMessages.msgEntranceSelectClicked(entrance, button)) },
-            { uiScope.sendMessage(controller, ReportMessages.msgCoupleClicked(it)) },
-            { uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(it, false)) },
-            { uiScope.sendMessage(controller, ReportMessages.msgEntranceDescriptionClicked(it)) }
-        )
-    )
+//    private val tasksAdapter = DelegateAdapter(
+//        ReportAdapter.task {
+//            uiScope.sendMessage(controller, ReportMessages.msgTaskSelected(it.id))
+//        }
+//    )
+//
+//    private val photosAdapter = DelegateAdapter(
+//        ReportAdapter.photoSingle {
+//            uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(null, false))
+//        },
+//        ReportAdapter.photo {
+//            uiScope.sendMessage(controller, ReportMessages.msgRemovePhotoClicked(it))
+//        }
+//    )
+//
+//    private val entrancesAdapter = DelegateAdapter(
+//        ReportAdapter.entrance(
+//            { entrance, button -> uiScope.sendMessage(controller, ReportMessages.msgEntranceSelectClicked(entrance, button)) },
+//            { uiScope.sendMessage(controller, ReportMessages.msgCoupleClicked(it)) },
+//            { uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(it, false)) },
+//            { uiScope.sendMessage(controller, ReportMessages.msgEntranceDescriptionClicked(it)) }
+//        )
+//    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -129,7 +114,7 @@ class ReportFragment : BaseFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 DeliveryTheme {
-                   ReportScreen(controller)
+                    ReportScreen(controller)
                 }
             }
         }
@@ -288,7 +273,13 @@ class ReportFragment : BaseFragment() {
         }
     }
 
-    private fun showCloseError(msgRes: Int, withPreClose: Boolean, location: Location? = null, rejectReason: String?, vararg msgFormat: Any) {
+    private fun showCloseError(
+        msgRes: Int,
+        withPreClose: Boolean,
+        location: Location? = null,
+        rejectReason: String?,
+        vararg msgFormat: Any
+    ) {
         val text = Html.fromHtml(resources.getString(msgRes, *msgFormat))
         showDialog(
             text,
@@ -383,25 +374,25 @@ class ReportFragment : BaseFragment() {
         )
     }
 
-    private fun bindControls(view: View, descriptionTextWatcher: TextWatcher) {
-        view.et_description.addTextChangedListener(descriptionTextWatcher)
-
-        view.iv_menu.setOnClickListener {
-            uiScope.sendMessage(controller, ReportMessages.msgBackClicked())
-        }
-
-        view.btn_close.setOnClickListener {
-            if (isCloseClicked) {
-                return@setOnClickListener
-            }
-            uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(null))
-            isCloseClicked = true
-        }
-
-        view.btn_reject.setOnClickListener {
-            uiScope.sendMessage(controller, ReportMessages.msgRejectClicked())
-        }
-    }
+//    private fun bindControls(view: View, descriptionTextWatcher: TextWatcher) {
+//        view.et_description.addTextChangedListener(descriptionTextWatcher)
+//
+//        view.iv_menu.setOnClickListener {
+//            uiScope.sendMessage(controller, ReportMessages.msgBackClicked())
+//        }
+//
+//        view.btn_close.setOnClickListener {
+//            if (isCloseClicked) {
+//                return@setOnClickListener
+//            }
+//            uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(null))
+//            isCloseClicked = true
+//        }
+//
+//        view.btn_reject.setOnClickListener {
+//            uiScope.sendMessage(controller, ReportMessages.msgRejectClicked())
+//        }
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()

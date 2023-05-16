@@ -1,7 +1,7 @@
 package ru.relabs.kurjer.presentation.storageList
 
-import kotlinx.android.synthetic.main.holder_storage_list_item.view.*
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.databinding.HolderStorageListItemBinding
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
 import ru.relabs.kurjer.presentation.base.recycler.delegateDefine
@@ -18,16 +18,16 @@ object StorageListAdapter {
                     p,
                     R.layout.holder_storage_list_item,
                     { it as StorageListItem.StorageAddress }) { (storage, tasks) ->
-                    with(itemView) {
-                        tv_storage_address.text = storage.address
+                        val binding = HolderStorageListItemBinding.bind(itemView)
+                    binding.tvStorageAddress.text = storage.address
                         if (tasks.any { it.isStorageActuallyRequired }) {
-                            tv_storage_address.setTextColor(resources.getColorCompat(R.color.colorFuchsia))
+                            binding.tvStorageAddress.setTextColor(binding.root.resources.getColorCompat(R.color.colorFuchsia))
                         } else {
-                            tv_storage_address.setTextColor(resources.getColorCompat(R.color.black))
+                            binding.tvStorageAddress.setTextColor(binding.root.resources.getColorCompat(R.color.black))
                         }
-                        tv_storage_description.text = tasks.joinToString("\n") { it.task.storageListName }
-                        setOnClickListener { onClick(tasks.map { it.task.id }) }
-                    }
+                        binding.tvStorageDescription.text = tasks.joinToString("\n") { it.task.storageListName }
+                        binding.root.setOnClickListener { onClick(tasks.map { it.task.id }) }
+
                 }
             }
         )

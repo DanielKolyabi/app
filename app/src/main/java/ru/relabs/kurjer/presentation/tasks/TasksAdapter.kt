@@ -7,9 +7,9 @@ import android.text.Html
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import androidx.core.widget.addTextChangedListener
-import kotlinx.android.synthetic.main.holder_search.view.*
-import kotlinx.android.synthetic.main.holder_task.view.*
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.databinding.HolderSearchBinding
+import ru.relabs.kurjer.databinding.HolderTaskBinding
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskState
 import ru.relabs.kurjer.presentation.base.recycler.IAdapterDelegate
@@ -27,33 +27,33 @@ object TasksAdapter {
         { it is TasksItem.TaskItem },
         { p ->
             holderDefine(p, R.layout.holder_task, { it as TasksItem.TaskItem }) { (task, isTasksWithSameAddressPresented, isSelected) ->
-                with(itemView) {
-                    tv_title.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                val binding = HolderTaskBinding.bind(itemView)
+
+                    binding.tvTitle.text = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         Html.fromHtml(task.displayName, Html.FROM_HTML_MODE_COMPACT)
                     } else {
                         Html.fromHtml(task.displayName)
                     }
                     when (isSelected) {
-                        true -> iv_selected.setImageResource(R.drawable.ic_chain_enabled)
-                        false -> iv_selected.setImageResource(R.drawable.ic_chain_disabled)
+                        true -> binding.ivSelected.setImageResource(R.drawable.ic_chain_enabled)
+                        false -> binding.ivSelected.setImageResource(R.drawable.ic_chain_disabled)
                     }
-                    iv_active.visible = task.state.state != TaskState.CREATED
+                    binding.ivActive.visible = task.state.state != TaskState.CREATED
                     when (task.state.byOtherUser) {
-                        true -> iv_active.setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN)
-                        false -> iv_active.setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY)
+                        true ->  binding.ivActive.setColorFilter(Color.GREEN, PorterDuff.Mode.SRC_IN)
+                        false ->  binding.ivActive.setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY)
                     }
-                    iv_selected.setOnClickListener {
+                    binding.ivSelected.setOnClickListener {
                         onSelectedClicked(task)
                     }
-                    setOnClickListener {
+                    binding.root.setOnClickListener {
                         onTaskClicked(task)
                     }
                     when (isTasksWithSameAddressPresented) {
-                        true -> setBackgroundColor(Color.GRAY)
-                        else -> setBackgroundColor(Color.TRANSPARENT)
+                        true -> binding.root.setBackgroundColor(Color.GRAY)
+                        else -> binding.root.setBackgroundColor(Color.TRANSPARENT)
                     }
                 }
-            }
         }
     )
 
@@ -71,18 +71,19 @@ object TasksAdapter {
         { it is TasksItem.Search },
         { p ->
             holderDefine(p, R.layout.holder_search, { it as TasksItem.Search }) { (filter) ->
-                itemView.et_search.setText(filter)
-                itemView.iv_clear.visible = filter.isNotBlank()
+                val binding = HolderSearchBinding.bind(itemView)
+                binding.etSearch.setText(filter)
+                binding.ivClear.visible = filter.isNotBlank()
 
-                itemView.et_search.addTextChangedListener {
+                binding.etSearch.addTextChangedListener {
                     val text = (it?.toString() ?: "")
-                    itemView.iv_clear.visible = text.isNotBlank()
+                    binding.ivClear.visible = text.isNotBlank()
                     onSearch(text)
                 }
-                if (itemView.et_search.text.isNotEmpty()) {
-                    itemView.et_search.requestFocus()
+                if (binding.etSearch.text.isNotEmpty()) {
+                    binding.etSearch.requestFocus()
                 }
-                itemView.et_search.setOnEditorActionListener { _, actionId, event ->
+                binding.etSearch.setOnEditorActionListener { _, actionId, event ->
                     if (actionId == EditorInfo.IME_ACTION_SEARCH ||
                         actionId == EditorInfo.IME_ACTION_DONE ||
                         actionId == EditorInfo.IME_ACTION_NEXT ||
@@ -95,8 +96,8 @@ object TasksAdapter {
                     }
                     false
                 }
-                itemView.iv_clear.setOnClickListener {
-                    itemView.et_search.setText("")
+                binding.ivClear.setOnClickListener {
+                    binding.etSearch.setText("")
                     itemView.hideKeyboard(itemView.context)
                 }
             }

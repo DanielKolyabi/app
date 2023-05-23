@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorBackGroundTextField
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGrayBase
 
@@ -92,8 +94,8 @@ fun CustomTextField(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
-    val lineColor by animateColorAsState(if (isFocused) ColorFuchsia else ColorGrayBase)
-    val lineHeight by animateDpAsState(if (isFocused) 2.dp else 1.dp)
+    val lineColor by animateColorAsState(if (isFocused) ColorFuchsia else ColorGrayBase, label = "Color")
+    val lineHeight by animateDpAsState(if (isFocused) 2.dp else 1.dp, label = "Height")
     val (options, actions) = keyboardAction.toKeyboardProperties()
 
     BasicTextField(
@@ -114,11 +116,9 @@ fun CustomTextField(
                                 fontWeight = FontWeight.Medium,
                                 color = ColorGrayBase.copy(alpha = 0.8f)
                             )
-                            innerTextField()
                         }
-                    } else {
-                        innerTextField()
                     }
+                    innerTextField()
                 }
                 Box(
                     modifier = Modifier
@@ -179,11 +179,9 @@ fun SearchTextField(
                                         fontWeight = FontWeight.Medium,
                                         color = ColorGrayBase.copy(alpha = 0.8f)
                                     )
-                                    innerTextField()
                                 }
-                            } else {
-                                innerTextField()
                             }
+                            innerTextField()
                         }
                     }
                     Box(
@@ -231,7 +229,9 @@ fun DescriptionTextField(
         interactionSource = interactionSource,
         decorationBox = { innerTextField ->
             Box {
-                Box(modifier = Modifier.padding(vertical = 10.dp)) {
+                Box(modifier = Modifier.fillMaxSize()
+                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                    .background(color = ColorBackGroundTextField)) {
                     if (value.isEmpty() && placeholder != null) {
                         Box(contentAlignment = Alignment.CenterStart) {
                             Text(
@@ -241,11 +241,9 @@ fun DescriptionTextField(
                                 fontWeight = FontWeight.Medium,
                                 color = ColorGrayBase.copy(alpha = 0.8f)
                             )
-                            innerTextField()
                         }
-                    } else {
-                        innerTextField()
                     }
+                    innerTextField()
                 }
             }
         },

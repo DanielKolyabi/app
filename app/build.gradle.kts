@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.android.application")
     kotlin("android")
-    id ("kotlin-parcelize")
+    id("kotlin-parcelize")
     id("com.google.firebase.crashlytics")
     id("com.google.gms.google-services")
     id("com.google.devtools.ksp")
@@ -62,7 +62,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.1"
+        kotlinCompilerExtensionVersion = "1.4.7"
     }
 
     compileOptions {
@@ -92,7 +92,7 @@ dependencies {
     debugImplementation("com.amitshekhar.android:debug-db:1.0.4")
 
     // Kotlin
-    implementation(kotlin("stdlib-jdk7", Config.Versions.kotlin))
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:${Config.Versions.kotlin}")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Config.Versions.kotlinx}")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${Config.Versions.kotlinx}")
 
@@ -137,7 +137,7 @@ dependencies {
     implementation("com.mikepenz:materialdrawer:7.0.0-rc08")
 
     //Compose
-    val composeBom = platform("androidx.compose:compose-bom:2022.10.00")
+    val composeBom = platform("androidx.compose:compose-bom:2023.05.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)
     implementation("androidx.compose.material:material")
@@ -145,6 +145,6 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
-    implementation("androidx.activity:activity-compose:1.7.0")
+    implementation("androidx.activity:activity-compose:1.7.1")
 
 }

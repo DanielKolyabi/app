@@ -13,6 +13,8 @@ import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.TaskItemPhoto
 import ru.relabs.kurjer.domain.models.TaskItemResult
+import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
@@ -31,6 +33,7 @@ import ru.relabs.kurjer.presentation.base.tea.ErrorContextImpl
 import ru.relabs.kurjer.presentation.base.tea.RouterContext
 import ru.relabs.kurjer.presentation.base.tea.RouterContextMainImpl
 import java.io.File
+import java.util.Date
 import java.util.UUID
 
 /**
@@ -54,6 +57,8 @@ data class ReportState(
 
     val coupling: ReportCoupling = emptyMap()
 ) {
+    val available: Boolean =
+        selectedTask != null && selectedTask.taskItem.state == TaskItemState.CREATED && selectedTask.task.startTime < Date()
     val entrancesInfo: List<ReportEntranceItem>
         get() {
             val taskItem = selectedTask?.taskItem
@@ -73,6 +78,20 @@ data class ReportState(
             } else {
                 listOf()
             }
+        }
+    val firmAddress: String? =
+        if (selectedTask != null && selectedTask.taskItem is TaskItem.Firm) {
+            listOf(
+                selectedTask.task.name,
+                "№${selectedTask.task.edition}",
+                "${selectedTask.taskItem.copies}экз.",
+                selectedTask.taskItem.firmName,
+                selectedTask.taskItem.office
+            )
+                .filter { it.isNotEmpty() }
+                .joinToString(", ")
+        } else {
+            null
         }
 }
 

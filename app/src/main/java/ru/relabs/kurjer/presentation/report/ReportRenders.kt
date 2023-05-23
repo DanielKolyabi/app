@@ -109,9 +109,7 @@ object ReportRenders {
         { it.selectedTask?.taskItem?.notes.orEmpty() },
         { notes ->
             hintHelper.text = Html.fromHtml(
-                (3 downTo 1)
-                    .map { notes.getOrElse(it - 1) { "" } }
-                    .joinToString("<br/>")
+                (3 downTo 1).joinToString("<br/>") { notes.getOrElse(it - 1) { "" } }
             )
         }
     )

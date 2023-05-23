@@ -60,11 +60,12 @@ fun AppBarLoadableContainer(
     title: String,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier,
+    gpsLoading:Boolean = false,
     content: @Composable () -> Unit
 ) {
     Column(modifier = modifier) {
         AppBar(painterId = painterId, title = title, onBackClicked = onBackClicked)
-        LoadableContainer(isLoading = isLoading, content = content)
+        LoadableContainer(isLoading = isLoading, gpsLoading = gpsLoading, content = content)
     }
 
 }

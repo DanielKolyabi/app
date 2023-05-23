@@ -3,6 +3,7 @@ package ru.relabs.kurjer.presentation.base.compose.common
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,28 +25,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.repositories.TextSizeStorage
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGradientEnd
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGradientStart
+import ru.relabs.kurjer.presentation.base.compose.common.themes.HtmlText
 
 @Composable
-fun HintContainer(hintText: String, textSizeStorage: TextSizeStorage, maxHeight: Dp = 250.dp, modifier: Modifier = Modifier) {
+fun HintContainer(hintText: String, textSizeStorage: TextSizeStorage, modifier: Modifier = Modifier, maxHeight: Dp = 250.dp) {
     val textSize by remember { textSizeStorage.textSize }.collectAsState()
     var expanded by remember { mutableStateOf(true) }
     val containerHeight by animateDpAsState(if (expanded) maxHeight else 30.dp)
+    val interactionSource = remember { MutableInteractionSource() }
 
     Box(
         modifier
             .fillMaxWidth()
             .height(containerHeight)
-            .clickable {
+            .clickable(interactionSource = interactionSource, indication = null) {
                 expanded = !expanded
             }
     ) {
@@ -98,12 +97,7 @@ fun HintContainer(hintText: String, textSizeStorage: TextSizeStorage, maxHeight:
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
-                Text(
-                    text = hintText,
-                    color = Color.Black,
-                    fontSize = textSize.sp,
-                    modifier = Modifier
-                )
+                HtmlText(html = hintText, textSize = textSize.toFloat())
             }
         }
     }

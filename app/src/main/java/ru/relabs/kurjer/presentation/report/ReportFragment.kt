@@ -12,7 +12,6 @@ import android.provider.MediaStore
 import android.text.Html
 import android.text.InputFilter
 import android.text.InputType
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,19 +23,26 @@ import androidx.core.content.FileProvider
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.android.parcel.Parcelize
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.models.EntranceNumber
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemId
+import ru.relabs.kurjer.domain.models.id
 import ru.relabs.kurjer.presentation.base.compose.common.themes.DeliveryTheme
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
-import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
-import ru.relabs.kurjer.presentation.base.tea.*
+import ru.relabs.kurjer.presentation.base.tea.defaultController
+import ru.relabs.kurjer.presentation.base.tea.msgEmpty
+import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.presentation.dialogs.RejectFirmDialog
 import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
 import java.io.File
-import java.util.*
+import java.util.UUID
 
 
 /**
@@ -50,6 +56,11 @@ class ReportFragment : BaseFragment() {
 
     //    private var renderJob: Job? = null
     private var isCloseClicked = false
+        set(v) {
+            isCloseClickedFlow.tryEmit(v)
+            field = v
+        }
+    private val isCloseClickedFlow = MutableStateFlow(isCloseClicked)
 
 //    private val tasksAdapter = DelegateAdapter(
 //        ReportAdapter.task {
@@ -114,7 +125,7 @@ class ReportFragment : BaseFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 DeliveryTheme {
-                    ReportScreen(controller)
+                    ReportScreen(controller, isCloseClickedFlow) { isCloseClicked = true }
                 }
             }
         }
@@ -373,6 +384,7 @@ class ReportFragment : BaseFragment() {
             )
         )
     }
+
 
 //    private fun bindControls(view: View, descriptionTextWatcher: TextWatcher) {
 //        view.et_description.addTextChangedListener(descriptionTextWatcher)

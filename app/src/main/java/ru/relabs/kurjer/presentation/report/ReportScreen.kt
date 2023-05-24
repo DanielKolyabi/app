@@ -167,12 +167,12 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.DescriptionInput() {
 }
 
 @Composable
-private fun ElmScaffoldContext<ReportContext, ReportState>.PhotosRow() {
+private fun ElmScaffoldContext<ReportContext, ReportState>.PhotosRow(modifier: Modifier = Modifier) {
     val photos by watchAsState { it.selectedTaskPhotos }
     val task by watchAsState { it.selectedTask }
     val interactionSource = remember { MutableInteractionSource() }
 
-    LazyRow {
+    LazyRow( verticalAlignment = Alignment.CenterVertically,modifier = modifier) {
         item {
             Icon(
                 painter = painterResource(R.drawable.ic_entrance_photo),
@@ -378,7 +378,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.PhotoItem(photo: Task
 
     Box(
         modifier = modifier
-            .size(56.dp)
+            .size(64.dp)
             .padding(8.dp)
     ) {
         GlideImage(

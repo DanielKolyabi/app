@@ -21,7 +21,8 @@ fun AppBar(
     painterId: Int,
     title: String,
     onBackClicked: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    titleColor: Color = Color.White
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -45,7 +46,7 @@ fun AppBar(
         Text(
             text = title,
             maxLines = 2,
-            color = Color.White,
+            color = titleColor,
             fontFamily = FontFamily.SansSerif,
             fontWeight = FontWeight.Medium,
             fontSize = 20.sp
@@ -60,11 +61,12 @@ fun AppBarLoadableContainer(
     title: String,
     onBackClicked: () -> Unit,
     modifier: Modifier = Modifier,
-    gpsLoading:Boolean = false,
+    gpsLoading: Boolean = false,
+    titleColor: Color = Color.White,
     content: @Composable () -> Unit
 ) {
     Column(modifier = modifier) {
-        AppBar(painterId = painterId, title = title, onBackClicked = onBackClicked)
+        AppBar(painterId = painterId, title = title, titleColor = titleColor, onBackClicked = onBackClicked)
         LoadableContainer(isLoading = isLoading, gpsLoading = gpsLoading, content = content)
     }
 

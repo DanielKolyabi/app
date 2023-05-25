@@ -137,24 +137,12 @@ fun ReportScreen(
 
 @Composable
 private fun ElmScaffoldContext<ReportContext, ReportState>.DescriptionInput() {
-    var descriptionInput by remember { mutableStateOf(stateSnapshot { it.selectedTaskReport?.description ?: "" }) }
-    val task by watchAsState { it.selectedTask }
     val report by watchAsState { it.selectedTaskReport }
-    var waitForReport by remember { mutableStateOf(true) }
+    var descriptionInput by remember(report?.taskItemId) { mutableStateOf(report?.description ?: "") }
+    val task by watchAsState { it.selectedTask }
 
-    LaunchedEffect(task) {
-        waitForReport = true
-    }
     LaunchedEffect(descriptionInput, task) {
-        if (task != null && !waitForReport && task?.taskItem?.state == TaskItemState.CREATED) {
-            sendMessage(ReportMessages.msgDescriptionChanged(descriptionInput))
-        }
-    }
-    LaunchedEffect(report) {
-        if (waitForReport) {
-            descriptionInput = report?.description ?: ""
-            waitForReport = false
-        }
+        task?.let { sendMessage(ReportMessages.msgDescriptionChanged(descriptionInput, it)) }
     }
     DescriptionTextField(
         value = descriptionInput,
@@ -172,7 +160,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.PhotosRow(modifier: M
     val task by watchAsState { it.selectedTask }
     val interactionSource = remember { MutableInteractionSource() }
 
-    LazyRow( verticalAlignment = Alignment.CenterVertically,modifier = modifier) {
+    LazyRow(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
         item {
             Icon(
                 painter = painterResource(R.drawable.ic_entrance_photo),

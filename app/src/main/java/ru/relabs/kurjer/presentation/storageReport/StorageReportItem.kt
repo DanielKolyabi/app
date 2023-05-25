@@ -9,6 +9,6 @@ import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 sealed class StorageReportItem {
     data class Single(val required: Boolean, val hasPhoto: Boolean) : StorageReportItem()
     data class Photo(val photo: StorageReportPhoto, val photoUri: Uri) : StorageReportItem()
-    data class Closure(val idx: Int, val task: Task, val closure: StorageClosure) :
-        StorageReportItem()
+
+
 }

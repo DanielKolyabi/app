@@ -35,6 +35,7 @@ import ru.relabs.kurjer.presentation.base.tea.ElmController
 fun StorageListScreen(controller: ElmController<StorageListContext, StorageListState>) = ElmScaffold(controller) {
     val isLoading by watchAsState { it.loaders > 0 }
     val storageWithTasksList by watchAsState { it.storageWithTasksList }
+
     AppBarLoadableContainer(
         isLoading = isLoading,
         painterId = R.drawable.ic_back_new,
@@ -87,5 +88,4 @@ private fun ElmScaffoldContext<StorageListContext, StorageListState>.StorageItem
         Spacer(modifier = Modifier.height(8.dp))
         Divider(color = ColorSeparator)
     }
-
 }

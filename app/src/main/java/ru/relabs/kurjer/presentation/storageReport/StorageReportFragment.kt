@@ -10,55 +10,34 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.provider.MediaStore
 import android.text.Html
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.FileProvider
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import kotlinx.parcelize.Parcelize
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.parcelize.Parcelize
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.databinding.FragmentStorageReportBinding
-import ru.relabs.kurjer.databinding.IncludeHintContainerBinding
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
-import ru.relabs.kurjer.presentation.base.TextChangeListener
+import ru.relabs.kurjer.presentation.base.compose.common.themes.DeliveryTheme
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
-import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
-import ru.relabs.kurjer.presentation.base.tea.*
-import ru.relabs.kurjer.presentation.report.ListClickInterceptor
+import ru.relabs.kurjer.presentation.base.tea.defaultController
+import ru.relabs.kurjer.presentation.base.tea.msgEmpty
+import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.presentation.report.ReportFragment
-import ru.relabs.kurjer.uiOld.helpers.HintHelper
 import ru.relabs.kurjer.utils.CustomLog
-import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.showDialog
 import java.io.File
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.UUID
 
 class StorageReportFragment : BaseFragment() {
     private var newPhotoData: StoragePhotoData? = null
 
     private val controller = defaultController(StorageReportState(), StorageReportContext())
-    private var renderJob: Job? = null
-    private val closesAdapter = DelegateAdapter(
-        StorageReportAdapter.closure()
-    )
-
-    private val photosAdapter = DelegateAdapter(
-        StorageReportAdapter.photoSingle {
-            uiScope.sendMessage(controller, StorageReportMessages.msgPhotoClicked())
-        },
-        StorageReportAdapter.photo {
-            uiScope.sendMessage(controller, StorageReportMessages.msgRemovePhotoClicked(it))
-        }
-    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,53 +65,20 @@ class StorageReportFragment : BaseFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val binding = FragmentStorageReportBinding.inflate(inflater, container, false)
-        return binding.root
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent { DeliveryTheme { StorageReportScreen(controller) } }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val binding = FragmentStorageReportBinding.bind(view)
         newPhotoData = savedInstanceState?.getParcelable<StoragePhotoData>(
             PHOTO_DATA_KEY
         )?.also {
             savedInstanceState.remove(PHOTO_DATA_KEY)
 
             CustomLog.writeToFile("Request Photo: Photo Data Restored ${it}")
-        }
-
-//        val hintHelper = HintHelper(hint_container, "", true, requireActivity())
-
-        val listInterceptor = ListClickInterceptor()
-        binding.rvCloses.layoutManager =
-            LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-        binding.rvCloses.adapter = closesAdapter
-
-        binding.rvPhotos.layoutManager =
-            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        binding.rvPhotos.adapter = photosAdapter
-        binding.rvPhotos.addOnItemTouchListener(listInterceptor)
-
-        val descriptionTextWatcher = TextChangeListener {
-            if (binding.etDescription.hasFocus())
-                uiScope.sendMessage(controller, StorageReportMessages.msgDescriptionChanged(it))
-        }
-        bindControls(binding, descriptionTextWatcher)
-
-        renderJob = uiScope.launch {
-            val renders = listOf(
-                StorageReportRenders.renderLoading(binding.loading, binding.tvGpsLoading),
-//                StorageReportRenders.renderHint(hintHelper),
-                StorageReportRenders.renderTitle(binding.tvTitle),
-                StorageReportRenders.renderClosesList(closesAdapter),
-                StorageReportRenders.renderPhotos(photosAdapter),
-                StorageReportRenders.renderDescription(
-                    binding.etDescription,
-                    descriptionTextWatcher
-                )
-            )
-            launch { controller.stateFlow().collect(rendersCollector(renders)) }
-            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
         }
         controller.context.errorContext.attach(view)
         controller.context.getBatteryLevel = ::getBatteryLevel
@@ -147,7 +93,6 @@ class StorageReportFragment : BaseFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        renderJob?.cancel()
         controller.context.getBatteryLevel = { null }
         controller.context.requestPhoto = { _, _, _ -> }
         controller.context.showCloseError = { _, _, _, _ -> }
@@ -162,31 +107,6 @@ class StorageReportFragment : BaseFragment() {
     override fun onDestroy() {
         super.onDestroy()
         controller.stop()
-    }
-
-    private fun bindControls(
-        binding: FragmentStorageReportBinding,
-        descriptionTextWatcher: TextWatcher
-    ) {
-        binding.ivMenu.setOnClickListener {
-            uiScope.sendMessage(
-                controller,
-                StorageReportMessages.msgNavigateBack()
-            )
-        }
-        binding.etDescription.addTextChangedListener(descriptionTextWatcher)
-        binding.btnShowMap.setOnClickListener {
-            uiScope.sendMessage(
-                controller,
-                StorageReportMessages.msgMapClicked()
-            )
-        }
-        binding.btnClose.setOnClickListener {
-            uiScope.sendMessage(
-                controller,
-                StorageReportMessages.msgCloseClicked()
-            )
-        }
     }
 
     private suspend fun showFatalError(code: String, isFatal: Boolean) =

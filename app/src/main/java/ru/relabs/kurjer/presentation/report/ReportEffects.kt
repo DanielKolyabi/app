@@ -432,10 +432,11 @@ object ReportEffects {
         }
     }
 
-    fun effectUpdateDescription(text: String): ReportEffect = { c, s ->
+    fun effectUpdateDescription(text: String, task: TaskWithItem): ReportEffect = f@{ c, s ->
         when (val selectedTask = s.selectedTask) {
             null -> c.showError("re:103", true)
             else -> {
+                if (task != selectedTask || task.taskItem.state != TaskItemState.CREATED) return@f
                 s.tasks.filter { it.taskItem.state == TaskItemState.CREATED }.forEach { t ->
                     val result = c.taskRepository.getTaskItemResult(t.taskItem)
                         ?: c.taskRepository.createEmptyTaskResult(t.taskItem)

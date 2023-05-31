@@ -169,7 +169,7 @@ fun SearchTextField(
                 Box(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(painter = painterResource(R.drawable.ic_search), contentDescription = null)
-                        Box(modifier = Modifier.padding(vertical = 10.dp)) {
+                        Box(modifier = Modifier.padding(vertical = 4.dp)) {
                             if (value.isEmpty() && placeholder != null) {
                                 Box(contentAlignment = Alignment.CenterStart) {
                                     Text(
@@ -204,6 +204,7 @@ fun SearchTextField(
         cursorBrush = SolidColor(ColorFuchsia.copy(alpha = 0.8F)),
         modifier = modifier
             .focusRequester(focusRequester)
+            .padding(vertical = 6.dp)
     )
 }
 
@@ -229,16 +230,17 @@ fun DescriptionTextField(
         interactionSource = interactionSource,
         decorationBox = { innerTextField ->
             Box {
-                Box(modifier = Modifier.fillMaxSize()
-                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
-                    .background(color = ColorBackGroundTextField)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = ColorBackGroundTextField)
+                ) {
                     if (value.isEmpty() && placeholder != null) {
                         Box(contentAlignment = Alignment.CenterStart) {
                             Text(
                                 text = placeholder,
                                 fontSize = 16.sp,
                                 fontFamily = FontFamily.SansSerif,
-                                fontWeight = FontWeight.Medium,
                                 color = ColorGrayBase.copy(alpha = 0.8f)
                             )
                         }

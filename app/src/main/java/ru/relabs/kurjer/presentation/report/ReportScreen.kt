@@ -151,6 +151,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.DescriptionInput() {
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp)
+            .padding(start = 8.dp, end = 8.dp)
     )
 }
 

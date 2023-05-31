@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -70,16 +71,24 @@ fun StorageReportScreen(controller: ElmController<StorageReportContext, StorageR
         painterId = R.drawable.ic_back_new,
         title = title,
         titleColor = if (storageCloseFirstRequired) ColorFuchsia else Color.White,
-        onBackClicked = { sendMessage(StorageReportMessages.msgNavigateBack()) }) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        onBackClicked = { sendMessage(StorageReportMessages.msgNavigateBack()) },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
             HintContainer(hintText = hintText, textSizeStorage = controller.context.textSizeStorage)
-            LazyColumn (modifier = Modifier.fillMaxWidth().weight(1f)){
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
                 itemsIndexed(closureList) { idx, closureInfo ->
                     ClosureItem(index = idx, task = closureInfo.task, closure = closureInfo.closure)
                 }
             }
-            DescriptionInput()
             PhotosRow()
+            DescriptionInput()
             DeliveryButton(
                 text = stringResource(R.string.show_task_on_map).uppercase(),
                 contentPadding = PaddingValues(vertical = 4.dp),
@@ -139,7 +148,7 @@ private fun ClosureItem(
 }
 
 @Composable
-private fun ElmScaffoldContext<StorageReportContext, StorageReportState>.DescriptionInput() {
+private fun ElmScaffoldContext<StorageReportContext, StorageReportState>.DescriptionInput(modifier: Modifier = Modifier) {
     var descriptionInput by remember { mutableStateOf(stateSnapshot { it.storageReport?.description ?: "" }) }
 
     LaunchedEffect(descriptionInput) { sendMessage(StorageReportMessages.msgDescriptionChanged(descriptionInput)) }
@@ -147,9 +156,11 @@ private fun ElmScaffoldContext<StorageReportContext, StorageReportState>.Descrip
         value = descriptionInput,
         onValueChange = { descriptionInput = it },
         placeholder = stringResource(R.string.user_explanation_hint),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(48.dp)
+            .heightIn(max = 128.dp)
+            .padding(start = 8.dp, end = 8.dp)
     )
 }
 

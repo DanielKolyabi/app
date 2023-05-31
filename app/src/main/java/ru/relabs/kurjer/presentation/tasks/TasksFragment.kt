@@ -1,31 +1,27 @@
 package ru.relabs.kurjer.presentation.tasks
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.LinearLayoutManager
-import kotlinx.coroutines.Dispatchers
+import androidx.annotation.RequiresApi
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.databinding.FragmentTasksBinding
 import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.presentation.base.compose.common.themes.DeliveryTheme
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.fragment.FragmentStyleable
 import ru.relabs.kurjer.presentation.base.fragment.IFragmentStyleable
 import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
-import ru.relabs.kurjer.presentation.base.tea.debugCollector
 import ru.relabs.kurjer.presentation.base.tea.defaultController
-import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.presentation.host.HostActivity
 import ru.relabs.kurjer.presentation.taskDetails.IExaminedConsumer
 import ru.relabs.kurjer.uiOld.fragments.YandexMapFragment
-import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.showDialog
-import ru.relabs.kurjer.utils.extensions.showSnackbar
 
 
 /**
@@ -73,38 +69,48 @@ class TasksFragment : BaseFragment(),
         controller.stop()
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_tasks, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val binding = FragmentTasksBinding.bind(view)
-
-        val layoutManager =
-            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-        binding.rvList.layoutManager = layoutManager
-        binding.rvList.adapter = tasksAdapter
-
-        bindControls(binding)
-
-        renderJob = uiScope.launch {
-            val renders = listOf(
-                TasksRenders.renderList(tasksAdapter),
-                TasksRenders.renderLoading(binding.loading),
-                TasksRenders.renderStartButton(binding.btnStart)
-            )
-            launch { controller.stateFlow().collect(rendersCollector(renders)) }
-            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                DeliveryTheme {
+                    TasksScreen(controller) {
+                        (activity as? HostActivity)?.changeNavigationDrawerState()
+                    }
+                }
+            }
         }
-        controller.context.errorContext.attach(view)
-        controller.context.showSnackbar = { withContext(Dispatchers.Main) { showSnackbar(resources.getString(it)) } }
-        controller.context.showUpdateRequiredOnVisible = ::showUpdateRequiredOnVisible
     }
+
+//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+//        super.onViewCreated(view, savedInstanceState)
+//        val binding = FragmentTasksBinding.bind(view)
+//
+//        val layoutManager =
+//            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
+//        binding.rvList.layoutManager = layoutManager
+//        binding.rvList.adapter = tasksAdapter
+//
+//        bindControls(binding)
+//
+//        renderJob = uiScope.launch {
+//            val renders = listOf(
+//                TasksRenders.renderList(tasksAdapter),
+//                TasksRenders.renderLoading(binding.loading),
+//                TasksRenders.renderStartButton(binding.btnStart)
+//            )
+//            launch { controller.stateFlow().collect(rendersCollector(renders)) }
+//            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
+//        }
+//        controller.context.errorContext.attach(view)
+//        controller.context.showSnackbar = { withContext(Dispatchers.Main) { showSnackbar(resources.getString(it)) } }
+//        controller.context.showUpdateRequiredOnVisible = ::showUpdateRequiredOnVisible
+//    }
 
     override fun onPause() {
         super.onPause()
@@ -134,17 +140,17 @@ class TasksFragment : BaseFragment(),
         }
     }
 
-    private fun bindControls(binding: FragmentTasksBinding) {
-        binding.ivMenu.setOnClickListener {
-            (activity as? HostActivity)?.changeNavigationDrawerState()
-        }
-        binding.btnStart.setOnClickListener {
-            uiScope.sendMessage(controller, TasksMessages.msgStartClicked())
-        }
-        binding.ivUpdate.setOnClickListener {
-            uiScope.sendMessage(controller, TasksMessages.msgRefresh())
-        }
-    }
+//    private fun bindControls(binding: FragmentTasksBinding) {
+//        binding.ivMenu.setOnClickListener {
+//            (activity as? HostActivity)?.changeNavigationDrawerState()
+//        }
+//        binding.btnStart.setOnClickListener {
+//            uiScope.sendMessage(controller, TasksMessages.msgStartClicked())
+//        }
+//        binding.ivUpdate.setOnClickListener {
+//            uiScope.sendMessage(controller, TasksMessages.msgRefresh())
+//        }
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()

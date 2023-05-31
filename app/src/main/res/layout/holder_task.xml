@@ -17,7 +17,6 @@
         android:layout_marginBottom="8dp"
         android:layout_marginTop="8dp"
         android:fontFamily="@string/text_font"
-
         android:gravity="center"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="@+id/iv_selected"

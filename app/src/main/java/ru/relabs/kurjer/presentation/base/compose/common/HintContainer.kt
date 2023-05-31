@@ -38,7 +38,7 @@ import ru.relabs.kurjer.presentation.base.compose.common.themes.HtmlText
 fun HintContainer(hintText: String, textSizeStorage: TextSizeStorage, modifier: Modifier = Modifier, maxHeight: Dp = 250.dp) {
     val textSize by remember { textSizeStorage.textSize }.collectAsState()
     var expanded by remember { mutableStateOf(true) }
-    val containerHeight by animateDpAsState(if (expanded) maxHeight else 30.dp)
+    val containerHeight by animateDpAsState(if (expanded) maxHeight else 30.dp, label = "")
     val interactionSource = remember { MutableInteractionSource() }
 
     Box(

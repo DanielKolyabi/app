@@ -1,6 +1,5 @@
 package ru.relabs.kurjer.presentation.storageReport
 
-import android.content.res.Resources
 import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
@@ -44,15 +43,12 @@ object StorageReportRenders {
         renderT(
             { it.tasks },
             { tasks ->
-                val newItems = tasks.flatMap { task ->
-                    task.storage.closes.mapIndexed { index, storageClosure ->
-                        StorageReportItem.Closure(
-                            index,
-                            task,
-                            storageClosure
-                        )
-                    }
-                }.sortedBy { it.closure.closeDate }
+                val newItems =
+                    tasks.flatMap { task ->
+                        task.storage.closes.map {
+                            StorageReportItem.Closure(0, task, it)
+                        }
+                    }.sortedBy { it.closure.closeDate }.mapIndexed { index, closure -> closure.copy(idx = index) }
 
                 val diff = DiffUtil.calculateDiff(DefaultListDiffCallback(adapter.items, newItems))
                 adapter.items.clear()

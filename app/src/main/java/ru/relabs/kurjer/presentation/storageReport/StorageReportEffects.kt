@@ -62,7 +62,8 @@ object StorageReportEffects {
         StorageReportMessages.msgAddLoaders(it)
     }) { c, s ->
         val storageId = s.tasks.firstOrNull()?.storage?.id
-        val reports = storageId?.let { c.storageReportUseCase.getReportsByStorageId(it) }
+        val taskIds = s.tasks.map { it.id }
+        val reports = storageId?.let { c.storageReportUseCase.getOpenedByStorageIdWithTaskIds(it, taskIds) }
         if (!reports.isNullOrEmpty()) {
             messages.send(StorageReportMessages.msgReportLoaded(reports.first()))
         }

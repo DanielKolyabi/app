@@ -15,6 +15,8 @@ class TaskUseCase(
         return taskRepository.getTasksByIds(taskIds)
     }
 
+
+
     suspend fun isOpenedTasksExists() = taskRepository.isOpenedTasksExists()
 
     suspend fun isMergeNeeded(newTasks: List<Task>): Boolean = withContext(Dispatchers.IO) {

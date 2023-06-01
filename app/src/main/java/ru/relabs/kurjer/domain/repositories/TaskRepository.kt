@@ -6,15 +6,36 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.AppDatabase
-import ru.relabs.kurjer.data.database.entities.*
+import ru.relabs.kurjer.data.database.entities.TaskItemEntity
+import ru.relabs.kurjer.data.database.entities.TaskItemResultEntity
+import ru.relabs.kurjer.data.database.entities.TaskItemResultEntranceEntity
 import ru.relabs.kurjer.domain.mappers.ReportEntranceSelectionMapper
 import ru.relabs.kurjer.domain.mappers.TaskItemEntranceResultMapper
-import ru.relabs.kurjer.domain.mappers.database.*
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.mappers.database.DatabaseAddressMapper
+import ru.relabs.kurjer.domain.mappers.database.DatabaseEntranceDataMapper
+import ru.relabs.kurjer.domain.mappers.database.DatabaseTaskItemMapper
+import ru.relabs.kurjer.domain.mappers.database.DatabaseTaskItemResultMapper
+import ru.relabs.kurjer.domain.mappers.database.DatabaseTaskMapper
+import ru.relabs.kurjer.domain.models.EntranceNumber
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.ReportEntranceSelection
+import ru.relabs.kurjer.domain.models.StorageId
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemId
+import ru.relabs.kurjer.domain.models.TaskItemResult
+import ru.relabs.kurjer.domain.models.TaskItemResultId
+import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.TaskState
+import ru.relabs.kurjer.domain.models.address
+import ru.relabs.kurjer.domain.models.id
+import ru.relabs.kurjer.domain.models.needPhoto
+import ru.relabs.kurjer.domain.models.state
+import ru.relabs.kurjer.domain.models.toTaskState
 import ru.relabs.kurjer.domain.providers.PathsProvider
-import ru.relabs.kurjer.domain.storage.AuthTokenStorage
-import ru.relabs.kurjer.utils.*
-import java.util.*
+import ru.relabs.kurjer.utils.debug
+import java.util.Date
 
 class TaskRepository(
     private val db: AppDatabase,
@@ -33,11 +54,12 @@ class TaskRepository(
         taskDao.all.map { it.id }
             .forEach { pathsProvider.getTaskRasterizeMapFileById(TaskId(it)).delete() }
         photoRepository.deleteAllTaskPhotos()
-        taskItemResultDao.deleteAll()
-        entrancesDao.deleteAll()
-        entranceDataDao.deleteAll()
-        taskItemDao.deleteAll()
-        taskDao.deleteAll()
+//        taskItemResultDao.deleteAll()
+//        entrancesDao.deleteAll()
+//        entranceDataDao.deleteAll()
+//        taskItemDao.deleteAll()
+//        taskDao.deleteAll()
+        db.clearAllTables()
     }
 
     suspend fun getTasks(): List<Task> = withContext(Dispatchers.IO) {
@@ -263,6 +285,7 @@ class TaskRepository(
         val isPhotoRequired = when (val ti = taskItem) {
             is TaskItem.Common -> ti.entrancesData.firstOrNull { it.number == entrance }?.photoRequired
                 ?: false
+
             is TaskItem.Firm -> ti.needPhoto
         }
         val taskItemResult = db.taskItemResultsDao().getByTaskItemId(taskItem.id.id)
@@ -384,8 +407,7 @@ class TaskRepository(
         }
     }
 
-    suspend fun createEmptyTaskResult(taskItem: TaskItem): TaskItemResult
-    {
+    suspend fun createEmptyTaskResult(taskItem: TaskItem): TaskItemResult {
         val result = TaskItemResult(
             id = TaskItemResultId(0),
             taskItemId = taskItem.id,

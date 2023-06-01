@@ -2,25 +2,36 @@ package ru.relabs.kurjer.domain.useCases
 
 import android.location.Location
 import androidx.core.net.toUri
-import kotlinx.coroutines.*
-import ru.relabs.kurjer.domain.models.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.StorageClosure
+import ru.relabs.kurjer.domain.models.StorageId
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskState
 import ru.relabs.kurjer.domain.models.storage.ReportCloseData
-import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.models.storage.StorageReport
+import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.providers.PathsProvider
-import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.repositories.StorageRepository
+import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.presentation.storageReport.StoragePhotoWithUri
 import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.awaitFirst
 import ru.relabs.kurjer.utils.calculateDistance
 import java.io.File
-import java.util.*
+import java.util.Date
+import java.util.UUID
 import kotlin.math.roundToInt
 
 class StorageReportUseCase(
@@ -32,9 +43,8 @@ class StorageReportUseCase(
     private val tokenStorage: AuthTokenStorage,
     private val taskRepository: TaskRepository
 ) {
-
-    suspend fun getReportsByStorageId(storageId: StorageId): List<StorageReport>? =
-        storageRepository.getOpenedReportsByStorageId(storageId)
+    suspend fun getOpenedByStorageIdWithTaskIds(storageId: StorageId, taskIds: List<TaskId>): List<StorageReport>? =
+        storageRepository.getOpenedByStorageIdWithTaskIds(storageId, taskIds)
 
     suspend fun getPhotosWithUriByReportId(storageReportId: StorageReportId): List<StoragePhotoWithUri> =
         storageRepository.getPhotosByReportId(storageReportId).map {

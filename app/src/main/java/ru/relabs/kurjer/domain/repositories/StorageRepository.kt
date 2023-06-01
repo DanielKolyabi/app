@@ -9,12 +9,15 @@ import ru.relabs.kurjer.data.database.entities.storage.StorageReportPhotoEntity
 import ru.relabs.kurjer.data.database.entities.storage.StorageReportRequestEntity
 import ru.relabs.kurjer.domain.mappers.database.StorageReportMapper
 import ru.relabs.kurjer.domain.mappers.database.StorageReportPhotoMapper
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.StorageId
+import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.storage.StorageReport
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 import ru.relabs.kurjer.domain.providers.PathsProvider
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 class StorageRepository(db: AppDatabase, private val pathsProvider: PathsProvider) {
 
@@ -25,6 +28,11 @@ class StorageRepository(db: AppDatabase, private val pathsProvider: PathsProvide
     suspend fun getOpenedReportsByStorageId(storageId: StorageId): List<StorageReport>? =
         withContext(Dispatchers.IO) {
             reportDao.getOpenedByStorageId(storageId.id, false)
+                ?.map { StorageReportMapper.fromEntity(it) }
+        }
+suspend fun getOpenedByStorageIdWithTaskIds(storageId: StorageId, taskIds: List<TaskId>): List<StorageReport>? =
+        withContext(Dispatchers.IO) {
+            reportDao.getOpenedByStorageIdWithTaskIds(storageId.id, taskIds.map { it.id },false)
                 ?.map { StorageReportMapper.fromEntity(it) }
         }
 

@@ -1,6 +1,11 @@
 package ru.relabs.kurjer.data.database.daos
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import ru.relabs.kurjer.data.database.entities.storage.StorageReportEntity
 
 @Dao
@@ -12,8 +17,10 @@ interface StorageReportDao {
     @Query("SELECT * FROM storage_reports WHERE id = :id")
     fun getById(id: Int): StorageReportEntity
 
-    @Query("SELECT * FROM storage_reports WHERE storage_id = :id AND is_closed = :isClosed")
+    @Query("SELECT * FROM storage_reports WHERE storage_id = :id AND is_closed = :isClosed ")
     fun getOpenedByStorageId(id: Int, isClosed: Boolean): List<StorageReportEntity>?
+    @Query("SELECT * FROM storage_reports WHERE storage_id = :id AND is_closed = :isClosed AND task_ids = :taskIds")
+    fun getOpenedByStorageIdWithTaskIds(id: Int, taskIds: List<Int>, isClosed: Boolean): List<StorageReportEntity>?
 
     @Query("DELETE FROM storage_reports WHERE id = :id")
     fun deleteById(id: Int)

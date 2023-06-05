@@ -210,7 +210,7 @@ class StorageReportFragment : BaseFragment() {
             R.string.yes to {
                 uiScope.sendMessage(
                     controller,
-                    StorageReportMessages.msgPerformClose(location)
+                    StorageReportMessages.msgPerformClose(location, true)
                 )
             },
             R.string.no to {},

@@ -16,11 +16,9 @@ data class StorageReport(
     val taskIds: List<TaskId>,
     val gps: GPSCoordinatesModel,
     val description: String,
-    val closeData: ReportCloseData?
-) {
+    val closeData: ReportCloseData?,
     val isClosed: Boolean
-        get() = closeData != null
-}
+)
 
 data class ReportCloseData(
     val closeTime: Date,

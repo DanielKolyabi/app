@@ -25,14 +25,9 @@ class StorageRepository(db: AppDatabase, private val pathsProvider: PathsProvide
     private val photoDao = db.storagePhotoDao()
     private val reportRequestDao = db.storageReportRequestDao()
 
-    suspend fun getOpenedReportsByStorageId(storageId: StorageId): List<StorageReport>? =
+    suspend fun getOpenedByStorageIdWithTaskIds(storageId: StorageId, taskIds: List<TaskId>): List<StorageReport>? =
         withContext(Dispatchers.IO) {
-            reportDao.getOpenedByStorageId(storageId.id, false)
-                ?.map { StorageReportMapper.fromEntity(it) }
-        }
-suspend fun getOpenedByStorageIdWithTaskIds(storageId: StorageId, taskIds: List<TaskId>): List<StorageReport>? =
-        withContext(Dispatchers.IO) {
-            reportDao.getOpenedByStorageIdWithTaskIds(storageId.id, taskIds.map { it.id },false)
+            reportDao.getOpenedByStorageIdWithTaskIds(storageId.id, taskIds.map { it.id }, false)
                 ?.map { StorageReportMapper.fromEntity(it) }
         }
 
@@ -57,7 +52,6 @@ suspend fun getOpenedByStorageIdWithTaskIds(storageId: StorageId, taskIds: List<
             ).toInt()
         }
 
-
     suspend fun savePhoto(
         reportId: StorageReportId,
         uuid: UUID,
@@ -80,9 +74,9 @@ suspend fun getOpenedByStorageIdWithTaskIds(storageId: StorageId, taskIds: List<
         }
     }
 
-    suspend fun updateReport(report: StorageReport) {
+    suspend fun updateReport(report: StorageReport, withClose: Boolean = false) {
         withContext(Dispatchers.IO) {
-            reportDao.update(StorageReportMapper.toEntity(report))
+            reportDao.update(StorageReportMapper.toEntity(report.copy(isClosed = withClose)))
         }
     }
 
@@ -111,7 +105,6 @@ suspend fun getOpenedByStorageIdWithTaskIds(storageId: StorageId, taskIds: List<
         withContext(Dispatchers.IO) {
             reportDao.deleteList(reports.map { StorageReportMapper.toEntity(it) })
         }
-
     }
 
     suspend fun getNextQuery(): StorageReportRequestEntity? = withContext(Dispatchers.IO) {
@@ -147,6 +140,10 @@ suspend fun getOpenedByStorageIdWithTaskIds(storageId: StorageId, taskIds: List<
         withContext(Dispatchers.IO) {
             reportDao.deleteById(storageReportId)
         }
+    }
+
+    suspend fun withClose(storageReportId: Int): Boolean = withContext(Dispatchers.IO) {
+        reportDao.getById(storageReportId).isClosed
     }
 
 }

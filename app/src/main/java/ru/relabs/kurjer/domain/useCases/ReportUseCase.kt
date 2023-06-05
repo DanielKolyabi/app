@@ -1,23 +1,24 @@
 package ru.relabs.kurjer.domain.useCases
 
 import android.location.Location
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntranceData
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.mappers.ReportEntranceSelectionMapper
-import ru.relabs.kurjer.domain.models.*
-import ru.relabs.kurjer.domain.repositories.TaskRepository
-import ru.relabs.kurjer.domain.repositories.PauseRepository
-import ru.relabs.kurjer.domain.repositories.SettingsRepository
-import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.address
+import ru.relabs.kurjer.domain.models.id
+import ru.relabs.kurjer.domain.models.needPhoto
+import ru.relabs.kurjer.domain.models.taskId
 import ru.relabs.kurjer.domain.repositories.QueryRepository
-import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.domain.repositories.SettingsRepository
+import ru.relabs.kurjer.domain.repositories.TaskRepository
+import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.utils.calculateDistance
-import java.util.*
+import java.util.Date
 import kotlin.math.roundToInt
 
 class ReportUseCase(
@@ -66,6 +67,7 @@ class ReportUseCase(
                         resultData?.isPhotoRequired ?: it.photoRequired
                     )
                 }
+
                 is TaskItem.Firm -> emptyList()
             },
             tokenStorage.getToken() ?: "",

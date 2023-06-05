@@ -5,8 +5,8 @@ import ru.relabs.kurjer.data.database.entities.storage.StorageReportEntity
 import ru.relabs.kurjer.domain.models.StorageId
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.storage.ReportCloseData
-import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.models.storage.StorageReport
+import ru.relabs.kurjer.domain.models.storage.StorageReportId
 
 object StorageReportMapper {
     fun fromEntity(entity: StorageReportEntity): StorageReport = StorageReport(
@@ -15,9 +15,9 @@ object StorageReportMapper {
         taskIds = entity.taskIds.map { TaskId(it) },
         gps = entity.gps,
         description = entity.description,
+        isClosed = entity.isClosed,
         closeData = dataFromEntity(entity.closeData)
     )
-
 
     fun toEntity(report: StorageReport): StorageReportEntity = StorageReportEntity(
         id = report.id.id,
@@ -25,7 +25,7 @@ object StorageReportMapper {
         taskIds = report.taskIds.map { it.id },
         gps = report.gps,
         description = report.description,
-        isClosed = report.closeData != null,
+        isClosed = report.isClosed,
         closeData = dataToEntity(report.closeData)
     )
 

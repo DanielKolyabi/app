@@ -12,7 +12,7 @@ import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.presentation.base.tea.msgState
 import ru.relabs.kurjer.utils.CustomLog
 import java.io.File
-import java.util.*
+import java.util.UUID
 
 object StorageReportMessages {
     fun msgInit(taskIds: List<TaskId>): StorageReportMessage = msgEffects(
@@ -103,8 +103,8 @@ object StorageReportMessages {
             msgEffect(StorageReportEffects.effectCloseCheck(true))
         })
 
-    fun msgPerformClose(location: Location?): StorageReportMessage =
-        msgEffect(StorageReportEffects.effectPerformClose(location, true))
+    fun msgPerformClose(location: Location?, withClose: Boolean): StorageReportMessage =
+        msgEffect(StorageReportEffects.effectPerformClose(location, withClose))
 
     fun msgInterruptPause(): StorageReportMessage =
         msgEffect(StorageReportEffects.effectInterruptPause())

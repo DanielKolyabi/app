@@ -104,19 +104,23 @@ class ReportService : Service(), KoinComponent {
                                 }
                             }
                         }
+
                         storageReportQuery != null -> {
                             when (val r = sendStorageReportQuery(storageReportQuery)) {
                                 is Left -> r.value.log()
                                 is Right -> {
                                     isTaskSended = true
                                     storageRepository.removeStorageReportQuery(storageReportQuery)
-                                    if (!storageRepository.isReportHasQuery(storageReportQuery.storageReportId)) {
+                                    if (!storageRepository.isReportHasQuery(storageReportQuery.storageReportId) &&
+                                        storageRepository.withClose(storageReportQuery.storageReportId)
+                                    ) {
                                         storageRepository.deletePhotosReportById(storageReportQuery.storageReportId)
                                         storageRepository.deleteReport(storageReportQuery.storageReportId)
                                     }
                                 }
                             }
                         }
+
                         reportQuery != null -> {
                             when (val r = sendReportQuery(reportQuery)) {
                                 is Left -> r.value.log()
@@ -126,12 +130,14 @@ class ReportService : Service(), KoinComponent {
                                 }
                             }
                         }
+
                         System.currentTimeMillis() - lastTasksChecking > TASK_CHECK_DELAY -> {
                             when (val tasks = repository.getTasks()) {
                                 is Right -> if (taskUseCase.isMergeNeeded(tasks.value)) {
                                     CustomLog.writeToFile("UPDATE: merge is needed")
                                     taskEventController.send(TaskEvent.TasksUpdateRequired(false))
                                 }
+
                                 is Left -> Unit
                             }
                             lastTasksChecking = System.currentTimeMillis()

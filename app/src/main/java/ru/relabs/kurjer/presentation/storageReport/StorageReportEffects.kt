@@ -414,7 +414,7 @@ object StorageReportEffects {
                 }
             }
             if (shadowClose) {
-                effectPerformClose(location, false)(c, s)
+                effectValidateReportExistenceAnd { msgEffect(effectPerformClose(location, false)) }(c,s)
             }
         }
     }

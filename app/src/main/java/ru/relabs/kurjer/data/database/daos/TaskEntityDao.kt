@@ -1,6 +1,12 @@
 package ru.relabs.kurjer.data.database.daos
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 import ru.relabs.kurjer.data.database.entities.TaskEntity
 
 /**
@@ -17,6 +23,9 @@ interface TaskEntityDao {
 
     @get:Query("SELECT * FROM tasks WHERE state != 4")
     val allOpened: List<TaskEntity>
+
+    @Query("SELECT * FROM tasks WHERE id in (:ids)")
+    fun watchByIds(ids: List<Int>): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks WHERE id in (:ids)")
     fun getByIds(ids: List<Int>): List<TaskEntity>

@@ -14,16 +14,22 @@ import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.useCases.StorageReportUseCase
 import ru.relabs.kurjer.domain.useCases.TaskUseCase
-import ru.relabs.kurjer.presentation.base.tea.*
+import ru.relabs.kurjer.presentation.base.tea.ElmEffect
+import ru.relabs.kurjer.presentation.base.tea.ElmMessage
+import ru.relabs.kurjer.presentation.base.tea.ElmRender
+import ru.relabs.kurjer.presentation.base.tea.ErrorContext
+import ru.relabs.kurjer.presentation.base.tea.ErrorContextImpl
+import ru.relabs.kurjer.presentation.base.tea.RouterContext
+import ru.relabs.kurjer.presentation.base.tea.RouterContextMainImpl
 import java.io.File
-import java.util.*
+import java.util.UUID
 
 data class StorageReportState(
-    var tasks: List<Task> = listOf(),
-    var storageReport: StorageReport? = null,
-    var storagePhotos: List<StoragePhotoWithUri> = listOf(),
-    var loaders: Int = 0,
-    var isGPSLoading: Boolean = false
+    val tasks: List<Task> = listOf(),
+    val storageReport: StorageReport? = null,
+    val storagePhotos: List<StoragePhotoWithUri> = listOf(),
+    val loaders: Int = 0,
+    val isGPSLoading: Boolean = false
 )
 
 data class StoragePhotoWithUri(val photo: StorageReportPhoto, val uri: Uri)

@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.domain.useCases
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
@@ -15,6 +16,8 @@ class TaskUseCase(
         return taskRepository.getTasksByIds(taskIds)
     }
 
+    fun watchTasks(taskIds: List<TaskId>): Flow<List<Task>> =
+        taskRepository.watchTasks(taskIds)
 
 
     suspend fun isOpenedTasksExists() = taskRepository.isOpenedTasksExists()

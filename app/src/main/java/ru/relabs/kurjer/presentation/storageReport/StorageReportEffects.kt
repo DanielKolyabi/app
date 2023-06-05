@@ -11,7 +11,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
@@ -45,11 +44,11 @@ object StorageReportEffects {
         }
     }
 
-    fun effectLoadTasks(taskIds: List<TaskId>): StorageReportEffect = wrapInLoaders({
-        StorageReportMessages.msgAddLoaders(it)
-    }) { c, s ->
-        val tasks = c.taskUseCase.getTasksByIds(taskIds)
-        messages.send(StorageReportMessages.msgTasksLoaded(tasks))
+    fun effectCollectTasks(taskIds: List<TaskId>): StorageReportEffect = { c, s ->
+        coroutineScope {
+            launch { c.taskUseCase.watchTasks(taskIds).collect { messages.send(StorageReportMessages.msgTasksLoaded(it)) } }
+        }
+
     }
 
     fun effectNavigateBack(): StorageReportEffect = { c, s ->
@@ -414,7 +413,7 @@ object StorageReportEffects {
                 }
             }
             if (shadowClose) {
-                effectValidateReportExistenceAnd { msgEffect(effectPerformClose(location, false)) }(c,s)
+                effectValidateReportExistenceAnd { msgEffect(effectPerformClose(location, false)) }(c, s)
             }
         }
     }
@@ -445,24 +444,6 @@ object StorageReportEffects {
 
     fun effectInterruptPause(): StorageReportEffect = { c, s ->
         c.storageReportUseCase.stopPause()
-    }
-
-    fun launchEventConsumer(): StorageReportEffect = { c, s ->
-        coroutineScope {
-            launch {
-                c.taskEventController.subscribe().collect { event ->
-                    when (event) {
-                        is TaskEvent.TaskClosed -> Unit
-                        is TaskEvent.TaskItemClosed -> Unit
-                        is TaskEvent.TasksUpdateRequired -> Unit
-                        is TaskEvent.TaskStorageClosed -> {
-                            if (s.tasks.any { it.id == event.taskId })
-                                messages.send(msgEffect(effectLoadTasks(s.tasks.map { it.id })))
-                        }
-                    }
-                }
-            }
-        }
     }
 }
 

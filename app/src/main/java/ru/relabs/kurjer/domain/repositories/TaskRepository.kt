@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.TaskItemEntity
@@ -419,6 +420,10 @@ class TaskRepository(
         )
         return updateTaskItemResult(result)
     }
+
+    fun watchTasks(taskIds: List<TaskId>): Flow<List<Task>> =
+        taskDao.watchByIds(taskIds.map { it.id }).map { it.map { entity -> DatabaseTaskMapper.fromEntity(entity, db) } }
+
 }
 
 

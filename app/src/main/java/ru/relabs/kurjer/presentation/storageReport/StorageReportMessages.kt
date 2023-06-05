@@ -19,8 +19,7 @@ object StorageReportMessages {
         { it },
         {
             listOf(
-                StorageReportEffects.effectLoadTasks(taskIds),
-                StorageReportEffects.launchEventConsumer()
+                StorageReportEffects.effectCollectTasks(taskIds),
             )
         }
     )

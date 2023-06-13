@@ -27,8 +27,8 @@ import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffold
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffoldContext
 import ru.relabs.kurjer.presentation.base.compose.common.AppBarLoadableContainer
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorDivider
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
-import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorSeparator
 import ru.relabs.kurjer.presentation.base.tea.ElmController
 
 @Composable
@@ -61,8 +61,7 @@ private fun ElmScaffoldContext<StorageListContext, StorageListState>.StorageItem
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxWidth()
-            .clickable { sendMessage(StorageListMessages.msgStorageItemClicked(tasks.map { it.task.id })) }
-            .padding(horizontal = 8.dp))
+            .clickable { sendMessage(StorageListMessages.msgStorageItemClicked(tasks.map { it.task.id })) })
     {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -72,7 +71,9 @@ private fun ElmScaffoldContext<StorageListContext, StorageListState>.StorageItem
             fontSize = 18.sp,
             fontFamily = FontFamily.SansSerif,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -83,9 +84,11 @@ private fun ElmScaffoldContext<StorageListContext, StorageListState>.StorageItem
                 Color.Black,
             textAlign = TextAlign.Center,
             fontSize = 16.sp,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Divider(color = ColorSeparator)
+        Divider(color = ColorDivider)
     }
 }

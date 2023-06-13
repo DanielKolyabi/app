@@ -2,9 +2,21 @@ package ru.relabs.kurjer.presentation.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -24,7 +36,10 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffold
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffoldContext
-import ru.relabs.kurjer.presentation.base.compose.common.*
+import ru.relabs.kurjer.presentation.base.compose.common.CustomTextField
+import ru.relabs.kurjer.presentation.base.compose.common.CustomTextKeyboardAction
+import ru.relabs.kurjer.presentation.base.compose.common.DeliveryButton
+import ru.relabs.kurjer.presentation.base.compose.common.LoadableContainer
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGrayBase
 import ru.relabs.kurjer.presentation.base.tea.ElmController
 import ru.relabs.kurjer.utils.NetworkHelper
@@ -155,7 +170,6 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.LoginButton(modifier: M
         text = stringResource(R.string.login_button_text).uppercase(),
         modifier = modifier
             .fillMaxWidth()
-            .imePadding()
             .padding(horizontal = 12.dp, vertical = 12.dp)
     ) {
         sendMessage(LoginMessages.msgLoginClicked(NetworkHelper.isNetworkEnabled(context)))

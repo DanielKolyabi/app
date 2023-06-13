@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.presentation.base.compose.common
 
+import android.graphics.Color
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,7 +33,6 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.repositories.TextSizeStorage
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGradientEnd
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGradientStart
-import ru.relabs.kurjer.presentation.base.compose.common.themes.HtmlText
 
 @Composable
 fun HintContainer(hintText: String, textSizeStorage: TextSizeStorage, modifier: Modifier = Modifier, maxHeight: Dp = 250.dp) {
@@ -97,7 +97,7 @@ fun HintContainer(hintText: String, textSizeStorage: TextSizeStorage, modifier: 
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
-                HtmlText(html = hintText, textSize = textSize.toFloat())
+                HtmlText(html = hintText, textSize = textSize.toFloat(), textColor = Color.BLACK)
             }
         }
     }

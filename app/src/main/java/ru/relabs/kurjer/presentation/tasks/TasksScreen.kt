@@ -1,6 +1,5 @@
 package ru.relabs.kurjer.presentation.tasks
 
-import android.graphics.Typeface
 import android.os.Build
 import android.view.Gravity
 import androidx.annotation.RequiresApi
@@ -22,10 +21,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
-import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -42,12 +45,14 @@ import ru.relabs.kurjer.domain.models.TaskState
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffold
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffoldContext
 import ru.relabs.kurjer.presentation.base.compose.common.DeliveryButton
+import ru.relabs.kurjer.presentation.base.compose.common.HtmlText
 import ru.relabs.kurjer.presentation.base.compose.common.LoaderItem
 import ru.relabs.kurjer.presentation.base.compose.common.SearchTextField
 import ru.relabs.kurjer.presentation.base.compose.common.TasksAppBar
 import ru.relabs.kurjer.presentation.base.compose.common.gesturesDisabled
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorLoaderBackground
-import ru.relabs.kurjer.presentation.base.compose.common.themes.HtmlText
+import ru.relabs.kurjer.presentation.base.compose.common.themes.sansSerifMedium
 import ru.relabs.kurjer.presentation.base.tea.ElmController
 
 @RequiresApi(Build.VERSION_CODES.P)
@@ -65,9 +70,18 @@ fun TasksScreen(controller: ElmController<TasksContext, TasksState>, onMenuClick
         label = ""
     )
     val listPadding by animateDpAsState(targetValue = if (selectedTasks.isNotEmpty()) 60.dp else 0.dp, label = "")
+    val listState = rememberLazyListState()
+    val emptyListSize by remember {
+        derivedStateOf {
+            listState.layoutInfo.viewportSize.height - (listState.layoutInfo.visibleItemsInfo.getOrNull(0)?.size ?: 0)
+        }
+    }
+    val density = LocalDensity.current
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column {
+    Scaffold(modifier = Modifier.fillMaxSize(), drawerContent = {
+
+    }) {
+        Column(Modifier.padding(it)) {
             TasksAppBar(
                 title = stringResource(R.string.tasks_title),
                 menuIcon = painterResource(R.drawable.ic_menu),
@@ -77,24 +91,35 @@ fun TasksScreen(controller: ElmController<TasksContext, TasksState>, onMenuClick
             )
             Box {
                 LazyColumn(
-                    contentPadding = PaddingValues(bottom = listPadding)
+                    state = listState,
+                    contentPadding = PaddingValues(bottom = listPadding),
+                    modifier = Modifier
+                        .fillMaxSize()
                 ) {
                     item { SearchItem() }
                     items(sortedTasks) {
                         TaskItem(it.task, it.isTasksWithSameAddressPresented, it.isSelected)
                     }
                     if (isLoading && tasks.isEmpty())
-                        item { LoaderItem() }
+                        item {
+                            LoaderItem(
+                                Modifier
+                                    .height(with(density) { emptyListSize.coerceAtLeast(0).toDp() })
+                            )
+                        }
                 }
-                if (selectedTasks.isNotEmpty())
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = selectedTasks.isNotEmpty(),
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                ) {
                     DeliveryButton(
                         text = stringResource(R.string.start_tasks).uppercase(),
-                        contentPadding = PaddingValues(vertical = 6.dp),
+                        contentPadding = PaddingValues(vertical = 8.dp),
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
                             .fillMaxWidth()
-                            .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                            .padding(start = 12.dp, end = 12.dp, bottom = 10.dp)
                     ) { sendMessage(TasksMessages.msgStartClicked()) }
+                }
             }
         }
         Box(
@@ -104,12 +129,11 @@ fun TasksScreen(controller: ElmController<TasksContext, TasksState>, onMenuClick
                 .gesturesDisabled(isLoading && tasks.isNotEmpty())
         ) {
             if (isLoading && tasks.isNotEmpty())
-                LinearProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator(color = ColorFuchsia, modifier = Modifier.align(Alignment.Center))
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.P)
 @Composable
 private fun ElmScaffoldContext<TasksContext, TasksState>.TaskItem(
     task: Task,
@@ -121,6 +145,7 @@ private fun ElmScaffoldContext<TasksContext, TasksState>.TaskItem(
         targetValue = if (isTasksWithSameAddressPresented) Color.Gray else Color.Transparent,
         label = ""
     )
+    val chainColor by animateColorAsState(targetValue = if (isSelected) ColorFuchsia else Color.Unspecified, label = "chain")
     val interactionSource = remember { MutableInteractionSource() }
 
     Column(modifier = modifier
@@ -138,7 +163,7 @@ private fun ElmScaffoldContext<TasksContext, TasksState>.TaskItem(
                 html = task.displayName,
                 textSize = 16f,
                 gravity = Gravity.CENTER,
-                typeface = Typeface.create(Typeface.SANS_SERIF, 500, false),
+                typeface = sansSerifMedium,
                 modifier = Modifier.weight(1f)
             )
             if (task.state.state != TaskState.CREATED)
@@ -153,12 +178,9 @@ private fun ElmScaffoldContext<TasksContext, TasksState>.TaskItem(
                 )
             Spacer(Modifier.width(8.dp))
             Icon(
-                painter = if (isSelected)
-                    painterResource(R.drawable.ic_chain_enabled)
-                else
-                    painterResource(R.drawable.ic_chain_disabled),
+                painter = painterResource(R.drawable.ic_chain_disabled),
                 contentDescription = null,
-                tint = Color.Unspecified,
+                tint = chainColor,
                 modifier = Modifier
                     .size(40.dp)
                     .padding(2.dp)
@@ -168,7 +190,6 @@ private fun ElmScaffoldContext<TasksContext, TasksState>.TaskItem(
         }
         Spacer(Modifier.height(8.dp))
     }
-
 }
 
 @Composable

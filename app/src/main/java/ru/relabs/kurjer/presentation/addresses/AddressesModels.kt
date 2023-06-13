@@ -3,10 +3,23 @@ package ru.relabs.kurjer.presentation.addresses
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import ru.relabs.kurjer.domain.controllers.TaskEventController
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.models.Address
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.address
+import ru.relabs.kurjer.domain.models.bypass
+import ru.relabs.kurjer.domain.models.state
+import ru.relabs.kurjer.domain.models.subarea
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.repositories.TaskRepository
-import ru.relabs.kurjer.presentation.base.tea.*
+import ru.relabs.kurjer.presentation.base.tea.ElmEffect
+import ru.relabs.kurjer.presentation.base.tea.ElmMessage
+import ru.relabs.kurjer.presentation.base.tea.ElmRender
+import ru.relabs.kurjer.presentation.base.tea.ErrorContext
+import ru.relabs.kurjer.presentation.base.tea.ErrorContextImpl
+import ru.relabs.kurjer.presentation.base.tea.RouterContext
+import ru.relabs.kurjer.presentation.base.tea.RouterContextMainImpl
 import ru.relabs.kurjer.utils.SearchUtils
 import java.io.File
 
@@ -25,6 +38,16 @@ data class AddressesState(
     val sortedTasks: List<AddressesItem>
         get() = getSortedTasks(tasks, sorting, searchFilter)
 
+    val otherCount: Int
+        get() {
+            val allTaskItemsCount = tasks.sumOf { it.items.size }
+            val filteredTaskItemsCount = if (searchFilter.isNotEmpty()) {
+                tasks.sumOf { it.items.filter { ti -> SearchUtils.isMatches(ti.address.name, searchFilter) }.size }
+            } else {
+                allTaskItemsCount
+            }
+            return allTaskItemsCount - filteredTaskItemsCount
+        }
     private fun getSortedTasks(tasks: List<Task>, sorting: AddressesSortingMethod, searchFilter: String): List<AddressesItem> {
         if (tasks.isEmpty()) {
             return emptyList()

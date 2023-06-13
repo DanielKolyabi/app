@@ -150,6 +150,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.DescriptionInput() {
         placeholder = stringResource(R.string.user_explanation_hint),
         modifier = Modifier
             .fillMaxWidth()
+            .padding(bottom = 8.dp)
             .height(48.dp)
             .padding(start = 8.dp, end = 8.dp)
     )
@@ -408,14 +409,20 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.Buttons(
     val isFirm by watchAsState { it.selectedTask?.taskItem is TaskItem.Firm }
 
     Row(modifier) {
-        DeliveryButton(text = stringResource(R.string.close_address_button).uppercase(), modifier = Modifier.weight(1f)) {
+        DeliveryButton(text = stringResource(R.string.close_address_button).uppercase(),
+            contentPadding = PaddingValues(horizontal = 6.dp),
+            modifier = Modifier.weight(1f).padding(start = 8.dp, end = 8.dp, bottom = 8.dp))
+        {
             if (!isCloseClicked) {
                 sendMessage(ReportMessages.msgCloseClicked(null))
                 onCloseButtonClicked()
             }
         }
         if (isFirm) {
-            DeliveryButton(text = stringResource(R.string.reject_address_button).uppercase(), modifier = Modifier.weight(1f)) {
+            DeliveryButton(text = stringResource(R.string.reject_address_button).uppercase(),
+                contentPadding = PaddingValues(horizontal = 6.dp),
+                modifier = Modifier.weight(1f).padding(start = 8.dp, end = 8.dp, bottom = 8.dp))
+            {
                 sendMessage(ReportMessages.msgRejectClicked())
             }
         }

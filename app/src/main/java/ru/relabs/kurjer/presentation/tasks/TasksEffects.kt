@@ -14,7 +14,7 @@ import ru.relabs.kurjer.presentation.base.tea.CommonMessages
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
-import java.util.*
+import java.util.Date
 
 /**
  * Created by Daniil Kurchanov on 02.04.2020.

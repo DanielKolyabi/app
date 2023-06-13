@@ -1,6 +1,5 @@
-package ru.relabs.kurjer.presentation.base.compose.common.themes
+package ru.relabs.kurjer.presentation.base.compose.common
 
-import android.graphics.Color
 import android.graphics.Typeface
 import android.view.Gravity
 import android.widget.TextView
@@ -15,18 +14,18 @@ fun HtmlText(
     textSize: Float,
     modifier: Modifier = Modifier,
     gravity: Int = Gravity.START,
-    typeface: Typeface? = null
+    typeface: Typeface? = null,
+    textColor: Int? = null
 ) {
-
     AndroidView(
         factory = { context -> TextView(context) },
         update = {
             it.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT)
             it.textSize = textSize
-            it.setTextColor(Color.BLACK)
+            textColor?.let {color -> it.setTextColor(color)  }
             it.gravity = gravity
             typeface?.let { tf -> it.typeface = tf }
         },
-        modifier = modifier,
+        modifier = modifier
     )
 }

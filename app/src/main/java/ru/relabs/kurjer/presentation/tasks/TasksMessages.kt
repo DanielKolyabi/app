@@ -28,7 +28,7 @@ object TasksMessages {
         {
             val isTaskCanBeSelected = task.canBeSelectedWith(it.selectedTasks)
             listOf(
-                when{
+                when {
                     !isTaskCanBeSelected -> TasksEffects.effectShowTaskSelectionDistrictError()
                     it.selectedTasks.contains(task) -> TasksEffects.effectTaskUnselected(task)
                     else -> TasksEffects.effectTaskSelected(task)

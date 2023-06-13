@@ -49,10 +49,10 @@ import ru.relabs.kurjer.presentation.base.compose.common.AppBarLoadableContainer
 import ru.relabs.kurjer.presentation.base.compose.common.DeliveryButton
 import ru.relabs.kurjer.presentation.base.compose.common.DescriptionTextField
 import ru.relabs.kurjer.presentation.base.compose.common.HintContainer
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorDivider
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorHasPhoto
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorRequiredPhoto
-import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorSeparator
 import ru.relabs.kurjer.presentation.base.tea.ElmController
 import ru.relabs.kurjer.uiOld.helpers.formattedTimeDate
 
@@ -123,7 +123,6 @@ private fun ClosureItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp)
     )
     {
         Spacer(modifier = Modifier.height(8.dp))
@@ -134,16 +133,20 @@ private fun ClosureItem(
             fontSize = 15.sp,
             fontFamily = FontFamily.SansSerif,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = task.listName,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Divider(color = ColorSeparator)
+        Divider(color = ColorDivider)
     }
 }
 
@@ -158,6 +161,7 @@ private fun ElmScaffoldContext<StorageReportContext, StorageReportState>.Descrip
         placeholder = stringResource(R.string.user_explanation_hint),
         modifier = modifier
             .fillMaxWidth()
+            .padding(bottom = 8.dp)
             .height(48.dp)
             .heightIn(max = 128.dp)
             .padding(start = 8.dp, end = 8.dp)

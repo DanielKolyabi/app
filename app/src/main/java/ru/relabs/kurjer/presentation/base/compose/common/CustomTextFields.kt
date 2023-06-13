@@ -8,10 +8,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -24,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -168,7 +171,7 @@ fun SearchTextField(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(painter = painterResource(R.drawable.ic_search), contentDescription = null)
+                        Icon(painter = painterResource(R.drawable.ic_search), contentDescription = null, tint = Color.Gray)
                         Box(modifier = Modifier.padding(vertical = 4.dp)) {
                             if (value.isEmpty() && placeholder != null) {
                                 Box(contentAlignment = Alignment.CenterStart) {
@@ -192,10 +195,13 @@ fun SearchTextField(
                             .background(lineColor)
                     )
                 }
-                if (value.isNotEmpty())
+                if (value.isNotEmpty()) {
+                    Spacer(Modifier.width(8.dp))
                     Icon(painter = painterResource(R.drawable.ic_close),
+                        tint = Color.Gray,
                         contentDescription = null,
                         modifier = Modifier.clickable { onClearClicked() })
+                }
             }
         },
         visualTransformation = visualTransformation,
@@ -204,7 +210,7 @@ fun SearchTextField(
         cursorBrush = SolidColor(ColorFuchsia.copy(alpha = 0.8F)),
         modifier = modifier
             .focusRequester(focusRequester)
-            .padding(vertical = 6.dp)
+            .padding(vertical = 12.dp)
     )
 }
 

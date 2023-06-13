@@ -8,7 +8,9 @@ import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.presentation.base.compose.common.themes.DeliveryTheme
@@ -22,6 +24,7 @@ import ru.relabs.kurjer.presentation.host.HostActivity
 import ru.relabs.kurjer.presentation.taskDetails.IExaminedConsumer
 import ru.relabs.kurjer.uiOld.fragments.YandexMapFragment
 import ru.relabs.kurjer.utils.extensions.showDialog
+import ru.relabs.kurjer.utils.extensions.showSnackbar
 
 
 /**
@@ -87,7 +90,7 @@ class TasksFragment : BaseFragment(),
         }
     }
 
-//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 //        super.onViewCreated(view, savedInstanceState)
 //        val binding = FragmentTasksBinding.bind(view)
 //
@@ -107,10 +110,10 @@ class TasksFragment : BaseFragment(),
 //            launch { controller.stateFlow().collect(rendersCollector(renders)) }
 //            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
 //        }
-//        controller.context.errorContext.attach(view)
-//        controller.context.showSnackbar = { withContext(Dispatchers.Main) { showSnackbar(resources.getString(it)) } }
-//        controller.context.showUpdateRequiredOnVisible = ::showUpdateRequiredOnVisible
-//    }
+        controller.context.errorContext.attach(view)
+        controller.context.showSnackbar = { withContext(Dispatchers.Main) { showSnackbar(resources.getString(it)) } }
+        controller.context.showUpdateRequiredOnVisible = ::showUpdateRequiredOnVisible
+    }
 
     override fun onPause() {
         super.onPause()

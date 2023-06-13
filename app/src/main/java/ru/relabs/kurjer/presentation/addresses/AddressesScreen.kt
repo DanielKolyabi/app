@@ -63,6 +63,7 @@ import ru.relabs.kurjer.presentation.base.compose.common.DeliveryButton
 import ru.relabs.kurjer.presentation.base.compose.common.LoaderItem
 import ru.relabs.kurjer.presentation.base.compose.common.SearchTextField
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorButtonLight
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorDivider
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorTextDisabled
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorYellow
@@ -76,6 +77,8 @@ fun AddressesScreen(controller: ElmController<AddressesContext, AddressesState>)
     val tasks by watchAsState { it.tasks }
     val sortedTasks by watchAsState { it.sortedTasks }
     val selectedAddress by watchAsState { it.selectedListAddress }
+    val searchFilter by watchAsState { it.searchFilter }
+    val otherCount by watchAsState { it.otherCount }
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val targetScrollItem by remember {
@@ -142,9 +145,12 @@ fun AddressesScreen(controller: ElmController<AddressesContext, AddressesState>)
                         else -> {}
                     }
                 }
+                if (searchFilter.isNotEmpty())
+                    item { OtherAddressesItem(otherCount) }
             }
             DeliveryButton(
                 text = stringResource(R.string.show_task_on_map).uppercase(),
+                contentPadding = PaddingValues(vertical = 4.dp),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
@@ -177,7 +183,7 @@ private fun ElmScaffoldContext<AddressesContext, AddressesState>.HeaderItem(
             .fillMaxWidth()
             .background(backgroundColor)
     ) {
-        Divider(color = Color.DarkGray)
+        Divider(color = ColorDivider)
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
             val address = if (showBypass) {
                 "${items.firstOrNull()?.subarea ?: "?"}-${items.firstOrNull()?.bypass ?: "?"} "
@@ -220,6 +226,7 @@ private fun ElmScaffoldContext<AddressesContext, AddressesState>.TaskItem(
         is TaskItem.Common -> {
             taskItem.needPhoto || taskItem.entrancesData.any { it.photoRequired }
         }
+
         is TaskItem.Firm -> {
             taskItem.needPhoto
         }
@@ -235,13 +242,17 @@ private fun ElmScaffoldContext<AddressesContext, AddressesState>.TaskItem(
         Button(
             onClick = { sendMessage(AddressesMessages.msgTaskItemClicked(taskItem, task)) },
             colors = ButtonDefaults.buttonColors(backgroundColor = ColorButtonLight),
-            modifier = Modifier.weight(1f)
+            shape = RoundedCornerShape(2.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 2.dp)
         ) {
             Text(
                 text = when (taskItem) {
                     is TaskItem.Common -> {
                         "${task.name} №${task.edition}, ${taskItem.copies}экз."
                     }
+
                     is TaskItem.Firm -> {
                         listOf(
                             task.name,
@@ -282,6 +293,7 @@ private fun ElmScaffoldContext<AddressesContext, AddressesState>.TaskItem(
                         TaskItemState.CLOSED -> {
                             Modifier
                         }
+
                         TaskItemState.CREATED -> {
                             Modifier.clickable { sendMessage(AddressesMessages.msgTaskItemMapClicked(task)) }
                         }
@@ -339,8 +351,16 @@ private fun ElmScaffoldContext<AddressesContext, AddressesState>.SortingItem(mod
 }
 
 @Composable
-private fun OtherAddressesItem(modifier: Modifier = Modifier) {
-
+private fun ElmScaffoldContext<AddressesContext, AddressesState>.OtherAddressesItem(count: Int, modifier: Modifier = Modifier) {
+    Text(
+        text = stringResource(R.string.addresses_more, count),
+        color = Color.Black,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = modifier
+            .padding(8.dp)
+            .clickable { sendMessage(AddressesMessages.msgSearch("")) }
+    )
 }
 
 @Composable

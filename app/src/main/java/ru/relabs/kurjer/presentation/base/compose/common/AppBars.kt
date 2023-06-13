@@ -2,6 +2,7 @@ package ru.relabs.kurjer.presentation.base.compose.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,6 +35,8 @@ fun BasicAppBar(
     endIcon: Painter? = null,
     endIconClicked: () -> Unit = {},
 ) {
+    val interactionSource = MutableInteractionSource()
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -49,7 +52,7 @@ fun BasicAppBar(
                 modifier = Modifier
                     .size(48.dp)
                     .padding(8.dp)
-                    .clickable {
+                    .clickable(interactionSource = interactionSource, indication = null) {
                         startIconClicked()
                     }
             )
@@ -73,7 +76,7 @@ fun BasicAppBar(
                 modifier = Modifier
                     .size(48.dp)
                     .padding(4.dp)
-                    .clickable {
+                    .clickable(interactionSource = interactionSource, indication = null) {
                         endIconClicked()
                     }
             )

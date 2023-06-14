@@ -11,9 +11,9 @@ import ru.relabs.kurjer.domain.models.EntranceNumber
 import ru.relabs.kurjer.domain.models.ReportEntranceSelection
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskItem
-import ru.relabs.kurjer.domain.models.TaskItemPhoto
 import ru.relabs.kurjer.domain.models.TaskItemResult
 import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.photo.TaskItemPhoto
 import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.providers.PathsProvider
@@ -48,7 +48,7 @@ data class TaskWithItem(
 data class ReportState(
     val tasks: List<TaskWithItem> = emptyList(),
     val selectedTask: TaskWithItem? = null,
-    val selectedTaskPhotos: List<PhotoWithUri> = emptyList(),
+    val selectedTaskPhotos: List<TaskPhotoWithUri> = emptyList(),
     val selectedTaskReport: TaskItemResult? = null,
     val loaders: Int = 0,
     val isGPSLoading: Boolean = false,
@@ -95,7 +95,16 @@ data class ReportState(
         }
 }
 
-data class PhotoWithUri(val photo: TaskItemPhoto, val uri: Uri)
+data class ReportEntranceItem(
+    val taskItem: TaskItem.Common,
+    val entranceNumber: EntranceNumber,
+    val selection: ReportEntranceSelection,
+    val coupleEnabled: Boolean,
+    val hasPhoto: Boolean,
+    val hasDescription: Boolean
+)
+
+data class TaskPhotoWithUri(val photo: TaskItemPhoto, val uri: Uri)
 
 class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     ErrorContext by errorContext,

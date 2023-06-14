@@ -1,6 +1,5 @@
 package ru.relabs.kurjer.presentation.report
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,13 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -36,19 +33,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import kotlinx.coroutines.flow.StateFlow
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.ENTRANCE_NUMBER_TASK_ITEM
 import ru.relabs.kurjer.domain.models.TaskItem
-import ru.relabs.kurjer.domain.models.TaskItemPhoto
 import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.domain.models.address
 import ru.relabs.kurjer.domain.models.id
@@ -62,13 +55,12 @@ import ru.relabs.kurjer.presentation.base.compose.common.DeliveryButton
 import ru.relabs.kurjer.presentation.base.compose.common.DescriptionTextField
 import ru.relabs.kurjer.presentation.base.compose.common.HintContainer
 import ru.relabs.kurjer.presentation.base.compose.common.gesturesDisabled
-import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorBackgroundGray
+import ru.relabs.kurjer.presentation.base.compose.common.photo.PhotoItemData
+import ru.relabs.kurjer.presentation.base.compose.common.photo.PhotosRow
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorButtonLight
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorButtonPink
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorEntranceCoupleEnabled
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
-import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorHasPhoto
-import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorRequiredPhoto
 import ru.relabs.kurjer.presentation.base.tea.ElmController
 
 @Composable
@@ -87,6 +79,8 @@ fun ReportScreen(
     val firmAddress by watchAsState { it.firmAddress }
     val available by watchAsState { it.available }
     val isCloseClicked by isCloseClickedFlow.collectAsState()
+    val photos by watchAsState { it.selectedTaskPhotos }
+    val task by watchAsState { it.selectedTask }
 
     AppBarLoadableContainer(
         isLoading = isLoading,
@@ -126,7 +120,14 @@ fun ReportScreen(
             }
             AvailableContainer(available = available) {
                 Column {
-                    PhotosRow()
+                    PhotosRow(
+                        photos = photos,
+                        mapper = { PhotoItemData(it.photo.entranceNumber.number.let { if (it == -1) "Д" else it.toString() }, it.uri) },
+                        requiredPhoto = task?.taskItem?.needPhoto == true,
+                        hasPhoto = photos.any { it.photo.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM },
+                        onTakePhotoClicked = { sendMessage(ReportMessages.msgPhotoClicked(null, false)) },
+                        onDeleteClicked = { sendMessage(ReportMessages.msgRemovePhotoClicked(it.photo)) }
+                    )
                     DescriptionInput()
                     Buttons(isCloseClicked, onCloseButtonClicked, modifier = Modifier.fillMaxWidth())
                 }
@@ -154,43 +155,6 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.DescriptionInput() {
             .height(48.dp)
             .padding(start = 8.dp, end = 8.dp)
     )
-}
-
-@Composable
-private fun ElmScaffoldContext<ReportContext, ReportState>.PhotosRow(modifier: Modifier = Modifier) {
-    val photos by watchAsState { it.selectedTaskPhotos }
-    val task by watchAsState { it.selectedTask }
-    val interactionSource = remember { MutableInteractionSource() }
-
-    LazyRow(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
-        item {
-            Icon(
-                painter = painterResource(R.drawable.ic_entrance_photo),
-                contentDescription = null,
-                tint = if (task?.taskItem?.needPhoto == true)
-                    ColorRequiredPhoto
-                else if (photos.any { it.photo.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM })
-                    ColorHasPhoto
-                else
-                    Color.Black,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .size(48.dp)
-                    .clickable(interactionSource = interactionSource, indication = null) {
-                        sendMessage(
-                            ReportMessages.msgPhotoClicked(
-                                null,
-                                false
-                            )
-                        )
-                    }
-                    .padding(4.dp)
-            )
-        }
-        items(photos) {
-            PhotoItem(it.photo, it.uri)
-        }
-    }
 }
 
 @Composable
@@ -362,43 +326,6 @@ private fun EntranceButton(text: String, active: Boolean, hasDefault: Boolean, o
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
-@Composable
-private fun ElmScaffoldContext<ReportContext, ReportState>.PhotoItem(photo: TaskItemPhoto, uri: Uri, modifier: Modifier = Modifier) {
-
-    Box(
-        modifier = modifier
-            .size(64.dp)
-            .padding(8.dp)
-    ) {
-        GlideImage(
-            model = uri,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(48.dp)
-                .align(Alignment.Center)
-        )
-        Icon(
-            painter = painterResource(R.drawable.ic_cancel_black_24dp),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .clickable { sendMessage(ReportMessages.msgRemovePhotoClicked(photo)) }
-                .padding(top = 2.dp, end = 2.dp)
-                .size(24.dp)
-        )
-        Text(
-            text = photo.entranceNumber.number.let { if (it == -1) "Д" else it.toString() },
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 3.dp, bottom = 2.dp)
-                .size(20.dp)
-                .background(color = ColorBackgroundGray, shape = CircleShape)
-        )
-    }
-}
 
 @Composable
 private fun ElmScaffoldContext<ReportContext, ReportState>.Buttons(
@@ -409,9 +336,13 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.Buttons(
     val isFirm by watchAsState { it.selectedTask?.taskItem is TaskItem.Firm }
 
     Row(modifier) {
-        DeliveryButton(text = stringResource(R.string.close_address_button).uppercase(),
+        DeliveryButton(
+            text = stringResource(R.string.close_address_button).uppercase(),
             contentPadding = PaddingValues(horizontal = 6.dp),
-            modifier = Modifier.weight(1f).padding(start = 8.dp, end = 8.dp, bottom = 8.dp))
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+        )
         {
             if (!isCloseClicked) {
                 sendMessage(ReportMessages.msgCloseClicked(null))
@@ -419,9 +350,13 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.Buttons(
             }
         }
         if (isFirm) {
-            DeliveryButton(text = stringResource(R.string.reject_address_button).uppercase(),
+            DeliveryButton(
+                text = stringResource(R.string.reject_address_button).uppercase(),
                 contentPadding = PaddingValues(horizontal = 6.dp),
-                modifier = Modifier.weight(1f).padding(start = 8.dp, end = 8.dp, bottom = 8.dp))
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+            )
             {
                 sendMessage(ReportMessages.msgRejectClicked())
             }

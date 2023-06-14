@@ -1,9 +1,5 @@
 package ru.relabs.kurjer.presentation.storageReport
 
-import android.net.Uri
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -12,13 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.Divider
-import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,30 +21,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.StorageClosure
 import ru.relabs.kurjer.domain.models.Task
-import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffold
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffoldContext
 import ru.relabs.kurjer.presentation.base.compose.common.AppBarLoadableContainer
 import ru.relabs.kurjer.presentation.base.compose.common.DeliveryButton
 import ru.relabs.kurjer.presentation.base.compose.common.DescriptionTextField
 import ru.relabs.kurjer.presentation.base.compose.common.HintContainer
+import ru.relabs.kurjer.presentation.base.compose.common.photo.PhotoItemData
+import ru.relabs.kurjer.presentation.base.compose.common.photo.PhotosRow
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorDivider
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
-import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorHasPhoto
-import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorRequiredPhoto
 import ru.relabs.kurjer.presentation.base.tea.ElmController
 import ru.relabs.kurjer.uiOld.helpers.formattedTimeDate
 
@@ -64,6 +51,8 @@ fun StorageReportScreen(controller: ElmController<StorageReportContext, StorageR
     val storageCloseFirstRequired by watchAsState { it.tasks.firstOrNull()?.storageCloseFirstRequired == true }
     val hintText by watchAsState { it.tasks.firstOrNull()?.storage?.description.toString() }
     val closureList by watchAsState { it.closureList }
+    val photos by watchAsState { it.storagePhotos }
+    val tasks by watchAsState { it.tasks }
 
     AppBarLoadableContainer(
         isLoading = isLoading,
@@ -87,7 +76,14 @@ fun StorageReportScreen(controller: ElmController<StorageReportContext, StorageR
                     ClosureItem(index = idx, task = closureInfo.task, closure = closureInfo.closure)
                 }
             }
-            PhotosRow()
+            PhotosRow(
+                photos = photos,
+                mapper = { PhotoItemData(null, it.uri) },
+                requiredPhoto = tasks.any { it.storage.photoRequired },
+                hasPhoto = photos.isNotEmpty(),
+                onTakePhotoClicked = { sendMessage(StorageReportMessages.msgPhotoClicked()) },
+                onDeleteClicked = { sendMessage(StorageReportMessages.msgRemovePhotoClicked(it.photo)) }
+            )
             DescriptionInput()
             DeliveryButton(
                 text = stringResource(R.string.show_task_on_map).uppercase(),
@@ -166,70 +162,4 @@ private fun ElmScaffoldContext<StorageReportContext, StorageReportState>.Descrip
             .heightIn(max = 128.dp)
             .padding(start = 8.dp, end = 8.dp)
     )
-}
-
-@Composable
-private fun ElmScaffoldContext<StorageReportContext, StorageReportState>.PhotosRow(modifier: Modifier = Modifier) {
-    val photos by watchAsState { it.storagePhotos }
-    val tasks by watchAsState { it.tasks }
-    val interactionSource = remember { MutableInteractionSource() }
-
-    LazyRow(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
-        item {
-            Icon(
-                painter = painterResource(R.drawable.ic_entrance_photo),
-                contentDescription = null,
-                tint = if (tasks.any { it.storage.photoRequired })
-                    ColorRequiredPhoto
-                else if (photos.isNotEmpty())
-                    ColorHasPhoto
-                else
-                    Color.Black,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .size(48.dp)
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null
-                    ) { sendMessage(StorageReportMessages.msgPhotoClicked()) }
-                    .padding(4.dp)
-            )
-        }
-        items(photos) {
-            PhotoItem(it.photo, it.uri)
-        }
-    }
-}
-
-@OptIn(ExperimentalGlideComposeApi::class)
-@Composable
-private fun ElmScaffoldContext<StorageReportContext, StorageReportState>.PhotoItem(
-    photo: StorageReportPhoto,
-    uri: Uri,
-    modifier: Modifier = Modifier
-) {
-
-    Box(
-        modifier = modifier
-            .size(64.dp)
-            .padding(8.dp)
-    ) {
-        GlideImage(
-            model = uri,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(48.dp)
-                .align(Alignment.Center)
-        )
-        Icon(
-            painter = painterResource(R.drawable.ic_cancel_black_24dp),
-            contentDescription = null,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .clickable { sendMessage(StorageReportMessages.msgRemovePhotoClicked(photo)) }
-                .padding(top = 2.dp, end = 2.dp)
-                .size(24.dp)
-        )
-    }
 }

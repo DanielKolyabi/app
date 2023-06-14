@@ -2,6 +2,7 @@ package ru.relabs.kurjer.presentation.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -100,6 +102,7 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
     val password by watchAsState { it.password }
     var passwordInput by remember { mutableStateOf(password) }
     val isChecked by watchAsState { it.isPasswordRemembered }
+    val interactionSource = remember { MutableInteractionSource() }
 
     val passwordFocusRequester = remember { FocusRequester() }
     val context = LocalContext.current
@@ -143,13 +146,17 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
         Spacer(Modifier.height(16.dp))
         Row(
             modifier = Modifier
-                .clickable { sendMessage(LoginMessages.msgRememberChanged()) }
+                .clickable(interactionSource = interactionSource, indication = null) { sendMessage(LoginMessages.msgRememberChanged()) }
                 .padding(vertical = 4.dp)
         )
         {
             Image(
                 painter = painterResource(if (!isChecked) R.drawable.ic_check_circle_unselected else R.drawable.ic_check_circle_selected),
                 contentDescription = null,
+                modifier = Modifier.clickable(
+                    interactionSource = interactionSource,
+                    indication = rememberRipple(bounded = false)
+                ) { sendMessage(LoginMessages.msgRememberChanged()) }
             )
             Text(
                 text = stringResource(R.string.remember_password),

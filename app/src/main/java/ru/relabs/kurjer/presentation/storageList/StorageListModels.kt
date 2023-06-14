@@ -6,11 +6,16 @@ import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskDeliveryType
 import ru.relabs.kurjer.domain.useCases.StorageReportUseCase
 import ru.relabs.kurjer.domain.useCases.TaskUseCase
-import ru.relabs.kurjer.presentation.base.tea.*
+import ru.relabs.kurjer.presentation.base.tea.ElmEffect
+import ru.relabs.kurjer.presentation.base.tea.ElmMessage
+import ru.relabs.kurjer.presentation.base.tea.ErrorContext
+import ru.relabs.kurjer.presentation.base.tea.ErrorContextImpl
+import ru.relabs.kurjer.presentation.base.tea.RouterContext
+import ru.relabs.kurjer.presentation.base.tea.RouterContextMainImpl
 
 data class StorageListState(
-    var tasks: List<TaskWrapper> = emptyList(),
-    var loaders: Int = 0
+    val tasks: List<TaskWrapper> = emptyList(),
+    val loaders: Int = 0
 ) {
     data class TaskWrapper(val task: Task, val isStorageActuallyRequired: Boolean)
     val storageWithTasksList = tasks.filter { it.task.deliveryType == TaskDeliveryType.Address }

@@ -7,10 +7,15 @@ import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 import ru.relabs.kurjer.data.database.entities.TaskItemPhotoEntity
 import ru.relabs.kurjer.domain.mappers.database.DatabasePhotoMapper
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.id
+import ru.relabs.kurjer.domain.models.photo.TaskItemPhoto
+import ru.relabs.kurjer.domain.models.taskId
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.utils.CustomLog
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 class PhotoRepository(private val db: AppDatabase, private val pathsProvider: PathsProvider) {
     private val photosDao = db.photosDao()
@@ -53,9 +58,9 @@ class PhotoRepository(private val db: AppDatabase, private val pathsProvider: Pa
     }
 
     suspend fun removePhoto(photo: TaskItemPhoto) {
-        CustomLog.writeToFile("Remove photo ${photo.id} ent=${photo.entranceNumber} tii=${photo.taskItemId} ti=${photo.UUID}")
+        CustomLog.writeToFile("Remove photo ${photo.id} ent=${photo.entranceNumber} tii=${photo.taskItemId} ti=${photo.uuid}")
         val file =
-            pathsProvider.getTaskItemPhotoFileByID(photo.taskItemId.id, UUID.fromString(photo.UUID))
+            pathsProvider.getTaskItemPhotoFileByID(photo.taskItemId.id, UUID.fromString(photo.uuid))
         file.delete()
         db.photosDao().deleteById(photo.id.id)
     }

@@ -9,11 +9,11 @@ import ru.relabs.kurjer.domain.models.EntranceNumber
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.TaskItemId
-import ru.relabs.kurjer.domain.models.TaskItemPhoto
 import ru.relabs.kurjer.domain.models.TaskItemResult
 import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.domain.models.TaskState
 import ru.relabs.kurjer.domain.models.id
+import ru.relabs.kurjer.domain.models.photo.TaskItemPhoto
 import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
@@ -58,7 +58,7 @@ object ReportMessages {
         }
     )
 
-    fun msgTaskSelectionLoaded(taskWithItem: TaskWithItem, photos: List<PhotoWithUri>): ReportMessage =
+    fun msgTaskSelectionLoaded(taskWithItem: TaskWithItem, photos: List<TaskPhotoWithUri>): ReportMessage =
         msgState { it.copy(selectedTask = taskWithItem, selectedTaskPhotos = photos, isEntranceSelectionChanged = false) }
 
     fun msgPhotoClicked(
@@ -116,8 +116,8 @@ object ReportMessages {
         }
     )
 
-    fun msgNewPhoto(newPhoto: PhotoWithUri): ReportMessage = msgState {
-        CustomLog.writeToFile("New photo added to list ${newPhoto.photo.UUID}")
+    fun msgNewPhoto(newPhoto: TaskPhotoWithUri): ReportMessage = msgState {
+        CustomLog.writeToFile("New photo added to list ${newPhoto.photo.uuid}")
         it.copy(selectedTaskPhotos = it.selectedTaskPhotos + listOf(newPhoto))
     }
 

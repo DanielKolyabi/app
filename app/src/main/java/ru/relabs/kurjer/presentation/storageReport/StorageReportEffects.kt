@@ -4,19 +4,30 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
 import android.net.Uri
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.photo.StorageReportPhoto
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
-import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.wrapInLoaders
 import ru.relabs.kurjer.uiOld.fragments.YandexMapFragment
-import ru.relabs.kurjer.utils.*
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.Either
+import ru.relabs.kurjer.utils.ImageUtils
+import ru.relabs.kurjer.utils.Left
+import ru.relabs.kurjer.utils.Right
+import ru.relabs.kurjer.utils.awaitFirst
+import ru.relabs.kurjer.utils.calculateDistance
 import ru.relabs.kurjer.utils.extensions.isLocationExpired
 import java.io.File
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 
 object StorageReportEffects {

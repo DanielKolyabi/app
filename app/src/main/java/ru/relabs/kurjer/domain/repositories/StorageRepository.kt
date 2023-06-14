@@ -9,12 +9,15 @@ import ru.relabs.kurjer.data.database.entities.storage.StorageReportPhotoEntity
 import ru.relabs.kurjer.data.database.entities.storage.StorageReportRequestEntity
 import ru.relabs.kurjer.domain.mappers.database.StorageReportMapper
 import ru.relabs.kurjer.domain.mappers.database.StorageReportPhotoMapper
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
+import ru.relabs.kurjer.domain.models.StorageId
+import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.photo.StorageReportPhoto
 import ru.relabs.kurjer.domain.models.storage.StorageReport
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
-import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 import ru.relabs.kurjer.domain.providers.PathsProvider
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 class StorageRepository(db: AppDatabase, private val pathsProvider: PathsProvider) {
 

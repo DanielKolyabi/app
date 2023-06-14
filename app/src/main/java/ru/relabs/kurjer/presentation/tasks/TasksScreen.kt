@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -39,6 +40,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskState
@@ -57,11 +59,12 @@ import ru.relabs.kurjer.presentation.base.tea.ElmController
 
 @RequiresApi(Build.VERSION_CODES.P)
 @Composable
-fun TasksScreen(controller: ElmController<TasksContext, TasksState>, onMenuClick: () -> Unit) = ElmScaffold(controller) {
+fun TasksScreen(controller: ElmController<TasksContext, TasksState>, onCrashLogClicked: () -> Unit) = ElmScaffold(controller) {
     val isLoading by watchAsState { it.loaders > 0 }
     val tasks by watchAsState { it.tasks }
     val sortedTasks by watchAsState { it.sortedTasks }
     val selectedTasks by watchAsState { it.selectedTasks }
+    val userLogin by watchAsState { it.userLogin }
     val loaderBackground by animateColorAsState(
         targetValue = if (isLoading && tasks.isNotEmpty())
             ColorLoaderBackground
@@ -77,15 +80,19 @@ fun TasksScreen(controller: ElmController<TasksContext, TasksState>, onMenuClick
         }
     }
     val density = LocalDensity.current
+    val scaffoldState = rememberScaffoldState()
 
-    Scaffold(modifier = Modifier.fillMaxSize(), drawerContent = {
+    Scaffold(modifier = Modifier.fillMaxSize(),
+        scaffoldState = scaffoldState,
+        drawerContent = {
+            TasksDrawer(userLogin = userLogin, onCrashLogClicked)
+        }) {
 
-    }) {
         Column(Modifier.padding(it)) {
             TasksAppBar(
                 title = stringResource(R.string.tasks_title),
                 menuIcon = painterResource(R.drawable.ic_menu),
-                menuIconClicked = { onMenuClick() },
+                menuIconClicked = { scope.launch { scaffoldState.drawerState.open() } },
                 refreshIcon = painterResource(R.drawable.ic_reload_disabled),
                 refreshIconClicked = { sendMessage(TasksMessages.msgRefresh()) }
             )
@@ -148,10 +155,13 @@ private fun ElmScaffoldContext<TasksContext, TasksState>.TaskItem(
     val chainColor by animateColorAsState(targetValue = if (isSelected) ColorFuchsia else Color.Unspecified, label = "chain")
     val interactionSource = remember { MutableInteractionSource() }
 
-    Column(modifier = modifier
-        .background(backgroundColor)
-        .clickable(interactionSource = interactionSource, indication = null)
-        { sendMessage(TasksMessages.msgTaskClicked(task)) }) {
+    Column(
+        modifier = modifier
+            .background(backgroundColor)
+            .clickable(interactionSource = interactionSource, indication = null) {
+                sendMessage(TasksMessages.msgTaskClicked(task))
+            }
+    ) {
         Spacer(Modifier.height(8.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,

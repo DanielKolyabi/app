@@ -2,15 +2,20 @@ package ru.relabs.kurjer.presentation.tasks
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.address
 import ru.relabs.kurjer.domain.models.canBeSelectedWith
 import ru.relabs.kurjer.domain.models.id
+import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
+import ru.relabs.kurjer.domain.repositories.PauseRepository
+import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.repositories.TaskRepository
+import ru.relabs.kurjer.domain.storage.CurrentUserStorage
 import ru.relabs.kurjer.presentation.base.tea.ElmEffect
 import ru.relabs.kurjer.presentation.base.tea.ElmMessage
 import ru.relabs.kurjer.presentation.base.tea.ElmRender
@@ -28,7 +33,8 @@ data class TasksState(
     val tasks: List<Task> = emptyList(),
     val selectedTasks: List<Task> = emptyList(),
     val loaders: Int = 0,
-    val searchFilter: String = ""
+    val searchFilter: String = "",
+    val userLogin: UserLogin? = null
 ) {
     private val intersections = searchIntersections(tasks, selectedTasks)
     val sortedTasks = tasks.sortedBy { it.listSort }
@@ -81,9 +87,15 @@ class TasksContext(val examinedConsumer: TasksFragment, val errorContext: ErrorC
     val taskEventController: TaskEventController by inject()
     val settingsRepository: SettingsRepository by inject()
     val pathsProvider: PathsProvider by inject()
+    val userStorage: CurrentUserStorage by inject()
+    val pauseRepository: PauseRepository by inject()
+    val deviceUUIDProvider: DeviceUUIDProvider by inject()
 
     var showSnackbar: suspend (Int) -> Unit = {}
     var showUpdateRequiredOnVisible: (canSkip: Boolean) -> Unit = {}
+    var showErrorDialog: (id: Int) -> Unit = {}
+    var showPauseDialog: (availablePauseTypes: List<PauseType>) -> Unit = {}
+    var copyToClipboard: (String) -> Unit = {}
 }
 
 typealias TasksMessage = ElmMessage<TasksContext, TasksState>

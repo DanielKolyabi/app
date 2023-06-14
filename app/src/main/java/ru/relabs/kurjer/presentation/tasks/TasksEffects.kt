@@ -9,9 +9,11 @@ import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskState
 import ru.relabs.kurjer.domain.repositories.MergeResult
+import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.CommonMessages
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
+import ru.relabs.kurjer.presentation.base.tea.wrapInLoaders
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import java.util.Date
@@ -31,8 +33,10 @@ object TasksEffects {
         when {
             task.state.state != TaskState.EXAMINED && task.state.state != TaskState.STARTED ->
                 c.showSnackbar(R.string.task_list_not_examined)
+
             Date() < task.startTime ->
                 c.showSnackbar(R.string.task_list_not_started)
+
             else ->
                 messages.send(TasksMessages.msgTaskSelected(task))
         }
@@ -73,14 +77,17 @@ object TasksEffects {
                             c.deliveryRepository.loadEditionPhoto(it.task)
                             tasksCreated = true
                         }
+
                         is MergeResult.TaskUpdated -> {
                             c.deliveryRepository.loadTaskMap(it.task)
                             c.deliveryRepository.loadEditionPhoto(it.task)
                             tasksUpdated = true
                         }
+
                         is MergeResult.TaskRemoved -> tasksUpdated = true
                     }
                 }
+
                 is Left -> messages.send(CommonMessages.msgError(r.value))
             }
 
@@ -110,11 +117,13 @@ object TasksEffects {
                     when (event) {
                         is TaskEvent.TaskClosed ->
                             messages.send(TasksMessages.msgTaskClosed(event.taskId))
+
                         is TaskEvent.TasksUpdateRequired -> withContext(Dispatchers.Main) {
                             if (event.showDialogInTasks && s.loaders == 0) {
                                 c.showUpdateRequiredOnVisible(c.settingsRepository.canSkipUpdates)
                             }
                         }
+
                         is TaskEvent.TaskItemClosed -> Unit
                     }
                 }
@@ -124,5 +133,59 @@ object TasksEffects {
 
     fun effectShowTaskSelectionDistrictError(): TasksEffect = { c, _ ->
         c.showSnackbar(R.string.task_list_district_different)
+    }
+
+    fun effectSubscribe(): TasksEffect = { c, s ->
+        coroutineScope {
+            launch { c.userStorage.currentUser.collect { messages.send(TasksMessages.msgUserLoaded(it)) } }
+        }
+
+    }
+
+    fun effectEnablePause(): TasksEffect = { c, s ->
+        if (c.pauseRepository.isPaused) {
+            withContext(Dispatchers.Main) {
+                c.showErrorDialog(R.string.pause_already_paused)
+            }
+        } else {
+            val availablePauseTypes = listOfNotNull(
+                PauseType.Load.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Load) },
+                PauseType.Lunch.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Lunch) }
+            )
+            withContext(Dispatchers.Main) {
+                c.showPauseDialog(availablePauseTypes)
+            }
+        }
+    }
+
+    fun effectPauseStart(type: PauseType): TasksEffect = wrapInLoaders({ TasksMessages.msgAddLoaders(it) })
+    { c, s ->
+        if (!c.pauseRepository.isPauseAvailable(type)) {
+            withContext(Dispatchers.Main) {
+                c.showErrorDialog(R.string.error_pause_unavailable)
+            }
+        } else {
+            if (!c.pauseRepository.isPauseAvailableRemote(type)) {
+                withContext(Dispatchers.Main) {
+                    c.showErrorDialog(R.string.error_pause_unavailable)
+                }
+            } else {
+                c.pauseRepository.startPause(type)
+            }
+        }
+    }
+
+    fun effectCopyDeviceUUID(): TasksEffect = { c, s ->
+        val uuid = c.deviceUUIDProvider.getOrGenerateDeviceUUID()
+        withContext(Dispatchers.Main) {
+            c.copyToClipboard(uuid.id)
+        }
+    }
+
+    fun effectLogout(): TasksEffect = { c, s ->
+        c.loginUseCase.logout()
+        withContext(Dispatchers.Main) {
+            c.router.newRootScreen(RootScreen.login())
+        }
     }
 }

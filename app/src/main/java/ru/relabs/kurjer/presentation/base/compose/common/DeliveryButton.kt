@@ -9,6 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
 
 @Composable
@@ -24,7 +25,7 @@ fun DeliveryButton(
         colors = ButtonDefaults.buttonColors(backgroundColor = ColorFuchsia),
         shape = RoundedCornerShape(2.dp),
         contentPadding = contentPadding,
-        modifier = modifier
+        modifier = modifier.zIndex(1f)
     ) {
         Text(
             text = text,

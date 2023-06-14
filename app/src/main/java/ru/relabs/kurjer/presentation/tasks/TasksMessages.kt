@@ -1,8 +1,10 @@
 package ru.relabs.kurjer.presentation.tasks
 
+import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.canBeSelectedWith
+import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.presentation.base.tea.msgState
@@ -18,7 +20,8 @@ object TasksMessages {
         {
             listOf(
                 TasksEffects.effectLoadTasks(refreshTasks),
-                TasksEffects.effectLaunchEventConsumers()
+                TasksEffects.effectLaunchEventConsumers(),
+                TasksEffects.effectSubscribe()
             )
         }
     )
@@ -84,4 +87,14 @@ object TasksMessages {
                 selectedTasks = s.selectedTasks.filter { it.id != taskId }
             )
         }
+
+    fun msgUserLoaded(userLogin: UserLogin?): TasksMessage =
+        msgState { s -> s.copy(userLogin = userLogin) }
+
+    fun msgPauseClicked(): TasksMessage = msgEffect(TasksEffects.effectEnablePause())
+    fun msgPauseStart(type: PauseType): TasksMessage = msgEffect(TasksEffects.effectPauseStart(type))
+    fun msgCopyDeviceUUID(): TasksMessage = msgEffect(TasksEffects.effectCopyDeviceUUID())
+    fun msgLogout(): TasksMessage = msgEffect(TasksEffects.effectLogout())
+
+
 }

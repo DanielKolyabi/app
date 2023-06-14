@@ -4,9 +4,9 @@ import android.location.Location
 import android.net.Uri
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.photo.StorageReportPhoto
 import ru.relabs.kurjer.domain.models.storage.StorageReport
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
-import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.presentation.base.tea.msgState

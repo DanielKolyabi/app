@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,7 +36,7 @@ fun BasicAppBar(
     endIcon: Painter? = null,
     endIconClicked: () -> Unit = {},
 ) {
-    val interactionSource = MutableInteractionSource()
+    val interactionSource = remember { MutableInteractionSource() }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,

@@ -154,6 +154,7 @@ private fun ListHeader(modifier: Modifier = Modifier) {
 private fun PageHeader(task: Task, photoRequired: Boolean, modifier: Modifier = Modifier) {
     var maxWidth by remember { mutableStateOf(0.dp) }
     val density = LocalDensity.current
+
     Column(modifier = modifier) {
         Row {
             Icon(

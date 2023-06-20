@@ -26,6 +26,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,10 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.StateFlow
 import ru.relabs.kurjer.R
@@ -81,6 +85,11 @@ fun ReportScreen(
     val isCloseClicked by isCloseClickedFlow.collectAsState()
     val photos by watchAsState { it.selectedTaskPhotos }
     val task by watchAsState { it.selectedTask }
+    var screenHeight by remember { mutableStateOf(0.dp) }
+    var rowHeight by remember { mutableStateOf(0.dp) }
+    var inputHeight by remember { mutableStateOf(0.dp) }
+    val hintHeight by remember { derivedStateOf { screenHeight - inputHeight - rowHeight } }
+    val density = LocalDensity.current
 
     AppBarLoadableContainer(
         isLoading = isLoading,
@@ -89,11 +98,24 @@ fun ReportScreen(
         title = title,
         onBackClicked = { sendMessage(ReportMessages.msgBackClicked()) }
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .onSizeChanged {
+                    with(density) {
+                        screenHeight = it.height.toDp()
+                    }
+                }
+        ) {
             if (tasks.size > 1)
                 LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .onSizeChanged {
+                            with(density) {
+                                rowHeight = it.height.toDp()
+                            }
+                        }
                 ) {
                     items(tasks) { task ->
                         TaskItem(task)
@@ -101,7 +123,8 @@ fun ReportScreen(
                 }
             HintContainer(
                 hintText = (3 downTo 1).joinToString("<br/>") { notes.getOrElse(it - 1) { "" } },
-                textSizeStorage = textSizeStorage
+                textSizeStorage = textSizeStorage,
+                maxHeight = hintHeight
             )
             firmAddress?.let { Text(text = it, modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp)) }
             AvailableContainer(
@@ -119,7 +142,13 @@ fun ReportScreen(
                 }
             }
             AvailableContainer(available = available) {
-                Column {
+                Column(
+                    modifier = Modifier.onSizeChanged {
+                        with(density) {
+                            inputHeight = max(inputHeight, it.height.toDp())
+                        }
+                    }
+                ) {
                     PhotosRow(
                         photos = photos,
                         mapper = { PhotoItemData(it.photo.entranceNumber.number.let { if (it == -1) "Д" else it.toString() }, it.uri) },

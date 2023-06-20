@@ -22,7 +22,7 @@ fun HtmlText(
         update = {
             it.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT)
             it.textSize = textSize
-            textColor?.let {color -> it.setTextColor(color)  }
+            textColor?.let { color -> it.setTextColor(color) }
             it.gravity = gravity
             typeface?.let { tf -> it.typeface = tf }
         },

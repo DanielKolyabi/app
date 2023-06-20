@@ -38,7 +38,14 @@ import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGradientSta
 fun HintContainer(hintText: String, textSizeStorage: TextSizeStorage, modifier: Modifier = Modifier, maxHeight: Dp = 250.dp) {
     val textSize by remember { textSizeStorage.textSize }.collectAsState()
     var expanded by remember { mutableStateOf(true) }
-    val containerHeight by animateDpAsState(if (expanded) maxHeight else 30.dp, label = "")
+    val containerHeight by animateDpAsState(
+        if (expanded && maxHeight <= 250.dp)
+            maxHeight
+        else if (expanded && maxHeight > 250.dp)
+            250.dp
+        else
+            30.dp, label = ""
+    )
     val interactionSource = remember { MutableInteractionSource() }
 
     Box(

@@ -3,11 +3,9 @@ package ru.relabs.kurjer.presentation.host.featureCheckers
 import android.app.Activity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.providers.LocationProvider
-import ru.relabs.kurjer.utils.NetworkHelper
 import ru.relabs.kurjer.utils.extensions.showDialog
 
 class MockedLocationChecker(
@@ -21,8 +19,8 @@ class MockedLocationChecker(
     init {
         scope.launch(Dispatchers.IO) {
             locationProvider.location.collect {
-                if(it?.isFromMockProvider == true){
-                   isMockedLocationFound = true
+                if (it?.isFromMockProvider == true) {
+                    isMockedLocationFound = true
                 }
             }
         }

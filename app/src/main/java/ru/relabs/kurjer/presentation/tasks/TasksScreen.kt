@@ -103,7 +103,7 @@ fun TasksScreen(controller: ElmController<TasksContext, TasksState>, onCrashLogC
                     modifier = Modifier
                         .fillMaxSize()
                 ) {
-                    item { SearchItem() }
+                    item { SearchItem(modifier = Modifier.gesturesDisabled(isLoading)) }
                     items(sortedTasks) {
                         TaskItem(it.task, it.isTasksWithSameAddressPresented, it.isSelected)
                     }

@@ -83,11 +83,11 @@ class StorageReportFragment : BaseFragment() {
         controller.context.errorContext.attach(view)
         controller.context.getBatteryLevel = ::getBatteryLevel
         controller.context.requestPhoto = ::requestPhoto
-        controller.context.showCloseError = ::showCloseError
-        controller.context.showError = ::showFatalError
-        controller.context.showPausedWarning = ::showPausedWarning
-        controller.context.showPhotosWarning = ::showPhotosWarning
-        controller.context.showPreCloseDialog = ::showPreCloseDialog
+//        controller.context.showCloseError = ::showCloseError
+//        controller.context.showError = ::showFatalError
+//        controller.context.showPausedWarning = ::showPausedWarning
+//        controller.context.showPhotosWarning = ::showPhotosWarning
+//        controller.context.showPreCloseDialog = ::showPreCloseDialog
         controller.context.contentResolver = { requireContext().contentResolver }
     }
 
@@ -95,12 +95,12 @@ class StorageReportFragment : BaseFragment() {
         super.onDestroyView()
         controller.context.getBatteryLevel = { null }
         controller.context.requestPhoto = { _, _, _ -> }
-        controller.context.showCloseError = { _, _, _, _ -> }
-        controller.context.showError = { _, _ -> }
-        controller.context.showPausedWarning = {}
-        controller.context.showPhotosWarning = {}
+//        controller.context.showCloseError = { _, _, _, _ -> }
+//        controller.context.showError = { _, _ -> }
+//        controller.context.showPausedWarning = {}
+//        controller.context.showPhotosWarning = {}
         controller.context.contentResolver = { null }
-        controller.context.showPreCloseDialog = { _ -> }
+//        controller.context.showPreCloseDialog = { _ -> }
         controller.context.errorContext.detach()
     }
 
@@ -121,7 +121,6 @@ class StorageReportFragment : BaseFragment() {
                 }
             ).setOnDismissListener {
             }
-            Unit
         }
 
     private fun showPreCloseDialog(location: Location?) {

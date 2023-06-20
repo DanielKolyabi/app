@@ -254,7 +254,7 @@ private fun ElmScaffoldContext<StorageReportContext, StorageReportState>.PreClos
     dialogData?.let {
         DefaultDialog(
             text = stringResource(R.string.report_close_ask),
-            acceptButton = stringResource(R.string.yes) to { sendMessage(StorageReportMessages.msgPerformClose(it.location)) },
+            acceptButton = stringResource(R.string.yes) to { sendMessage(StorageReportMessages.msgPerformClose(it.location, true)) },
             declineButton = stringResource(R.string.no) to {},
             onDismiss = { dialogData = null },
             textColor = ColorRedAlertText

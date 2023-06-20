@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.services
 
 import android.util.Log
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope

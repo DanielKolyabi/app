@@ -1,32 +1,38 @@
 package ru.relabs.kurjer.presentation.tasks
 
+import android.app.AlertDialog
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.LinearLayoutManager
-import kotlinx.android.synthetic.main.fragment_tasks.view.*
+import android.widget.ArrayAdapter
+import androidx.annotation.RequiresApi
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.repositories.PauseType
+import ru.relabs.kurjer.presentation.base.compose.common.themes.DeliveryTheme
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.fragment.FragmentStyleable
 import ru.relabs.kurjer.presentation.base.fragment.IFragmentStyleable
-import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
-import ru.relabs.kurjer.presentation.base.tea.debugCollector
 import ru.relabs.kurjer.presentation.base.tea.defaultController
-import ru.relabs.kurjer.presentation.base.tea.rendersCollector
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
-import ru.relabs.kurjer.presentation.host.HostActivity
 import ru.relabs.kurjer.presentation.taskDetails.IExaminedConsumer
 import ru.relabs.kurjer.uiOld.fragments.YandexMapFragment
-import ru.relabs.kurjer.utils.debug
+import ru.relabs.kurjer.utils.ClipboardHelper
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.IntentUtils
+import ru.relabs.kurjer.utils.Left
+import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.extensions.showDialog
 import ru.relabs.kurjer.utils.extensions.showSnackbar
+import java.io.FileNotFoundException
 
 
 /**
@@ -42,18 +48,6 @@ class TasksFragment : BaseFragment(),
     private var shouldShowUpdateRequiredOnResume: Boolean = false
     private var canSkipUpdate: Boolean = false
     private var taskUpdateRequiredDialogShowed: Boolean = false
-
-    private val tasksAdapter = DelegateAdapter(
-        TasksAdapter.loaderAdapter(),
-        TasksAdapter.taskAdapter(
-            { uiScope.sendMessage(controller, TasksMessages.msgTaskSelectClick(it)) },
-            { uiScope.sendMessage(controller, TasksMessages.msgTaskClicked(it)) }
-        ),
-        TasksAdapter.blankAdapter(),
-        TasksAdapter.searchAdapter {
-            uiScope.sendMessage(controller, TasksMessages.msgSearch(it))
-        }
-    )
 
     override fun onResume() {
         super.onResume()
@@ -74,36 +68,66 @@ class TasksFragment : BaseFragment(),
         controller.stop()
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_tasks, container, false)
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                DeliveryTheme {
+                    TasksScreen(controller = controller) {
+                        when (val r = CustomLog.share(requireActivity())) {
+                            is Left -> when (val e = r.value) {
+                                is FileNotFoundException -> showSnackbar(resources.getString(R.string.crash_log_not_found))
+                                else -> showSnackbar(resources.getString(R.string.unknown_runtime_error))
+                            }
+
+                            is Right -> Unit
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val layoutManager =
-            LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-        view.rv_list.layoutManager = layoutManager
-        view.rv_list.adapter = tasksAdapter
-
-        bindControls(view)
-
-        renderJob = uiScope.launch {
-            val renders = listOf(
-                TasksRenders.renderList(tasksAdapter),
-                TasksRenders.renderLoading(view.loading),
-                TasksRenders.renderStartButton(view.btn_start)
-            )
-            launch { controller.stateFlow().collect(rendersCollector(renders)) }
-            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
-        }
         controller.context.errorContext.attach(view)
         controller.context.showSnackbar = { withContext(Dispatchers.Main) { showSnackbar(resources.getString(it)) } }
         controller.context.showUpdateRequiredOnVisible = ::showUpdateRequiredOnVisible
+        controller.context.showErrorDialog = ::showErrorDialog
+        controller.context.showPauseDialog = ::showPauseDialog
+        controller.context.copyToClipboard = ::copyToClipboard
+    }
+
+    private fun showPauseDialog(availablePauseTypes: List<PauseType>) {
+        var dialog: AlertDialog? = null
+
+        val adapter = ArrayAdapter<String>(requireContext(), android.R.layout.select_dialog_singlechoice).apply {
+            availablePauseTypes.map {
+                add(
+                    getString(
+                        when (it) {
+                            PauseType.Lunch -> R.string.pause_lunch
+                            PauseType.Load -> R.string.pause_load
+                        }
+                    )
+                )
+            }
+            add(getString(R.string.pause_cancel))
+        }
+
+        dialog = AlertDialog.Builder(requireContext())
+            .setAdapter(adapter) { _, id ->
+                when (adapter.getItem(id)) {
+                    getString(R.string.pause_lunch) -> uiScope.sendMessage(controller, TasksMessages.msgPauseStart(PauseType.Lunch))
+                    getString(R.string.pause_load) -> uiScope.sendMessage(controller, TasksMessages.msgPauseStart(PauseType.Load))
+                    getString(R.string.pause_cancel) -> dialog?.dismiss()
+                }
+            }.show()
     }
 
     override fun onPause() {
@@ -134,16 +158,11 @@ class TasksFragment : BaseFragment(),
         }
     }
 
-    private fun bindControls(view: View) {
-        view.iv_menu.setOnClickListener {
-            (activity as? HostActivity)?.changeNavigationDrawerState()
-        }
-        view.btn_start.setOnClickListener {
-            uiScope.sendMessage(controller, TasksMessages.msgStartClicked())
-        }
-        view.iv_update.setOnClickListener {
-            uiScope.sendMessage(controller, TasksMessages.msgRefresh())
-        }
+    private fun showErrorDialog(stringResource: Int) {
+        showDialog(
+            stringResource,
+            R.string.ok to {}
+        )
     }
 
     override fun onDestroyView() {
@@ -151,6 +170,8 @@ class TasksFragment : BaseFragment(),
         renderJob?.cancel()
         controller.context.errorContext.detach()
         controller.context.showSnackbar = {}
+        controller.context.showErrorDialog = {}
+        controller.context.showPauseDialog = {}
     }
 
     override fun onExamined(task: Task) {
@@ -159,6 +180,28 @@ class TasksFragment : BaseFragment(),
 
     override fun interceptBackPressed(): Boolean {
         return false
+    }
+
+    private fun sendDeviceUUID(text: String) {
+        startActivity(
+            Intent.createChooser(
+                IntentUtils.getShareTextIntent(getString(R.string.share_device_uuid_subject), text),
+                getString(R.string.share_device_uuid_title)
+            )
+        )
+    }
+
+    private fun copyToClipboard(text: String) {
+        when (val r = ClipboardHelper.copyToClipboard(requireActivity(), text)) {
+            is Right ->
+                showSnackbar(
+                    resources.getString(R.string.copied_to_clipboard),
+                    resources.getString(R.string.send) to { sendDeviceUUID(text) }
+                )
+
+            is Left ->
+                showSnackbar(resources.getString(R.string.unknown_runtime_error))
+        }
     }
 
     companion object {

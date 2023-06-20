@@ -36,7 +36,7 @@
             android:fontFamily="@string/text_font"
             android:gravity="center_vertical"
             android:maxLines="2"
-            android:text="@string/storage_addresses"
+            android:text="@string/storage_addresses_title"
             android:textColor="@color/white"
             android:textSize="20sp"
             app:layout_constraintBottom_toBottomOf="parent"

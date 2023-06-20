@@ -3,13 +3,24 @@ package ru.relabs.kurjer.presentation.report
 import android.location.Location
 import android.net.Uri
 import ru.relabs.kurjer.BuildConfig
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.models.CoupleType
+import ru.relabs.kurjer.domain.models.ENTRANCE_NUMBER_TASK_ITEM
+import ru.relabs.kurjer.domain.models.EntranceNumber
+import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemId
+import ru.relabs.kurjer.domain.models.TaskItemResult
+import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.TaskState
+import ru.relabs.kurjer.domain.models.id
+import ru.relabs.kurjer.domain.models.photo.TaskItemPhoto
+import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.presentation.base.tea.msgState
 import ru.relabs.kurjer.utils.CustomLog
 import java.io.File
-import java.util.*
+import java.util.UUID
 
 /**
  * Created by Daniil Kurchanov on 02.04.2020.
@@ -47,7 +58,7 @@ object ReportMessages {
         }
     )
 
-    fun msgTaskSelectionLoaded(taskWithItem: TaskWithItem, photos: List<PhotoWithUri>): ReportMessage =
+    fun msgTaskSelectionLoaded(taskWithItem: TaskWithItem, photos: List<TaskPhotoWithUri>): ReportMessage =
         msgState { it.copy(selectedTask = taskWithItem, selectedTaskPhotos = photos, isEntranceSelectionChanged = false) }
 
     fun msgPhotoClicked(
@@ -63,6 +74,7 @@ object ReportMessages {
                             multiplePhoto
                         )
                     )
+
                 false ->
                     msgEffect(ReportEffects.effectRequestPhoto(entranceNumber?.number ?: ENTRANCE_NUMBER_TASK_ITEM, multiplePhoto))
             }
@@ -104,13 +116,13 @@ object ReportMessages {
         }
     )
 
-    fun msgNewPhoto(newPhoto: PhotoWithUri): ReportMessage = msgState {
-        CustomLog.writeToFile("New photo added to list ${newPhoto.photo.UUID}")
+    fun msgNewPhoto(newPhoto: TaskPhotoWithUri): ReportMessage = msgState {
+        CustomLog.writeToFile("New photo added to list ${newPhoto.photo.uuid}")
         it.copy(selectedTaskPhotos = it.selectedTaskPhotos + listOf(newPhoto))
     }
 
-    fun msgDescriptionChanged(text: String): ReportMessage =
-        msgEffect(ReportEffects.effectUpdateDescription(text))
+    fun msgDescriptionChanged(text: String, task: TaskWithItem): ReportMessage =
+        msgEffect(ReportEffects.effectUpdateDescription(text, task))
 
     fun msgCouplingChanged(taskCoupleType: CoupleType, entrance: EntranceNumber, enabled: Boolean): ReportMessage =
         msgState { it.copy(coupling = it.coupling + mapOf(Pair(entrance, taskCoupleType) to enabled)) }

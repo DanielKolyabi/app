@@ -12,43 +12,37 @@ import android.provider.MediaStore
 import android.text.Html
 import android.text.InputFilter
 import android.text.InputType
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.FileProvider
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.android.parcel.Parcelize
-import kotlinx.android.synthetic.main.fragment_report.*
-import kotlinx.android.synthetic.main.fragment_report.view.*
-import kotlinx.android.synthetic.main.include_hint_container.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
-import ru.relabs.kurjer.domain.models.*
-import ru.relabs.kurjer.presentation.base.TextChangeListener
+import ru.relabs.kurjer.domain.models.EntranceNumber
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemId
+import ru.relabs.kurjer.domain.models.id
+import ru.relabs.kurjer.presentation.base.compose.common.themes.DeliveryTheme
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
-import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
-import ru.relabs.kurjer.presentation.base.tea.*
+import ru.relabs.kurjer.presentation.base.tea.defaultController
+import ru.relabs.kurjer.presentation.base.tea.msgEmpty
+import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.presentation.dialogs.RejectFirmDialog
-import ru.relabs.kurjer.uiOld.helpers.HintHelper
 import ru.relabs.kurjer.utils.CustomLog
-import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
-import ru.relabs.kurjer.utils.extensions.visible
 import java.io.File
-import java.util.*
+import java.util.UUID
 
 
 /**
@@ -59,32 +53,38 @@ class ReportFragment : BaseFragment() {
     private var nextPhotoData: ReportPhotoData? = null
 
     private val controller = defaultController(ReportState(), ReportContext())
-    private var renderJob: Job? = null
+
+    //    private var renderJob: Job? = null
     private var isCloseClicked = false
-
-    private val tasksAdapter = DelegateAdapter(
-        ReportAdapter.task {
-            uiScope.sendMessage(controller, ReportMessages.msgTaskSelected(it.id))
+        set(v) {
+            isCloseClickedFlow.tryEmit(v)
+            field = v
         }
-    )
+    private val isCloseClickedFlow = MutableStateFlow(isCloseClicked)
 
-    private val photosAdapter = DelegateAdapter(
-        ReportAdapter.photoSingle {
-            uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(null, false))
-        },
-        ReportAdapter.photo {
-            uiScope.sendMessage(controller, ReportMessages.msgRemovePhotoClicked(it))
-        }
-    )
-
-    private val entrancesAdapter = DelegateAdapter(
-        ReportAdapter.entrance(
-            { entrance, button -> uiScope.sendMessage(controller, ReportMessages.msgEntranceSelectClicked(entrance, button)) },
-            { uiScope.sendMessage(controller, ReportMessages.msgCoupleClicked(it)) },
-            { uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(it, false)) },
-            { uiScope.sendMessage(controller, ReportMessages.msgEntranceDescriptionClicked(it)) }
-        )
-    )
+//    private val tasksAdapter = DelegateAdapter(
+//        ReportAdapter.task {
+//            uiScope.sendMessage(controller, ReportMessages.msgTaskSelected(it.id))
+//        }
+//    )
+//
+//    private val photosAdapter = DelegateAdapter(
+//        ReportAdapter.photoSingle {
+//            uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(null, false))
+//        },
+//        ReportAdapter.photo {
+//            uiScope.sendMessage(controller, ReportMessages.msgRemovePhotoClicked(it))
+//        }
+//    )
+//
+//    private val entrancesAdapter = DelegateAdapter(
+//        ReportAdapter.entrance(
+//            { entrance, button -> uiScope.sendMessage(controller, ReportMessages.msgEntranceSelectClicked(entrance, button)) },
+//            { uiScope.sendMessage(controller, ReportMessages.msgCoupleClicked(it)) },
+//            { uiScope.sendMessage(controller, ReportMessages.msgPhotoClicked(it, false)) },
+//            { uiScope.sendMessage(controller, ReportMessages.msgEntranceDescriptionClicked(it)) }
+//        )
+//    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -118,8 +118,17 @@ class ReportFragment : BaseFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_report, container, false)
+    ): View {
+//        return inflater.inflate(R.layout.fragment_report, container, false)
+
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                DeliveryTheme {
+                    ReportScreen(controller, isCloseClickedFlow) { isCloseClicked = true }
+                }
+            }
+        }
     }
 
 
@@ -131,70 +140,70 @@ class ReportFragment : BaseFragment() {
             CustomLog.writeToFile("Request Photo: Photo Data Restored ${it}")
         }
 
-        val hintHelper = HintHelper(hint_container, "", true, requireActivity())
-        report_root.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                report_root?.height?.takeIf { it > 0 }?.let { height ->
-                    if ((rv_tasks.visible && rv_tasks.height != 0) || !rv_tasks.visible) {
-                        report_root?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
-                    }
-                    hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
-                }
-            }
-        })
-        val tasksListListener = object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                if (rv_tasks?.visible == true && rv_tasks?.height != 0) {
-                    report_root?.height?.takeIf { it > 0 }?.let { height ->
-                        rv_tasks?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
-                        hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
-                    }
-                }
-            }
-        }
-        rv_tasks?.viewTreeObserver?.addOnGlobalLayoutListener(tasksListListener)
-        lifecycle.addObserver(object: LifecycleObserver{
-            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-            fun onDestroy(){
-                rv_tasks?.viewTreeObserver?.removeOnGlobalLayoutListener(tasksListListener)
-            }
-        })
+//        val hintHelper = HintHelper(hint_container, "", true, requireActivity())
+//        report_root.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+//            override fun onGlobalLayout() {
+//                report_root?.height?.takeIf { it > 0 }?.let { height ->
+//                    if ((rv_tasks.visible && rv_tasks.height != 0) || !rv_tasks.visible) {
+//                        report_root?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+//                    }
+//                    hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
+//                }
+//            }
+//        })
+//        val tasksListListener = object : ViewTreeObserver.OnGlobalLayoutListener {
+//            override fun onGlobalLayout() {
+//                if (rv_tasks?.visible == true && rv_tasks?.height != 0) {
+//                    report_root?.height?.takeIf { it > 0 }?.let { height ->
+//                        rv_tasks?.viewTreeObserver?.removeOnGlobalLayoutListener(this)
+//                        hintHelper.maxHeight = height - top_app_bar.height - rv_tasks.height
+//                    }
+//                }
+//            }
+//        }
+//        rv_tasks?.viewTreeObserver?.addOnGlobalLayoutListener(tasksListListener)
+//        lifecycle.addObserver(object: LifecycleObserver{
+//            @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+//            fun onDestroy(){
+//                rv_tasks?.viewTreeObserver?.removeOnGlobalLayoutListener(tasksListListener)
+//            }
+//        })
 
-        val listInterceptor = ListClickInterceptor()
+//        val listInterceptor = ListClickInterceptor()
 
-        view.rv_tasks.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
-        view.rv_tasks.adapter = tasksAdapter
+//        view.rv_tasks.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
+//        view.rv_tasks.adapter = tasksAdapter
 
-        view.rv_entrances.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
-        view.rv_entrances.adapter = entrancesAdapter
-        view.rv_entrances.addOnItemTouchListener(listInterceptor)
+//        view.rv_entrances.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.VERTICAL, false)
+//        view.rv_entrances.adapter = entrancesAdapter
+//        view.rv_entrances.addOnItemTouchListener(listInterceptor)
 
-        view.rv_photos.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
-        view.rv_photos.adapter = photosAdapter
-        view.rv_photos.addOnItemTouchListener(listInterceptor)
+//        view.rv_photos.layoutManager = LinearLayoutManager(view.context, LinearLayoutManager.HORIZONTAL, false)
+//        view.rv_photos.adapter = photosAdapter
+//        view.rv_photos.addOnItemTouchListener(listInterceptor)
 
-        val descriptionTextWatcher = TextChangeListener {
-            if (view.et_description.hasFocus())
-                uiScope.sendMessage(controller, ReportMessages.msgDescriptionChanged(it))
-        }
-        bindControls(view, descriptionTextWatcher)
+//        val descriptionTextWatcher = TextChangeListener {
+//            if (view.et_description.hasFocus())
+//                uiScope.sendMessage(controller, ReportMessages.msgDescriptionChanged(it))
+//        }
+//        bindControls(view, descriptionTextWatcher)
 
-        renderJob = uiScope.launch {
-            val renders = listOf(
-                ReportRenders.renderLoading(view.loading, view.tv_gps_loading),
-                ReportRenders.renderTasks(tasksAdapter, view.rv_tasks),
-                ReportRenders.renderPhotos(photosAdapter),
-                ReportRenders.renderEntrances(entrancesAdapter, view.rv_entrances),
-                ReportRenders.renderTitle(view.tv_title),
-                ReportRenders.renderDescription(view.et_description, descriptionTextWatcher),
-                ReportRenders.renderNotes(hintHelper),
-                ReportRenders.renderTaskItemAvailability(listInterceptor, view.et_description, view.btn_close, view.btn_reject),
-                ReportRenders.renderRejectButton(view.btn_reject),
-                ReportRenders.renderFirmFullAddress(view.tv_firm_full_address)
-            )
-            launch { controller.stateFlow().collect(rendersCollector(renders)) }
-            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
-        }
+//        renderJob = uiScope.launch {
+//            val renders = listOf(
+//                ReportRenders.renderLoading(view.loading, view.tv_gps_loading),
+//                ReportRenders.renderTasks(tasksAdapter, view.rv_tasks),
+//                ReportRenders.renderPhotos(photosAdapter),
+//                ReportRenders.renderEntrances(entrancesAdapter, view.rv_entrances),
+//                ReportRenders.renderTitle(view.tv_title),
+//                ReportRenders.renderDescription(view.et_description, descriptionTextWatcher),
+//                ReportRenders.renderNotes(hintHelper),
+//                ReportRenders.renderTaskItemAvailability(listInterceptor, view.et_description, view.btn_close, view.btn_reject),
+//                ReportRenders.renderRejectButton(view.btn_reject),
+//                ReportRenders.renderFirmFullAddress(view.tv_firm_full_address)
+//            )
+//            launch { controller.stateFlow().collect(rendersCollector(renders)) }
+//            launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
+//        }
         controller.context.errorContext.attach(view)
         controller.context.requestPhoto = ::requestPhoto
         controller.context.hideKeyboard = ::hideKeyboard
@@ -275,7 +284,13 @@ class ReportFragment : BaseFragment() {
         }
     }
 
-    private fun showCloseError(msgRes: Int, withPreClose: Boolean, location: Location? = null, rejectReason: String?, vararg msgFormat: Any) {
+    private fun showCloseError(
+        msgRes: Int,
+        withPreClose: Boolean,
+        location: Location? = null,
+        rejectReason: String?,
+        vararg msgFormat: Any
+    ) {
         val text = Html.fromHtml(resources.getString(msgRes, *msgFormat))
         showDialog(
             text,
@@ -370,29 +385,30 @@ class ReportFragment : BaseFragment() {
         )
     }
 
-    private fun bindControls(view: View, descriptionTextWatcher: TextWatcher) {
-        view.et_description.addTextChangedListener(descriptionTextWatcher)
 
-        view.iv_menu.setOnClickListener {
-            uiScope.sendMessage(controller, ReportMessages.msgBackClicked())
-        }
-
-        view.btn_close.setOnClickListener {
-            if (isCloseClicked) {
-                return@setOnClickListener
-            }
-            uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(null))
-            isCloseClicked = true
-        }
-
-        view.btn_reject.setOnClickListener {
-            uiScope.sendMessage(controller, ReportMessages.msgRejectClicked())
-        }
-    }
+//    private fun bindControls(view: View, descriptionTextWatcher: TextWatcher) {
+//        view.et_description.addTextChangedListener(descriptionTextWatcher)
+//
+//        view.iv_menu.setOnClickListener {
+//            uiScope.sendMessage(controller, ReportMessages.msgBackClicked())
+//        }
+//
+//        view.btn_close.setOnClickListener {
+//            if (isCloseClicked) {
+//                return@setOnClickListener
+//            }
+//            uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(null))
+//            isCloseClicked = true
+//        }
+//
+//        view.btn_reject.setOnClickListener {
+//            uiScope.sendMessage(controller, ReportMessages.msgRejectClicked())
+//        }
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        renderJob?.cancel()
+//        renderJob?.cancel()
         controller.context.showError = { _, _ -> }
         controller.context.hideKeyboard = {}
         controller.context.requestPhoto = { _, _, _, _ -> }

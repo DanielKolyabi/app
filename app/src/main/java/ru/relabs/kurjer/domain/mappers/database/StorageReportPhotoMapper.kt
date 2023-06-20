@@ -1,9 +1,9 @@
 package ru.relabs.kurjer.domain.mappers.database
 
 import ru.relabs.kurjer.data.database.entities.storage.StorageReportPhotoEntity
-import ru.relabs.kurjer.domain.models.storage.StoragePhotoId
+import ru.relabs.kurjer.domain.models.photo.StoragePhotoId
+import ru.relabs.kurjer.domain.models.photo.StorageReportPhoto
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
-import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 
 object StorageReportPhotoMapper {
     fun fromEntity(entity: StorageReportPhotoEntity): StorageReportPhoto = StorageReportPhoto(

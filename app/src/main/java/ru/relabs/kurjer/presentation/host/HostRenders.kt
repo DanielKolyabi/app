@@ -1,6 +1,5 @@
 package ru.relabs.kurjer.presentation.host
 
-import android.content.res.Resources
 import android.os.Build
 import android.view.View
 import android.view.Window
@@ -9,7 +8,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.drawerlayout.widget.DrawerLayout
 import com.mikepenz.materialdrawer.Drawer
-import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.presentation.base.tea.renderT
 import ru.relabs.kurjer.utils.extensions.visible
@@ -70,18 +68,4 @@ object HostRenders {
         }
     )
 
-    fun renderAppInfo(item: MenuDrawerItem, resources: Resources, navDrawer: Drawer): HostRender = renderT(
-        { it.userLogin },
-        {
-            navDrawer.updateItem(
-                item.withName(
-                    resources.getString(
-                        R.string.menu_bottom_info,
-                        BuildConfig.VERSION_CODE,
-                        it?.login ?: "???"
-                    )
-                )
-            )
-        }
-    )
 }

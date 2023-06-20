@@ -9,8 +9,8 @@ import android.os.Vibrator
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Window
 import android.view.WindowManager
-import kotlinx.android.synthetic.main.alert_activity.*
 import kotlinx.coroutines.*
+import ru.relabs.kurjer.databinding.AlertActivityBinding
 import ru.relabs.kurjer.services.ReportService
 
 /**
@@ -21,7 +21,8 @@ class AlertNotificationActivity: AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         window.requestFeature(Window.FEATURE_ACTION_BAR)
-        setContentView(R.layout.alert_activity)
+        val binding = AlertActivityBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         super.onCreate(savedInstanceState)
 
@@ -47,7 +48,7 @@ class AlertNotificationActivity: AppCompatActivity() {
             finish()
         }
 
-        ok_button.setOnClickListener {
+        binding.okButton.setOnClickListener {
             disableNotification()
             job.cancel()
             finish()

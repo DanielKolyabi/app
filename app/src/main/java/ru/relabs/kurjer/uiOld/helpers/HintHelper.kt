@@ -15,8 +15,8 @@ import android.view.animation.Animation
 import android.view.animation.Transformation
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import kotlinx.android.synthetic.main.include_hint_container.view.*
 import ru.relabs.kurjer.BuildConfig
+import ru.relabs.kurjer.databinding.IncludeHintContainerBinding
 import ru.relabs.kurjer.utils.CustomLog
 
 /**
@@ -26,12 +26,14 @@ import ru.relabs.kurjer.utils.CustomLog
 class HintHelper(
     val hintContainer: View,
     private var expanded: Boolean = true,
-    val preferences: SharedPreferences,
+    private val preferences: SharedPreferences,
 ) {
+
+    private val binding = IncludeHintContainerBinding.bind(hintContainer)
     var text: CharSequence = ""
         set(value) {
             field = value
-            hintContainer.hint_text?.text = value
+//            hintContainer.hint_text?.text = value
             setHintExpanded(expanded)
         }
     var maxHeight: Int = 200 * hintContainer.resources.displayMetrics.density.toInt()
@@ -52,20 +54,20 @@ class HintHelper(
     private var expandedHeight = 0
 
     init {
-        hintContainer.isFocusable = true
-        hintContainer.isClickable = true
-        hintContainer.setOnClickListener {
+        binding.root.isFocusable = true
+        binding.root.isClickable = true
+        binding.root.setOnClickListener {
             changeState()
         }
-        hintContainer.hint_text.setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_UP && !hintContainer.hint_text.hasSelection())
+        binding.hintText.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP && !binding.hintText.hasSelection())
                 changeState()
             false
         }
-        hintContainer.font_plus.setOnClickListener {
+        binding.fontPlus.setOnClickListener {
             setFontBigger()
         }
-        hintContainer.font_minus.setOnClickListener {
+        binding.fontMinus.setOnClickListener {
             setFontSmaller()
         }
 
@@ -75,16 +77,16 @@ class HintHelper(
     private fun changeFont(spFontSize: Float) {
         if (spFontSize < 12 || spFontSize > 26) return
         preferences.edit().putFloat("hint_font_size", spFontSize).apply()
-        hintContainer.hint_text.textSize = spFontSize
+        binding.hintText.textSize = spFontSize
     }
 
     private fun setFontSmaller() {
-        val curFont = hintContainer.hint_text.textSize / hintContainer.resources.displayMetrics.scaledDensity
+        val curFont = binding.hintText.textSize / hintContainer.resources.displayMetrics.scaledDensity
         changeFont(curFont - 2)
     }
 
     private fun setFontBigger() {
-        val curFont = hintContainer.hint_text.textSize / hintContainer.resources.displayMetrics.scaledDensity
+        val curFont = binding.hintText.textSize / hintContainer.resources.displayMetrics.scaledDensity
         changeFont(curFont + 2)
     }
 
@@ -132,7 +134,7 @@ class HintHelper(
             minHeight,
             minOf(
                 maxHeight,
-                hintContainer.hint_text.calculateHeight(text)
+                binding.hintText.calculateHeight(text)
             )
         )
 
@@ -157,8 +159,8 @@ class HintHelper(
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         )
 
-        val lp = hintContainer.hint_icon.layoutParams as ConstraintLayout.LayoutParams
-        val collapsedHeight = hintContainer.hint_icon.height + lp.topMargin + lp.bottomMargin
+        val lp = binding.hintIcon.layoutParams as ConstraintLayout.LayoutParams
+        val collapsedHeight = binding.hintIcon.height + lp.topMargin + lp.bottomMargin
 
         val currentHeight = hintContainer.height
 

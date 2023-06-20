@@ -42,8 +42,8 @@ import ru.relabs.kurjer.domain.models.PauseDurations
 import ru.relabs.kurjer.domain.models.PauseTimes
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.User
+import ru.relabs.kurjer.domain.models.photo.StorageReportPhoto
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
-import ru.relabs.kurjer.domain.models.storage.StorageReportPhoto
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.providers.DeviceUniqueIdProvider
 import ru.relabs.kurjer.domain.providers.FirebaseToken

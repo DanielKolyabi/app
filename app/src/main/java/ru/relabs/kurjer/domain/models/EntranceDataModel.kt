@@ -2,7 +2,7 @@ package ru.relabs.kurjer.domain.models
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import ru.relabs.kurjer.data.database.entities.EntranceDataEntity
 
 @Parcelize

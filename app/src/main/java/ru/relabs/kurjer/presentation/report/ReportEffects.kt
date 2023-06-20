@@ -5,19 +5,43 @@ import android.graphics.BitmapFactory
 import android.location.Location
 import android.net.Uri
 import androidx.core.net.toUri
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.controllers.TaskEvent
-import ru.relabs.kurjer.domain.models.*
-import ru.relabs.kurjer.domain.repositories.TaskRepository
+import ru.relabs.kurjer.domain.models.ENTRANCE_NUMBER_TASK_ITEM
+import ru.relabs.kurjer.domain.models.EntranceNumber
+import ru.relabs.kurjer.domain.models.ReportEntranceSelection
+import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemId
+import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.TaskState
+import ru.relabs.kurjer.domain.models.address
+import ru.relabs.kurjer.domain.models.id
+import ru.relabs.kurjer.domain.models.needPhoto
+import ru.relabs.kurjer.domain.models.photo.TaskItemPhoto
+import ru.relabs.kurjer.domain.models.state
+import ru.relabs.kurjer.domain.models.taskId
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.uiOld.helpers.formatedWithSecs
-import ru.relabs.kurjer.utils.*
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.Either
+import ru.relabs.kurjer.utils.ImageUtils
+import ru.relabs.kurjer.utils.Left
+import ru.relabs.kurjer.utils.Right
+import ru.relabs.kurjer.utils.awaitFirst
+import ru.relabs.kurjer.utils.calculateDistance
 import ru.relabs.kurjer.utils.extensions.isLocationExpired
 import java.io.File
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 /**
  * Created by Daniil Kurchanov on 02.04.2020.
@@ -96,9 +120,9 @@ object ReportEffects {
             c.showError("re:110", true)
         } else {
             val photos = c.photoRepository.getTaskItemPhotos(taskItem).map {
-                PhotoWithUri(
+                TaskPhotoWithUri(
                     it,
-                    c.pathsProvider.getTaskItemPhotoFile(taskItem, UUID.fromString(it.UUID)).toUri()
+                    c.pathsProvider.getTaskItemPhotoFile(taskItem, UUID.fromString(it.uuid)).toUri()
                 )
             }
             messages.send(
@@ -425,17 +449,18 @@ object ReportEffects {
                         val location = c.locationProvider.lastReceivedLocation()
                         val photo = c.photoRepository.savePhoto(entrance, task.taskItem, uuid, location)
                         val path = c.pathsProvider.getTaskItemPhotoFile(task.taskItem, uuid)
-                        messages.send(ReportMessages.msgNewPhoto(PhotoWithUri(photo, path.toUri())))
+                        messages.send(ReportMessages.msgNewPhoto(TaskPhotoWithUri(photo, path.toUri())))
                     }
                 }
             }
         }
     }
 
-    fun effectUpdateDescription(text: String): ReportEffect = { c, s ->
+    fun effectUpdateDescription(text: String, task: TaskWithItem): ReportEffect = f@{ c, s ->
         when (val selectedTask = s.selectedTask) {
             null -> c.showError("re:103", true)
             else -> {
+                if (task != selectedTask || task.taskItem.state != TaskItemState.CREATED) return@f
                 s.tasks.filter { it.taskItem.state == TaskItemState.CREATED }.forEach { t ->
                     val result = c.taskRepository.getTaskItemResult(t.taskItem)
                         ?: c.taskRepository.createEmptyTaskResult(t.taskItem)

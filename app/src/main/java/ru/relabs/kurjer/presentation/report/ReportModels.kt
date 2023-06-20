@@ -6,15 +6,35 @@ import android.net.Uri
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import ru.relabs.kurjer.domain.controllers.TaskEventController
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.models.CoupleType
+import ru.relabs.kurjer.domain.models.EntranceNumber
+import ru.relabs.kurjer.domain.models.ReportEntranceSelection
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemResult
+import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.photo.TaskItemPhoto
+import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.providers.PathsProvider
-import ru.relabs.kurjer.domain.repositories.*
+import ru.relabs.kurjer.domain.repositories.DeliveryRepository
+import ru.relabs.kurjer.domain.repositories.PauseRepository
+import ru.relabs.kurjer.domain.repositories.PhotoRepository
+import ru.relabs.kurjer.domain.repositories.SettingsRepository
+import ru.relabs.kurjer.domain.repositories.TaskRepository
+import ru.relabs.kurjer.domain.repositories.TextSizeStorage
 import ru.relabs.kurjer.domain.useCases.ReportUseCase
 import ru.relabs.kurjer.domain.useCases.StorageReportUseCase
-import ru.relabs.kurjer.presentation.base.tea.*
+import ru.relabs.kurjer.presentation.base.tea.ElmEffect
+import ru.relabs.kurjer.presentation.base.tea.ElmMessage
+import ru.relabs.kurjer.presentation.base.tea.ElmRender
+import ru.relabs.kurjer.presentation.base.tea.ErrorContext
+import ru.relabs.kurjer.presentation.base.tea.ErrorContextImpl
+import ru.relabs.kurjer.presentation.base.tea.RouterContext
+import ru.relabs.kurjer.presentation.base.tea.RouterContextMainImpl
 import java.io.File
-import java.util.*
+import java.util.Date
+import java.util.UUID
 
 /**
  * Created by Daniil Kurchanov on 02.04.2020.
@@ -28,7 +48,7 @@ data class TaskWithItem(
 data class ReportState(
     val tasks: List<TaskWithItem> = emptyList(),
     val selectedTask: TaskWithItem? = null,
-    val selectedTaskPhotos: List<PhotoWithUri> = emptyList(),
+    val selectedTaskPhotos: List<TaskPhotoWithUri> = emptyList(),
     val selectedTaskReport: TaskItemResult? = null,
     val loaders: Int = 0,
     val isGPSLoading: Boolean = false,
@@ -36,9 +56,55 @@ data class ReportState(
     val isEntranceSelectionChanged: Boolean = false,
 
     val coupling: ReportCoupling = emptyMap()
+) {
+    val available: Boolean =
+        selectedTask != null && selectedTask.taskItem.state == TaskItemState.CREATED && selectedTask.task.startTime < Date()
+    val entrancesInfo: List<ReportEntranceItem>
+        get() {
+            val taskItem = selectedTask?.taskItem
+            val task = selectedTask?.task
+            return if (taskItem != null && taskItem is TaskItem.Common) {
+                taskItem.entrancesData.map { entrance ->
+                    val reportEntrance = selectedTaskReport?.entrances?.firstOrNull { it.entranceNumber == entrance.number }
+                    ReportEntranceItem(
+                        taskItem,
+                        entrance.number,
+                        reportEntrance?.selection ?: ReportEntranceSelection(false, false, false, false),
+                        task?.let { coupling.isCouplingEnabled(task, entrance.number) } ?: false,
+                        selectedTaskPhotos.any { photo -> photo.photo.entranceNumber == entrance.number },
+                        reportEntrance?.userDescription.isNullOrEmpty()
+                    )
+                }
+            } else {
+                listOf()
+            }
+        }
+    val firmAddress: String? =
+        if (selectedTask != null && selectedTask.taskItem is TaskItem.Firm) {
+            listOf(
+                selectedTask.task.name,
+                "№${selectedTask.task.edition}",
+                "${selectedTask.taskItem.copies}экз.",
+                selectedTask.taskItem.firmName,
+                selectedTask.taskItem.office
+            )
+                .filter { it.isNotEmpty() }
+                .joinToString(", ")
+        } else {
+            null
+        }
+}
+
+data class ReportEntranceItem(
+    val taskItem: TaskItem.Common,
+    val entranceNumber: EntranceNumber,
+    val selection: ReportEntranceSelection,
+    val coupleEnabled: Boolean,
+    val hasPhoto: Boolean,
+    val hasDescription: Boolean
 )
 
-data class PhotoWithUri(val photo: TaskItemPhoto, val uri: Uri)
+data class TaskPhotoWithUri(val photo: TaskItemPhoto, val uri: Uri)
 
 class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     ErrorContext by errorContext,
@@ -55,11 +121,13 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     val pathsProvider: PathsProvider by inject()
     val deliveryRepository: DeliveryRepository by inject()
     val storageReportUseCase: StorageReportUseCase by inject()
+    val textSizeStorage: TextSizeStorage by inject()
 
     var showError: suspend (code: String, isFatal: Boolean) -> Unit = { _, _ -> }
     var requestPhoto: (entrance: Int, multiplePhoto: Boolean, targetFile: File, uuid: UUID) -> Unit = { _, _, _, _ -> }
     var hideKeyboard: () -> Unit = {}
-    var showCloseError: (msgRes: Int, showNext: Boolean, location: Location?, rejectReason: String?, msgFormat: Array<Any>) -> Unit = { _, _, _, _, _ -> }
+    var showCloseError: (msgRes: Int, showNext: Boolean, location: Location?, rejectReason: String?, msgFormat: Array<Any>) -> Unit =
+        { _, _, _, _, _ -> }
     var showPausedWarning: () -> Unit = {}
     var showPhotosWarning: () -> Unit = {}
     var showPreCloseDialog: (location: Location?, rejectReason: String?) -> Unit = { _, _ -> }

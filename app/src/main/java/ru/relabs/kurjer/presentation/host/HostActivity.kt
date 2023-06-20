@@ -2,7 +2,6 @@ package ru.relabs.kurjer.presentation.host
 
 import android.app.Activity
 import android.app.ActivityManager
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -11,13 +10,11 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.FragmentTransaction.TRANSIT_FRAGMENT_FADE
-import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.Command
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.androidx.AppNavigator
@@ -26,19 +23,21 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.holder.DimenHolder
-import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
 import com.mikepenz.materialize.util.UIUtils
-import kotlinx.android.synthetic.main.activity_host.*
-import kotlinx.android.synthetic.main.nav_header.view.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.receiveOrNull
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.databinding.ActivityHostBinding
+import ru.relabs.kurjer.databinding.NavHeaderBinding
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.providers.LocationProvider
-import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.fragment.IFragmentStyleable
@@ -49,12 +48,12 @@ import ru.relabs.kurjer.presentation.customViews.drawables.NavDrawerBackgroundDr
 import ru.relabs.kurjer.presentation.host.featureCheckers.FeatureCheckersContainer
 import ru.relabs.kurjer.presentation.host.systemWatchers.SystemWatchersContainer
 import ru.relabs.kurjer.services.ReportService
-import ru.relabs.kurjer.utils.*
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.MyExceptionHandler
 import ru.relabs.kurjer.utils.extensions.hideKeyboard
 import ru.relabs.kurjer.utils.extensions.showDialog
-import ru.relabs.kurjer.utils.extensions.showSnackbar
+import ru.relabs.kurjer.utils.log
 import java.io.File
-import java.io.FileNotFoundException
 
 
 class HostActivity : AppCompatActivity(), IFragmentHolder {
@@ -103,6 +102,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                     isFullScreen = fragment.isFullScreen
                 )
             )
+
             else -> updateAppBar(AppBarSettings())
         }
     }
@@ -112,8 +112,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         systemWatchersContainer.mockedLocation.getAllMockGPSApps().takeIf { it.isNotEmpty() }?.let {
             CustomLog.writeToFile("MockGPS Apps: " + it.joinToString { ", " })
         }
-
-        setContentView(R.layout.activity_host)
+        val binding = ActivityHostBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         Thread.setDefaultUncaughtExceptionHandler(MyExceptionHandler())
         controller.start(HostMessages.msgInit(savedInstanceState != null))
@@ -121,22 +121,17 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
             val renders = listOfNotNull(
                 HostRenders.renderDrawer(navigationDrawer),
                 HostRenders.renderFullScreen(window),
-                HostRenders.renderLoader(loading_overlay),
-                HostRenders.renderUpdateLoading(loading_overlay, pb_loading, tv_loader),
-                (navigationDrawer.drawerItems.first { it.identifier == NAVIGATION_INFO } as? MenuDrawerItem)?.let {
-                    HostRenders.renderAppInfo(it, resources, navigationDrawer)
-                }
+                HostRenders.renderLoader(binding.loadingOverlay),
+                HostRenders.renderUpdateLoading(binding.loadingOverlay, binding.pbLoading, binding.tvLoader),
             )
             launch { controller.stateFlow().collect(rendersCollector(renders)) }
             //launch { controller.stateFlow().collect(debugCollector { debug(it) }) }
         }
         prepareNavigation()
         controller.context.errorContext.attach(window.decorView.rootView)
-        controller.context.copyToClipboard = ::copyToClipboard
         controller.context.showUpdateDialog = ::showUpdateDialog
         controller.context.showErrorDialog = ::showErrorDialog
         controller.context.installUpdate = ::installUpdate
-        controller.context.showPauseDialog = ::showPauseDialog
         controller.context.showTaskUpdateRequired = ::showTaskUpdateRequiredDialog
         controller.context.finishApp = { finish() }
 
@@ -164,33 +159,6 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                 taskUpdateRequiredDialogShowed = false
             }).takeIf { canSkip }
         )
-    }
-
-    private fun showPauseDialog(availablePauseTypes: List<PauseType>) {
-        var dialog: AlertDialog? = null
-
-        val adapter = ArrayAdapter<String>(this, android.R.layout.select_dialog_singlechoice).apply {
-            availablePauseTypes.map {
-                add(
-                    getString(
-                        when (it) {
-                            PauseType.Lunch -> R.string.pause_lunch
-                            PauseType.Load -> R.string.pause_load
-                        }
-                    )
-                )
-            }
-            add(getString(R.string.pause_cancel))
-        }
-
-        dialog = AlertDialog.Builder(this)
-            .setAdapter(adapter) { _, id ->
-                when (adapter.getItem(id)) {
-                    getString(R.string.pause_lunch) -> uiScope.sendMessage(controller, HostMessages.msgPauseStart(PauseType.Lunch))
-                    getString(R.string.pause_load) -> uiScope.sendMessage(controller, HostMessages.msgPauseStart(PauseType.Load))
-                    getString(R.string.pause_cancel) -> dialog?.dismiss()
-                }
-            }.show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -276,30 +244,9 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         }
     }
 
-    private fun copyToClipboard(text: String) {
-        when (val r = ClipboardHelper.copyToClipboard(this, text)) {
-            is Right ->
-                showSnackbar(
-                    resources.getString(R.string.copied_to_clipboard),
-                    resources.getString(R.string.send) to { sendDeviceUUID(text) }
-                )
-            is Left ->
-                showSnackbar(resources.getString(R.string.unknown_runtime_error))
-        }
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         featureCheckersContainer.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    }
-
-    private fun sendDeviceUUID(text: String) {
-        startActivity(
-            Intent.createChooser(
-                IntentUtils.getShareTextIntent(getString(R.string.share_device_uuid_subject), text),
-                getString(R.string.share_device_uuid_title)
-            )
-        )
     }
 
     override fun onDestroy() {
@@ -308,7 +255,6 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         supervisor.cancelChildren()
         controller.context.errorContext.detach()
         controller.context.showUpdateDialog = { false }
-        controller.context.showPauseDialog = {}
         controller.context.showErrorDialog = {}
         controller.context.installUpdate = {}
         controller.context.showTaskUpdateRequired = {}
@@ -340,49 +286,10 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
                     )
                 )
             )
-
-            addDrawerItems(*buildDrawerItems())
-            withOnDrawerItemClickListener(object : Drawer.OnDrawerItemClickListener {
-                override fun onItemClick(
-                    view: View?,
-                    position: Int,
-                    drawerItem: IDrawerItem<*>
-                ): Boolean {
-                    return when (drawerItem.identifier) {
-                        NAVIGATION_CRASH -> sendCrashLog()
-                        NAVIGATION_UUID -> copyDeviceId()
-                        NAVIGATION_LOGOUT -> logout()
-                        NAVIGATION_PAUSE -> pauseClicked()
-                        else -> true
-                    }
-                }
-            })
-
             build()
         }
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-    }
-
-    private fun pauseClicked(): Boolean {
-        uiScope.sendMessage(controller, HostMessages.msgPauseClicked())
-        return false
-    }
-
-    private fun copyDeviceId(): Boolean {
-        uiScope.sendMessage(controller, HostMessages.msgCopyDeviceUUID())
-        return false
-    }
-
-    private fun sendCrashLog(): Boolean {
-        when (val r = CustomLog.share(this)) {
-            is Left -> when (val e = r.value) {
-                is FileNotFoundException -> showSnackbar(resources.getString(R.string.crash_log_not_found))
-                else -> showSnackbar(resources.getString(R.string.unknown_runtime_error))
-            }
-            is Right -> Unit
-        }
-        return false
     }
 
     private fun bindBackstackListener() {
@@ -393,54 +300,11 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         }
     }
 
-    private fun logout(): Boolean {
-        uiScope.sendMessage(controller, HostMessages.msgLogout())
-        return false
-    }
-
     private fun inflateNavigationHeader(): View {
         val header = LayoutInflater.from(this).inflate(R.layout.nav_header, null, false)
-        header.text_container.setPadding(0, UIUtils.getStatusBarHeight(this), 0, 0)
+        val binding = NavHeaderBinding.bind(header)
+        binding.textContainer.setPadding(0, UIUtils.getStatusBarHeight(this), 0, 0)
         return header
-    }
-
-    private fun buildDrawerItems(): Array<IDrawerItem<*>> {
-        return arrayOf(
-            buildDrawerItem(
-                NAVIGATION_PAUSE,
-                R.string.menu_pause
-            ),
-            buildDrawerItem(
-                NAVIGATION_CRASH,
-                R.string.menu_info
-            ),
-            buildDrawerItem(
-                NAVIGATION_UUID,
-                R.string.menu_uuid
-            ),
-            buildDrawerItem(
-                NAVIGATION_LOGOUT,
-                R.string.menu_logout
-            ),
-            buildDrawerItem(
-                NAVIGATION_INFO,
-                resources.getString(R.string.menu_bottom_info, BuildConfig.VERSION_CODE, "-"),
-                false
-            )
-        )
-    }
-
-    private fun buildDrawerItem(id: Long, stringResId: Int): IDrawerItem<*> {
-        return MenuDrawerItem(0)
-            .withIdentifier(id)
-            .withName(stringResId)
-    }
-
-    private fun buildDrawerItem(id: Long, string: String, selectable: Boolean = true): IDrawerItem<*> {
-        return MenuDrawerItem(0)
-            .withIdentifier(id)
-            .withName(string)
-            .withSelectable(selectable)
     }
 
     override fun onResume() {
@@ -499,7 +363,6 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         ReportService.isAppPaused = true
     }
 
-
     override fun onBackPressed() {
         if (navigationDrawer.isDrawerOpen) {
             navigationDrawer.closeDrawer()
@@ -512,7 +375,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
     }
 
 
-    fun onFragmentChanged(fragment: Fragment?) {
+    private fun onFragmentChanged(fragment: Fragment?) {
         hideKeyboard()
     }
 
@@ -520,26 +383,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         uiScope.sendMessage(controller, HostMessages.msgUpdateAppBar(settings))
     }
 
-    private fun setDrawerSelectedItem(id: Long) {
-        navigationDrawer.setSelection(id, false)
-    }
-
-    fun changeNavigationDrawerState() {
-        if (navigationDrawer.isDrawerOpen) {
-            navigationDrawer.closeDrawer()
-        } else {
-            navigationDrawer.openDrawer()
-        }
-    }
-
     companion object {
         const val REQUEST_CODE_INSTALL_PACKAGE = 997
-
-        const val NAVIGATION_PAUSE = 1L
-        const val NAVIGATION_CRASH = 2L
-        const val NAVIGATION_UUID = 3L
-        const val NAVIGATION_LOGOUT = 4L
-        const val NAVIGATION_INFO = 999L
 
         fun getIntent(parentContext: Context) = Intent(parentContext, HostActivity::class.java)
     }

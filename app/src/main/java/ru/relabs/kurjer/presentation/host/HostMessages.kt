@@ -1,7 +1,6 @@
 package ru.relabs.kurjer.presentation.host
 
 import android.net.Uri
-import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
 import ru.relabs.kurjer.domain.repositories.PauseType
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
@@ -45,8 +44,6 @@ object HostMessages {
     fun msgLogout(): HostMessage =
         msgEffect(HostEffects.effectLogout())
 
-    fun msgCopyDeviceUUID(): HostMessage =
-        msgEffect(HostEffects.effectCopyDeviceUUID())
 
     fun msgStartUpdateLoading(url: Uri): HostMessage =
         msgEffect(HostEffects.effectLoadUpdate(url))
@@ -60,7 +57,7 @@ object HostMessages {
             { state ->
                 listOfNotNull(
                     HostEffects.effectCheckUpdates()
-                        .takeIf { !state.isUpdateDialogShowed && state.updateLoadProgress == null}
+                        .takeIf { !state.isUpdateDialogShowed && state.updateLoadProgress == null }
                 )
             }
         )
@@ -77,8 +74,6 @@ object HostMessages {
     fun msgUpdateDialogShowed(b: Boolean): HostMessage =
         msgState { it.copy(isUpdateDialogShowed = b) }
 
-    fun msgPauseClicked(): HostMessage =
-        msgEffect(HostEffects.effectEnablePause())
 
     fun msgPauseStart(type: PauseType): HostMessage =
         msgEffect(HostEffects.effectPauseStart(type))
@@ -89,6 +84,4 @@ object HostMessages {
     fun msgRequiredUpdateLater(): HostMessage =
         msgEffect(HostEffects.effectNotifyUpdateRequiredOnTasksOpen())
 
-    fun msgUserLoaded(user: UserLogin?): HostMessage =
-        msgState { it.copy(userLogin = user) }
 }

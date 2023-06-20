@@ -116,7 +116,7 @@
     <string name="task_list_district_different">Сцепка этих заданий запрещена</string>
     <string name="report_close_with_unfinished_item_warning">&lt;b>Аввалги домни ëпинг, ëки расмга олганингизни удалить килинг. Сунгра кейинги домни ëпишингиз мумкин.&lt;/b> Закрой дом или удали фото в задании %s по адресу: %s !!!"</string>
     <string name="btn_storage_check">Отметка на складе</string>
-    <string name="storage_addresses">Адреса складов</string>
+    <string name="storage_addresses_title">Адреса складов</string>
     <string name="confirm_storage">подтвердить склад</string>
     <string name="closure_date">%d. Склад подтверждён. Ombor tasdiqlandi.\n%s</string>
     <string name="storage_report_close_location_far_warning">Ты не у склада\nSiz omborda emassiz</string>

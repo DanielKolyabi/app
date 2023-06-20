@@ -3,7 +3,12 @@ package ru.relabs.kurjer.presentation.host
 import android.net.Uri
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.messaging.FirebaseMessaging
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.controllers.ServiceEvent
@@ -46,13 +51,6 @@ object HostEffects {
         c.loginUseCase.logout()
         withContext(Dispatchers.Main) {
             c.router.newRootScreen(RootScreen.login())
-        }
-    }
-
-    fun effectCopyDeviceUUID(): HostEffect = { c, _ ->
-        val uuid = c.deviceUUIDProvider.getOrGenerateDeviceUUID()
-        withContext(Dispatchers.Main) {
-            c.copyToClipboard(uuid.id)
         }
     }
 
@@ -167,22 +165,6 @@ object HostEffects {
     private fun isUpdateRequired(state: HostState): Boolean =
         state.appUpdates == null || ((state.appUpdates.required?.version ?: 0) > BuildConfig.VERSION_CODE && !state.isUpdateLoadingFailed)
 
-    fun effectEnablePause(): HostEffect = { c, s ->
-        if (c.pauseRepository.isPaused) {
-            withContext(Dispatchers.Main) {
-                c.showErrorDialog(R.string.pause_already_paused)
-            }
-        } else {
-            val availablePauseTypes = listOfNotNull(
-                PauseType.Load.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Load) },
-                PauseType.Lunch.takeIf { c.pauseRepository.isPauseAvailable(PauseType.Lunch) }
-            )
-            withContext(Dispatchers.Main) {
-                c.showPauseDialog(availablePauseTypes)
-            }
-        }
-    }
-
     fun effectPauseStart(type: PauseType): HostEffect = { c, s ->
         messages.send(HostMessages.msgAddLoaders(1))
         if (!c.pauseRepository.isPauseAvailable(type)) {
@@ -215,11 +197,6 @@ object HostEffects {
                         is TaskEvent.TaskItemClosed -> Unit
                         is TaskEvent.TaskStorageClosed -> Unit
                     }
-                }
-            }
-            launch {
-                for (user in c.userRepository.currentUser.openSubscription()) {
-                    messages.send(HostMessages.msgUserLoaded(user))
                 }
             }
             launch {

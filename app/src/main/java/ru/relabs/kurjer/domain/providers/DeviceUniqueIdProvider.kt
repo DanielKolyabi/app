@@ -12,17 +12,17 @@ import ru.relabs.kurjer.utils.CustomLog
 import java.util.*
 
 @Parcelize
-data class DeviceUniqueID(val id: String): Parcelable
+data class DeviceUniqueID(val id: String) : Parcelable
 
 class DeviceUniqueIdProvider(
     val application: Application
-){
+) {
     private var imei: String? = null
 
     @SuppressLint("HardwareIds")
     fun get(): DeviceUniqueID {
         val ctxImei = imei
-        if(ctxImei == null){
+        if (ctxImei == null) {
             val telephonyManager = application.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             val newImei = try {
                 when {
@@ -32,6 +32,7 @@ class DeviceUniqueIdProvider(
                             MediaDrm(widevineUUID).getPropertyByteArray(MediaDrm.PROPERTY_DEVICE_UNIQUE_ID)
                         Base64.getEncoder().encodeToString(id)
                     }
+
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ->
                         telephonyManager.getImei(0) ?: telephonyManager.getImei(1) ?: ""
 
@@ -47,7 +48,7 @@ class DeviceUniqueIdProvider(
             }
             imei = newImei
             return DeviceUniqueID(newImei)
-        }else{
+        } else {
             return DeviceUniqueID(ctxImei)
         }
     }

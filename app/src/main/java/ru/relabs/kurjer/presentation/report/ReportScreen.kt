@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.presentation.report
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -88,9 +89,15 @@ fun ReportScreen(
     var screenHeight by remember { mutableStateOf(0.dp) }
     var rowHeight by remember { mutableStateOf(0.dp) }
     var inputHeight by remember { mutableStateOf(0.dp) }
-    val hintHeight by remember { derivedStateOf { screenHeight - inputHeight - rowHeight } }
+    var firmAddressHeight by remember { mutableStateOf(0.dp) }
+    val hintHeight by remember { derivedStateOf { screenHeight - inputHeight - rowHeight - firmAddressHeight } }
     val density = LocalDensity.current
 
+
+    LaunchedEffect(notes) {
+
+        Log.d("zxc", parseNotes(notes).joinToString("\n") { "${it.first} : ${it.second.joinToString(",")}" })
+    }
     AppBarLoadableContainer(
         isLoading = isLoading,
         gpsLoading = isLoading && gpsLoading,
@@ -126,7 +133,16 @@ fun ReportScreen(
                 textSizeStorage = textSizeStorage,
                 maxHeight = hintHeight
             )
-            firmAddress?.let { Text(text = it, modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp)) }
+            firmAddress?.let {
+                Text(text = it, modifier = Modifier
+                    .padding(start = 8.dp, end = 8.dp, top = 8.dp)
+                    .onSizeChanged {
+                        with(density) {
+                            firmAddressHeight = it.height.toDp()
+                        }
+                    }
+                )
+            }
             AvailableContainer(
                 available = available,
                 modifier = Modifier
@@ -229,6 +245,9 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.EntranceItem(entrance
     val rejectedDefault = remember { entranceData?.isRefused ?: false }
     val interactionSource = remember { MutableInteractionSource() }
 
+    LaunchedEffect(entranceData) {
+        Log.d("zxc", "Entrance ${entranceInfo.entranceNumber.number} photo required = ${entranceData?.photoRequired} ")
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically, modifier = modifier
             .height(IntrinsicSize.Min)
@@ -320,6 +339,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.EntranceItem(entrance
             else
                 painterResource(R.drawable.ic_entrance_photo),
             contentDescription = null,
+            tint = Color.Unspecified,
             modifier = Modifier
                 .clickable(interactionSource = interactionSource, indication = null) {
                     sendMessage(
@@ -371,8 +391,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.Buttons(
             modifier = Modifier
                 .weight(1f)
                 .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
-        )
-        {
+        ) {
             if (!isCloseClicked) {
                 sendMessage(ReportMessages.msgCloseClicked(null))
                 onCloseButtonClicked()
@@ -385,8 +404,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.Buttons(
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
-            )
-            {
+            ) {
                 sendMessage(ReportMessages.msgRejectClicked())
             }
         }
@@ -397,5 +415,21 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.Buttons(
 private fun AvailableContainer(available: Boolean, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Box(modifier.gesturesDisabled(disabled = !available)) {
         content()
+    }
+}
+
+private fun parseNotes(notes: List<String>): List<Pair<Int, List<Int>>> {
+    val d = notes.joinToString("\n")
+    val fullHtml = notes.joinToString("\n").replace("<br/>", "\n")
+    Log.d("zxcaboba", d)
+    val strings: List<String> = fullHtml.split("\n").filter { it.startsWith("<b><font color=\"blue\">п.") }
+    return strings.mapNotNull {
+        val entranceNumber = it.substringAfter("<b><font color=\"blue\">п.")
+            .substringBefore("</font>").toIntOrNull() ?: return@mapNotNull null
+        val apartmentsNumbers = it.substringAfter("</b>")
+            .split("  ")
+            .filter { s -> s.startsWith("<font color=\"red\">") }
+            .mapNotNull { s -> s.substringAfter("<font color=\"red\">").substringBefore("*</font>").toIntOrNull() }
+        entranceNumber to apartmentsNumbers
     }
 }

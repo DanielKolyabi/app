@@ -16,5 +16,6 @@ data class TaskItemEntrance(
     val hasLookout: Boolean,
     val isStacked: Boolean,
     val isRefused: Boolean,
+    val problemApartments: List<Int>?,
     var photoRequired: Boolean
 ): Parcelable

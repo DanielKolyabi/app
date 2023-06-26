@@ -1,7 +1,11 @@
 package ru.relabs.kurjer.domain.mappers
 
 import ru.relabs.kurjer.data.database.entities.TaskItemResultEntranceEntity
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.models.EntranceNumber
+import ru.relabs.kurjer.domain.models.ReportEntranceSelection
+import ru.relabs.kurjer.domain.models.TaskItemEntranceId
+import ru.relabs.kurjer.domain.models.TaskItemEntranceResult
+import ru.relabs.kurjer.domain.models.TaskItemResultId
 
 object TaskItemEntranceResultMapper {
     fun fromEntity(entity: TaskItemResultEntranceEntity): TaskItemEntranceResult = TaskItemEntranceResult(
@@ -23,7 +27,7 @@ object TaskItemEntranceResultMapper {
     )
 }
 
-object ReportEntranceSelectionMapper{
+object ReportEntranceSelectionMapper {
     fun fromBits(bits: Int) = ReportEntranceSelection(
         isEuro = bits and 0x0001 > 0,
         isWatch = bits and 0x0010 > 0,
@@ -33,7 +37,7 @@ object ReportEntranceSelectionMapper{
 
     fun toBits(selection: ReportEntranceSelection): Int =
         takeBitIf(0x0001, selection.isEuro) or takeBitIf(0x0010, selection.isWatch) or
-            takeBitIf(0x0100, selection.isStacked) or takeBitIf(0x1000, selection.isRejected)
+                takeBitIf(0x0100, selection.isStacked) or takeBitIf(0x1000, selection.isRejected)
 
     private fun takeBitIf(bit: Int, condition: Boolean): Int {
         return if (condition) {

@@ -13,6 +13,7 @@ import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.domain.models.subarea
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.repositories.TaskRepository
+import ru.relabs.kurjer.domain.useCases.StorageReportUseCase
 import ru.relabs.kurjer.presentation.base.tea.ElmEffect
 import ru.relabs.kurjer.presentation.base.tea.ElmMessage
 import ru.relabs.kurjer.presentation.base.tea.ElmRender
@@ -123,9 +124,11 @@ class AddressesContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) 
     val taskRepository: TaskRepository by inject()
     val taskEventController: TaskEventController by inject()
     val pathsProvider: PathsProvider by inject()
+    val storageReportUseCase: StorageReportUseCase by inject()
 
     var showImagePreview: (File) -> Unit = {}
     var showSnackbar: (msgRes: Int) -> Unit = {}
+    var showStorageError: () -> Unit = {}
 }
 
 typealias AddressesMessage = ElmMessage<AddressesContext, AddressesState>

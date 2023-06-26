@@ -135,6 +135,7 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     var contentResolver: () -> ContentResolver? = { null }
     var showRejectDialog: (reasons: List<String>) -> Unit = {}
     var showDescriptionInputDialog: (number: EntranceNumber, current: String, isEditable: Boolean) -> Unit = { _, _, _ -> }
+    var showProblemApartmentsWarning: (apartments: List<Int>?, entranceNumber: EntranceNumber) -> Unit = { _, _ -> }
 }
 
 enum class EntranceSelectionButton {
@@ -144,7 +145,6 @@ enum class EntranceSelectionButton {
 typealias ReportCoupling = Map<Pair<EntranceNumber, CoupleType>, Boolean>
 typealias ReportMessage = ElmMessage<ReportContext, ReportState>
 typealias ReportEffect = ElmEffect<ReportContext, ReportState>
-typealias ReportRender = ElmRender<ReportState>
 
 fun ReportCoupling.isCouplingEnabled(task: Task, entranceNumber: EntranceNumber): Boolean {
     return this.getOrElse(entranceNumber to task.coupleType) { false }

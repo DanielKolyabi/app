@@ -25,6 +25,7 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -46,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.flow.StateFlow
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.ENTRANCE_NUMBER_TASK_ITEM
+import ru.relabs.kurjer.domain.models.EntranceNumber
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.domain.models.address
@@ -56,6 +58,7 @@ import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffold
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffoldContext
 import ru.relabs.kurjer.presentation.base.compose.common.AppBarLoadableContainer
+import ru.relabs.kurjer.presentation.base.compose.common.DefaultDialog
 import ru.relabs.kurjer.presentation.base.compose.common.DeliveryButton
 import ru.relabs.kurjer.presentation.base.compose.common.DescriptionTextField
 import ru.relabs.kurjer.presentation.base.compose.common.HintContainer
@@ -93,11 +96,6 @@ fun ReportScreen(
     val hintHeight by remember { derivedStateOf { screenHeight - inputHeight - rowHeight - firmAddressHeight } }
     val density = LocalDensity.current
 
-
-    LaunchedEffect(notes) {
-
-        Log.d("zxc", parseNotes(notes).joinToString("\n") { "${it.first} : ${it.second.joinToString(",")}" })
-    }
     AppBarLoadableContainer(
         isLoading = isLoading,
         gpsLoading = isLoading && gpsLoading,
@@ -179,6 +177,7 @@ fun ReportScreen(
             }
         }
     }
+    ProblemApartmentsWarningDialogController()
 }
 
 @Composable
@@ -244,10 +243,8 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.EntranceItem(entrance
     val stackedDefault = remember { entranceData?.isStacked ?: false }
     val rejectedDefault = remember { entranceData?.isRefused ?: false }
     val interactionSource = remember { MutableInteractionSource() }
+    var warningShowed by remember { mutableStateOf(false) }
 
-    LaunchedEffect(entranceData) {
-        Log.d("zxc", "Entrance ${entranceInfo.entranceNumber.number} photo required = ${entranceData?.photoRequired} ")
-    }
     Row(
         verticalAlignment = Alignment.CenterVertically, modifier = modifier
             .height(IntrinsicSize.Min)
@@ -334,7 +331,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.EntranceItem(entrance
         Icon(
             painter = if (entranceInfo.hasPhoto)
                 painterResource(R.drawable.ic_entrance_photo_done)
-            else if (entranceData?.photoRequired == true)
+            else if (entranceData?.photoRequired == true || rejectedActive)
                 painterResource(R.drawable.ic_entrance_photo_req)
             else
                 painterResource(R.drawable.ic_entrance_photo),
@@ -342,12 +339,18 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.EntranceItem(entrance
             tint = Color.Unspecified,
             modifier = Modifier
                 .clickable(interactionSource = interactionSource, indication = null) {
-                    sendMessage(
-                        ReportMessages.msgPhotoClicked(
-                            entranceInfo.entranceNumber,
-                            false
+                    if (!warningShowed) {
+                        Log.d("ReportScreen", "${entranceData?.problemApartments}")
+                        controller.context.showProblemApartmentsWarning(entranceData?.problemApartments, entranceInfo.entranceNumber)
+                        warningShowed = true
+                    } else {
+                        sendMessage(
+                            ReportMessages.msgPhotoClicked(
+                                entranceInfo.entranceNumber,
+                                false
+                            )
                         )
-                    )
+                    }
                 }
                 .height(40.dp)
                 .padding(6.dp)
@@ -415,6 +418,39 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.Buttons(
 private fun AvailableContainer(available: Boolean, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Box(modifier.gesturesDisabled(disabled = !available)) {
         content()
+    }
+}
+
+private data class ProblemApartmentsDialogData(val apartments: List<Int>?, val entranceNumber: EntranceNumber)
+
+@Composable
+private fun ElmScaffoldContext<ReportContext, ReportState>.ProblemApartmentsWarningDialogController() {
+    var dialogData: ProblemApartmentsDialogData? by remember { mutableStateOf(null) }
+
+    DisposableEffect(Unit) {
+        controller.context.showProblemApartmentsWarning = { apartments, entranceNumber ->
+            Log.d("ReportScreen", "$apartments 4")
+            if (apartments != null) {
+                dialogData = ProblemApartmentsDialogData(apartments, entranceNumber)
+            }
+        }
+        onDispose { controller.context.showProblemApartmentsWarning = { _, _ -> } }
+    }
+    dialogData?.let { data ->
+        data.apartments?.let {
+            DefaultDialog(
+                text = stringResource(R.string.problem_apartments_warning) + it.joinToString(" ") { it.toString() },
+                acceptButton = stringResource(R.string.ok) to {
+                    sendMessage(
+                        ReportMessages.msgPhotoClicked(
+                            data.entranceNumber,
+                            false
+                        )
+                    )
+                },
+                onDismiss = { dialogData = null }
+            )
+        }
     }
 }
 

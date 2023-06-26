@@ -6,13 +6,14 @@ import ru.relabs.kurjer.domain.models.TaskItemEntrance
 import ru.relabs.kurjer.domain.models.TaskItemId
 
 object DatabaseEntranceDataMapper {
-    fun fromEntity(entranceDataEntity: EntranceDataEntity): TaskItemEntrance = TaskItemEntrance(
+    fun fromEntity(entranceDataEntity: EntranceDataEntity, problemApartments: List<Int>?): TaskItemEntrance = TaskItemEntrance(
         number = EntranceNumber(entranceDataEntity.number),
         apartmentsCount = entranceDataEntity.apartmentsCount,
         isEuroBoxes = entranceDataEntity.isEuroBoxes,
         hasLookout = entranceDataEntity.hasLookout,
         isStacked = entranceDataEntity.isStacked,
         isRefused = entranceDataEntity.isRefused,
+        problemApartments = problemApartments,
         photoRequired = entranceDataEntity.photoRequired
     )
 

@@ -27,6 +27,7 @@ import ru.relabs.kurjer.domain.models.needPhoto
 import ru.relabs.kurjer.domain.models.photo.TaskItemPhoto
 import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.domain.models.taskId
+import ru.relabs.kurjer.presentation.base.tea.ChannelWrapper
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.services.ReportService
@@ -273,6 +274,7 @@ object ReportEffects {
                                     emptyArray()
                                 )
                             }
+
                             distance > selected.taskItem.closeRadius -> withContext(Dispatchers.Main) {
                                 c.showCloseError(
                                     R.string.report_close_location_far_error,
@@ -282,6 +284,7 @@ object ReportEffects {
                                     emptyArray()
                                 )
                             }
+
                             else ->
                                 messages.send(msgFactory())
 
@@ -508,6 +511,7 @@ object ReportEffects {
                         is TaskItem.Common -> selected.taskItem.entrancesData
                             .filter { it.photoRequired }
                             .map { it.number }
+
                         is TaskItem.Firm -> emptyList()
                     }
 
@@ -516,6 +520,9 @@ object ReportEffects {
                     } else {
                         true
                     }
+
+                    val rejectionPhotoExists = s.selectedTaskReport?.entrances?.filter { it.selection.isRejected }
+                        ?.all { entrance -> s.selectedTaskPhotos.any { it.photo.entranceNumber == entrance.entranceNumber } } == true
 
                     val location = c.locationProvider.lastReceivedLocation()
                     CustomLog.writeToFile(
@@ -540,7 +547,7 @@ object ReportEffects {
                         withContext(Dispatchers.Main) {
                             c.showPausedWarning()
                         }
-                    } else if (!taskItemRequiredPhotoExists || !entrancesRequiredPhotoExists) {
+                    } else if (!taskItemRequiredPhotoExists || !entrancesRequiredPhotoExists || !rejectionPhotoExists) {
                         withContext(Dispatchers.Main) {
                             c.showPhotosWarning()
                         }
@@ -589,6 +596,7 @@ object ReportEffects {
                                         )
                                         true
                                     }
+
                                     distance > selected.taskItem.closeRadius -> {
                                         c.showCloseError(
                                             R.string.report_close_location_far_error,
@@ -599,6 +607,7 @@ object ReportEffects {
                                         )
                                         true
                                     }
+
                                     else -> {
                                         c.showPreCloseDialog(location, rejectReason)
                                         false
@@ -616,6 +625,7 @@ object ReportEffects {
                                         )
                                         false
                                     }
+
                                     distance > selected.taskItem.closeRadius -> {
                                         c.showCloseError(
                                             R.string.report_close_location_far_warning,
@@ -626,6 +636,7 @@ object ReportEffects {
                                         )
                                         false
                                     }
+
                                     else -> {
                                         c.showPreCloseDialog(location, rejectReason)
                                         false
@@ -696,8 +707,10 @@ object ReportEffects {
                     when (event) {
                         is TaskEvent.TaskClosed ->
                             messages.send(ReportMessages.msgTaskClosed(event.taskId))
+
                         is TaskEvent.TaskItemClosed ->
                             messages.send(msgEffect(effectEventTaskItemClosed(event.taskItemId)))
+
                         is TaskEvent.TasksUpdateRequired -> Unit
                         is TaskEvent.TaskStorageClosed -> Unit
                     }
@@ -705,7 +718,7 @@ object ReportEffects {
             }
         }
     }
- 
+
     private fun effectEventTaskItemClosed(taskItemId: TaskItemId): ReportEffect = { c, s ->
         s.tasks
             .firstOrNull { t -> t.taskItem.id == taskItemId }

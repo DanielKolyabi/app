@@ -10,7 +10,6 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.presentation.base.compose.common.themes.DeliveryTheme
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
-import ru.relabs.kurjer.presentation.base.recycler.DelegateAdapter
 import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.msgEmpty
 import ru.relabs.kurjer.presentation.base.tea.sendMessage

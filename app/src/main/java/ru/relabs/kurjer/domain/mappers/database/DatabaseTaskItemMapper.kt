@@ -1,9 +1,14 @@
 package ru.relabs.kurjer.domain.mappers.database
 
+import android.util.Log
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 import ru.relabs.kurjer.domain.mappers.MappingException
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemId
+import ru.relabs.kurjer.domain.models.toInt
+import ru.relabs.kurjer.domain.models.toTaskItemState
 
 object DatabaseTaskItemMapper {
     fun fromEntity(taskItem: TaskItemEntity, db: AppDatabase): TaskItem = when (taskItem.isFirm) {
@@ -24,6 +29,7 @@ object DatabaseTaskItemMapper {
             office = taskItem.officeName,
             closeRadius = taskItem.closeRadius
         )
+
         false -> TaskItem.Common(
             id = TaskItemId(taskItem.id),
             address = when (val a = db.addressDao().getById(taskItem.addressId)) {
@@ -37,8 +43,10 @@ object DatabaseTaskItemMapper {
             copies = taskItem.copies,
             taskId = TaskId(taskItem.taskId),
             needPhoto = taskItem.needPhoto,
-            entrancesData = db.entranceDataDao().getAllForTaskItem(taskItem.id).map {
-                DatabaseEntranceDataMapper.fromEntity(it)
+            entrancesData = db.entranceDataDao().getAllForTaskItem(taskItem.id).map { entity ->
+                val problemApartments = parseNotes(taskItem.notes).firstOrNull { it.first == entity.number }?.second
+                problemApartments?.toString()?.let { Log.d("Mapper", it) }
+                DatabaseEntranceDataMapper.fromEntity(entity, problemApartments)
             },
             closeRadius = taskItem.closeRadius,
             closeTime = taskItem.closeTime
@@ -63,6 +71,7 @@ object DatabaseTaskItemMapper {
             closeRadius = taskItem.closeRadius,
             closeTime = taskItem.closeTime
         )
+
         is TaskItem.Firm -> TaskItemEntity(
             id = taskItem.id.id,
             addressId = taskItem.address.id.id,
@@ -82,5 +91,22 @@ object DatabaseTaskItemMapper {
         )
     }
 
-
+    private fun parseNotes(notes: List<String>): List<EntranceWithApartments> {
+        val a  = notes.joinToString("\n").replace("<br/>", "\n")
+        Log.d("zxc", a)
+        Log.d("zxc", "\n")
+        val fullHtml = notes.joinToString("\n").replace("<br/>", "\n")
+        val strings: List<String> = fullHtml.split("\n").filter { it.startsWith("<b><font color=\"blue\">п.") }
+        return strings.mapNotNull {
+            val entranceNumber = it.substringAfter("<b><font color=\"blue\">п.")
+                .substringBefore("</font>").toIntOrNull() ?: return@mapNotNull null
+            val apartmentsNumbers = it.substringAfter("</b>")
+                .split("  ")
+                .filter { s -> s.startsWith("<font color=\"red\">") }
+                .mapNotNull { s -> s.substringAfter("<font color=\"red\">").substringBefore("*</font>").toIntOrNull() }
+            entranceNumber to apartmentsNumbers
+        }
+    }
 }
+
+typealias EntranceWithApartments = Pair<Int, List<Int>>

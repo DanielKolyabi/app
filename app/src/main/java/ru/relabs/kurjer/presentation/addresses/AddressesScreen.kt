@@ -29,6 +29,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -59,6 +60,7 @@ import ru.relabs.kurjer.domain.models.subarea
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffold
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffoldContext
 import ru.relabs.kurjer.presentation.base.compose.common.AppBarLoadableContainer
+import ru.relabs.kurjer.presentation.base.compose.common.DefaultDialog
 import ru.relabs.kurjer.presentation.base.compose.common.DeliveryButton
 import ru.relabs.kurjer.presentation.base.compose.common.LoaderItem
 import ru.relabs.kurjer.presentation.base.compose.common.SearchTextField
@@ -158,6 +160,7 @@ fun AddressesScreen(controller: ElmController<AddressesContext, AddressesState>)
             ) { sendMessage(AddressesMessages.msgGlobalMapClicked()) }
         }
     }
+    StorageErrorDialogController()
 }
 
 @Composable
@@ -392,6 +395,20 @@ private fun ElmScaffoldContext<AddressesContext, AddressesState>.StorageItem(mod
     ) {
         Text(text = stringResource(R.string.btn_storage_check).uppercase(), color = Color.Black)
     }
+}
+
+@Composable
+private fun ElmScaffoldContext<AddressesContext, AddressesState>.StorageErrorDialogController() {
+    var visible by remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        controller.context.showStorageError = { visible = true }
+        onDispose { controller.context.showStorageError = { } }
+    }
+    if (visible) {
+        DefaultDialog(text = stringResource(R.string.storage_close_first_error), acceptButton = "ок" to {}, onDismiss = { visible = false })
+    }
+
 }
 
 

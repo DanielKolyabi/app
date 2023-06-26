@@ -1,14 +1,25 @@
 package ru.relabs.kurjer.presentation.addresses
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.controllers.TaskEvent
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.models.Address
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemState
+import ru.relabs.kurjer.domain.models.TaskState
+import ru.relabs.kurjer.domain.models.address
+import ru.relabs.kurjer.domain.models.state
+import ru.relabs.kurjer.domain.models.taskId
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.uiOld.fragments.YandexMapFragment
-import java.util.*
 
 /**
  * Created by Daniil Kurchanov on 02.04.2020.
@@ -35,7 +46,13 @@ object AddressesEffects {
         }
     }
 
-    fun effectNavigateReport(task: Task, item: TaskItem): AddressesEffect = { c, s ->
+    fun effectNavigateReport(task: Task, item: TaskItem): AddressesEffect = f@{ c, s ->
+
+        if (c.storageReportUseCase.isReportActuallyRequired(task)) {
+            c.showStorageError()
+            return@f
+        }
+
         val sameAddressItems = s.tasks
             .flatMap { it.items.map { taskItem -> it to taskItem } }
             .filter { it.second.address.id == item.address.id }
@@ -52,8 +69,10 @@ object AddressesEffects {
                     when (it) {
                         is TaskEvent.TaskClosed ->
                             messages.send(AddressesMessages.msgRemoveTask(it.taskId))
+
                         is TaskEvent.TaskItemClosed ->
                             messages.send(AddressesMessages.msgTaskItemClosed(it.taskItemId))
+
                         is TaskEvent.TasksUpdateRequired -> Unit
                         is TaskEvent.TaskStorageClosed -> Unit
                     }

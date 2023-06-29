@@ -12,7 +12,7 @@ import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.Either
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
-import java.util.*
+import java.util.UUID
 
 class QueryRepository(
     private val db: AppDatabase,
@@ -47,7 +47,7 @@ class QueryRepository(
     }
 
     suspend fun getQueryItemsCount(): Int = withContext(Dispatchers.IO) {
-        db.reportQueryDao().all.size + db.sendQueryDao().all.size
+        db.reportQueryDao().all.size + db.sendQueryDao().all.size + db.storageReportRequestDao().all.size
     }
 
     suspend fun removeSendQuery(sendQuery: SendQueryItemEntity) = withContext(Dispatchers.IO) {

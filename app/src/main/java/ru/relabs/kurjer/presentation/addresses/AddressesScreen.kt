@@ -406,7 +406,7 @@ private fun ElmScaffoldContext<AddressesContext, AddressesState>.StorageErrorDia
         onDispose { controller.context.showStorageError = { } }
     }
     if (visible) {
-        DefaultDialog(text = stringResource(R.string.storage_close_first_error), acceptButton = "ок" to {}, onDismiss = { visible = false })
+        DefaultDialog(text = stringResource(R.string.storage_close_first_error), dismissible = true, acceptButton = "ок" to {}, onDismiss = { visible = false })
     }
 
 }

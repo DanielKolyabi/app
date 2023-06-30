@@ -443,6 +443,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.ProblemApartmentsWarn
         data.apartments?.let {
             DefaultDialog(
                 text = stringResource(R.string.problem_apartments_warning) + it.joinToString(" ") { it.toString() },
+                dismissible = true,
                 acceptButton = stringResource(R.string.ok) to {
                     sendMessage(
                         ReportMessages.msgPhotoClicked(

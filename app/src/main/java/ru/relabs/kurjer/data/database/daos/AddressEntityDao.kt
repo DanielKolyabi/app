@@ -1,6 +1,11 @@
 package ru.relabs.kurjer.data.database.daos
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import ru.relabs.kurjer.data.database.entities.AddressEntity
 
 /**
@@ -13,17 +18,17 @@ interface AddressEntityDao {
     val all: List<AddressEntity>
 
     @Query("SELECT * FROM addresses WHERE id = :id")
-    fun getById(id: Int): AddressEntity?
+    suspend fun getById(id: Int): AddressEntity?
 
     @Update
-    fun update(address: AddressEntity)
+    suspend fun update(address: AddressEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(address: AddressEntity)
+    suspend fun insert(address: AddressEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(address: List<AddressEntity>)
+    suspend fun insertAll(address: List<AddressEntity>)
 
     @Delete
-    fun delete(address: AddressEntity)
+    suspend fun delete(address: AddressEntity)
 }

@@ -27,7 +27,6 @@ import ru.relabs.kurjer.domain.models.needPhoto
 import ru.relabs.kurjer.domain.models.photo.TaskItemPhoto
 import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.domain.models.taskId
-import ru.relabs.kurjer.presentation.base.tea.ChannelWrapper
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
 import ru.relabs.kurjer.presentation.base.tea.msgEffects
 import ru.relabs.kurjer.services.ReportService
@@ -769,5 +768,25 @@ object ReportEffects {
                 }?.let { messages.send(ReportMessages.msgSavedResultLoaded(it)) }
             }
         }
+    }
+
+    fun effectWarnProblemApartmentsAnd(
+        taskItem: TaskItem?,
+        entranceNumber: EntranceNumber?,
+        problemApartments: List<Int>?,
+        msgFactory: () -> ReportMessage
+    ): ReportEffect = f@{ c, s ->
+        if (entranceNumber == null || taskItem == null || problemApartments == null) {
+            messages.send(msgFactory())
+            return@f
+        }
+
+        if (c.taskRepository.getWarning(taskItem.id, entranceNumber) == null) {
+            c.showProblemApartmentsWarning(problemApartments, entranceNumber, taskItem.id)
+            c.taskRepository.createWarning(entranceNumber, taskItem.id, taskItem.taskId)
+        } else {
+            messages.send(msgFactory())
+        }
+
     }
 }

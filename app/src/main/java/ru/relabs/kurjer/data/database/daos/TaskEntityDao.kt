@@ -28,25 +28,25 @@ interface TaskEntityDao {
     fun watchByIds(ids: List<Int>): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks WHERE id in (:ids)")
-    fun getByIds(ids: List<Int>): List<TaskEntity>
+    suspend fun getByIds(ids: List<Int>): List<TaskEntity>
 
     @Query("SELECT * FROM tasks WHERE id = :id")
-    fun getById(id: Int): TaskEntity?
+    suspend fun getById(id: Int): TaskEntity?
 
     @Query("SELECT * FROM tasks WHERE storage_id in (:ids)")
-    fun getTasksByStorageId(ids: List<Int>): List<TaskEntity>
+    suspend fun getTasksByStorageId(ids: List<Int>): List<TaskEntity>
 
     @Update
-    fun update(task: TaskEntity)
+    suspend fun update(task: TaskEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(task: TaskEntity): Long
+    suspend fun insert(task: TaskEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(task: List<TaskEntity>)
+    suspend fun insertAll(task: List<TaskEntity>)
 
     @Delete
-    fun delete(task: TaskEntity)
+    suspend fun delete(task: TaskEntity)
 
     @Query("DELETE FROM tasks")
     suspend fun deleteAll()

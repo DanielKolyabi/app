@@ -15,28 +15,29 @@ interface StorageReportDao {
     val all: List<StorageReportEntity>
 
     @Query("SELECT * FROM storage_reports WHERE id = :id")
-    fun getById(id: Int): StorageReportEntity
+    suspend fun getById(id: Int): StorageReportEntity
 
     @Query("SELECT * FROM storage_reports WHERE storage_id = :id AND is_closed = :isClosed ")
-    fun getOpenedByStorageId(id: Int, isClosed: Boolean): List<StorageReportEntity>?
+    suspend fun getOpenedByStorageId(id: Int, isClosed: Boolean): List<StorageReportEntity>?
+
     @Query("SELECT * FROM storage_reports WHERE storage_id = :id AND is_closed = :isClosed AND task_ids = :taskIds")
-    fun getOpenedByStorageIdWithTaskIds(id: Int, taskIds: List<Int>, isClosed: Boolean): List<StorageReportEntity>?
+    suspend fun getOpenedByStorageIdWithTaskIds(id: Int, taskIds: List<Int>, isClosed: Boolean): List<StorageReportEntity>?
 
     @Query("DELETE FROM storage_reports WHERE id = :id")
-    fun deleteById(id: Int)
+    suspend fun deleteById(id: Int)
 
     @Update
-    fun update(report: StorageReportEntity)
+    suspend fun update(report: StorageReportEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(report: StorageReportEntity): Long
+    suspend fun insert(report: StorageReportEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(reports: List<StorageReportEntity>)
+    suspend fun insertAll(reports: List<StorageReportEntity>)
 
     @Delete
-    fun delete(report: StorageReportEntity)
+    suspend fun delete(report: StorageReportEntity)
 
     @Delete
-    fun deleteList(reports: List<StorageReportEntity>)
+    suspend fun deleteList(reports: List<StorageReportEntity>)
 }

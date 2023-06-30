@@ -11,6 +11,8 @@ import ru.relabs.kurjer.domain.models.EntranceNumber
 import ru.relabs.kurjer.domain.models.ReportEntranceSelection
 import ru.relabs.kurjer.domain.models.Task
 import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemEntrance
+import ru.relabs.kurjer.domain.models.TaskItemId
 import ru.relabs.kurjer.domain.models.TaskItemResult
 import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.domain.models.photo.TaskItemPhoto
@@ -27,7 +29,6 @@ import ru.relabs.kurjer.domain.useCases.ReportUseCase
 import ru.relabs.kurjer.domain.useCases.StorageReportUseCase
 import ru.relabs.kurjer.presentation.base.tea.ElmEffect
 import ru.relabs.kurjer.presentation.base.tea.ElmMessage
-import ru.relabs.kurjer.presentation.base.tea.ElmRender
 import ru.relabs.kurjer.presentation.base.tea.ErrorContext
 import ru.relabs.kurjer.presentation.base.tea.ErrorContextImpl
 import ru.relabs.kurjer.presentation.base.tea.RouterContext
@@ -68,6 +69,7 @@ data class ReportState(
                     val reportEntrance = selectedTaskReport?.entrances?.firstOrNull { it.entranceNumber == entrance.number }
                     ReportEntranceItem(
                         taskItem,
+                        entrance,
                         entrance.number,
                         reportEntrance?.selection ?: ReportEntranceSelection(false, false, false, false),
                         task?.let { coupling.isCouplingEnabled(task, entrance.number) } ?: false,
@@ -97,6 +99,7 @@ data class ReportState(
 
 data class ReportEntranceItem(
     val taskItem: TaskItem.Common,
+    val entrance: TaskItemEntrance,
     val entranceNumber: EntranceNumber,
     val selection: ReportEntranceSelection,
     val coupleEnabled: Boolean,
@@ -135,7 +138,8 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     var contentResolver: () -> ContentResolver? = { null }
     var showRejectDialog: (reasons: List<String>) -> Unit = {}
     var showDescriptionInputDialog: (number: EntranceNumber, current: String, isEditable: Boolean) -> Unit = { _, _, _ -> }
-    var showProblemApartmentsWarning: (apartments: List<Int>?, entranceNumber: EntranceNumber) -> Unit = { _, _ -> }
+    var showProblemApartmentsWarning: (apartments: List<Int>?, entranceNumber: EntranceNumber, taskItemId: TaskItemId) -> Unit =
+        { _, _, _ -> }
 }
 
 enum class EntranceSelectionButton {

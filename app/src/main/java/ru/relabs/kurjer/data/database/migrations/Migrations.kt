@@ -249,11 +249,19 @@ object Migrations : KoinComponent {
             database.execSQL("ALTER TABLE tasks ADD COLUMN display_name TEXT NOT NULL DEFAULT ''")
         }
     }
-    // language=sql
+
     private val migration_55_56 = object : Migration(55, 56) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("DROP TABLE entrances_data;")
             database.execSQL("CREATE TABLE `entrances_data` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `task_item_id` INTEGER NOT NULL, `number` INTEGER NOT NULL, `apartments_count` INTEGER NOT NULL, `is_euro_boxes` INTEGER NOT NULL, `has_lookout` INTEGER NOT NULL, `is_stacked` INTEGER NOT NULL, `is_refused` INTEGER NOT NULL, `photo_required` INTEGER NOT NULL, FOREIGN KEY(`task_item_id`) REFERENCES `task_items`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE );")
         }
     }
+
+     private val migration_56_57 = object : Migration(56, 57) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("CREATE TABLE entrance_warnings (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, entrance_id INTEGER NOT NULL, task_id INTEGER NOT NULL, task_item_id INTEGER NOT NULL);")
+        }
+    }
+
+
 }

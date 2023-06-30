@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.database.AppDatabase
+import ru.relabs.kurjer.data.database.entities.EntranceWarningEntity
 import ru.relabs.kurjer.data.database.entities.TaskItemEntity
 import ru.relabs.kurjer.data.database.entities.TaskItemResultEntity
 import ru.relabs.kurjer.data.database.entities.TaskItemResultEntranceEntity
@@ -50,16 +51,12 @@ class TaskRepository(
     private val entrancesDao = db.entrancesDao()
     private val entranceDataDao = db.entranceDataDao()
     private val addressDao = db.addressDao()
+    private val entranceWarningDao = db.entranceWarningDao()
 
     suspend fun clearTasks() = withContext(Dispatchers.IO) {
         taskDao.all.map { it.id }
             .forEach { pathsProvider.getTaskRasterizeMapFileById(TaskId(it)).delete() }
         photoRepository.deleteAllTaskPhotos()
-//        taskItemResultDao.deleteAll()
-//        entrancesDao.deleteAll()
-//        entranceDataDao.deleteAll()
-//        taskItemDao.deleteAll()
-//        taskDao.deleteAll()
         db.clearAllTables()
     }
 
@@ -169,6 +166,8 @@ class TaskRepository(
             ) {
                 emit(MergeResult.TaskUpdated(task))
 
+                entranceWarningDao.deleteByTaskId(task.id.id)
+
                 queryRepository.putSendQuery(SendQueryData.TaskReceived(TaskId(savedTask.id)))
 
                 taskDao.update(DatabaseTaskMapper.toEntity(task))
@@ -215,7 +214,7 @@ class TaskRepository(
         }
     }.flowOn(Dispatchers.IO)
 
-    private fun removeTaskItem(taskItemId: Int) {
+    private suspend fun removeTaskItem(taskItemId: Int) {
         if (db.reportQueryDao().getByTaskItemId(taskItemId) == null) {
             db.photosDao().deleteByTaskItemId(taskItemId)
         }
@@ -423,6 +422,17 @@ class TaskRepository(
 
     fun watchTasks(taskIds: List<TaskId>): Flow<List<Task>> =
         taskDao.watchByIds(taskIds.map { it.id }).map { it.map { entity -> DatabaseTaskMapper.fromEntity(entity, db) } }
+
+    suspend fun getWarning(
+        taskItemId: TaskItemId,
+        entranceNumber: EntranceNumber
+    ) = withContext(Dispatchers.IO) {
+        entranceWarningDao.getWarning(entranceNumber.number, taskItemId.id)
+    }
+
+    suspend fun createWarning(entranceNumber: EntranceNumber, taskItemId: TaskItemId, taskId: TaskId) = withContext(Dispatchers.IO) {
+        entranceWarningDao.insert(EntranceWarningEntity(0, entranceNumber.number, taskId.id, taskItemId.id))
+    }
 
 }
 

@@ -1,7 +1,9 @@
 package ru.relabs.kurjer.data.database.daos
 
-import androidx.room.*
-import ru.relabs.kurjer.data.database.entities.AddressEntity
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import ru.relabs.kurjer.data.database.entities.FirmRejectReason
 
 /**
@@ -14,8 +16,8 @@ interface FirmRejectReasonDao {
     val all: List<FirmRejectReason>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(address: List<FirmRejectReason>)
+    suspend fun insertAll(address: List<FirmRejectReason>)
 
     @Query("DELETE FROM firm_reject_reason")
-    fun clear()
+    suspend fun clear()
 }

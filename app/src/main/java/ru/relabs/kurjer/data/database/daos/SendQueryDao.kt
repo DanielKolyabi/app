@@ -1,6 +1,10 @@
 package ru.relabs.kurjer.data.database.daos
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.Query
+import androidx.room.Update
 import ru.relabs.kurjer.data.database.entities.SendQueryItemEntity
 
 /**
@@ -13,17 +17,17 @@ interface SendQueryDao {
     val all: List<SendQueryItemEntity>
 
     @Query("SELECT * FROM send_query WHERE id = :id")
-    fun getById(id: Int): SendQueryItemEntity
+    suspend fun getById(id: Int): SendQueryItemEntity
 
     @Update
-    fun update(address: SendQueryItemEntity)
+    suspend fun update(address: SendQueryItemEntity)
 
     @Insert
-    fun insert(address: SendQueryItemEntity): Long
+    suspend fun insert(address: SendQueryItemEntity): Long
 
     @Insert
-    fun insertAll(address: List<SendQueryItemEntity>)
+    suspend fun insertAll(address: List<SendQueryItemEntity>)
 
     @Delete
-    fun delete(address: SendQueryItemEntity)
+    suspend fun delete(address: SendQueryItemEntity)
 }

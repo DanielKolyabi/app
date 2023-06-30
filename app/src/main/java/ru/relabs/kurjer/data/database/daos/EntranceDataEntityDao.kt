@@ -1,6 +1,10 @@
 package ru.relabs.kurjer.data.database.daos
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import ru.relabs.kurjer.data.database.entities.EntranceDataEntity
 
 /**
@@ -10,19 +14,19 @@ import ru.relabs.kurjer.data.database.entities.EntranceDataEntity
 interface EntranceDataEntityDao {
 
     @Query("SELECT * FROM entrances_data WHERE task_item_id = :taskItemId")
-    fun getAllForTaskItem(taskItemId: Int): List<EntranceDataEntity>
+    suspend fun getAllForTaskItem(taskItemId: Int): List<EntranceDataEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(item: EntranceDataEntity): Long
+    suspend fun insert(item: EntranceDataEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(item: List<EntranceDataEntity>)
+    suspend fun insertAll(item: List<EntranceDataEntity>)
 
     @Delete
-    fun delete(item: EntranceDataEntity)
+    suspend fun delete(item: EntranceDataEntity)
 
     @Query("DELETE FROM entrances_data WHERE task_item_id = :taskItemId")
-    fun deleteAllForTaskItem(taskItemId: Int)
+    suspend fun deleteAllForTaskItem(taskItemId: Int)
 
     @Query("DELETE FROM entrances_data")
     suspend fun deleteAll()

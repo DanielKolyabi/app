@@ -5,10 +5,17 @@ import ru.relabs.kurjer.data.database.entities.StorageClosesEntity
 import ru.relabs.kurjer.data.database.entities.StorageEntity
 import ru.relabs.kurjer.data.database.entities.TaskEntity
 import ru.relabs.kurjer.domain.mappers.MappingException
-import ru.relabs.kurjer.domain.models.*
+import ru.relabs.kurjer.domain.models.CoupleType
+import ru.relabs.kurjer.domain.models.DistrictType
+import ru.relabs.kurjer.domain.models.StorageClosure
+import ru.relabs.kurjer.domain.models.StorageId
+import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskDeliveryType
+import ru.relabs.kurjer.domain.models.TaskId
+import ru.relabs.kurjer.domain.models.toTaskState
 
 object DatabaseTaskMapper {
-    fun fromEntity(taskEntity: TaskEntity, db: AppDatabase): Task = Task(
+    suspend fun fromEntity(taskEntity: TaskEntity, db: AppDatabase): Task = Task(
         id = TaskId(taskEntity.id),
         state = Task.State(
             taskEntity.state.toTaskState(),

@@ -1,6 +1,11 @@
 package ru.relabs.kurjer.data.database.daos
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import ru.relabs.kurjer.data.database.entities.TaskItemResultEntranceEntity
 
 /**
@@ -13,22 +18,22 @@ interface TaskItemResultEntranceEntityDao {
     val all: List<TaskItemResultEntranceEntity>
 
     @Query("SELECT * FROM task_item_result_entrances WHERE id = :id")
-    fun getById(id: Int): TaskItemResultEntranceEntity
+    suspend fun getById(id: Int): TaskItemResultEntranceEntity
 
     @Query("SELECT * FROM task_item_result_entrances WHERE task_item_result_id = :id")
-    fun getByTaskItemResultId(id: Int): List<TaskItemResultEntranceEntity>
+    suspend fun getByTaskItemResultId(id: Int): List<TaskItemResultEntranceEntity>
 
     @Update
-    fun update(task: TaskItemResultEntranceEntity)
+    suspend fun update(task: TaskItemResultEntranceEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(task: TaskItemResultEntranceEntity): Long
+    suspend fun insert(task: TaskItemResultEntranceEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(task: List<TaskItemResultEntranceEntity>)
+    suspend fun insertAll(task: List<TaskItemResultEntranceEntity>)
 
     @Delete
-    fun delete(task: TaskItemResultEntranceEntity)
+    suspend fun delete(task: TaskItemResultEntranceEntity)
 
     @Query("DELETE FROM task_item_result_entrances")
     suspend fun deleteAll()

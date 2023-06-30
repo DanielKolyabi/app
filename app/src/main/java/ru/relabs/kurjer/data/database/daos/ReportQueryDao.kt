@@ -1,6 +1,11 @@
 package ru.relabs.kurjer.data.database.daos
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import ru.relabs.kurjer.data.database.entities.ReportQueryItemEntity
 
 /**
@@ -13,22 +18,22 @@ interface ReportQueryDao {
     val all: List<ReportQueryItemEntity>
 
     @Query("SELECT * FROM report_query WHERE id = :id")
-    fun getById(id: Int): ReportQueryItemEntity
+    suspend fun getById(id: Int): ReportQueryItemEntity
 
     @Query("SELECT * FROM report_query WHERE task_id = :id")
-    fun getByTaskId(id: Int): List<ReportQueryItemEntity>
+    suspend fun getByTaskId(id: Int): List<ReportQueryItemEntity>
 
     @Query("SELECT * FROM report_query WHERE task_item_id = :id")
-    fun getByTaskItemId(id: Int): ReportQueryItemEntity?
+    suspend fun getByTaskItemId(id: Int): ReportQueryItemEntity?
 
     @Update
-    fun update(address: ReportQueryItemEntity)
+    suspend fun update(address: ReportQueryItemEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(address: ReportQueryItemEntity)
+    suspend fun insert(address: ReportQueryItemEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(address: List<ReportQueryItemEntity>)
+    suspend fun insertAll(address: List<ReportQueryItemEntity>)
 
     @Delete
     suspend fun delete(address: ReportQueryItemEntity)

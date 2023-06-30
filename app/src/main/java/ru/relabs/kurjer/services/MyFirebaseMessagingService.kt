@@ -1,6 +1,5 @@
 package ru.relabs.kurjer.services
 
-import android.util.Log
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -63,7 +62,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService(), KoinComponent {
                 val taskId = data["task_id"]?.toIntOrNull() ?: return
                 val storageId = data["storage_id"]?.toIntOrNull() ?: return
                 val closeTime = data["close_time"]?.let { DateTime.parse(it).toDate() } ?: return
-                Log.d("zxc", taskId.toString())
                 val newClosure = StorageClosure(TaskId(taskId), StorageId(storageId), closeTime)
                 val task = taskRepository.getTask(TaskId(taskId))
                 if (task != null) {

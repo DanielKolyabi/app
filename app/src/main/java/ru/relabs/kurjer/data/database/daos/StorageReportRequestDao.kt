@@ -1,6 +1,11 @@
 package ru.relabs.kurjer.data.database.daos
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import ru.relabs.kurjer.data.database.entities.storage.StorageReportRequestEntity
 
 @Dao
@@ -9,24 +14,24 @@ interface StorageReportRequestDao {
     val all: List<StorageReportRequestEntity>
 
     @Query("SELECT * FROM storage_report_query WHERE id = :id")
-    fun getById(id: Int): StorageReportRequestEntity
+    suspend fun getById(id: Int): StorageReportRequestEntity
 
     @Query("SELECT * FROM storage_report_query WHERE task_id = :id")
-    fun getByTaskId(id: Int): List<StorageReportRequestEntity>
+    suspend fun getByTaskId(id: Int): List<StorageReportRequestEntity>
 
     @Query("SELECT * FROM storage_report_query WHERE storage_report_id = :storageReportId")
-    fun getByReportId(storageReportId: Int): List<StorageReportRequestEntity>
+    suspend fun getByReportId(storageReportId: Int): List<StorageReportRequestEntity>
 
     @Update
-    fun update(address: StorageReportRequestEntity)
+    suspend fun update(address: StorageReportRequestEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(request: StorageReportRequestEntity)
+    suspend fun insert(request: StorageReportRequestEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(requests: List<StorageReportRequestEntity>)
+    suspend fun insertAll(requests: List<StorageReportRequestEntity>)
 
     @Delete
-    fun delete(request: StorageReportRequestEntity)
+    suspend fun delete(request: StorageReportRequestEntity)
 
 }

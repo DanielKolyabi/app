@@ -1,6 +1,5 @@
 package ru.relabs.kurjer.presentation.report
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -49,6 +48,7 @@ import ru.relabs.kurjer.R
 import ru.relabs.kurjer.domain.models.ENTRANCE_NUMBER_TASK_ITEM
 import ru.relabs.kurjer.domain.models.EntranceNumber
 import ru.relabs.kurjer.domain.models.TaskItem
+import ru.relabs.kurjer.domain.models.TaskItemId
 import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.domain.models.address
 import ru.relabs.kurjer.domain.models.id
@@ -168,7 +168,16 @@ fun ReportScreen(
                         mapper = { PhotoItemData(it.photo.entranceNumber.number.let { if (it == -1) "Д" else it.toString() }, it.uri) },
                         requiredPhoto = task?.taskItem?.needPhoto == true,
                         hasPhoto = photos.any { it.photo.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM },
-                        onTakePhotoClicked = { sendMessage(ReportMessages.msgPhotoClicked(null, false)) },
+                        onTakePhotoClicked = {
+                            sendMessage(
+                                ReportMessages.msgPhotoClicked(
+                                    null,
+                                    null,
+                                    null,
+                                    false
+                                )
+                            )
+                        },
                         onDeleteClicked = { sendMessage(ReportMessages.msgRemovePhotoClicked(it.photo)) }
                     )
                     DescriptionInput()
@@ -232,18 +241,17 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.TaskItem(taskWithItem
 
 @Composable
 private fun ElmScaffoldContext<ReportContext, ReportState>.EntranceItem(entranceInfo: ReportEntranceItem, modifier: Modifier = Modifier) {
-    val entranceData = remember { entranceInfo.taskItem.entrancesData.firstOrNull { it.number == entranceInfo.entranceNumber } }
-    val apartmentsCount = remember { entranceData?.apartmentsCount ?: "?" }
+    val entranceData = remember { entranceInfo.entrance }
+    val apartmentsCount = remember { entranceData.apartmentsCount }
     val euroActive = entranceInfo.selection.isEuro
     val watchActive = entranceInfo.selection.isWatch
     val stackedActive = entranceInfo.selection.isStacked
     val rejectedActive = entranceInfo.selection.isRejected
-    val euroDefault = remember { entranceData?.isEuroBoxes ?: false }
-    val watchDefault = remember { entranceData?.hasLookout ?: false }
-    val stackedDefault = remember { entranceData?.isStacked ?: false }
-    val rejectedDefault = remember { entranceData?.isRefused ?: false }
+    val euroDefault = remember { entranceData.isEuroBoxes }
+    val watchDefault = remember { entranceData.hasLookout }
+    val stackedDefault = remember { entranceData.isStacked }
+    val rejectedDefault = remember { entranceData.isRefused }
     val interactionSource = remember { MutableInteractionSource() }
-    var warningShowed by remember { mutableStateOf(false) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically, modifier = modifier
@@ -331,7 +339,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.EntranceItem(entrance
         Icon(
             painter = if (entranceInfo.hasPhoto)
                 painterResource(R.drawable.ic_entrance_photo_done)
-            else if (entranceData?.photoRequired == true || rejectedActive)
+            else if (entranceData.photoRequired || rejectedActive)
                 painterResource(R.drawable.ic_entrance_photo_req)
             else
                 painterResource(R.drawable.ic_entrance_photo),
@@ -339,18 +347,14 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.EntranceItem(entrance
             tint = Color.Unspecified,
             modifier = Modifier
                 .clickable(interactionSource = interactionSource, indication = null) {
-                    if (!warningShowed) {
-                        Log.d("ReportScreen", "${entranceData?.problemApartments}")
-                        controller.context.showProblemApartmentsWarning(entranceData?.problemApartments, entranceInfo.entranceNumber)
-                        warningShowed = true
-                    } else {
-                        sendMessage(
-                            ReportMessages.msgPhotoClicked(
-                                entranceInfo.entranceNumber,
-                                false
-                            )
+                    sendMessage(
+                        ReportMessages.msgPhotoClicked(
+                            entranceInfo.taskItem,
+                            entranceInfo.entranceNumber,
+                            entranceData.problemApartments,
+                            false
                         )
-                    }
+                    )
                 }
                 .height(40.dp)
                 .padding(6.dp)
@@ -421,20 +425,19 @@ private fun AvailableContainer(available: Boolean, modifier: Modifier = Modifier
     }
 }
 
-private data class ProblemApartmentsDialogData(val apartments: List<Int>?, val entranceNumber: EntranceNumber)
+private data class ProblemApartmentsDialogData(val apartments: List<Int>?, val entranceNumber: EntranceNumber, val taskItemId: TaskItemId)
 
 @Composable
 private fun ElmScaffoldContext<ReportContext, ReportState>.ProblemApartmentsWarningDialogController() {
     var dialogData: ProblemApartmentsDialogData? by remember { mutableStateOf(null) }
 
     DisposableEffect(Unit) {
-        controller.context.showProblemApartmentsWarning = { apartments, entranceNumber ->
-            Log.d("ReportScreen", "$apartments 4")
+        controller.context.showProblemApartmentsWarning = { apartments, entranceNumber, taskItemId ->
             if (apartments != null) {
-                dialogData = ProblemApartmentsDialogData(apartments, entranceNumber)
+                dialogData = ProblemApartmentsDialogData(apartments, entranceNumber, taskItemId)
             }
         }
-        onDispose { controller.context.showProblemApartmentsWarning = { _, _ -> } }
+        onDispose { controller.context.showProblemApartmentsWarning = { _, _, _ -> } }
     }
     dialogData?.let { data ->
         data.apartments?.let {
@@ -443,7 +446,9 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.ProblemApartmentsWarn
                 acceptButton = stringResource(R.string.ok) to {
                     sendMessage(
                         ReportMessages.msgPhotoClicked(
+                            null,
                             data.entranceNumber,
+                            null,
                             false
                         )
                     )
@@ -451,21 +456,5 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.ProblemApartmentsWarn
                 onDismiss = { dialogData = null }
             )
         }
-    }
-}
-
-private fun parseNotes(notes: List<String>): List<Pair<Int, List<Int>>> {
-    val d = notes.joinToString("\n")
-    val fullHtml = notes.joinToString("\n").replace("<br/>", "\n")
-    Log.d("zxcaboba", d)
-    val strings: List<String> = fullHtml.split("\n").filter { it.startsWith("<b><font color=\"blue\">п.") }
-    return strings.mapNotNull {
-        val entranceNumber = it.substringAfter("<b><font color=\"blue\">п.")
-            .substringBefore("</font>").toIntOrNull() ?: return@mapNotNull null
-        val apartmentsNumbers = it.substringAfter("</b>")
-            .split("  ")
-            .filter { s -> s.startsWith("<font color=\"red\">") }
-            .mapNotNull { s -> s.substringAfter("<font color=\"red\">").substringBefore("*</font>").toIntOrNull() }
-        entranceNumber to apartmentsNumbers
     }
 }

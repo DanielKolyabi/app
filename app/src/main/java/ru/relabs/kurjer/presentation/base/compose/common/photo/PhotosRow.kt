@@ -19,7 +19,7 @@ import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorHasPhoto
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorRequiredPhoto
 
 @Composable
-fun<T> PhotosRow(
+fun <T> PhotosRow(
     photos: List<T>,
     mapper: (T) -> PhotoItemData,
     requiredPhoto: Boolean,
@@ -35,10 +35,10 @@ fun<T> PhotosRow(
             Icon(
                 painter = painterResource(R.drawable.ic_entrance_photo),
                 contentDescription = null,
-                tint = if (requiredPhoto)
-                    ColorRequiredPhoto
-                else if (hasPhoto)
+                tint = if (hasPhoto)
                     ColorHasPhoto
+                else if (requiredPhoto)
+                    ColorRequiredPhoto
                 else
                     Color.Black,
                 modifier = Modifier

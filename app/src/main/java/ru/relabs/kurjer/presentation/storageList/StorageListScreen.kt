@@ -78,7 +78,7 @@ private fun ElmScaffoldContext<StorageListContext, StorageListState>.StorageItem
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = storage.address,
-            color = if (tasks.any { it.isStorageActuallyRequired })
+            color = if (tasks.any { it.task.storageCloseFirstRequired })
                 ColorFuchsia
             else
                 Color.Black,

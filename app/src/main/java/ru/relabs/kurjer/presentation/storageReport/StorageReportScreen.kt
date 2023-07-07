@@ -78,6 +78,7 @@ fun StorageReportScreen(controller: ElmController<StorageReportContext, StorageR
         titleColor = if (storageCloseFirstRequired) ColorFuchsia else Color.White,
         onBackClicked = { sendMessage(StorageReportMessages.msgNavigateBack()) },
     ) {
+        if (tasks.isEmpty()) return@AppBarLoadableContainer
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -100,7 +101,7 @@ fun StorageReportScreen(controller: ElmController<StorageReportContext, StorageR
             Column(
                 modifier = Modifier.onSizeChanged {
                     with(density) {
-                        inputHeight = max(inputHeight ,it.height.toDp())
+                        inputHeight = max(inputHeight, it.height.toDp())
                     }
                 }
             ) {
@@ -304,7 +305,7 @@ private fun ElmScaffoldContext<StorageReportContext, StorageReportState>.FatalEr
     DisposableEffect(Unit) {
         controller.context.showError = { code: String, isFatal: Boolean ->
             dialogData = FatalErrorDialogData(code, isFatal)
-            FirebaseCrashlytics.getInstance().log("fatal error $isFatal $code")
+            FirebaseCrashlytics.getInstance().recordException(RuntimeException("fatal error $isFatal $code"))
         }
         onDispose { controller.context.showError = { _, _ -> } }
     }

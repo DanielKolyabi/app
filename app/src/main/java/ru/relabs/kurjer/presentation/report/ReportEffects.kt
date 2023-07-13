@@ -773,10 +773,10 @@ object ReportEffects {
     fun effectWarnProblemApartmentsAnd(
         taskItem: TaskItem?,
         entranceNumber: EntranceNumber?,
-        problemApartments: List<Int>?,
+        problemApartments: List<String>?,
         msgFactory: () -> ReportMessage
     ): ReportEffect = f@{ c, s ->
-        if (entranceNumber == null || taskItem == null || problemApartments == null) {
+        if (entranceNumber == null || taskItem == null || problemApartments.isNullOrEmpty()) {
             messages.send(msgFactory())
             return@f
         }

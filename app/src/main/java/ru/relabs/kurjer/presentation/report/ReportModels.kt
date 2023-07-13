@@ -138,7 +138,7 @@ class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     var contentResolver: () -> ContentResolver? = { null }
     var showRejectDialog: (reasons: List<String>) -> Unit = {}
     var showDescriptionInputDialog: (number: EntranceNumber, current: String, isEditable: Boolean) -> Unit = { _, _, _ -> }
-    var showProblemApartmentsWarning: (apartments: List<Int>?, entranceNumber: EntranceNumber, taskItemId: TaskItemId) -> Unit =
+    var showProblemApartmentsWarning: (apartments: List<String>?, entranceNumber: EntranceNumber, taskItemId: TaskItemId) -> Unit =
         { _, _, _ -> }
 }
 

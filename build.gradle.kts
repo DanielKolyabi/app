@@ -1,6 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id("com.google.devtools.ksp") version "1.8.20-1.0.11" apply false
+    id("com.google.devtools.ksp") version "1.8.21-1.0.11" apply false
 }
 buildscript {
     repositories {
@@ -10,7 +10,7 @@ buildscript {
         maven("https://jitpack.io")
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.2.0-alpha10")
+        classpath("com.android.tools.build:gradle:8.2.0-alpha12")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${Config.Versions.kotlin}")
         classpath("com.google.gms:google-services:4.3.15")
         classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.4")

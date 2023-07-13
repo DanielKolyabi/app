@@ -170,12 +170,7 @@ fun ReportScreen(
                         hasPhoto = photos.any { it.photo.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM },
                         onTakePhotoClicked = {
                             sendMessage(
-                                ReportMessages.msgPhotoClicked(
-                                    null,
-                                    null,
-                                    null,
-                                    false
-                                )
+                                ReportMessages.msgPhotoClicked(false)
                             )
                         },
                         onDeleteClicked = { sendMessage(ReportMessages.msgRemovePhotoClicked(it.photo)) }
@@ -349,10 +344,10 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.EntranceItem(entrance
                 .clickable(interactionSource = interactionSource, indication = null) {
                     sendMessage(
                         ReportMessages.msgPhotoClicked(
+                            false,
                             entranceInfo.taskItem,
                             entranceInfo.entranceNumber,
-                            entranceData.problemApartments,
-                            false
+                            entranceData.problemApartments
                         )
                     )
                 }
@@ -425,7 +420,11 @@ private fun AvailableContainer(available: Boolean, modifier: Modifier = Modifier
     }
 }
 
-private data class ProblemApartmentsDialogData(val apartments: List<Int>?, val entranceNumber: EntranceNumber, val taskItemId: TaskItemId)
+private data class ProblemApartmentsDialogData(
+    val apartments: List<String>?,
+    val entranceNumber: EntranceNumber,
+    val taskItemId: TaskItemId
+)
 
 @Composable
 private fun ElmScaffoldContext<ReportContext, ReportState>.ProblemApartmentsWarningDialogController() {
@@ -447,10 +446,8 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.ProblemApartmentsWarn
                 acceptButton = stringResource(R.string.ok) to {
                     sendMessage(
                         ReportMessages.msgPhotoClicked(
-                            null,
-                            data.entranceNumber,
-                            null,
-                            false
+                            false,
+                            entranceNumber = data.entranceNumber,
                         )
                     )
                 },

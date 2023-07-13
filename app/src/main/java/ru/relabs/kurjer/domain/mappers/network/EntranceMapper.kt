@@ -12,7 +12,7 @@ object EntranceMapper {
         hasLookout = raw.hasLookout,
         isStacked = raw.isStacked,
         isRefused = raw.isRefused,
-        problemApartments = null,
+        problemApartments = raw.problemApartments,
         photoRequired = raw.photoRequired
     )
 }

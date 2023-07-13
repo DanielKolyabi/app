@@ -9,5 +9,6 @@ data class TaskItemEntranceResponse(
     @SerializedName("has_lookout") val hasLookout: Boolean,
     @SerializedName("is_stacked") val isStacked: Boolean,
     @SerializedName("is_refused") val isRefused: Boolean,
-    @SerializedName("photo_required") var photoRequired: Boolean
+    @SerializedName("photo_required") var photoRequired: Boolean,
+    @SerializedName("flats_with_problems") val problemApartments: List<String>
 )

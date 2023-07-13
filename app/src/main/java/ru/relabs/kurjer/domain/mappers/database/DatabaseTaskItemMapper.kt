@@ -43,8 +43,7 @@ object DatabaseTaskItemMapper {
             taskId = TaskId(taskItem.taskId),
             needPhoto = taskItem.needPhoto,
             entrancesData = db.entranceDataDao().getAllForTaskItem(taskItem.id).map { entity ->
-                val problemApartments = parseNotes(taskItem.notes).firstOrNull { it.first == entity.number }?.second
-                DatabaseEntranceDataMapper.fromEntity(entity, problemApartments)
+                DatabaseEntranceDataMapper.fromEntity(entity)
             },
             closeRadius = taskItem.closeRadius,
             closeTime = taskItem.closeTime
@@ -88,20 +87,4 @@ object DatabaseTaskItemMapper {
             closeTime = null
         )
     }
-
-    private fun parseNotes(notes: List<String>): List<EntranceWithApartments> {
-        val fullHtml = notes.joinToString("\n").replace("<br/>", "\n")
-        val strings: List<String> = fullHtml.split("\n").filter { it.startsWith("<b><font color=\"blue\">п.") }
-        return strings.mapNotNull {
-            val entranceNumber = it.substringAfter("<b><font color=\"blue\">п.")
-                .substringBefore("</font>").toIntOrNull() ?: return@mapNotNull null
-            val apartmentsNumbers = it.substringAfter("</b>")
-                .split("  ")
-                .filter { s -> s.startsWith("<font color=\"red\">") }
-                .mapNotNull { s -> s.substringAfter("<font color=\"red\">").substringBefore("*</font>").toIntOrNull() }
-            entranceNumber to apartmentsNumbers
-        }
-    }
 }
-
-typealias EntranceWithApartments = Pair<Int, List<Int>>

@@ -6,7 +6,7 @@ import kotlinx.parcelize.Parcelize
 const val ENTRANCE_NUMBER_TASK_ITEM = -1
 
 @Parcelize
-data class EntranceNumber(val number: Int): Parcelable
+data class EntranceNumber(val number: Int) : Parcelable
 
 @Parcelize
 data class TaskItemEntrance(
@@ -16,6 +16,6 @@ data class TaskItemEntrance(
     val hasLookout: Boolean,
     val isStacked: Boolean,
     val isRefused: Boolean,
-    val problemApartments: List<Int>?,
+    val problemApartments: List<String>,
     var photoRequired: Boolean
-): Parcelable
+) : Parcelable

@@ -36,8 +36,10 @@ object Migrations : KoinComponent {
         migration_53_54,
         migration_54_55,
         migration_55_56,
+        migration_56_57,
+        migration_57_58
 
-        )
+    )
 
 
     private val migration_26_27 = object : Migration(26, 27) {
@@ -257,11 +259,16 @@ object Migrations : KoinComponent {
         }
     }
 
-     private val migration_56_57 = object : Migration(56, 57) {
+    private val migration_56_57 = object : Migration(56, 57) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL("CREATE TABLE entrance_warnings (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, entrance_id INTEGER NOT NULL, task_id INTEGER NOT NULL, task_item_id INTEGER NOT NULL);")
         }
     }
 
+    private val migration_57_58 = object : Migration(57, 58) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE entrances_data ADD COLUMN problem_apartments TEXT NOT NULL DEFAULT '[]'")
+        }
+    }
 
 }

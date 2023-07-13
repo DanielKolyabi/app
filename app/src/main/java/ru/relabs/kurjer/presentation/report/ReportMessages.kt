@@ -62,11 +62,11 @@ object ReportMessages {
         msgState { it.copy(selectedTask = taskWithItem, selectedTaskPhotos = photos, isEntranceSelectionChanged = false) }
 
     fun msgPhotoClicked(
+        multiplePhoto: Boolean,
         taskItem: TaskItem? = null,
         entranceNumber: EntranceNumber? = null,
-        problemApartments: List<Int>? = null,
-        multiplePhoto: Boolean
-    ): ReportMessage = msgEffect(
+        problemApartments: List<String>? = null,
+        ): ReportMessage = msgEffect(
         ReportEffects.effectWarnProblemApartmentsAnd(taskItem, entranceNumber, problemApartments) {
             msgEffect(ReportEffects.effectValidateUnfinishedReportsAnd {
                 when (BuildConfig.FEATURE_PHOTO_RADIUS) {

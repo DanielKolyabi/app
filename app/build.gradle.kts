@@ -16,8 +16,8 @@ android {
             keyPassword = "1qazxsw2"
             storeFile = file("2017abix.dat")
             storePassword = "1qazxsw2"
-            isV1SigningEnabled = true
-            isV2SigningEnabled = true
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
     compileSdk = 33

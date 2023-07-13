@@ -439,9 +439,9 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.ProblemApartmentsWarn
         onDispose { controller.context.showProblemApartmentsWarning = { _, _, _ -> } }
     }
     dialogData?.let { data ->
-        data.apartments?.let {
+        data.apartments?.let { apartments ->
             DefaultDialog(
-                text = stringResource(R.string.problem_apartments_warning) + it.joinToString(" ") { it.toString() },
+                text = stringResource(R.string.problem_apartments_warning) + " " + apartments.joinToString(" ") { it },
                 dismissible = true,
                 acceptButton = stringResource(R.string.ok) to {
                     sendMessage(

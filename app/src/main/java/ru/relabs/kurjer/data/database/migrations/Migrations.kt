@@ -261,7 +261,7 @@ object Migrations : KoinComponent {
 
     private val migration_56_57 = object : Migration(56, 57) {
         override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("CREATE TABLE entrance_warnings (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, entrance_id INTEGER NOT NULL, task_id INTEGER NOT NULL, task_item_id INTEGER NOT NULL);")
+            database.execSQL("CREATE TABLE entrance_warnings (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, entrance_number INTEGER NOT NULL, task_id INTEGER NOT NULL, task_item_id INTEGER NOT NULL);")
         }
     }
 

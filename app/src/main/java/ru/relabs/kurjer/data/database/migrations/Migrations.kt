@@ -267,7 +267,8 @@ object Migrations : KoinComponent {
 
     private val migration_57_58 = object : Migration(57, 58) {
         override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("ALTER TABLE entrances_data ADD COLUMN problem_apartments TEXT NOT NULL DEFAULT '[]'")
+            database.execSQL("DROP TABLE entrances_data;")
+            database.execSQL("CREATE TABLE `entrances_data` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `task_item_id` INTEGER NOT NULL, `number` INTEGER NOT NULL, `apartments_count` INTEGER NOT NULL, `is_euro_boxes` INTEGER NOT NULL, `has_lookout` INTEGER NOT NULL, `is_stacked` INTEGER NOT NULL, `is_refused` INTEGER NOT NULL, `photo_required` INTEGER NOT NULL, problem_apartments TEXT NOT NULL DEFAULT '[]', FOREIGN KEY(`task_item_id`) REFERENCES `task_items`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE );")
         }
     }
 

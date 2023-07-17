@@ -69,6 +69,7 @@ import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorButtonLight
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorButtonPink
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorEntranceCoupleEnabled
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
+import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGreenLight
 import ru.relabs.kurjer.presentation.base.tea.ElmController
 
 @Composable
@@ -292,7 +293,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.EntranceItem(entrance
                 .height(40.dp)
                 .padding(horizontal = 4.dp, vertical = 6.dp)
         ) {
-            Text(text = "T", color = Color.Black)
+            Text(text = "T", color = if (!entranceInfo.hasDescription) Color.Black else ColorGreenLight)
         }
 
         EntranceButton(

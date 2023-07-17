@@ -74,7 +74,7 @@ data class ReportState(
                         reportEntrance?.selection ?: ReportEntranceSelection(false, false, false, false),
                         task?.let { coupling.isCouplingEnabled(task, entrance.number) } ?: false,
                         selectedTaskPhotos.any { photo -> photo.photo.entranceNumber == entrance.number },
-                        reportEntrance?.userDescription.isNullOrEmpty()
+                        !reportEntrance?.userDescription.isNullOrEmpty()
                     )
                 }
             } else {

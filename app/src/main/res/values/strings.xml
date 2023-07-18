@@ -123,6 +123,5 @@
     <string name="storage_close_location_far_error">Ты не у склада! Подойди и попробуй еще \nSiz omborda emassiz! Yaqinlashing va qaytadan urining</string>
     <string name="unselected_tasks_warning">Внимание! Есть еще задания на этом складе.</string>
     <string name="storage_not_closed_error">Склад должен быть закрыт первым</string>
-    <string name="problem_apartments_warning">Проблемные квартиры: </string>
     <string name="storage_close_first_error">Начинаем со склада и фото продукции!</string>
 </resources>

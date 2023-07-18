@@ -442,17 +442,20 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.ProblemApartmentsWarn
     dialogData?.let { data ->
         data.apartments?.let { apartments ->
             DefaultDialog(
-                text = stringResource(R.string.problem_apartments_warning) + " " + apartments.joinToString(" ") { it },
+                text = apartments.joinToString(" ") { it },
                 dismissible = true,
-                acceptButton = stringResource(R.string.ok) to {
+                textColor = Color.Red,
+                textSize = 18.sp,
+                acceptButton = stringResource(R.string.ok) to {},
+                onDismiss = {
                     sendMessage(
                         ReportMessages.msgPhotoClicked(
                             false,
                             entranceNumber = data.entranceNumber,
                         )
                     )
-                },
-                onDismiss = { dialogData = null }
+                    dialogData = null
+                }
             )
         }
     }

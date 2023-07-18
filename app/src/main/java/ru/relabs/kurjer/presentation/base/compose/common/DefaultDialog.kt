@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -74,7 +75,8 @@ fun DefaultDialog(
     declineButton: Pair<String, () -> Unit>? = null,
     onDismiss: () -> Unit,
     dismissible: Boolean = false,
-    textColor: Color? = null
+    textColor: Color? = null,
+    textSize: TextUnit = 16.sp
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -112,7 +114,7 @@ fun DefaultDialog(
             Text(
                 text = text,
                 color = textColor ?: Color.Black,
-                fontSize = 16.sp
+                fontSize = textSize
             )
         },
         title = title?.let {

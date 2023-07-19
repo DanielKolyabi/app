@@ -445,7 +445,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.ProblemApartmentsWarn
                 text = apartments.joinToString(" ") { it },
                 dismissible = true,
                 textColor = Color.Red,
-                textSize = 18.sp,
+                textSize = 24.sp,
                 acceptButton = stringResource(R.string.ok) to {},
                 onDismiss = {
                     sendMessage(

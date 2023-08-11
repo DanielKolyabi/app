@@ -8,6 +8,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
+import org.joda.time.LocalDateTime
 import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import ru.relabs.kurjer.domain.models.StorageClosure
 import ru.relabs.kurjer.domain.models.StorageId
@@ -178,13 +179,14 @@ class StorageReportUseCase(
         val isStorageCloseNotExist =
             storageCloses.isEmpty() || storageCloses.first().closeDate < settingsRepository.closeLimit
         val isStorageCloseOptional =
-            dbTask.items.any {
-                (it is TaskItem.Common &&
-                        it.closeTime != null &&
-                        (it.closeTime > settingsRepository.closeLimit || DateTime.parse(it.closeTime.toString()).dayOfYear == DateTime.now().dayOfYear))
-            }
+            dbTask.items.any { it is TaskItem.Common && it.closeTime != null && it.closeTime > settingsRepository.closeLimit }
                     && dbTask.storage.requirementsUpdateDate > settingsRepository.closeLimit
-        return if (isStorageCloseOptional) {
+        val taskItemClosedToday =
+            dbTask.items.any {
+                it is TaskItem.Common
+                        && it.closeTime != null && DateTime(it.closeTime).dayOfYear == LocalDateTime.now().dayOfYear
+            }
+        return if (isStorageCloseOptional || taskItemClosedToday) {
             false
         } else {
             dbTask.storageCloseFirstRequired && isStorageCloseNotExist

@@ -135,7 +135,7 @@ object AddressesEffects {
 
     private fun effectYandexMapAddressSelected(address: Address): AddressesEffect = { c, s ->
         messages.send(AddressesMessages.msgSelectedListAddress(address))
-        delay(1000)
+        delay(2000)
         messages.send(AddressesMessages.msgSelectedListAddress(null))
     }
 

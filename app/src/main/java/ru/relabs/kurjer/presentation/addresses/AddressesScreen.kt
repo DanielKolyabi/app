@@ -46,6 +46,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import ru.relabs.kurjer.R
@@ -70,8 +72,6 @@ import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorTextDisabled
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorYellow
 import ru.relabs.kurjer.presentation.base.tea.ElmController
-import kotlin.math.max
-import kotlin.math.min
 
 @Composable
 fun AddressesScreen(controller: ElmController<AddressesContext, AddressesState>) = ElmScaffold(controller) {
@@ -91,25 +91,27 @@ fun AddressesScreen(controller: ElmController<AddressesContext, AddressesState>)
             selectedAddress?.let { address ->
                 sortedTasks.indexOfFirst { it is AddressesItem.GroupHeader && it.subItems.firstOrNull()?.address?.id == address.id }
                     .takeIf { idx -> idx >= 0 }?.let { idx ->
-                        val itemsOnScreen = listState.layoutInfo.visibleItemsInfo.lastIndex - listState.firstVisibleItemIndex
-                        val visibleMiddleIdx = listState.firstVisibleItemIndex + itemsOnScreen / 2
-                        val preferredIdx = when {
-                            idx > visibleMiddleIdx -> min(idx + itemsOnScreen / 2, listState.layoutInfo.totalItemsCount)
-                            idx < visibleMiddleIdx -> max(0, idx - itemsOnScreen / 2)
-                            else -> visibleMiddleIdx
-                        }
-                        return@derivedStateOf preferredIdx + singleItems
+                        return@derivedStateOf idx + singleItems
                     }
             }
             null
         }
     }
     var flashingItemIdx: Int? by remember { mutableStateOf(null) }
-
+    var actualScrollItem: Int? by remember { mutableStateOf(null) }
+    var animationJob: Job? by remember { mutableStateOf(null) }
 
     LaunchedEffect(targetScrollItem) {
-        targetScrollItem?.let {
-            listState.animateScrollToItem(it)
+        if (animationJob?.isActive == true && targetScrollItem == null) {
+            return@LaunchedEffect
+        }
+        actualScrollItem = targetScrollItem
+    }
+    LaunchedEffect(actualScrollItem) {
+        actualScrollItem?.let {
+            val job = async { listState.animateScrollToItem(it) }
+            animationJob = job
+            job.await()
             flashingItemIdx = selectedAddress?.let { address ->
                 sortedTasks.indexOfFirst { it is AddressesItem.GroupHeader && it.subItems.firstOrNull()?.address?.id == address.id }
             }
@@ -406,7 +408,11 @@ private fun ElmScaffoldContext<AddressesContext, AddressesState>.StorageErrorDia
         onDispose { controller.context.showStorageError = { } }
     }
     if (visible) {
-        DefaultDialog(text = stringResource(R.string.storage_close_first_error), dismissible = true, acceptButton = "ок" to {}, onDismiss = { visible = false })
+        DefaultDialog(
+            text = stringResource(R.string.storage_close_first_error),
+            dismissible = true,
+            acceptButton = "ок" to {},
+            onDismiss = { visible = false })
     }
 
 }

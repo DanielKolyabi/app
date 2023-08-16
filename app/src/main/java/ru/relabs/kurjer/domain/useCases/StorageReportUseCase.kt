@@ -13,6 +13,7 @@ import ru.relabs.kurjer.domain.models.GPSCoordinatesModel
 import ru.relabs.kurjer.domain.models.StorageClosure
 import ru.relabs.kurjer.domain.models.StorageId
 import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskDeliveryType
 import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.TaskState
@@ -174,6 +175,7 @@ class StorageReportUseCase(
 
     suspend fun isReportActuallyRequired(task: Task): Boolean {
         val dbTask = taskRepository.getTask(task.id) ?: return false
+        if (dbTask.deliveryType == TaskDeliveryType.Firm) return false
 
         val storageCloses = dbTask.storage.closes.sortedByDescending { it.closeDate }
         val isStorageCloseNotExist =

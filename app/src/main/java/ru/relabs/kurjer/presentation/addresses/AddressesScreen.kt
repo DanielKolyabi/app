@@ -174,7 +174,7 @@ private fun ElmScaffoldContext<AddressesContext, AddressesState>.HeaderItem(
 ) {
     val noneCreated = items.none { it.state == TaskItemState.CREATED }
     val backgroundColor by animateColorAsState(
-        targetValue = if (flashing) ColorFuchsia else ColorFuchsia.copy(0f),
+        targetValue = if (flashing) ColorYellow else ColorYellow.copy(0f),
         animationSpec = if (flashing)
             InfiniteRepeatableSpec(
                 animation = TweenSpec(500),

@@ -17,12 +17,29 @@ import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.migrations.Migrations
 import ru.relabs.kurjer.domain.controllers.ServiceEventController
 import ru.relabs.kurjer.domain.controllers.TaskEventController
-import ru.relabs.kurjer.domain.providers.*
-import ru.relabs.kurjer.domain.repositories.*
+import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
+import ru.relabs.kurjer.domain.providers.DeviceUniqueIdProvider
+import ru.relabs.kurjer.domain.providers.FirebaseTokenProvider
+import ru.relabs.kurjer.domain.providers.LocationProvider
+import ru.relabs.kurjer.domain.providers.PathsProvider
+import ru.relabs.kurjer.domain.providers.getLocationProvider
+import ru.relabs.kurjer.domain.repositories.DeliveryRepository
+import ru.relabs.kurjer.domain.repositories.PauseRepository
+import ru.relabs.kurjer.domain.repositories.PhotoRepository
+import ru.relabs.kurjer.domain.repositories.QueryRepository
+import ru.relabs.kurjer.domain.repositories.SettingsRepository
+import ru.relabs.kurjer.domain.repositories.StorageRepository
+import ru.relabs.kurjer.domain.repositories.TaskRepository
+import ru.relabs.kurjer.domain.repositories.TextSizeStorage
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
-import ru.relabs.kurjer.domain.useCases.*
+import ru.relabs.kurjer.domain.storage.SavedUserStorage
+import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
+import ru.relabs.kurjer.domain.useCases.LoginUseCase
+import ru.relabs.kurjer.domain.useCases.ReportUseCase
+import ru.relabs.kurjer.domain.useCases.StorageReportUseCase
+import ru.relabs.kurjer.domain.useCases.TaskUseCase
 import java.io.File
 
 object Modules {
@@ -59,6 +76,7 @@ val storagesModule = module {
     single<AppPreferences> { AppPreferences(get<SharedPreferences>()) }
     single<AuthTokenStorage> { AuthTokenStorage(get<AppPreferences>()) }
     single<CurrentUserStorage> { CurrentUserStorage(get<AppPreferences>()) }
+    single<SavedUserStorage> { SavedUserStorage(get<AppPreferences>()) }
 
     single<DeviceUUIDProvider> {
         DeviceUUIDProvider(
@@ -152,7 +170,8 @@ val useCasesModule = module {
             get<SettingsRepository>(),
             get<AuthTokenStorage>(),
             get<PauseRepository>(),
-            get<AppPreferences>()
+            get<AppPreferences>(),
+            get<SavedUserStorage>()
         )
     }
 

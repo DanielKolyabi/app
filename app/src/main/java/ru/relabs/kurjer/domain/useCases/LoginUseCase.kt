@@ -6,13 +6,14 @@ import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.data.models.common.EitherE
 import ru.relabs.kurjer.domain.models.User
-import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
 import ru.relabs.kurjer.domain.repositories.SettingsRepository
+import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
+import ru.relabs.kurjer.domain.storage.SavedUserStorage
 import ru.relabs.kurjer.services.ReportService
 import ru.relabs.kurjer.utils.fmap
 
@@ -23,35 +24,29 @@ class LoginUseCase(
     private val settingsRepository: SettingsRepository,
     private val authTokenStorage: AuthTokenStorage,
     private val pauseRepository: PauseRepository,
-    private val appPreferences: AppPreferences
-){
+    private val appPreferences: AppPreferences,
+    private val savedUserStorage: SavedUserStorage
+) {
 
     fun isAutologinEnabled() = appPreferences.getUserAutologinEnabled()
 
     suspend fun loginOffline(): User? {
-        val savedLogin = currentUserStorage.getCurrentUserLogin() ?: return null
-        val savedToken = authTokenStorage.getToken() ?: return null
+        val savedCredentials = savedUserStorage.getCredentials() ?: return null
+        val savedToken = savedUserStorage.getToken() ?: return null
 
-        loginInternal(savedLogin, savedToken, offline = true)
-        return User(savedLogin)
+        loginInternal(savedCredentials.login, savedCredentials.password, savedToken, offline = true)
+        return User(savedCredentials.login)
     }
 
     suspend fun login(login: UserLogin, password: String, remember: Boolean): EitherE<User> {
         appPreferences.setUserAutologinEnabled(remember)
         return deliveryRepository.login(login, password).fmap { (user, token) ->
-            loginInternal(user.login, token, offline = false)
+            loginInternal(user.login, password, token, offline = false)
             user
         }
     }
 
-    suspend fun login(token: String): EitherE<User> {
-        return deliveryRepository.login(token).fmap { (user, token) ->
-            loginInternal(user.login, token, offline = false)
-            user
-        }
-    }
-
-    private suspend fun loginInternal(login: UserLogin, token: String, offline: Boolean) = withContext(Dispatchers.IO){
+    private suspend fun loginInternal(login: UserLogin, password: String, token: String, offline: Boolean) = withContext(Dispatchers.IO) {
         val lastUserLogin = currentUserStorage.getCurrentUserLogin()
         if (lastUserLogin != login) {
             taskRepository.clearTasks()
@@ -60,6 +55,8 @@ class LoginUseCase(
         }
         authTokenStorage.saveToken(token)
         currentUserStorage.saveCurrentUserLogin(login)
+        savedUserStorage.saveCredentials(login, password)
+        savedUserStorage.saveToken(token)
 
         settingsRepository.startRemoteUpdating()
         pauseRepository.loadLastPausesRemote()

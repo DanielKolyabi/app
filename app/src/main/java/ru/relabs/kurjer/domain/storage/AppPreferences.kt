@@ -3,6 +3,7 @@ package ru.relabs.kurjer.domain.storage
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import ru.relabs.kurjer.data.models.auth.UserLogin
+import ru.relabs.kurjer.domain.models.Credentials
 import ru.relabs.kurjer.domain.models.DeviceId
 import ru.relabs.kurjer.domain.providers.FirebaseToken
 
@@ -58,6 +59,21 @@ class AppPreferences(
         .putString(FIREBASE_TOKEN_KEY, token.token)
         .apply()
 
+    fun backUpUserCredentials(login: UserLogin, password: String) = sharedPreferences.edit {
+        putString(KEY_BACKUP_USER_LOGIN, login.login)
+        putString(KEY_BACKUP_USER_PASSWORD, password)
+    }
+
+    fun backUpToken(token: String) =
+        sharedPreferences.edit { putString(KEY_BACKUP_TOKEN, token) }
+
+    fun getBackedUpCredentials(): Credentials? {
+        val login: UserLogin? = sharedPreferences.getString(KEY_BACKUP_USER_LOGIN, null)?.let { UserLogin(it) }
+        val password = sharedPreferences.getString(KEY_BACKUP_USER_PASSWORD, null)
+        return if (login != null && password != null) Credentials(login, password) else null
+    }
+
+    fun getBackedUpToken(): String? = sharedPreferences.getString(KEY_BACKUP_TOKEN, null)
 
     companion object {
         const val AUTO_LOGIN_ENABLED_KEY = "autologin_enabled"
@@ -69,5 +85,8 @@ class AppPreferences(
         const val UNKNOWN_DEVICE_UUID = "__unknown_device_uuid"
         const val FIREBASE_TOKEN_KEY = "firebase_token"
         const val UNKNOWN_FIREBASE_TOKEN = "__unknown_firebase_token"
+        const val KEY_BACKUP_USER_LOGIN = "backed_up_user_login"
+        const val KEY_BACKUP_USER_PASSWORD = "backed_up_user_password"
+        const val KEY_BACKUP_TOKEN = "backed_token"
     }
 }

@@ -41,8 +41,10 @@ import ru.relabs.kurjer.domain.models.AppUpdatesInfo
 import ru.relabs.kurjer.domain.models.PauseDurations
 import ru.relabs.kurjer.domain.models.PauseTimes
 import ru.relabs.kurjer.domain.models.Task
+import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.domain.models.User
 import ru.relabs.kurjer.domain.models.photo.StorageReportPhoto
+import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.providers.DeviceUniqueIdProvider
@@ -105,6 +107,8 @@ class DeliveryRepository(
             currentTime()
         ).map {
             TaskMapper.fromRaw(it, deviceId)
+        }.filter {
+            !it.items.all { item -> item.state == TaskItemState.CLOSED }
         }
     }
 

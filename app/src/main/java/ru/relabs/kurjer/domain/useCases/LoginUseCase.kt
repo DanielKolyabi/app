@@ -47,7 +47,7 @@ class LoginUseCase(
     }
 
     private suspend fun loginInternal(login: UserLogin, password: String, token: String, offline: Boolean) = withContext(Dispatchers.IO) {
-        val lastUserLogin = currentUserStorage.getCurrentUserLogin()
+        val lastUserLogin = savedUserStorage.getCredentials()?.login
         if (lastUserLogin != login) {
             taskRepository.clearTasks()
             settingsRepository.resetData()

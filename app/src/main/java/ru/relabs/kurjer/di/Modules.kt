@@ -13,6 +13,7 @@ import org.koin.dsl.module
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.data.api.ApiProvider
+import ru.relabs.kurjer.data.backup.DataBackupController
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.migrations.Migrations
 import ru.relabs.kurjer.domain.controllers.ServiceEventController
@@ -110,6 +111,10 @@ val storagesModule = module {
     single<PathsProvider> {
         PathsProvider(get<File>(Modules.FILES_DIR))
     }
+}
+
+val backupModule = module {
+    single { DataBackupController(context = get(), db = get()) }
 }
 
 

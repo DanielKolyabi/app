@@ -150,4 +150,6 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.activity:activity-compose:1.7.1")
 
+    //Database backup
+    implementation ("de.raphaelebner:roomdatabasebackup:1.0.0-beta13")
 }

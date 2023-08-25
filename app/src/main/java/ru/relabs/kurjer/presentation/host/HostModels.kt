@@ -2,6 +2,7 @@ package ru.relabs.kurjer.presentation.host
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import ru.relabs.kurjer.data.backup.DataBackupController
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.domain.controllers.ServiceEventController
 import ru.relabs.kurjer.domain.controllers.TaskEventController
@@ -53,6 +54,7 @@ class HostContext(
     val taskEventController: TaskEventController by inject()
     val serviceEventController: ServiceEventController by inject()
     val settings: SettingsRepository by inject()
+    val dataBackupController: DataBackupController by inject()
 
     var showUpdateDialog: (AppUpdate) -> Boolean = { false }
     var showErrorDialog: (id: Int) -> Unit = {}

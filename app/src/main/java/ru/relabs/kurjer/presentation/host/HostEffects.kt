@@ -92,6 +92,7 @@ object HostEffects {
                     }
                 }
             }
+
             is Left -> withContext(Dispatchers.Main) {
                 c.showErrorDialog(R.string.update_cant_get_info)
             }
@@ -106,10 +107,12 @@ object HostEffects {
             when (it) {
                 is AppUpdateUseCase.DownloadState.Progress ->
                     messages.send(HostMessages.msgLoadProgress(((it.current / it.total.toFloat()) * 100).toInt()))
+
                 is AppUpdateUseCase.DownloadState.Success -> {
                     messages.send(HostMessages.msgUpdateLoaded(it.file))
                     messages.send(msgEffect(effectInstallUpdate(it.file)))
                 }
+
                 AppUpdateUseCase.DownloadState.Failed -> {
                     messages.send(HostMessages.msgUpdateLoadingFailed())
                     withContext(Dispatchers.Main) {
@@ -193,6 +196,7 @@ object HostEffects {
                                 c.showTaskUpdateRequired(c.settings.canSkipUpdates)
                             }
                         }
+
                         is TaskEvent.TaskClosed -> Unit
                         is TaskEvent.TaskItemClosed -> Unit
                         is TaskEvent.TaskStorageClosed -> Unit
@@ -227,5 +231,16 @@ object HostEffects {
 
     fun effectNotifyUpdateRequiredOnTasksOpen(): HostEffect = { c, s ->
         c.taskEventController.send(TaskEvent.TasksUpdateRequired(true))
+    }
+
+    fun effectStartBackup(): HostEffect = { c, s ->
+        coroutineScope {
+            launch(Dispatchers.IO) {
+                while (true) {
+                    delay(1000 * 60)
+                    c.dataBackupController.backup()
+                }
+            }
+        }
     }
 }

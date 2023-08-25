@@ -54,7 +54,8 @@ class DeliveryApp : Application() {
                     eventControllers,
                     storagesModule,
                     repositoryModule,
-                    useCasesModule
+                    useCasesModule,
+                    backupModule
                 )
             )
         }

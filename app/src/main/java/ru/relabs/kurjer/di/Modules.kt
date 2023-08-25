@@ -23,6 +23,7 @@ import ru.relabs.kurjer.domain.providers.DeviceUniqueIdProvider
 import ru.relabs.kurjer.domain.providers.FirebaseTokenProvider
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.providers.PathsProvider
+import ru.relabs.kurjer.domain.providers.RoomBackupProvider
 import ru.relabs.kurjer.domain.providers.getLocationProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
@@ -114,9 +115,9 @@ val storagesModule = module {
 }
 
 val backupModule = module {
-    single { DataBackupController(context = get(), db = get()) }
+    single { RoomBackupProvider() }
+    single { DataBackupController(appPreferences = get(), provider = get(), context = get(), db = get()) }
 }
-
 
 val repositoryModule = module {
 

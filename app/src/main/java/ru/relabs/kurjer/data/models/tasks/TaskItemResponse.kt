@@ -20,5 +20,6 @@ data class TaskItemResponse(
     @SerializedName("firm_name") val firmName: String,
     @SerializedName("office") val officeName: String,
     @SerializedName("close_radius") val closeRadius: Int,
-    @SerializedName("close_time") val closeTime: Date?
+    @SerializedName("close_time") val closeTime: Date?,
+    @SerializedName("display_name_with_image") val displayName: String?
 )

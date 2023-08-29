@@ -26,7 +26,8 @@ object DatabaseTaskItemMapper {
             needPhoto = taskItem.needPhoto,
             firmName = taskItem.firmName,
             office = taskItem.officeName,
-            closeRadius = taskItem.closeRadius
+            closeRadius = taskItem.closeRadius,
+            displayName = taskItem.displayName
         )
 
         false -> TaskItem.Common(
@@ -46,7 +47,8 @@ object DatabaseTaskItemMapper {
                 DatabaseEntranceDataMapper.fromEntity(entity)
             },
             closeRadius = taskItem.closeRadius,
-            closeTime = taskItem.closeTime
+            closeTime = taskItem.closeTime,
+            displayName = taskItem.displayName
         )
     }
 
@@ -66,7 +68,8 @@ object DatabaseTaskItemMapper {
             firmName = "",
             officeName = "",
             closeRadius = taskItem.closeRadius,
-            closeTime = taskItem.closeTime
+            closeTime = taskItem.closeTime,
+            displayName = taskItem.displayName
         )
 
         is TaskItem.Firm -> TaskItemEntity(
@@ -84,7 +87,9 @@ object DatabaseTaskItemMapper {
             firmName = taskItem.firmName,
             officeName = taskItem.office,
             closeRadius = taskItem.closeRadius,
-            closeTime = null
+            closeTime = null,
+            displayName = taskItem.displayName
+
         )
     }
 }

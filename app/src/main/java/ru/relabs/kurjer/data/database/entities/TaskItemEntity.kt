@@ -44,7 +44,9 @@ data class TaskItemEntity(
     @ColumnInfo(name = "close_radius")
     val closeRadius: Int,
     @ColumnInfo(name = "close_time")
-    val closeTime: Date?
+    val closeTime: Date?,
+    @ColumnInfo(name = "display_name")
+    val displayName: String?
 ) {
     companion object {
         const val STATE_CLOSED = 1

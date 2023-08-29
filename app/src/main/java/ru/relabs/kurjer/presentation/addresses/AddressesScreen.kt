@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +58,7 @@ import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.TaskItemState
 import ru.relabs.kurjer.domain.models.address
 import ru.relabs.kurjer.domain.models.bypass
+import ru.relabs.kurjer.domain.models.displayName
 import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.domain.models.subarea
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffold
@@ -64,6 +66,7 @@ import ru.relabs.kurjer.presentation.base.compose.ElmScaffoldContext
 import ru.relabs.kurjer.presentation.base.compose.common.AppBarLoadableContainer
 import ru.relabs.kurjer.presentation.base.compose.common.DefaultDialog
 import ru.relabs.kurjer.presentation.base.compose.common.DeliveryButton
+import ru.relabs.kurjer.presentation.base.compose.common.HtmlText
 import ru.relabs.kurjer.presentation.base.compose.common.LoaderItem
 import ru.relabs.kurjer.presentation.base.compose.common.SearchTextField
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorButtonLight
@@ -71,6 +74,7 @@ import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorDivider
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorFuchsia
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorTextDisabled
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorYellow
+import ru.relabs.kurjer.presentation.base.compose.common.themes.sansSerifMedium
 import ru.relabs.kurjer.presentation.base.tea.ElmController
 
 @Composable
@@ -146,7 +150,6 @@ fun AddressesScreen(controller: ElmController<AddressesContext, AddressesState>)
                         is AddressesItem.GroupHeader -> HeaderItem(it.subItems, it.showBypass, flashingItemIdx == idx)
                         is AddressesItem.AddressItem -> TaskItem(it.task, it.taskItem)
                         is AddressesItem.FirmItem -> TaskItem(it.task, it.taskItem)
-                        else -> {}
                     }
                 }
                 if (searchFilter.isNotEmpty())
@@ -252,36 +255,25 @@ private fun ElmScaffoldContext<AddressesContext, AddressesState>.TaskItem(
                 .weight(1f)
                 .padding(horizontal = 2.dp)
         ) {
-            Text(
-                text = when (taskItem) {
-                    is TaskItem.Common -> {
-                        "${task.name} №${task.edition}, ${taskItem.copies}экз."
-                    }
-
-                    is TaskItem.Firm -> {
-                        listOf(
-                            task.name,
-                            "№${task.edition}",
-                            "${taskItem.copies}экз.",
-                            taskItem.firmName,
-                            taskItem.office
-                        )
-                            .filter { it.isNotEmpty() }
-                            .joinToString(", ")
-                    }
-                },
-                color = if (needPhoto) {
-                    when (state) {
-                        TaskItemState.CLOSED -> ColorFuchsia.copy(alpha = 0.5f)
-                        TaskItemState.CREATED -> ColorFuchsia
-                    }
-                } else {
-                    when (state) {
-                        TaskItemState.CLOSED -> Color.Black.copy(alpha = 0.4f)
-                        TaskItemState.CREATED -> Color.Black
-                    }
-                }
-            )
+            taskItem.displayName?.let {
+                HtmlText(
+                    html = it,
+                    textSize = 14f,
+                    typeface = sansSerifMedium,
+                    textColor = if (needPhoto) {
+                        when (state) {
+                            TaskItemState.CLOSED -> ColorFuchsia.copy(alpha = 0.5f).toArgb()
+                            TaskItemState.CREATED -> ColorFuchsia.toArgb()
+                        }
+                    } else {
+                        when (state) {
+                            TaskItemState.CLOSED -> Color.Black.copy(alpha = 0.4f).toArgb()
+                            TaskItemState.CREATED -> Color.Black.toArgb()
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
         Spacer(Modifier.width(8.dp))
         Icon(

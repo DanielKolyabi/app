@@ -24,6 +24,7 @@ sealed class TaskItem : Parcelable {
         val copies: Int,
         val taskId: TaskId,
         val needPhoto: Boolean,
+        val displayName: String?,
         val entrancesData: List<TaskItemEntrance>,
         override val closeRadius: Int,
         val closeTime: Date?
@@ -40,6 +41,7 @@ sealed class TaskItem : Parcelable {
         val copies: Int,
         val taskId: TaskId,
         val needPhoto: Boolean,
+        val displayName: String?,
         val office: String,
         val firmName: String,
         override val closeRadius: Int
@@ -98,6 +100,11 @@ val TaskItem.needPhoto
     get() = when (this) {
         is TaskItem.Common -> needPhoto
         is TaskItem.Firm -> needPhoto
+    }
+val TaskItem.displayName
+    get() = when (this) {
+        is TaskItem.Common -> displayName
+        is TaskItem.Firm -> displayName
     }
 
 

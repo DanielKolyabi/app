@@ -99,7 +99,7 @@ val storagesModule = module {
     single<AppDatabase> {
         Room.databaseBuilder(androidApplication(), AppDatabase::class.java, "deliveryman")
             .addMigrations(*Migrations.getMigrations())
-            .fallbackToDestructiveMigration()
+//            .fallbackToDestructiveMigration()
             .build()
     }
 

@@ -29,7 +29,8 @@ object TaskItemMapper {
         needPhoto = raw.needPhoto,
         office = raw.officeName,
         firmName = raw.firmName,
-        closeRadius = raw.closeRadius
+        closeRadius = raw.closeRadius,
+        displayName = raw.displayName
     )
 
     private fun fromRawAddress(raw: TaskItemResponse): TaskItem.Common = TaskItem.Common(
@@ -50,6 +51,7 @@ object TaskItemMapper {
             EntranceMapper.fromRaw(it)
         },
         closeRadius = raw.closeRadius,
-        closeTime = raw.closeTime
+        closeTime = raw.closeTime,
+        displayName = raw.displayName
     )
 }

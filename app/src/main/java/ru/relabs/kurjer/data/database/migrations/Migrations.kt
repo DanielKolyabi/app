@@ -37,9 +37,10 @@ object Migrations : KoinComponent {
         migration_54_55,
         migration_55_56,
         migration_56_57,
-        migration_57_58
+        migration_57_58,
+        migration_58_59,
 
-    )
+        )
 
 
     private val migration_26_27 = object : Migration(26, 27) {
@@ -272,4 +273,10 @@ object Migrations : KoinComponent {
         }
     }
 
+    private val migration_58_59 = object : Migration(58, 59) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("UPDATE tasks SET iteration = -1")
+            database.execSQL("ALTER TABLE task_items ADD COLUMN display_name TEXT DEFAULT ''")
+        }
+    }
 }

@@ -294,7 +294,8 @@ private fun ElmScaffoldContext<StorageReportContext, StorageReportState>.PauseWa
             text = stringResource(R.string.report_close_paused_warning),
             acceptButton = stringResource(R.string.ok) to { sendMessage(StorageReportMessages.msgInterruptPause()) },
             declineButton = stringResource(R.string.cancel) to {},
-            onDismiss = { visible = false })
+            onDismiss = { visible = false }
+        )
     }
 }
 

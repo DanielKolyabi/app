@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.presentation.login
 
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
@@ -7,6 +8,7 @@ import ru.relabs.kurjer.data.models.common.DomainException
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.CommonMessages
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
+import ru.relabs.kurjer.presentation.base.tea.wrapInLoaders
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 
@@ -17,8 +19,12 @@ object LoginEffects {
 
     fun effectInit(): LoginEffect = { c, s ->
         when (val r = c.savedUserStorage.getCredentials()) {
-            null -> {}
+            null -> {
+                Log.d("zxc", "Backup exists = ${c.dataBackupController.backupExists}")
+            }
+
             else -> {
+                Log.d("zxc", "Backup exists = ${c.dataBackupController.backupExists}")
                 messages.send(LoginMessages.msgLoginChanged(r.login))
                 messages.send(LoginMessages.msgPasswordChanged(r.password))
             }
@@ -57,5 +63,17 @@ object LoginEffects {
             else -> withContext(Dispatchers.Main) { c.router.replaceScreen(RootScreen.tasks(false)) }
         }
         messages.send(LoginMessages.msgAddLoaders(-1))
+    }
+
+    fun effectRestoreData(): LoginEffect = wrapInLoaders({ LoginMessages.msgAddLoaders(it) }) { c, s ->
+        when (withContext(Dispatchers.IO) { c.dataBackupController.restore() }) {
+            is Right -> {
+                c.showSnackbar(R.string.restore_succeeded)
+            }
+
+            is Left -> {
+                c.showError(R.string.error_restore)
+            }
+        }
     }
 }

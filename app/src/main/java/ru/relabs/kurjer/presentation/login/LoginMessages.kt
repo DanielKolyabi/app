@@ -32,4 +32,8 @@ object LoginMessages {
 
     fun msgAddLoaders(i: Int): LoginMessage =
         msgState { it.copy(loaders = it.loaders + i) }
+
+    fun msgRestoreData(): LoginMessage =
+        msgEffect(LoginEffects.effectRestoreData())
+
 }

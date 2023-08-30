@@ -1,6 +1,5 @@
 package ru.relabs.kurjer.data.backup
 
-import android.content.Context
 import android.os.Environment
 import android.util.Log
 import de.raphaelebner.roomdatabasebackup.core.RoomBackup
@@ -16,13 +15,14 @@ import java.io.ObjectOutputStream
 class DataBackupController(
     private val savedUserStorage: SavedUserStorage,
     private val provider: RoomBackupProvider,
-    private val context: Context,
     private val db: AppDatabase
 ) {
     private val backupDir = File(Environment.getExternalStorageDirectory(), "databasebackup").apply { mkdirs() }
     private val dbFile = File(backupDir, "deliverymanBackup.sqlite3").apply { createNewFile() }
     private val credentialsFile = File(backupDir, "credentialsBackup").apply { createNewFile() }
     private val tokenFile = File(backupDir, "tokenBackup").apply { createNewFile() }
+
+    val backupExists = dbFile.exists() && credentialsFile.exists() && tokenFile.exists()
 
     fun backup() {
         try {

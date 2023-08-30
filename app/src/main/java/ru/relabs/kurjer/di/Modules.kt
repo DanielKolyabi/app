@@ -118,7 +118,7 @@ val storagesModule = module {
 
 val backupModule = module {
     single { RoomBackupProvider() }
-    single { DataBackupController(savedUserStorage = get(), provider = get(), context = get(), db = get()) }
+    single { DataBackupController(savedUserStorage = get(), provider = get(), db = get()) }
 }
 
 val repositoryModule = module {

@@ -33,6 +33,7 @@ import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.repositories.StorageRepository
 import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.repositories.TextSizeStorage
+import ru.relabs.kurjer.domain.storage.AppInitialStorage
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
@@ -79,6 +80,7 @@ val storagesModule = module {
     single<AuthTokenStorage> { AuthTokenStorage(get<AppPreferences>()) }
     single<CurrentUserStorage> { CurrentUserStorage(get<AppPreferences>()) }
     single<SavedUserStorage> { SavedUserStorage(get<AppPreferences>()) }
+    single { AppInitialStorage(appPreferences = get()) }
 
     single<DeviceUUIDProvider> {
         DeviceUUIDProvider(
@@ -116,7 +118,7 @@ val storagesModule = module {
 
 val backupModule = module {
     single { RoomBackupProvider() }
-    single { DataBackupController(appPreferences = get(), provider = get(), context = get(), db = get()) }
+    single { DataBackupController(savedUserStorage = get(), provider = get(), context = get(), db = get()) }
 }
 
 val repositoryModule = module {

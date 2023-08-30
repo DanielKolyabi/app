@@ -3,6 +3,7 @@ package ru.relabs.kurjer.presentation.login
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import ru.relabs.kurjer.data.models.auth.UserLogin
+import ru.relabs.kurjer.domain.storage.AppInitialStorage
 import ru.relabs.kurjer.domain.storage.SavedUserStorage
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
 import ru.relabs.kurjer.presentation.base.tea.ElmEffect
@@ -30,6 +31,7 @@ class LoginContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
 
     val updateUseCase: AppUpdateUseCase by inject()
     val savedUserStorage: SavedUserStorage by inject()
+    val appInitialStorage: AppInitialStorage by inject()
 
     var showOfflineLoginOffer: () -> Unit = {}
     var showError: (id: Int) -> Unit = {}

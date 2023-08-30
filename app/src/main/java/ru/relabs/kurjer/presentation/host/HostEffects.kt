@@ -236,10 +236,12 @@ object HostEffects {
     fun effectStartBackup(): HostEffect = { c, s ->
         coroutineScope {
             launch(Dispatchers.IO) {
-                while (true) {
-                    delay(1000 * 60)
-                    c.dataBackupController.backup()
-                }
+                delay(1000 * 5)
+                c.dataBackupController.backup()
+//                while (true) {
+//                    delay(1000 * 60)
+//                    c.dataBackupController.backup()
+//                }
             }
         }
     }

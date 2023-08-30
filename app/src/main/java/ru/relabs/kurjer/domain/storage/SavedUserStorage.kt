@@ -9,6 +9,10 @@ class SavedUserStorage(private val appPreferences: AppPreferences) {
         appPreferences.backUpUserCredentials(login, password)
     }
 
+    fun saveCredentials(credentials: Credentials) {
+        appPreferences.backUpUserCredentials(credentials.login, credentials.password)
+    }
+
     fun getCredentials(): Credentials? = appPreferences.getBackedUpCredentials()
 
     fun saveToken(token: String) {

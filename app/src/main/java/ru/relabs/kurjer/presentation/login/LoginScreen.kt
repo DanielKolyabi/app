@@ -182,3 +182,8 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.LoginButton(modifier: M
         sendMessage(LoginMessages.msgLoginClicked(NetworkHelper.isNetworkEnabled(context)))
     }
 }
+
+@Composable
+private fun ElmScaffoldContext<LoginContext, LoginState>.BackupDialogController(){
+
+}

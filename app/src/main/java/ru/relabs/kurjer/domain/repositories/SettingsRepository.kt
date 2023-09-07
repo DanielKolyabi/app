@@ -2,12 +2,18 @@ package ru.relabs.kurjer.domain.repositories
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.joda.time.DateTime
 import ru.relabs.kurjer.domain.models.GpsRefreshTimes
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
-import java.util.*
+import java.util.Date
 
 /**
  * Created by Daniil Kurchanov on 13.01.2020.
@@ -59,6 +65,30 @@ class SettingsRepository(
         }
     }
 
+    fun saveFromRestored(
+        restoredGpsRefreshTimes: GpsRefreshTimes,
+        restoredIsCloseRadiusRequired: Boolean,
+        restoredIsPhotoRadiusRequired: Boolean,
+        restoredIsStorageCloseRadiusRequired: Boolean,
+        restoredIsStoragePhotoRadiusRequired: Boolean,
+        restoredCanSkipUpdates: Boolean,
+        restoredCanSkipUnfinishedTaskItem: Boolean
+    ) {
+        isCloseRadiusRequired = restoredIsCloseRadiusRequired
+        isPhotoRadiusRequired = restoredIsPhotoRadiusRequired
+        isStorageCloseRadiusRequired = restoredIsStorageCloseRadiusRequired
+        isStoragePhotoRadiusRequired = restoredIsStoragePhotoRadiusRequired
+        closeGpsUpdateTime = restoredGpsRefreshTimes
+        canSkipUpdates = restoredCanSkipUpdates
+        canSkipUnfinishedTaskItem = restoredCanSkipUnfinishedTaskItem
+        saveRadius(isCloseRadiusRequired, isPhotoRadiusRequired)
+        saveStorageRadius(isStorageCloseRadiusRequired, isStoragePhotoRadiusRequired)
+        saveUpdatesSkipping(canSkipUpdates)
+        saveUnfinishedTaskItemSkipping(canSkipUnfinishedTaskItem)
+        saveGPSRefreshTime(closeGpsUpdateTime)
+
+    }
+
     private suspend fun loadSettingsRemote() = withContext(Dispatchers.Default) {
         when (val r = api.getAppSettings()) {
             is Right -> {
@@ -75,6 +105,7 @@ class SettingsRepository(
                 saveUnfinishedTaskItemSkipping(canSkipUnfinishedTaskItem)
                 saveGPSRefreshTime(closeGpsUpdateTime)
             }
+
             is Left -> Unit
         }
     }
@@ -98,7 +129,7 @@ class SettingsRepository(
         }
     }
 
-    private fun loadSavedGPSRefreshTimes(): GpsRefreshTimes {
+    fun loadSavedGPSRefreshTimes(): GpsRefreshTimes {
         val photo = sharedPreferences.getInt(PHOTO_GPS_KEY, 40)
         val close = sharedPreferences.getInt(CLOSE_GPS_KEY, 40)
         return GpsRefreshTimes(close = close, photo = photo)

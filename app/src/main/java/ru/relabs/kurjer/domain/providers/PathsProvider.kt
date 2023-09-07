@@ -5,27 +5,29 @@ import ru.relabs.kurjer.domain.models.TaskId
 import ru.relabs.kurjer.domain.models.TaskItem
 import ru.relabs.kurjer.domain.models.id
 import java.io.File
-import java.util.*
+import java.util.UUID
 
 class PathsProvider(
     private val filesRootDir: File
 ) {
-    private val updatesPath = File(filesRootDir, "updates").apply {
+    private val updatesPath = File(filesRootDir, UPDATES).apply {
         mkdirs()
     }
-    private val photoDir = File(filesRootDir, "photos").apply {
+    private val photoDir = File(filesRootDir, PHOTOS).apply {
         mkdirs()
     }
-    private val storagePhotoDir = File(filesRootDir, "storage_photos").apply {
+    private val storagePhotoDir = File(filesRootDir, STORAGE_PHOTOS).apply {
         mkdirs()
     }
-    private val mapDir = File(filesRootDir, "maps").apply {
+    private val mapDir = File(filesRootDir, MAPS).apply {
         mkdirs()
     }
-    private val editionPhotoDir = File(filesRootDir, "editions").apply {
+    private val editionPhotoDir = File(filesRootDir, EDITIONS).apply {
         mkdirs()
     }
 
+    fun getDirectories(): List<File> =
+        listOf(updatesPath, photoDir, storagePhotoDir, mapDir, editionPhotoDir)
 
     fun getCrashLogFile(): File {
         return File(filesRootDir, "crash.log")
@@ -73,5 +75,14 @@ class PathsProvider(
 
     fun getUpdateFile(): File {
         return File(updatesPath, "update.apk")
+    }
+
+    companion object {
+        fun getDirNames() = listOf(UPDATES, PHOTOS, STORAGE_PHOTOS, MAPS, EDITIONS)
+        private const val UPDATES = "updates"
+        private const val PHOTOS = "photos"
+        private const val STORAGE_PHOTOS = "storage_photos"
+        private const val MAPS = "maps"
+        private const val EDITIONS = "editions"
     }
 }

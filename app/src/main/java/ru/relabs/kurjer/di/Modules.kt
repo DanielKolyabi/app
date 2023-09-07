@@ -3,6 +3,7 @@ package ru.relabs.kurjer.di
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +14,7 @@ import org.koin.dsl.module
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.DeliveryApp
 import ru.relabs.kurjer.data.api.ApiProvider
+import ru.relabs.kurjer.data.backup.DataBackupController
 import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.migrations.Migrations
 import ru.relabs.kurjer.domain.controllers.ServiceEventController
@@ -22,6 +24,7 @@ import ru.relabs.kurjer.domain.providers.DeviceUniqueIdProvider
 import ru.relabs.kurjer.domain.providers.FirebaseTokenProvider
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.providers.PathsProvider
+import ru.relabs.kurjer.domain.providers.RoomBackupProvider
 import ru.relabs.kurjer.domain.providers.getLocationProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
@@ -31,6 +34,7 @@ import ru.relabs.kurjer.domain.repositories.SettingsRepository
 import ru.relabs.kurjer.domain.repositories.StorageRepository
 import ru.relabs.kurjer.domain.repositories.TaskRepository
 import ru.relabs.kurjer.domain.repositories.TextSizeStorage
+import ru.relabs.kurjer.domain.storage.AppInitialStorage
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
 import ru.relabs.kurjer.domain.storage.CurrentUserStorage
@@ -77,6 +81,7 @@ val storagesModule = module {
     single<AuthTokenStorage> { AuthTokenStorage(get<AppPreferences>()) }
     single<CurrentUserStorage> { CurrentUserStorage(get<AppPreferences>()) }
     single<SavedUserStorage> { SavedUserStorage(get<AppPreferences>()) }
+    single { AppInitialStorage(appPreferences = get()) }
 
     single<DeviceUUIDProvider> {
         DeviceUUIDProvider(
@@ -99,7 +104,8 @@ val storagesModule = module {
     single<AppDatabase> {
         Room.databaseBuilder(androidApplication(), AppDatabase::class.java, "deliveryman")
             .addMigrations(*Migrations.getMigrations())
-//            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration()
+            .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
             .build()
     }
 
@@ -112,6 +118,23 @@ val storagesModule = module {
     }
 }
 
+val backupModule = module {
+    single { RoomBackupProvider() }
+    single {
+        DataBackupController(
+            savedUserStorage = get(),
+            provider = get(),
+            db = get(),
+            pathsProvider = get(),
+            authTokenStorage = get(),
+            currentUserStorage = get(),
+            filesRootDir = get<File>(Modules.FILES_DIR),
+            settingsRepository = get(),
+            appPreferences = get(),
+            pauseRepository = get()
+        )
+    }
+}
 
 val repositoryModule = module {
 

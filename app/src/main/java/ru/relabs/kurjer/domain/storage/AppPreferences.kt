@@ -13,6 +13,10 @@ import ru.relabs.kurjer.domain.providers.FirebaseToken
 class AppPreferences(
     private val sharedPreferences: SharedPreferences
 ) {
+
+    fun getInitialString(): String? = sharedPreferences.getString(KEY_INITIAL, null)
+    fun putInitialString() = sharedPreferences.edit { putString(KEY_INITIAL, "app_initialized") }
+
     fun saveAuthToken(token: String) =
         sharedPreferences.edit { putString(TOKEN_KEY, token) }
 
@@ -88,5 +92,6 @@ class AppPreferences(
         const val KEY_BACKUP_USER_LOGIN = "backed_up_user_login"
         const val KEY_BACKUP_USER_PASSWORD = "backed_up_user_password"
         const val KEY_BACKUP_TOKEN = "backed_token"
+        const val KEY_INITIAL = "initial_key"
     }
 }

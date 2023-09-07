@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,7 @@ import ru.relabs.kurjer.presentation.base.compose.ElmScaffold
 import ru.relabs.kurjer.presentation.base.compose.ElmScaffoldContext
 import ru.relabs.kurjer.presentation.base.compose.common.CustomTextField
 import ru.relabs.kurjer.presentation.base.compose.common.CustomTextKeyboardAction
+import ru.relabs.kurjer.presentation.base.compose.common.DefaultDialog
 import ru.relabs.kurjer.presentation.base.compose.common.DeliveryButton
 import ru.relabs.kurjer.presentation.base.compose.common.LoadableContainer
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGrayBase
@@ -73,6 +75,7 @@ fun LoginScreen(
             )
         }
     }
+    BackupDialogController()
 }
 
 @Composable
@@ -112,7 +115,14 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
     LaunchedEffect(passwordInput) {
         sendMessage(LoginMessages.msgPasswordChanged(passwordInput))
     }
-
+    LaunchedEffect(login) {
+        if (loginInput.isEmpty() && login.isNotEmpty())
+            loginInput = login
+    }
+    LaunchedEffect(password) {
+        if (passwordInput.isEmpty() && password.isNotEmpty())
+            passwordInput = password
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
@@ -180,5 +190,30 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.LoginButton(modifier: M
             .padding(horizontal = 12.dp, vertical = 12.dp)
     ) {
         sendMessage(LoginMessages.msgLoginClicked(NetworkHelper.isNetworkEnabled(context)))
+    }
+}
+
+@Composable
+private fun ElmScaffoldContext<LoginContext, LoginState>.BackupDialogController() {
+    var visible by remember { mutableStateOf(stateSnapshot { it.dialogShowed }) }
+    val dialogShowed by watchAsState { it.dialogShowed }
+
+    DisposableEffect(Unit) {
+        controller.context.showRestoreDialog = { visible = true }
+        onDispose { controller.context.showRestoreDialog = { } }
+    }
+    LaunchedEffect(dialogShowed) {
+        visible = dialogShowed
+    }
+    if (visible) {
+        DefaultDialog(
+            text = stringResource(R.string.backup_info),
+            acceptButton = stringResource(R.string.yes) to { sendMessage(LoginMessages.msgRestoreData()) },
+            declineButton = stringResource(R.string.no) to {},
+            onDismiss = {
+                visible = false
+                sendMessage(LoginMessages.msgDialogShowed(false))
+            }
+        )
     }
 }

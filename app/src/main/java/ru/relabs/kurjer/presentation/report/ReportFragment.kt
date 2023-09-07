@@ -295,30 +295,8 @@ class ReportFragment : BaseFragment() {
         )
     }
 
-
-//    private fun bindControls(view: View, descriptionTextWatcher: TextWatcher) {
-//        view.et_description.addTextChangedListener(descriptionTextWatcher)
-//
-//        view.iv_menu.setOnClickListener {
-//            uiScope.sendMessage(controller, ReportMessages.msgBackClicked())
-//        }
-//
-//        view.btn_close.setOnClickListener {
-//            if (isCloseClicked) {
-//                return@setOnClickListener
-//            }
-//            uiScope.sendMessage(controller, ReportMessages.msgCloseClicked(null))
-//            isCloseClicked = true
-//        }
-//
-//        view.btn_reject.setOnClickListener {
-//            uiScope.sendMessage(controller, ReportMessages.msgRejectClicked())
-//        }
-//    }
-
     override fun onDestroyView() {
         super.onDestroyView()
-//        renderJob?.cancel()
         controller.context.showError = { _, _ -> }
         controller.context.hideKeyboard = {}
         controller.context.requestPhoto = { _, _, _, _ -> }

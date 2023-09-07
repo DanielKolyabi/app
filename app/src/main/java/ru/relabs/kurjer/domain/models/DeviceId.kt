@@ -1,3 +1,5 @@
 package ru.relabs.kurjer.domain.models
 
-data class DeviceId(val id: String)
+import java.io.Serializable
+
+data class DeviceId(val id: String) : Serializable

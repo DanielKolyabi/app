@@ -24,6 +24,7 @@ import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.holder.DimenHolder
 import com.mikepenz.materialize.util.UIUtils
+import ru.relabs.kurjer.data.backup.roomBackup.RoomBackup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,6 +39,7 @@ import ru.relabs.kurjer.databinding.ActivityHostBinding
 import ru.relabs.kurjer.databinding.NavHeaderBinding
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.providers.LocationProvider
+import ru.relabs.kurjer.domain.providers.RoomBackupProvider
 import ru.relabs.kurjer.presentation.base.fragment.AppBarSettings
 import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.fragment.IFragmentStyleable
@@ -64,6 +66,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
     private val navigationHolder: NavigatorHolder by inject()
     private val locationProvider: LocationProvider by inject()
+    private val roomBackupProvider: RoomBackupProvider by inject()
     private lateinit var navigationDrawer: Drawer
 
     private val navigator = object : AppNavigator(this, R.id.fragment_container) {
@@ -88,7 +91,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         featureCheckersContainer.network,
         featureCheckersContainer.gps,
         featureCheckersContainer.mockLocation,
-        featureCheckersContainer.sim
+        featureCheckersContainer.sim,
+        featureCheckersContainer.externalStorage
     )
 
     private var taskUpdateRequiredDialogShowed: Boolean = false
@@ -109,6 +113,7 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        roomBackupProvider.roomBackup = RoomBackup(this)
         systemWatchersContainer.mockedLocation.getAllMockGPSApps().takeIf { it.isNotEmpty() }?.let {
             CustomLog.writeToFile("MockGPS Apps: " + it.joinToString { ", " })
         }

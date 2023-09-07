@@ -12,6 +12,7 @@ import ru.relabs.kurjer.presentation.base.fragment.BaseFragment
 import ru.relabs.kurjer.presentation.base.tea.defaultController
 import ru.relabs.kurjer.presentation.base.tea.sendMessage
 import ru.relabs.kurjer.utils.extensions.showDialog
+import ru.relabs.kurjer.utils.extensions.showSnackbar
 
 
 /**
@@ -52,6 +53,7 @@ class LoginFragment : BaseFragment() {
         controller.context.errorContext.attach(view)
         controller.context.showOfflineLoginOffer = ::showLoginOfflineOffer
         controller.context.showError = ::showError
+        controller.context.showSnackbar = { showSnackbar(getString(it)) }
     }
 
     private fun showError(id: Int) {
@@ -73,6 +75,7 @@ class LoginFragment : BaseFragment() {
         super.onDestroyView()
         controller.context.showOfflineLoginOffer = {}
         controller.context.showError = {}
+        controller.context.showSnackbar = {}
         controller.context.errorContext.detach()
     }
 

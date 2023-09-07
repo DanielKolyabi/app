@@ -124,4 +124,8 @@
     <string name="unselected_tasks_warning">Внимание! Есть еще задания на этом складе.</string>
     <string name="storage_not_closed_error">Склад должен быть закрыт первым</string>
     <string name="storage_close_first_error">Начинаем со склада и фото продукции!</string>
+    <string name="backup_info">Найдена резервная копия данных. Востановить?</string>
+    <string name="error_restore">Не удалось восстановить данные</string>
+    <string name="restore_succeeded">Данные успешно восстановлены</string>
+    <string name="exteral_storage_permission_request">Необходимо дать разрешение приложению \"КурьерV2\" для управления всеми файлами</string>
 </resources>

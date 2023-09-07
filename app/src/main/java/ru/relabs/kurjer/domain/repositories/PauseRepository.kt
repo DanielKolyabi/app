@@ -11,7 +11,8 @@ import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.currentTimestamp
 import ru.relabs.kurjer.utils.debug
-import java.util.*
+import java.util.Calendar
+import java.util.TimeZone
 
 /**
  * Created by Daniil Kurchanov on 06.01.2020.
@@ -61,6 +62,7 @@ class PauseRepository(
                 lunchDuration = r.value.lunch.toInt()
                 loadDuration = r.value.loading.toInt()
             }
+
             else -> Unit
         }
     }
@@ -88,6 +90,35 @@ class PauseRepository(
             PauseType.Lunch -> lunchDuration
             PauseType.Load -> loadDuration
         }
+    }
+
+   fun getStartTimes(): Pair<Long, Long> =
+        sharedPreferences.getLong(LUNCH_LAST_START_TIME_KEY, 0) to sharedPreferences.getLong(LOAD_LAST_START_TIME_KEY, 0)
+
+    fun getEndTimes(): Pair<Long, Long> =
+        sharedPreferences.getLong(LUNCH_LAST_END_TIME_KEY, 0) to sharedPreferences.getLong(LOAD_LAST_END_TIME_KEY, 0)
+
+    fun getPauseDurations(): Pair<Int, Int> =
+        sharedPreferences.getInt(LUNCH_KEY, lunchDuration) to sharedPreferences.getInt(LOAD_KEY, loadDuration)
+
+    fun putRestoredData(
+        lunchLastStart: Long,
+        loadLastStart: Long,
+        lunchLastEnd: Long,
+        loadLastEnd: Long,
+        restoredLunchDuration: Int,
+        restoredLoadDuration: Int
+    ) {
+        sharedPreferences.edit().apply {
+            putLong(LUNCH_LAST_START_TIME_KEY, lunchLastStart)
+            putLong(LUNCH_LAST_START_TIME_KEY, loadLastStart)
+            putLong(LUNCH_LAST_START_TIME_KEY, lunchLastEnd)
+            putLong(LUNCH_LAST_START_TIME_KEY, loadLastEnd)
+            putInt(LUNCH_LAST_START_TIME_KEY, restoredLunchDuration)
+            putInt(LUNCH_LAST_START_TIME_KEY, restoredLoadDuration)
+        }.apply()
+        lunchDuration = restoredLunchDuration
+        loadDuration = restoredLoadDuration
     }
 
     fun putPauseStartTime(type: PauseType, time: Long) {
@@ -121,8 +152,10 @@ class PauseRepository(
                         putPauseStartTime(type, remotePauseTime)
                         true
                     }
+
                     else -> true
                 }
+
                 else -> true
             }
         }
@@ -149,6 +182,7 @@ class PauseRepository(
             ) {
                 return false
             }
+
             PauseType.Load -> if (currentTimestamp() - lastPauseTimeStamp < 2 * 60 * 60 + loadDuration) {
                 return false
             }
@@ -219,6 +253,7 @@ class PauseRepository(
                 putPauseEndTime(PauseType.Load, r.value.loading.end)
                 putPauseEndTime(PauseType.Lunch, r.value.lunch.end)
             }
+
             is Left -> Unit
         }
     }

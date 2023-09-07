@@ -110,9 +110,9 @@ dependencies {
     implementation("androidx.annotation:annotation:1.6.0")
 
     //Room
-    implementation("androidx.room:room-runtime:2.5.1")
-    ksp("androidx.room:room-compiler:2.5.1")
-    implementation("androidx.room:room-ktx:2.5.1")
+    implementation("androidx.room:room-runtime:2.5.2")
+    ksp("androidx.room:room-compiler:2.5.2")
+    implementation("androidx.room:room-ktx:2.5.2")
 
     // Glide
     implementation("com.github.bumptech.glide:glide:${Config.Versions.glide}")
@@ -150,4 +150,20 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.activity:activity-compose:1.7.1")
 
+    //Timber
+    implementation ("com.jakewharton.timber:timber:5.0.1")
+
+    //Permission dispatcher
+    implementation("com.github.permissions-dispatcher:permissionsdispatcher:4.9.2")
+    ksp("com.github.permissions-dispatcher:permissionsdispatcher-processor:4.9.2")
+
+    //Androidx Security
+    implementation ("androidx.security:security-crypto:1.1.0-alpha06")
+
+    //Apache commons io
+    //https://mvnrepository.com/artifact/commons-io/commons-io
+    //noinspection GradleDependency
+    implementation ("commons-io:commons-io:2.13.0")
+    //Google Guava
+    implementation( "com.google.guava:guava:31.0.1-jre")
 }

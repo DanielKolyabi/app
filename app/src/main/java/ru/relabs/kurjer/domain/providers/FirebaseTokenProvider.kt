@@ -6,9 +6,10 @@ import kotlinx.parcelize.Parcelize
 import ru.relabs.kurjer.domain.storage.AppPreferences
 import ru.relabs.kurjer.utils.Either
 import ru.relabs.kurjer.utils.instanceIdAsync
+import java.io.Serializable
 
 @Parcelize
-data class FirebaseToken(val token: String) : Parcelable
+data class FirebaseToken(val token: String) : Parcelable, Serializable
 
 class FirebaseTokenProvider(
     private val appPreferences: AppPreferences

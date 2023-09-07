@@ -1,8 +1,7 @@
 package ru.relabs.kurjer.presentation.host.systemWatchers
 
 import android.app.Activity
-import android.app.Application
-import android.os.Bundle
+import ru.relabs.kurjer.presentation.host.featureCheckers.ExternalStoragePermissionFC
 import ru.relabs.kurjer.presentation.host.featureCheckers.GPSFeatureChecker
 import ru.relabs.kurjer.presentation.host.featureCheckers.MockedLocationChecker
 import ru.relabs.kurjer.presentation.host.featureCheckers.NetworkFeatureChecker
@@ -13,29 +12,32 @@ class SystemWatchersContainer(
     networkFeatureChecker: NetworkFeatureChecker,
     gpsFeatureChecker: GPSFeatureChecker,
     mockedLocationChecker: MockedLocationChecker,
-    simFeatureChecker: SimExistenceChecker
+    simFeatureChecker: SimExistenceChecker,
+    externalStorageFC: ExternalStoragePermissionFC
 ) {
     private val gps = GPSSystemWatcher(activity, gpsFeatureChecker)
     private val network = NetworkSystemWatcher(activity, networkFeatureChecker)
     private val sim = SimExistenceWatcher(activity, simFeatureChecker)
     val mockedLocation = MockedLocationWatcher(activity, mockedLocationChecker)
+    private val externalStorage = ExternalStoragePermissionWatcher(activity, externalStorageFC).apply {  }
 
     private val allWatchers = listOf(
         gps,
         network,
         mockedLocation,
-        sim
+        sim,
+        externalStorage
     )
 
-    fun onPause(){
+    fun onPause() {
         allWatchers.forEach { it.onPause() }
     }
 
-    fun onResume(){
+    fun onResume() {
         allWatchers.forEach { it.onResume() }
     }
 
-    fun onDestroy(){
+    fun onDestroy() {
         allWatchers.forEach { it.onDestroy() }
     }
 }

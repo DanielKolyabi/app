@@ -148,7 +148,8 @@ object HostEffects {
                 checkFeature(featureCheckersContainer.xiaomiPermissions) &&
                 checkFeature(featureCheckersContainer.network) &&
                 checkFeature(featureCheckersContainer.gps) &&
-                checkFeature(featureCheckersContainer.time)
+                checkFeature(featureCheckersContainer.time) &&
+                checkFeature(featureCheckersContainer.externalStorage)
             ) {
 
                 if (isUpdateRequired(s) &&
@@ -231,18 +232,5 @@ object HostEffects {
 
     fun effectNotifyUpdateRequiredOnTasksOpen(): HostEffect = { c, s ->
         c.taskEventController.send(TaskEvent.TasksUpdateRequired(true))
-    }
-
-    fun effectStartBackup(): HostEffect = { c, s ->
-        coroutineScope {
-            launch(Dispatchers.IO) {
-                delay(1000 * 5)
-                c.dataBackupController.backup()
-//                while (true) {
-//                    delay(1000 * 60)
-//                    c.dataBackupController.backup()
-//                }
-            }
-        }
     }
 }

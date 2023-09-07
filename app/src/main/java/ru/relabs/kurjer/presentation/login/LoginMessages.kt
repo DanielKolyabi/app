@@ -36,4 +36,9 @@ object LoginMessages {
     fun msgRestoreData(): LoginMessage =
         msgEffect(LoginEffects.effectRestoreData())
 
+    fun msgAA(): LoginMessage =
+        msgEffect((LoginEffects.effectShowRestoreDialog()))
+
+    fun msgDialogShowed(b: Boolean): LoginMessage =
+        msgState { it.copy(dialogShowed = b) }
 }

@@ -24,7 +24,7 @@ import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.holder.DimenHolder
 import com.mikepenz.materialize.util.UIUtils
-import de.raphaelebner.roomdatabasebackup.core.RoomBackup
+import ru.relabs.kurjer.data.backup.roomBackup.RoomBackup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -91,7 +91,8 @@ class HostActivity : AppCompatActivity(), IFragmentHolder {
         featureCheckersContainer.network,
         featureCheckersContainer.gps,
         featureCheckersContainer.mockLocation,
-        featureCheckersContainer.sim
+        featureCheckersContainer.sim,
+        featureCheckersContainer.externalStorage
     )
 
     private var taskUpdateRequiredDialogShowed: Boolean = false

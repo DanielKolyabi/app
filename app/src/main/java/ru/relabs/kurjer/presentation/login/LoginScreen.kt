@@ -115,7 +115,14 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
     LaunchedEffect(passwordInput) {
         sendMessage(LoginMessages.msgPasswordChanged(passwordInput))
     }
-
+    LaunchedEffect(login) {
+        if (loginInput.isEmpty() && login.isNotEmpty())
+            loginInput = login
+    }
+    LaunchedEffect(password) {
+        if (passwordInput.isEmpty() && password.isNotEmpty())
+            passwordInput = password
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
@@ -188,18 +195,25 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.LoginButton(modifier: M
 
 @Composable
 private fun ElmScaffoldContext<LoginContext, LoginState>.BackupDialogController() {
-    var visible by remember { mutableStateOf(false) }
+    var visible by remember { mutableStateOf(stateSnapshot { it.dialogShowed }) }
+    val dialogShowed by watchAsState { it.dialogShowed }
 
     DisposableEffect(Unit) {
-        controller.context.showBackupDialog = { visible = true }
-        onDispose { controller.context.showBackupDialog = { } }
+        controller.context.showRestoreDialog = { visible = true }
+        onDispose { controller.context.showRestoreDialog = { } }
+    }
+    LaunchedEffect(dialogShowed) {
+        visible = dialogShowed
     }
     if (visible) {
         DefaultDialog(
             text = stringResource(R.string.backup_info),
             acceptButton = stringResource(R.string.yes) to { sendMessage(LoginMessages.msgRestoreData()) },
             declineButton = stringResource(R.string.no) to {},
-            onDismiss = { visible = false }
+            onDismiss = {
+                visible = false
+                sendMessage(LoginMessages.msgDialogShowed(false))
+            }
         )
     }
 }

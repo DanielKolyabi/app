@@ -16,7 +16,6 @@ object HostMessages {
             listOf(
                 HostEffects.effectInit(restored),
                 HostEffects.effectSubscribe(),
-                HostEffects.effectStartBackup()
             )
         }
     )

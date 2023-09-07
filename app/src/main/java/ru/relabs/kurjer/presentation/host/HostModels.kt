@@ -2,13 +2,11 @@ package ru.relabs.kurjer.presentation.host
 
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import ru.relabs.kurjer.data.backup.DataBackupController
 import ru.relabs.kurjer.data.models.auth.UserLogin
 import ru.relabs.kurjer.domain.controllers.ServiceEventController
 import ru.relabs.kurjer.domain.controllers.TaskEventController
 import ru.relabs.kurjer.domain.models.AppUpdate
 import ru.relabs.kurjer.domain.models.AppUpdatesInfo
-import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.providers.LocationProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.PauseRepository
@@ -48,13 +46,11 @@ class HostContext(
 
     val repository: DeliveryRepository by inject()
     val updatesUseCase: AppUpdateUseCase by inject()
-    val deviceUUIDProvider: DeviceUUIDProvider by inject()
     val locationProvider: LocationProvider by inject()
     val pauseRepository: PauseRepository by inject()
     val taskEventController: TaskEventController by inject()
     val serviceEventController: ServiceEventController by inject()
     val settings: SettingsRepository by inject()
-    val dataBackupController: DataBackupController by inject()
 
     var showUpdateDialog: (AppUpdate) -> Boolean = { false }
     var showErrorDialog: (id: Int) -> Unit = {}

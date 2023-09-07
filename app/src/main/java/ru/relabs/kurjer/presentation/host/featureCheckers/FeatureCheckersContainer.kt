@@ -18,9 +18,10 @@ class FeatureCheckersContainer(
     val time = TimeFeatureChecker(a)
     val mockLocation = MockedLocationChecker(a, locationProvider, scope)
     val sim = SimExistenceChecker(a)
+    val externalStorage = ExternalStoragePermissionFC(a)
 
     private val allFeatures: List<FeatureChecker>
-        get() = listOf(gps, network, xiaomiPermissions, permissions, time, mockLocation)
+        get() = listOf(gps, network, xiaomiPermissions, permissions, time, mockLocation, externalStorage)
 
     fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         allFeatures.forEach {

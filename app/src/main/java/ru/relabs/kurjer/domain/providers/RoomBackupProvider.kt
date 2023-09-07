@@ -1,6 +1,6 @@
 package ru.relabs.kurjer.domain.providers
 
-import de.raphaelebner.roomdatabasebackup.core.RoomBackup
+import ru.relabs.kurjer.data.backup.roomBackup.RoomBackup
 
 class RoomBackupProvider {
     var roomBackup: RoomBackup? = null

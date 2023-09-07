@@ -3,6 +3,7 @@ package ru.relabs.kurjer.di
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import kotlinx.coroutines.CoroutineScope
@@ -104,6 +105,7 @@ val storagesModule = module {
         Room.databaseBuilder(androidApplication(), AppDatabase::class.java, "deliveryman")
             .addMigrations(*Migrations.getMigrations())
             .fallbackToDestructiveMigration()
+            .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
             .build()
     }
 
@@ -118,7 +120,20 @@ val storagesModule = module {
 
 val backupModule = module {
     single { RoomBackupProvider() }
-    single { DataBackupController(savedUserStorage = get(), provider = get(), db = get()) }
+    single {
+        DataBackupController(
+            savedUserStorage = get(),
+            provider = get(),
+            db = get(),
+            pathsProvider = get(),
+            authTokenStorage = get(),
+            currentUserStorage = get(),
+            filesRootDir = get<File>(Modules.FILES_DIR),
+            settingsRepository = get(),
+            appPreferences = get(),
+            pauseRepository = get()
+        )
+    }
 }
 
 val repositoryModule = module {

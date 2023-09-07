@@ -8,7 +8,9 @@ import org.joda.time.DateTime
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.utils.extensions.showDialog
 import ru.relabs.kurjer.utils.log
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.TimeZone
 import kotlin.math.abs
 
 class TimeFeatureChecker(a: Activity) : FeatureChecker(a) {

@@ -24,7 +24,6 @@ import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.holder.DimenHolder
 import com.mikepenz.materialize.util.UIUtils
-import ru.relabs.kurjer.data.backup.roomBackup.RoomBackup
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -35,6 +34,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import ru.relabs.kurjer.BuildConfig
 import ru.relabs.kurjer.R
+import ru.relabs.kurjer.data.backup.roomBackup.RoomBackup
 import ru.relabs.kurjer.databinding.ActivityHostBinding
 import ru.relabs.kurjer.databinding.NavHeaderBinding
 import ru.relabs.kurjer.domain.models.AppUpdate

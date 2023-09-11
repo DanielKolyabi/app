@@ -1,7 +1,8 @@
 package ru.relabs.kurjer.presentation.login
 
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.models.common.DomainException
@@ -21,16 +22,13 @@ object LoginEffects {
     fun effectInit(): LoginEffect = { c, s ->
         when (c.savedUserStorage.getCredentials()) {
             null -> {
-                Log.d("zxc", "Backup exists = ${c.dataBackupController.backupExists}")
                 if (c.appInitialStorage.appFirstStarted && c.dataBackupController.backupExists) {
                     messages.send(LoginMessages.msgDialogShowed(true))
-                    effectShowRestoreDialog()(c, s)
                     c.appInitialStorage.putInitialString()
                 }
             }
 
             else -> {
-                Log.d("zxc", "Backup exists = ${c.dataBackupController.backupExists}")
                 effectSetSavedCredentials()(c, s)
                 if (c.appInitialStorage.appFirstStarted)
                     c.appInitialStorage.putInitialString()
@@ -38,10 +36,14 @@ object LoginEffects {
         }
     }
 
-    fun effectShowRestoreDialog(): LoginEffect = { c, s ->
-        Log.d("LoginEffects", "effectShowRestoreDialog")
-        c.showRestoreDialog()
+    fun effectStartCollect(): LoginEffect = { c, s ->
+        coroutineScope {
+            launch { c.connectivityProvider.connected.collect {
+                Timber.d("internet connected = $it")
+                messages.send(LoginMessages.msgSetConnectivity(it)) } }
+        }
     }
+
 
     fun effectLoginCheck(isNetworkEnabled: Boolean): LoginEffect = { c, s ->
         withContext(Dispatchers.Main) {

@@ -197,13 +197,14 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.LoginButton(modifier: M
 private fun ElmScaffoldContext<LoginContext, LoginState>.BackupDialogController() {
     var visible by remember { mutableStateOf(stateSnapshot { it.dialogShowed }) }
     val dialogShowed by watchAsState { it.dialogShowed }
+    val networkConnected by watchAsState { it.networkConnected }
 
     DisposableEffect(Unit) {
         controller.context.showRestoreDialog = { visible = true }
         onDispose { controller.context.showRestoreDialog = { } }
     }
-    LaunchedEffect(dialogShowed) {
-        visible = dialogShowed
+    LaunchedEffect(dialogShowed, networkConnected) {
+        visible = dialogShowed && !networkConnected
     }
     if (visible) {
         DefaultDialog(

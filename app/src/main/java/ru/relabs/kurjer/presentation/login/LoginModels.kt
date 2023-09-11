@@ -1,13 +1,10 @@
 package ru.relabs.kurjer.presentation.login
 
-import android.os.Build
-import android.os.Environment
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import ru.relabs.kurjer.data.backup.DataBackupController
 import ru.relabs.kurjer.data.models.auth.UserLogin
+import ru.relabs.kurjer.domain.providers.ConnectivityProvider
 import ru.relabs.kurjer.domain.storage.AppInitialStorage
 import ru.relabs.kurjer.domain.storage.SavedUserStorage
 import ru.relabs.kurjer.domain.useCases.AppUpdateUseCase
@@ -28,14 +25,8 @@ data class LoginState(
     val isPasswordRemembered: Boolean = true,
     val loaders: Int = 0,
     val dialogShowed: Boolean = false,
-) {
-    val permitted: StateFlow<Boolean>
-        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            MutableStateFlow(Environment.isExternalStorageManager())
-        } else {
-            MutableStateFlow(true)
-        }
-}
+    val networkConnected: Boolean = false
+)
 
 class LoginContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     ErrorContext by errorContext,
@@ -46,6 +37,7 @@ class LoginContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     val savedUserStorage: SavedUserStorage by inject()
     val appInitialStorage: AppInitialStorage by inject()
     val dataBackupController: DataBackupController by inject()
+    val connectivityProvider: ConnectivityProvider by inject()
 
     var showOfflineLoginOffer: () -> Unit = {}
     var showError: (id: Int) -> Unit = {}

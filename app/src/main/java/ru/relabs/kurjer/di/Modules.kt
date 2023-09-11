@@ -19,6 +19,7 @@ import ru.relabs.kurjer.data.database.AppDatabase
 import ru.relabs.kurjer.data.database.migrations.Migrations
 import ru.relabs.kurjer.domain.controllers.ServiceEventController
 import ru.relabs.kurjer.domain.controllers.TaskEventController
+import ru.relabs.kurjer.domain.providers.ConnectivityProvider
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.providers.DeviceUniqueIdProvider
 import ru.relabs.kurjer.domain.providers.FirebaseTokenProvider
@@ -116,6 +117,7 @@ val storagesModule = module {
     single<PathsProvider> {
         PathsProvider(get<File>(Modules.FILES_DIR))
     }
+    single { ConnectivityProvider(context = get()) }
 }
 
 val backupModule = module {
@@ -184,6 +186,7 @@ val repositoryModule = module {
     }
     single { StorageRepository(get<AppDatabase>(), get<PathsProvider>()) }
 }
+
 val useCasesModule = module {
     single<LoginUseCase> {
         LoginUseCase(

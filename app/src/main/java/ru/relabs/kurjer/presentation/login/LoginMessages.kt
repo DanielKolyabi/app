@@ -12,7 +12,7 @@ import ru.relabs.kurjer.presentation.base.tea.msgState
 object LoginMessages {
     fun msgInit(): LoginMessage = msgEffects(
         { it },
-        { listOf(LoginEffects.effectInit()) }
+        { listOf(LoginEffects.effectInit(), LoginEffects.effectStartCollect()) }
     )
 
     fun msgLoginChanged(login: UserLogin): LoginMessage =
@@ -36,9 +36,10 @@ object LoginMessages {
     fun msgRestoreData(): LoginMessage =
         msgEffect(LoginEffects.effectRestoreData())
 
-    fun msgAA(): LoginMessage =
-        msgEffect((LoginEffects.effectShowRestoreDialog()))
 
     fun msgDialogShowed(b: Boolean): LoginMessage =
         msgState { it.copy(dialogShowed = b) }
+
+    fun msgSetConnectivity(connected: Boolean): LoginMessage =
+        msgState { it.copy(networkConnected = connected) }
 }

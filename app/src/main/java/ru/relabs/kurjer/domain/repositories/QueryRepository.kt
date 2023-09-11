@@ -66,6 +66,7 @@ class QueryRepository(
                     val id = db.sendQueryDao().insert(r.value)
                     Right(r.value.copy(id = id.toInt()))
                 }
+
                 is Left -> r
             }
         }
@@ -76,18 +77,26 @@ class QueryRepository(
                 "$baseUrl/api/v1/pause/start",
                 "type=${data.pauseType.toInt()}&time=${data.startTime}"
             )
+
             is SendQueryData.PauseStop -> getAuthorizedSendQuery(
                 "$baseUrl/api/v1/pause/stop",
                 "type=${data.pauseType.toInt()}&time=${data.endTime}"
             )
+
             is SendQueryData.TaskAccepted -> getAuthorizedSendQuery(
                 "$baseUrl/api/v1/tasks/${data.taskId.id}/accepted"
             )
+
             is SendQueryData.TaskReceived -> getAuthorizedSendQuery(
                 "$baseUrl/api/v1/tasks/${data.taskId.id}/received"
             )
+
             is SendQueryData.TaskExamined -> getAuthorizedSendQuery(
                 "$baseUrl/api/v1/tasks/${data.taskId.id}/examined"
+            )
+
+            is SendQueryData.TaskCompleted -> getAuthorizedSendQuery(
+                "$baseUrl/api/v1/tasks/${data.taskId.id}/completed"
             )
         }
     }
@@ -120,4 +129,5 @@ sealed class SendQueryData {
     data class TaskAccepted(val taskId: TaskId) : SendQueryData()
     data class TaskReceived(val taskId: TaskId) : SendQueryData()
     data class TaskExamined(val taskId: TaskId) : SendQueryData()
+    data class TaskCompleted(val taskId: TaskId) : SendQueryData()
 }

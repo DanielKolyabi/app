@@ -167,7 +167,8 @@ val repositoryModule = module {
             get<AppDatabase>(),
             get<ApiProvider>().httpClient,
             get<PathsProvider>(),
-            get<StorageRepository>()
+            get<StorageRepository>(),
+            queryRepository = get()
         )
     }
     single<SettingsRepository> {

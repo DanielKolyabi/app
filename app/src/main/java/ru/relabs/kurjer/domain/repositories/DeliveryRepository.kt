@@ -71,7 +71,8 @@ class DeliveryRepository(
     private val database: AppDatabase,
     private val networkClient: OkHttpClient,
     private val pathsProvider: PathsProvider,
-    private val storageRepository: StorageRepository
+    private val storageRepository: StorageRepository,
+    private val queryRepository: QueryRepository
 ) {
     private var availableFirmRejectReasons: List<String> = listOf()
     fun isAuthenticated(): Boolean = authTokenStorage.getToken() != null
@@ -108,7 +109,11 @@ class DeliveryRepository(
         ).map {
             TaskMapper.fromRaw(it, deviceId)
         }.filter {
-            !it.items.all { item -> item.state == TaskItemState.CLOSED }
+            val completed = it.items.all { item -> item.state == TaskItemState.CLOSED }
+             if (completed) {
+                 queryRepository.putSendQuery(SendQueryData.TaskCompleted(it.id))
+             }
+            !completed
         }
     }
 
@@ -124,6 +129,7 @@ class DeliveryRepository(
                 is Right -> r.value
                 is Left -> throw r.value
             }
+
             is Left -> {
                 throw t.value
             }
@@ -254,7 +260,7 @@ class DeliveryRepository(
             uuid = UUID.fromString(photo.uuid)
         )
         if (!photoFile.exists()) {
-            throw  FileNotFoundException(photoFile.path)
+            throw FileNotFoundException(photoFile.path)
         }
 
         val request =

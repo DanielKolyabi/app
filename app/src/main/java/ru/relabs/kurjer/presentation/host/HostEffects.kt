@@ -29,7 +29,7 @@ object HostEffects {
     fun effectInit(restored: Boolean): HostEffect = { c, _ ->
         if (!restored) {
             if (c.repository.isAuthenticated() && c.loginUseCase.isAutologinEnabled()) {
-                c.loginUseCase.loginOffline()
+                c.loginUseCase.autoLogin()
                 withContext(Dispatchers.Main) {
                     c.router.newRootScreen(RootScreen.tasks(true))
                 }

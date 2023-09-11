@@ -111,11 +111,11 @@ class PauseRepository(
     ) {
         sharedPreferences.edit().apply {
             putLong(LUNCH_LAST_START_TIME_KEY, lunchLastStart)
-            putLong(LUNCH_LAST_START_TIME_KEY, loadLastStart)
-            putLong(LUNCH_LAST_START_TIME_KEY, lunchLastEnd)
-            putLong(LUNCH_LAST_START_TIME_KEY, loadLastEnd)
-            putInt(LUNCH_LAST_START_TIME_KEY, restoredLunchDuration)
-            putInt(LUNCH_LAST_START_TIME_KEY, restoredLoadDuration)
+            putLong(LOAD_LAST_START_TIME_KEY, loadLastStart)
+            putLong(LUNCH_LAST_END_TIME_KEY, lunchLastEnd)
+            putLong(LOAD_LAST_END_TIME_KEY, loadLastEnd)
+            putInt(LUNCH_KEY, restoredLunchDuration)
+            putInt(LOAD_KEY, restoredLoadDuration)
         }.apply()
         lunchDuration = restoredLunchDuration
         loadDuration = restoredLoadDuration

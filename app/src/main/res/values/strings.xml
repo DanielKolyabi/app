@@ -128,4 +128,5 @@
     <string name="error_restore">Не удалось восстановить данные</string>
     <string name="restore_succeeded">Данные успешно восстановлены</string>
     <string name="exteral_storage_permission_request">Необходимо дать разрешение приложению \"КурьерV2\" для управления всеми файлами</string>
+    <string name="wrong_password_error">Неправильный пароль</string>
 </resources>

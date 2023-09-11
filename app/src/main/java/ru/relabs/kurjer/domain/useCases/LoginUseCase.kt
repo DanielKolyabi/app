@@ -30,23 +30,30 @@ class LoginUseCase(
 
     fun isAutologinEnabled() = appPreferences.getUserAutologinEnabled()
 
-    suspend fun loginOffline(): User? {
-        val savedCredentials = savedUserStorage.getCredentials() ?: return null
-        val savedToken = savedUserStorage.getToken() ?: return null
+    suspend fun autoLogin() {
+        val currentLogin = currentUserStorage.getCurrentUserLogin() ?: return
+        val currentToken = authTokenStorage.getToken() ?: return
+        loginInternal(currentLogin, "", currentToken, true)
+    }
 
-        loginInternal(savedCredentials.login, savedCredentials.password, savedToken, offline = true)
-        return User(savedCredentials.login)
+    suspend fun loginOffline(login: UserLogin, password: String): LoginResult {
+        val savedCredentials = savedUserStorage.getCredentials() ?: return LoginResult.Error
+        val savedToken = savedUserStorage.getToken() ?: return LoginResult.Error
+        if (savedCredentials.login != login) return LoginResult.Error
+        if (savedCredentials.password != password) return LoginResult.Wrong
+        loginInternal(savedCredentials.login, savedCredentials.password, savedToken, false)
+        return LoginResult.Success
     }
 
     suspend fun login(login: UserLogin, password: String, remember: Boolean): EitherE<User> {
         appPreferences.setUserAutologinEnabled(remember)
         return deliveryRepository.login(login, password).fmap { (user, token) ->
-            loginInternal(user.login, password, token, offline = false)
+            loginInternal(user.login, password, token, false)
             user
         }
     }
 
-    private suspend fun loginInternal(login: UserLogin, password: String, token: String, offline: Boolean) = withContext(Dispatchers.IO) {
+    private suspend fun loginInternal(login: UserLogin, password: String, token: String, auto: Boolean) = withContext(Dispatchers.IO) {
         val lastUserLogin = savedUserStorage.getCredentials()?.login
         if (lastUserLogin != login) {
             taskRepository.clearTasks()
@@ -55,9 +62,10 @@ class LoginUseCase(
         }
         authTokenStorage.saveToken(token)
         currentUserStorage.saveCurrentUserLogin(login)
-        savedUserStorage.saveCredentials(login, password)
-        savedUserStorage.saveToken(token)
-
+        if (!auto) {
+            savedUserStorage.saveCredentials(login, password)
+            savedUserStorage.saveToken(token)
+        }
         settingsRepository.startRemoteUpdating()
         pauseRepository.loadLastPausesRemote()
         deliveryRepository.updateDeviceIMEI()
@@ -73,4 +81,8 @@ class LoginUseCase(
         ReportService.stopTaskClosingTimer()
         FirebaseCrashlytics.getInstance().setUserId("NA")
     }
+}
+
+enum class LoginResult {
+    Success, Wrong, Error
 }

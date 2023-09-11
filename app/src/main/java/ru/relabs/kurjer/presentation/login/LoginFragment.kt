@@ -63,7 +63,7 @@ class LoginFragment : BaseFragment() {
         )
     }
 
-    fun showLoginOfflineOffer() {
+    private fun showLoginOfflineOffer() {
         showDialog(
             R.string.login_no_network,
             R.string.ok to {},

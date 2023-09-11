@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.data.models.common.DomainException
+import ru.relabs.kurjer.domain.useCases.LoginResult
 import ru.relabs.kurjer.presentation.RootScreen
 import ru.relabs.kurjer.presentation.base.tea.CommonMessages
 import ru.relabs.kurjer.presentation.base.tea.msgEffect
@@ -38,9 +39,12 @@ object LoginEffects {
 
     fun effectStartCollect(): LoginEffect = { c, s ->
         coroutineScope {
-            launch { c.connectivityProvider.connected.collect {
-                Timber.d("internet connected = $it")
-                messages.send(LoginMessages.msgSetConnectivity(it)) } }
+            launch {
+                c.connectivityProvider.connected.collect {
+                    Timber.d("internet connected = $it")
+                    messages.send(LoginMessages.msgSetConnectivity(it))
+                }
+            }
         }
     }
 
@@ -72,9 +76,10 @@ object LoginEffects {
 
     fun effectLoginOffline(): LoginEffect = { c, s ->
         messages.send(LoginMessages.msgAddLoaders(1))
-        when (c.loginUseCase.loginOffline()) {
-            null -> withContext(Dispatchers.Main) { c.showError(R.string.login_offline_error) }
-            else -> withContext(Dispatchers.Main) { c.router.replaceScreen(RootScreen.tasks(false)) }
+        when (c.loginUseCase.loginOffline(s.login, s.password)) {
+            LoginResult.Success -> withContext(Dispatchers.Main) { c.router.replaceScreen(RootScreen.tasks(false)) }
+            LoginResult.Wrong -> withContext(Dispatchers.Main) { c.showError(R.string.wrong_password_error) }
+            LoginResult.Error -> withContext(Dispatchers.Main) { c.showError(R.string.login_offline_error) }
         }
         messages.send(LoginMessages.msgAddLoaders(-1))
     }
@@ -100,7 +105,6 @@ object LoginEffects {
         val credentials = c.savedUserStorage.getCredentials()
         credentials?.let {
             messages.send(LoginMessages.msgLoginChanged(it.login))
-            messages.send(LoginMessages.msgPasswordChanged(it.password))
         }
     }
 }

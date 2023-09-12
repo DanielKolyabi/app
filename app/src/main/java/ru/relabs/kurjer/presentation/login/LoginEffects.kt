@@ -41,7 +41,6 @@ object LoginEffects {
         coroutineScope {
             launch {
                 c.connectivityProvider.connected.collect {
-                    Timber.d("internet connected = $it")
                     messages.send(LoginMessages.msgSetConnectivity(it))
                 }
             }

@@ -6,10 +6,10 @@ import kotlinx.coroutines.flow.StateFlow
 import ru.relabs.kurjer.utils.NetworkHelper
 
 class ConnectivityProvider(context: Context) {
-    private val _connected = MutableStateFlow(NetworkHelper.isNetworkEnabled(context))
+    private val _connected = MutableStateFlow(NetworkHelper.isNetworkAvailable(context))
     val connected: StateFlow<Boolean> = _connected
 
-    fun setStatus(status: Boolean) {
-        _connected.tryEmit(status)
+    suspend fun setStatus(status: Boolean) {
+        _connected.emit(status)
     }
 }

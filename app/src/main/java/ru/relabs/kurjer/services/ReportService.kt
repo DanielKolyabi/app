@@ -14,7 +14,13 @@ import android.os.Bundle
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import ru.relabs.kurjer.AlertNotificationActivity
@@ -27,12 +33,19 @@ import ru.relabs.kurjer.domain.controllers.ServiceEvent
 import ru.relabs.kurjer.domain.controllers.ServiceEventController
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
+import ru.relabs.kurjer.domain.providers.ConnectivityProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.QueryRepository
 import ru.relabs.kurjer.domain.repositories.StorageRepository
 import ru.relabs.kurjer.domain.useCases.ReportUseCase
 import ru.relabs.kurjer.domain.useCases.TaskUseCase
-import ru.relabs.kurjer.utils.*
+import ru.relabs.kurjer.utils.CustomLog
+import ru.relabs.kurjer.utils.Either
+import ru.relabs.kurjer.utils.Left
+import ru.relabs.kurjer.utils.NetworkHelper
+import ru.relabs.kurjer.utils.Right
+import ru.relabs.kurjer.utils.currentTimestamp
+import ru.relabs.kurjer.utils.log
 
 
 const val CHANNEL_ID = "notification_channel"
@@ -48,6 +61,7 @@ class ReportService : Service(), KoinComponent {
     private val taskEventController: TaskEventController by inject()
     private val serviceEventController: ServiceEventController by inject()
     private val storageRepository: StorageRepository by inject()
+    private val connectivityProvider: ConnectivityProvider by inject()
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
@@ -144,8 +158,10 @@ class ReportService : Service(), KoinComponent {
                         }
                     }
                 }
+                val isNetworkAvailable = NetworkHelper.isNetworkAvailable(applicationContext)
 
-                updateNotificationText()
+                updateNotificationText(isNetworkAvailable)
+                updateNetworkStatus(isNetworkAvailable)
 
                 checkTimelimitJob()
                 updateActivityState()
@@ -201,8 +217,7 @@ class ReportService : Service(), KoinComponent {
     }
 
     @SuppressLint("MissingPermission")
-    private suspend fun updateNotificationText() {
-        val isNetworkAvailable = NetworkHelper.isNetworkAvailable(applicationContext)
+    private suspend fun updateNotificationText(isNetworkAvailable: Boolean) {
         val count = queryRepository.getQueryItemsCount()
         val state = if (!isNetworkAvailable) {
             ServiceState.UNAVAILABLE
@@ -219,6 +234,10 @@ class ReportService : Service(), KoinComponent {
         NotificationManagerCompat
             .from(this)
             .notify(1, notification(text, state))
+    }
+
+    private suspend fun updateNetworkStatus(status: Boolean) {
+        connectivityProvider.setStatus(status)
     }
 
     private suspend fun sendStorageReportQuery(item: StorageReportRequestEntity): Either<java.lang.Exception, Unit> =

@@ -77,8 +77,6 @@ class DeliveryApp : Application(), KoinComponent {
         ioScope.launch {
             dataBackupController.startBackup()
         }
-
-
     }
 
     private fun launchTrueTimeInit() {

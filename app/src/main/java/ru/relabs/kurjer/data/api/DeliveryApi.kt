@@ -1,10 +1,19 @@
 package ru.relabs.kurjer.data.api
 
 import okhttp3.MultipartBody
-import retrofit2.http.*
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Multipart
+import retrofit2.http.POST
+import retrofit2.http.Part
+import retrofit2.http.Path
+import retrofit2.http.Query
 import ru.relabs.kurjer.data.models.TaskItemReportRequest
 import ru.relabs.kurjer.data.models.UpdatesResponse
 import ru.relabs.kurjer.data.models.auth.AuthResponse
+import ru.relabs.kurjer.data.models.auth.PasswordResponse
 import ru.relabs.kurjer.data.models.common.SettingsResponse
 import ru.relabs.kurjer.data.models.common.StatusResponse
 import ru.relabs.kurjer.data.models.pause.PauseTimeResponse
@@ -112,4 +121,7 @@ interface DeliveryApi {
         @Part photoParts: MutableList<MultipartBody.Part>,
         @Query("token") token: String
     )
+
+    @GET("/api/v1/password")
+    suspend fun getPassword(): PasswordResponse
 }

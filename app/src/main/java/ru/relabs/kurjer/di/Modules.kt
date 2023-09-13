@@ -161,6 +161,7 @@ val repositoryModule = module {
         DeliveryRepository(
             get<ApiProvider>().deliveryApi,
             get<AuthTokenStorage>(),
+            currentUserStorage = get(),
             get<DeviceUUIDProvider>(),
             get<DeviceUniqueIdProvider>(),
             get<FirebaseTokenProvider>(),
@@ -168,7 +169,8 @@ val repositoryModule = module {
             get<ApiProvider>().httpClient,
             get<PathsProvider>(),
             get<StorageRepository>(),
-            queryRepository = get()
+            queryRepository = get(),
+            savedUserStorage = get(),
         )
     }
     single<SettingsRepository> {

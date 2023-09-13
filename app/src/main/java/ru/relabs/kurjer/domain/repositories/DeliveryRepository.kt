@@ -32,6 +32,7 @@ import ru.relabs.kurjer.data.models.common.EitherE
 import ru.relabs.kurjer.data.models.storage.StorageReportPhotoRequest
 import ru.relabs.kurjer.data.models.storage.StorageReportRequest
 import ru.relabs.kurjer.domain.mappers.SettingsMapper
+import ru.relabs.kurjer.domain.mappers.network.PasswordMapper
 import ru.relabs.kurjer.domain.mappers.network.PauseMapper
 import ru.relabs.kurjer.domain.mappers.network.TaskMapper
 import ru.relabs.kurjer.domain.mappers.network.UpdatesMapper
@@ -52,12 +53,15 @@ import ru.relabs.kurjer.domain.providers.FirebaseToken
 import ru.relabs.kurjer.domain.providers.FirebaseTokenProvider
 import ru.relabs.kurjer.domain.providers.PathsProvider
 import ru.relabs.kurjer.domain.storage.AuthTokenStorage
+import ru.relabs.kurjer.domain.storage.CurrentUserStorage
+import ru.relabs.kurjer.domain.storage.SavedUserStorage
 import ru.relabs.kurjer.utils.Either
 import ru.relabs.kurjer.utils.ImageUtils
 import ru.relabs.kurjer.utils.Left
 import ru.relabs.kurjer.utils.Right
 import ru.relabs.kurjer.utils.debug
 import ru.relabs.kurjer.utils.log
+import timber.log.Timber
 import java.io.FileNotFoundException
 import java.net.URL
 import java.util.UUID
@@ -65,6 +69,7 @@ import java.util.UUID
 class DeliveryRepository(
     private val deliveryApi: DeliveryApi,
     private val authTokenStorage: AuthTokenStorage,
+    private val currentUserStorage: CurrentUserStorage,
     private val deviceIdProvider: DeviceUUIDProvider,
     private val deviceUniqueIdProvider: DeviceUniqueIdProvider,
     private val firebaseTokenProvider: FirebaseTokenProvider,
@@ -72,7 +77,8 @@ class DeliveryRepository(
     private val networkClient: OkHttpClient,
     private val pathsProvider: PathsProvider,
     private val storageRepository: StorageRepository,
-    private val queryRepository: QueryRepository
+    private val queryRepository: QueryRepository,
+    private val savedUserStorage: SavedUserStorage,
 ) {
     private var availableFirmRejectReasons: List<String> = listOf()
     fun isAuthenticated(): Boolean = authTokenStorage.getToken() != null
@@ -110,9 +116,9 @@ class DeliveryRepository(
             TaskMapper.fromRaw(it, deviceId)
         }.filter {
             val completed = it.items.all { item -> item.state == TaskItemState.CLOSED }
-             if (completed) {
-                 queryRepository.putSendQuery(SendQueryData.TaskCompleted(it.id))
-             }
+            if (completed) {
+                queryRepository.putSendQuery(SendQueryData.TaskCompleted(it.id))
+            }
             !completed
         }
     }
@@ -331,6 +337,20 @@ class DeliveryRepository(
             }
         }
 
+    suspend fun updateSavedData() {
+        val token = authTokenStorage.getToken() ?: return
+        if (savedUserStorage.getCredentials() != null && savedUserStorage.getToken() != null) return
+        try {
+            savedUserStorage.saveToken(token)
+            savedUserStorage.saveCredentials(
+                currentUserStorage.getCurrentUserLogin() ?: UserLogin(""),
+                PasswordMapper.fromRaw(deliveryApi.getPassword())
+            )
+        } catch (e: Exception) {
+            Timber.d(e)
+        }
+    }
+
     suspend fun getFirmRejectReasons(withRefresh: Boolean = false): EitherE<List<String>> =
         authenticatedRequest { token ->
             if (!withRefresh && availableFirmRejectReasons.isEmpty()) {
@@ -384,4 +404,6 @@ class DeliveryRepository(
             return null
         }
     }
+
+
 }

@@ -27,6 +27,9 @@ import java.io.File
 
 object HostEffects {
     fun effectInit(restored: Boolean): HostEffect = { c, _ ->
+        withContext(Dispatchers.IO) {
+            c.repository.updateSavedData()
+        }
         if (!restored) {
             if (c.repository.isAuthenticated() && c.loginUseCase.isAutologinEnabled()) {
                 c.loginUseCase.autoLogin()

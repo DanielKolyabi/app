@@ -47,6 +47,7 @@ import ru.relabs.kurjer.domain.models.User
 import ru.relabs.kurjer.domain.models.photo.StorageReportPhoto
 import ru.relabs.kurjer.domain.models.state
 import ru.relabs.kurjer.domain.models.storage.StorageReportId
+import ru.relabs.kurjer.domain.providers.ConnectivityProvider
 import ru.relabs.kurjer.domain.providers.DeviceUUIDProvider
 import ru.relabs.kurjer.domain.providers.DeviceUniqueIdProvider
 import ru.relabs.kurjer.domain.providers.FirebaseToken
@@ -79,6 +80,7 @@ class DeliveryRepository(
     private val storageRepository: StorageRepository,
     private val queryRepository: QueryRepository,
     private val savedUserStorage: SavedUserStorage,
+    private val connectivityProvider: ConnectivityProvider
 ) {
     private var availableFirmRejectReasons: List<String> = listOf()
     fun isAuthenticated(): Boolean = authTokenStorage.getToken() != null
@@ -344,7 +346,7 @@ class DeliveryRepository(
             savedUserStorage.saveToken(token)
             savedUserStorage.saveCredentials(
                 currentUserStorage.getCurrentUserLogin() ?: UserLogin(""),
-                PasswordMapper.fromRaw(deliveryApi.getPassword())
+                PasswordMapper.fromRaw(deliveryApi.getPassword()).also { Timber.d(it) }
             )
         } catch (e: Exception) {
             Timber.d(e)
@@ -403,6 +405,10 @@ class DeliveryRepository(
             debug("Can't parse HTTP error", e)
             return null
         }
+    }
+
+    suspend fun updateNetworkStatus(status: Boolean) {
+        connectivityProvider.setStatus(status)
     }
 
 

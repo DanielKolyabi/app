@@ -91,20 +91,6 @@ interface DeliveryApi {
         @Query("type") pauseType: Int
     ): StatusResponse
 
-    @POST("api/v1/pause/start")
-    suspend fun startPause(
-        @Header("X-TOKEN") token: String,
-        @Query("type") type: Int,
-        @Query("time") time: Long
-    )
-
-    @POST("api/v1/pause/stop")
-    suspend fun stopPause(
-        @Header("X-TOKEN") token: String,
-        @Query("type") type: Int,
-        @Query("time") time: Long
-    )
-
     @GET("api/v1/settings")
     suspend fun getSettings(
         @Header("X-TOKEN") token: String

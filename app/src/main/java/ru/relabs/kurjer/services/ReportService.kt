@@ -33,11 +33,9 @@ import ru.relabs.kurjer.domain.controllers.ServiceEvent
 import ru.relabs.kurjer.domain.controllers.ServiceEventController
 import ru.relabs.kurjer.domain.controllers.TaskEvent
 import ru.relabs.kurjer.domain.controllers.TaskEventController
-import ru.relabs.kurjer.domain.providers.ConnectivityProvider
 import ru.relabs.kurjer.domain.repositories.DeliveryRepository
 import ru.relabs.kurjer.domain.repositories.QueryRepository
 import ru.relabs.kurjer.domain.repositories.StorageRepository
-import ru.relabs.kurjer.domain.useCases.ReportUseCase
 import ru.relabs.kurjer.domain.useCases.TaskUseCase
 import ru.relabs.kurjer.utils.CustomLog
 import ru.relabs.kurjer.utils.Either
@@ -56,12 +54,10 @@ const val TASK_CHECK_DELAY = 10 * 60 * 1000
 class ReportService : Service(), KoinComponent {
     private val repository: DeliveryRepository by inject()
     private val queryRepository: QueryRepository by inject()
-    private val reportUseCase: ReportUseCase by inject()
     private val taskUseCase: TaskUseCase by inject()
     private val taskEventController: TaskEventController by inject()
     private val serviceEventController: ServiceEventController by inject()
     private val storageRepository: StorageRepository by inject()
-    private val connectivityProvider: ConnectivityProvider by inject()
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
@@ -161,7 +157,6 @@ class ReportService : Service(), KoinComponent {
                 val isNetworkAvailable = NetworkHelper.isNetworkAvailable(applicationContext)
 
                 updateNotificationText(isNetworkAvailable)
-                updateNetworkStatus(isNetworkAvailable)
 
                 checkTimelimitJob()
                 updateActivityState()
@@ -234,10 +229,6 @@ class ReportService : Service(), KoinComponent {
         NotificationManagerCompat
             .from(this)
             .notify(1, notification(text, state))
-    }
-
-    private suspend fun updateNetworkStatus(status: Boolean) {
-        connectivityProvider.setStatus(status)
     }
 
     private suspend fun sendStorageReportQuery(item: StorageReportRequestEntity): Either<java.lang.Exception, Unit> =

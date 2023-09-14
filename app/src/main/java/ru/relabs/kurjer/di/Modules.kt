@@ -171,6 +171,7 @@ val repositoryModule = module {
             get<StorageRepository>(),
             queryRepository = get(),
             savedUserStorage = get(),
+            connectivityProvider = get()
         )
     }
     single<SettingsRepository> {

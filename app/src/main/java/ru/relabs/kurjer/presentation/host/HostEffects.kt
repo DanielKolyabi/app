@@ -97,6 +97,7 @@ object HostEffects {
             }
 
             is Left -> withContext(Dispatchers.Main) {
+                c.repository.updateNetworkStatus(false)
                 c.showErrorDialog(R.string.update_cant_get_info)
             }
 

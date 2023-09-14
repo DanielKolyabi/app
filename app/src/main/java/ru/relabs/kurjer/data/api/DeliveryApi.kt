@@ -109,5 +109,7 @@ interface DeliveryApi {
     )
 
     @GET("/api/v1/password")
-    suspend fun getPassword(): PasswordResponse
+    suspend fun getPassword(
+        @Header("X-TOKEN") token: String
+    ): PasswordResponse
 }

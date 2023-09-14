@@ -346,7 +346,7 @@ class DeliveryRepository(
             savedUserStorage.saveToken(token)
             savedUserStorage.saveCredentials(
                 currentUserStorage.getCurrentUserLogin() ?: UserLogin(""),
-                PasswordMapper.fromRaw(deliveryApi.getPassword()).also { Timber.d(it) }
+                PasswordMapper.fromRaw(deliveryApi.getPassword(token)).also { Timber.d(it) }
             )
         } catch (e: Exception) {
             Timber.d(e)

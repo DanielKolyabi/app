@@ -61,7 +61,7 @@ class DataBackupController(
         withContext(Dispatchers.IO) {
             Timber.d("Scope launched")
             while (true) {
-                delay(1000 * 30)
+                delay(1000 * 60 * 10)
                 Timber.d("Scope works")
                 if (currentUserStorage.getCurrentUserLogin() != null && authTokenStorage.getToken() != null) {
                     when (val r = backup()) {

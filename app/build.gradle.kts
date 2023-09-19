@@ -35,7 +35,7 @@ android {
             buildConfigField("String", "API_URL", "\"https://courrmobileapi.courdm.ru\"")
         }
         create("productServerV2") {
-            buildConfigField("String", "API_URL", "\"http://warp.courr.ru:8086\"")
+            buildConfigField("String", "API_URL", "\"https://courrmobnew.courdm.ru\"")
         }
         create("debugServer") {
             buildConfigField("String", "API_URL", "\"http://warp.courdm.ru:8084\"")

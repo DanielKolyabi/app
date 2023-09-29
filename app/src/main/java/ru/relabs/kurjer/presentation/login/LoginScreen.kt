@@ -31,7 +31,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ru.relabs.kurjer.BuildConfig
@@ -44,6 +43,7 @@ import ru.relabs.kurjer.presentation.base.compose.common.CustomTextKeyboardActio
 import ru.relabs.kurjer.presentation.base.compose.common.DefaultDialog
 import ru.relabs.kurjer.presentation.base.compose.common.DeliveryButton
 import ru.relabs.kurjer.presentation.base.compose.common.LoadableContainer
+import ru.relabs.kurjer.presentation.base.compose.common.PasswordTransformationProvider
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGrayBase
 import ru.relabs.kurjer.presentation.base.tea.ElmController
 import ru.relabs.kurjer.utils.NetworkHelper
@@ -107,6 +107,7 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
     val isChecked by watchAsState { it.isPasswordRemembered }
     val interactionSource = remember { MutableInteractionSource() }
 
+
     val passwordFocusRequester = remember { FocusRequester() }
     val context = LocalContext.current
     LaunchedEffect(loginInput) {
@@ -123,6 +124,7 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
         if (passwordInput.isEmpty() && password.isNotEmpty())
             passwordInput = password
     }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
@@ -138,21 +140,23 @@ private fun ElmScaffoldContext<LoginContext, LoginState>.CredentialsInput(modifi
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         )
         Spacer(Modifier.height(8.dp))
-        CustomTextField(
-            value = passwordInput,
-            onValueChange = { passwordInput = it },
-            placeholder = stringResource(R.string.password_placeholder),
-            maxLines = 1,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardAction = CustomTextKeyboardAction.Done(
-                { sendMessage(LoginMessages.msgLoginClicked(NetworkHelper.isNetworkEnabled(context))) },
-                keyboardType = KeyboardType.Password
-            ),
-            focusRequester = passwordFocusRequester,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-        )
+        PasswordTransformationProvider { transformation ->
+            CustomTextField(
+                value = passwordInput,
+                onValueChange = { passwordInput = it },
+                placeholder = stringResource(R.string.password_placeholder),
+                maxLines = 1,
+                visualTransformation = transformation,
+                keyboardAction = CustomTextKeyboardAction.Done(
+                    { sendMessage(LoginMessages.msgLoginClicked(NetworkHelper.isNetworkEnabled(context))) },
+                    keyboardType = KeyboardType.Password
+                ),
+                focusRequester = passwordFocusRequester,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            )
+        }
         Spacer(Modifier.height(16.dp))
         Row(
             modifier = Modifier

@@ -96,14 +96,14 @@ class DataBackupController(
     }
 
     private fun backupDatabase() {
-        provider.roomBackup?.let {
+        provider.roomBackup?.also {
             it.database(db)
                 .enableLogDebug(true)
                 .backupIsEncrypted(true)
                 .customEncryptPassword(SECRET_PASSWORD)
                 .backupLocation(RoomBackup.BACKUP_FILE_LOCATION_CUSTOM_FILE)
                 .backupLocationCustomFile(dbFile)
-                .maxFileCount(1)
+                .maxFileCount(2)
                 .apply {
                     onCompleteListener { success, message, exitCode ->
                         Timber.d("success: $success, message: $message, exitCode: $exitCode")
@@ -114,14 +114,14 @@ class DataBackupController(
     }
 
     private fun restoreDatabase() {
-        provider.roomBackup?.let {
+        provider.roomBackup?.also {
             it.database(db)
                 .enableLogDebug(true)
                 .backupIsEncrypted(true)
                 .customEncryptPassword(SECRET_PASSWORD)
                 .backupLocation(RoomBackup.BACKUP_FILE_LOCATION_CUSTOM_FILE)
                 .backupLocationCustomFile(dbFile)
-                .maxFileCount(1)
+                .maxFileCount(2)
                 .apply {
                     onCompleteListener { success, message, exitCode ->
                         Timber.d("DataBackupController", "success: $success, message: $message, exitCode: $exitCode")
@@ -193,6 +193,7 @@ class DataBackupController(
             preferences.lunchDuration,
             preferences.loadDuration,
         )
+
     }
 
     private fun <T> fromFile(sourceFile: File, mapper: (Any) -> T): T {
@@ -212,6 +213,7 @@ class DataBackupController(
         PathsProvider.getDirNames().forEach {
             File(filesDir, it).copyRecursively(File(filesRootDir, it), true)
         }
+
         Timber.d("Files restore completed")
     }
 

@@ -127,7 +127,7 @@ class RoomBackup(var context: Context) {
      *
      * @param enableLogDebug Boolean
      */
-    fun enableLogDebug(enableLogDebug: Boolean): RoomBackup {
+    fun enableLogDebug(enableLogDebug: Boolean = true): RoomBackup {
         this.enableLogDebug = enableLogDebug
         return this
     }
@@ -228,7 +228,7 @@ class RoomBackup(var context: Context) {
      *
      * @param backupIsEncrypted Boolean, default = false
      */
-    fun backupIsEncrypted(backupIsEncrypted: Boolean): RoomBackup {
+    fun backupIsEncrypted(backupIsEncrypted: Boolean = true): RoomBackup {
         this.backupIsEncrypted = backupIsEncrypted
         return this
     }

@@ -36,8 +36,8 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning"
         android:largeHeap="true"
-        android:allowBackup="false"
-        android:fullBackupOnly="false">
+        android:allowBackup="true"
+        android:fullBackupOnly="true">
 
         <activity
             android:name=".SplashActivity"

@@ -83,6 +83,7 @@ class DataBackupController(
         }
     }
 
+
     fun backup(): Either<Exception, Unit> = Either.of {
         backupDatabase()
         backupInternalFiles()

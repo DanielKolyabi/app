@@ -18,11 +18,11 @@ class PermissionFeatureChecker(a: Activity) : FeatureChecker(a) {
 
     private val requiredPermissions = listOf(
         android.Manifest.permission.ACCESS_FINE_LOCATION,
-        android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        android.Manifest.permission.READ_EXTERNAL_STORAGE,
         android.Manifest.permission.READ_PHONE_STATE,
         android.Manifest.permission.WAKE_LOCK,
-        android.Manifest.permission.DISABLE_KEYGUARD
+        android.Manifest.permission.DISABLE_KEYGUARD ,
+
+
     )
 
     override fun isFeatureEnabled(): Boolean {
@@ -79,6 +79,7 @@ class PermissionFeatureChecker(a: Activity) : FeatureChecker(a) {
         permissions.joinToString(separator = "\n") { getPermissionName(it) }
 
     private fun getPermissionName(perm: String): String = when (perm) {
+        android.Manifest.permission.MANAGE_EXTERNAL_STORAGE -> "Доступ ко всем файлам"
         android.Manifest.permission.WRITE_EXTERNAL_STORAGE -> "Доступ к записи файлов"
         android.Manifest.permission.READ_EXTERNAL_STORAGE -> "Доступ к чтению файлов"
         android.Manifest.permission.ACCESS_FINE_LOCATION -> "Доступ к получению местоположения"

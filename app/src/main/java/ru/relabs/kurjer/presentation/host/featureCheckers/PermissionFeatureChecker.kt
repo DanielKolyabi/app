@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -21,6 +22,7 @@ class PermissionFeatureChecker(a: Activity) : FeatureChecker(a) {
         android.Manifest.permission.READ_PHONE_STATE,
         android.Manifest.permission.WAKE_LOCK,
         android.Manifest.permission.DISABLE_KEYGUARD ,
+        
 
 
     )

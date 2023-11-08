@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.data.backup
 
+import android.content.Context
 import android.os.Environment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -28,6 +29,7 @@ import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
+import java.util.concurrent.TimeUnit
 
 class DataBackupController(
     private val appPreferences: AppPreferences,
@@ -39,29 +41,31 @@ class DataBackupController(
     private val provider: RoomBackupProvider,
     private val db: AppDatabase,
     private val pathsProvider: PathsProvider,
-    private val filesRootDir: File
+    private val filesRootDir: File,
+    private val ctx: Context
 ) {
 
     private val backupDir = File(Environment.getExternalStorageDirectory(), "databasebackup")
-        get() = field.apply { checkedMkDirs() }
+        get() = field.apply { checkedMkDirs(ctx) }
     private val filesDir = File(backupDir, "internalFiles")
-        get() = field.apply { checkedMkDirs() }
+        get() = field.apply { checkedMkDirs(ctx) }
     private val dbFile = File(backupDir, "deliverymanBackup.sqlite3")
-        get() = field.apply { checkedCreateFile() }
+        get() = field.apply { checkedCreateFile(ctx) }
     private val credentialsFile = File(backupDir, "credentialsBackup")
-        get() = field.apply { checkedCreateFile() }
+        get() = field.apply { checkedCreateFile(ctx) }
     private val tokenFile = File(backupDir, "tokenBackup")
-        get() = field.apply { checkedCreateFile() }
+        get() = field.apply { checkedCreateFile(ctx) }
     private val preferencesFile = File(backupDir, "preferencesBackup")
-        get() = field.apply { checkedCreateFile() }
+        get() = field.apply { checkedCreateFile(ctx) }
 
-    val backupExists = dbFile.exists() && filesDir.exists() && credentialsFile.exists() && tokenFile.exists()
+    val backupExists =
+        dbFile.exists() && filesDir.exists() && credentialsFile.exists() && tokenFile.exists() && preferencesFile.exists()
 
     suspend fun startBackup() {
         withContext(Dispatchers.IO) {
             Timber.d("Scope launched")
             while (true) {
-                delay(1000 * 60 * 10)
+                delay(TimeUnit.MINUTES.toMillis(10))
                 Timber.d("Scope works")
                 if (currentUserStorage.getCurrentUserLogin() != null && authTokenStorage.getToken() != null) {
                     when (val r = backup()) {
@@ -125,7 +129,10 @@ class DataBackupController(
                 .maxFileCount(2)
                 .apply {
                     onCompleteListener { success, message, exitCode ->
-                        Timber.d("DataBackupController", "success: $success, message: $message, exitCode: $exitCode")
+                        Timber.d(
+                            "DataBackupController",
+                            "success: $success, message: $message, exitCode: $exitCode"
+                        )
                     }
                 }
                 .restore()

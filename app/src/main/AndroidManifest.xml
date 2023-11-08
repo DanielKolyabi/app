@@ -37,7 +37,8 @@
         tools:ignore="GoogleAppIndexingWarning"
         android:largeHeap="true"
         android:allowBackup="true"
-        android:fullBackupOnly="true">
+        android:fullBackupOnly="true"
+        android:requestLegacyExternalStorage="true">
 
         <activity
             android:name=".SplashActivity"

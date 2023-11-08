@@ -9,6 +9,7 @@ import com.github.terrakok.cicerone.Router
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidApplication
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import ru.relabs.kurjer.BuildConfig
@@ -133,7 +134,8 @@ val backupModule = module {
             filesRootDir = get<File>(Modules.FILES_DIR),
             settingsRepository = get(),
             appPreferences = get(),
-            pauseRepository = get()
+            pauseRepository = get(),
+            ctx = androidContext()
         )
     }
 }

@@ -4,10 +4,13 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 
 import android.provider.Settings
+import android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import okhttp3.internal.cache.DiskLruCache.Companion.READ
 import ru.relabs.kurjer.R
 import ru.relabs.kurjer.utils.extensions.showDialog
 
@@ -21,11 +24,15 @@ class PermissionFeatureChecker(a: Activity) : FeatureChecker(a) {
         android.Manifest.permission.ACCESS_FINE_LOCATION,
         android.Manifest.permission.READ_PHONE_STATE,
         android.Manifest.permission.WAKE_LOCK,
-        android.Manifest.permission.DISABLE_KEYGUARD ,
-        
+        android.Manifest.permission.DISABLE_KEYGUARD
+    ) + if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R)
+        listOf(
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+        ) else listOf(
 
+        )
 
-    )
 
     override fun isFeatureEnabled(): Boolean {
         return getNotGrantedPermissions().isEmpty()
@@ -36,7 +43,10 @@ class PermissionFeatureChecker(a: Activity) : FeatureChecker(a) {
         activity?.let { a ->
             val requiredPermissions = getNotGrantedPermissions()
             val rationalePermissions = requiredPermissions.filter { perm ->
-                !askedPermissions.getOrPut(perm) { false } || ActivityCompat.shouldShowRequestPermissionRationale(a, perm)
+                !askedPermissions.getOrPut(perm) { false } || ActivityCompat.shouldShowRequestPermissionRationale(
+                    a,
+                    perm
+                )
             }
             val notRationalePermissions = requiredPermissions.filter { perm ->
                 !ActivityCompat.shouldShowRequestPermissionRationale(a, perm)
@@ -46,11 +56,18 @@ class PermissionFeatureChecker(a: Activity) : FeatureChecker(a) {
                 rationalePermissions.forEach {
                     askedPermissions[it] = true
                 }
-                ActivityCompat.requestPermissions(a, rationalePermissions.toTypedArray(), REQUEST_PERMISSIONS_CODE)
+                ActivityCompat.requestPermissions(
+                    a,
+                    rationalePermissions.toTypedArray(),
+                    REQUEST_PERMISSIONS_CODE
+                )
             } else {
                 requestShowed = true
                 a.showDialog(
-                    a.resources.getString(R.string.request_permissions_rationale, getPermissionsName(notRationalePermissions)),
+                    a.resources.getString(
+                        R.string.request_permissions_rationale,
+                        getPermissionsName(notRationalePermissions)
+                    ),
                     R.string.settings to {
                         requestShowed = false
                         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -62,7 +79,11 @@ class PermissionFeatureChecker(a: Activity) : FeatureChecker(a) {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_PERMISSIONS_CODE) {
             requestShowed = false
@@ -74,14 +95,19 @@ class PermissionFeatureChecker(a: Activity) : FeatureChecker(a) {
 
     private fun getNotGrantedPermissions(): List<String> =
         requiredPermissions.filter { perm ->
-            activity?.let { ContextCompat.checkSelfPermission(it, perm) != PackageManager.PERMISSION_GRANTED } ?: false
+            activity?.let {
+                ContextCompat.checkSelfPermission(
+                    it,
+                    perm
+                ) != PackageManager.PERMISSION_GRANTED
+            } ?: false
         }
 
     private fun getPermissionsName(permissions: List<String>): String =
         permissions.joinToString(separator = "\n") { getPermissionName(it) }
 
     private fun getPermissionName(perm: String): String = when (perm) {
-        android.Manifest.permission.MANAGE_EXTERNAL_STORAGE -> "Доступ ко всем файлам"
+
         android.Manifest.permission.WRITE_EXTERNAL_STORAGE -> "Доступ к записи файлов"
         android.Manifest.permission.READ_EXTERNAL_STORAGE -> "Доступ к чтению файлов"
         android.Manifest.permission.ACCESS_FINE_LOCATION -> "Доступ к получению местоположения"

@@ -37,6 +37,7 @@ object HostEffects {
                     when (val result = FirebaseMessaging.getInstance().getFirebaseToken()) {
                         is Right -> c.repository.updatePushToken(FirebaseToken(result.value))
                         is Left -> FirebaseCrashlytics.getInstance().log("Can't get firebase token")
+                        else -> {}
                     }
                 }
             } else {
@@ -101,6 +102,7 @@ object HostEffects {
                 c.showErrorDialog(R.string.update_cant_get_info)
             }
 
+            else -> {}
         }
         messages.send(HostMessages.msgAddLoaders(-1))
     }
@@ -123,6 +125,8 @@ object HostEffects {
                         c.showErrorDialog(R.string.update_install_error)
                     }
                 }
+
+                else -> {}
             }
         }
         messages.send(HostMessages.msgLoadProgress(null))
@@ -205,6 +209,7 @@ object HostEffects {
                         is TaskEvent.TaskClosed -> Unit
                         is TaskEvent.TaskItemClosed -> Unit
                         is TaskEvent.TaskStorageClosed -> Unit
+                        else -> {}
                     }
                 }
             }

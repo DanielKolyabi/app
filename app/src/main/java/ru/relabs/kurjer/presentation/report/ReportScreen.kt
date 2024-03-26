@@ -174,8 +174,18 @@ fun ReportScreen(
                                 ReportMessages.msgPhotoClicked(false)
                             )
                         },
+
+                        onTakeMultipleClicked = {
+                            sendMessage(
+                                ReportMessages.msgPhotoClicked(true)
+                            )
+                        },
                         onDeleteClicked = { sendMessage(ReportMessages.msgRemovePhotoClicked(it.photo)) }
+
+
                     )
+
+
                     DescriptionInput()
                     Buttons(isCloseClicked, onCloseButtonClicked, modifier = Modifier.fillMaxWidth())
                 }
@@ -184,6 +194,8 @@ fun ReportScreen(
     }
     ProblemApartmentsWarningDialogController()
 }
+
+
 
 @Composable
 private fun ElmScaffoldContext<ReportContext, ReportState>.DescriptionInput() {
@@ -237,17 +249,17 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.TaskItem(taskWithItem
 
 @Composable
 private fun ElmScaffoldContext<ReportContext, ReportState>.EntranceItem(entranceInfo: ReportEntranceItem, modifier: Modifier = Modifier) {
-    val entranceData = remember { entranceInfo.entrance }
-    val apartmentsCount = remember { entranceData.apartmentsCount }
+    val entranceData = entranceInfo.entrance
+    val apartmentsCount =  entranceData.apartmentsCount
     val euroActive = entranceInfo.selection.isEuro
     val watchActive = entranceInfo.selection.isWatch
     val stackedActive = entranceInfo.selection.isStacked
     val rejectedActive = entranceInfo.selection.isRejected
-    val euroDefault = remember { entranceData.isEuroBoxes }
-    val watchDefault = remember { entranceData.hasLookout }
-    val stackedDefault = remember { entranceData.isStacked }
-    val rejectedDefault = remember { entranceData.isRefused }
-    val interactionSource = remember { MutableInteractionSource() }
+    val euroDefault =  entranceData.isEuroBoxes
+    val watchDefault =  entranceData.hasLookout
+    val stackedDefault =  entranceData.isStacked
+    val rejectedDefault =  entranceData.isRefused
+    val interactionSource =  MutableInteractionSource()
 
     Row(
         verticalAlignment = Alignment.CenterVertically, modifier = modifier

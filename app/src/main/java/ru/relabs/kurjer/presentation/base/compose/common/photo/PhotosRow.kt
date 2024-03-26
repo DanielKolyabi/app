@@ -26,6 +26,7 @@ fun <T> PhotosRow(
     hasPhoto: Boolean,
     modifier: Modifier = Modifier,
     onTakePhotoClicked: () -> Unit,
+    onTakeMultipleClicked: () -> Unit,
     onDeleteClicked: (photo: T) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -45,6 +46,21 @@ fun <T> PhotosRow(
                     .padding(8.dp)
                     .size(48.dp)
                     .clickable(interactionSource = interactionSource, indication = null) { onTakePhotoClicked() }
+                    .padding(4.dp)
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_photo_multiple),
+                contentDescription = null,
+                tint = if (hasPhoto)
+                    ColorHasPhoto
+                else if (requiredPhoto)
+                    ColorRequiredPhoto
+                else
+                    Color.Black,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .size(48.dp)
+                    .clickable(interactionSource = interactionSource, indication = null) { onTakeMultipleClicked() }
                     .padding(4.dp)
             )
         }

@@ -111,7 +111,8 @@ fun StorageReportScreen(controller: ElmController<StorageReportContext, StorageR
                     requiredPhoto = tasks.any { it.storage.photoRequired },
                     hasPhoto = photos.isNotEmpty(),
                     onTakePhotoClicked = { sendMessage(StorageReportMessages.msgPhotoClicked()) },
-                    onDeleteClicked = { sendMessage(StorageReportMessages.msgRemovePhotoClicked(it.photo)) }
+                    onDeleteClicked = { sendMessage(StorageReportMessages.msgRemovePhotoClicked(it.photo)) },
+                    onTakeMultipleClicked = { sendMessage(StorageReportMessages.msgPhotoClicked()) }
                 )
 
                 DescriptionInput()

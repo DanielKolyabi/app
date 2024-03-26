@@ -108,6 +108,7 @@ data class ReportEntranceItem(
 )
 
 data class TaskPhotoWithUri(val photo: TaskItemPhoto, val uri: Uri)
+data class TaskPhotoWithUris(val Multiple: TaskItemPhoto, val uri: Uri)
 
 class ReportContext(val errorContext: ErrorContextImpl = ErrorContextImpl()) :
     ErrorContext by errorContext,

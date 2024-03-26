@@ -173,8 +173,10 @@ object StorageReportEffects {
                                         null,
                                         emptyArray()
                                     )
+
                                 }
                             }
+
                             messages.send(msgFactory())
                         } else {
                             when {

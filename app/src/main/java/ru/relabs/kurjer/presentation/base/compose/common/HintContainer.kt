@@ -1,6 +1,7 @@
 package ru.relabs.kurjer.presentation.base.compose.common
 
 import android.graphics.Color
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,9 +12,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -35,23 +38,18 @@ import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGradientEnd
 import ru.relabs.kurjer.presentation.base.compose.common.themes.ColorGradientStart
 
 @Composable
-fun HintContainer(hintText: String, textSizeStorage: TextSizeStorage, modifier: Modifier = Modifier, maxHeight: Dp = 250.dp) {
+fun HintContainer(hintText: String, textSizeStorage: TextSizeStorage, modifier: Modifier = Modifier, minHeight: Dp = 100.dp,maxHeight: Dp = 510.dp) {
     val textSize by remember { textSizeStorage.textSize }.collectAsState()
     var expanded by remember { mutableStateOf(true) }
-    val containerHeight by animateDpAsState(
-        if (expanded && maxHeight <= 250.dp)
-            maxHeight
-        else if (expanded && maxHeight > 250.dp)
-            250.dp
-        else
-            30.dp, label = ""
-    )
+
     val interactionSource = remember { MutableInteractionSource() }
 
     Box(
         modifier
             .fillMaxWidth()
-            .height(containerHeight)
+            .animateContentSize()
+            .then(if(expanded) Modifier.heightIn(30.dp, maxHeight).wrapContentHeight() else Modifier.height(minHeight))
+
             .clickable(interactionSource = interactionSource, indication = null) {
                 expanded = !expanded
             }

@@ -1,5 +1,6 @@
 package ru.relabs.kurjer.presentation.report
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -12,9 +13,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -40,6 +43,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
@@ -89,12 +93,12 @@ fun ReportScreen(
     val available by watchAsState { it.available }
     val isCloseClicked by isCloseClickedFlow.collectAsState()
     val photos by watchAsState { it.selectedTaskPhotos }
-    val task by watchAsState { it.selectedTask }
+    val selectedTask by watchAsState { it.selectedTask }
     var screenHeight by remember { mutableStateOf(0.dp) }
     var rowHeight by remember { mutableStateOf(0.dp) }
     var inputHeight by remember { mutableStateOf(0.dp) }
     var firmAddressHeight by remember { mutableStateOf(0.dp) }
-    val hintHeight by remember { derivedStateOf { screenHeight - inputHeight - rowHeight - firmAddressHeight } }
+    val hintHeight by remember { derivedStateOf { screenHeight - rowHeight - firmAddressHeight } }
     val density = LocalDensity.current
 
     AppBarLoadableContainer(
@@ -124,7 +128,12 @@ fun ReportScreen(
                         }
                 ) {
                     items(tasks) { task ->
-                        TaskItem(task)
+                        TaskItemElement(
+                            taskWithItem = task,
+                            selected = task.taskItem.id == selectedTask?.taskItem?.id ,
+                            onClick = { sendMessage(ReportMessages.msgTaskSelected(task.taskItem.id)) }
+                        )
+
                     }
                 }
             HintContainer(
@@ -167,7 +176,7 @@ fun ReportScreen(
                     PhotosRow(
                         photos = photos,
                         mapper = { PhotoItemData(it.photo.entranceNumber.number.let { if (it == -1) "Д" else it.toString() }, it.uri) },
-                        requiredPhoto = task?.taskItem?.needPhoto == true,
+                        requiredPhoto = selectedTask?.taskItem?.needPhoto == true,
                         hasPhoto = photos.any { it.photo.entranceNumber.number == ENTRANCE_NUMBER_TASK_ITEM },
                         onTakePhotoClicked = {
                             sendMessage(
@@ -181,11 +190,7 @@ fun ReportScreen(
                             )
                         },
                         onDeleteClicked = { sendMessage(ReportMessages.msgRemovePhotoClicked(it.photo)) }
-
-
                     )
-
-
                     DescriptionInput()
                     Buttons(isCloseClicked, onCloseButtonClicked, modifier = Modifier.fillMaxWidth())
                 }
@@ -194,9 +199,6 @@ fun ReportScreen(
     }
     ProblemApartmentsWarningDialogController()
 }
-
-
-
 @Composable
 private fun ElmScaffoldContext<ReportContext, ReportState>.DescriptionInput() {
     val report by watchAsState { it.selectedTaskReport }
@@ -219,14 +221,21 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.DescriptionInput() {
 }
 
 @Composable
-private fun ElmScaffoldContext<ReportContext, ReportState>.TaskItem(taskWithItem: TaskWithItem, modifier: Modifier = Modifier) {
-    val task = remember { taskWithItem.task }
-    val taskItem = remember { taskWithItem.taskItem }
-    val selected by watchAsState { taskWithItem == it.selectedTask }
+private fun TaskItemElement(
+    taskWithItem: TaskWithItem,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+
+) {
+    val task = taskWithItem.task
+    val taskItem = taskWithItem.taskItem
+//    val selected by watchAsState { taskWithItem == it.selectedTask }
 
     Button(
         contentPadding = PaddingValues(6.dp),
-        onClick = { sendMessage(ReportMessages.msgTaskSelected(taskItem.id)) },
+//        onClick = { sendMessage(ReportMessages.msgTaskSelected(taskItem.id)) },
+        onClick= onClick,
         shape = RoundedCornerShape(2.dp),
         colors = ButtonDefaults.buttonColors(backgroundColor = if (selected) ColorFuchsia else ColorButtonLight),
         modifier = modifier
@@ -410,6 +419,7 @@ private fun ElmScaffoldContext<ReportContext, ReportState>.Buttons(
             if (!isCloseClicked) {
                 sendMessage(ReportMessages.msgCloseClicked(null))
                 onCloseButtonClicked()
+
             }
         }
         if (isFirm) {

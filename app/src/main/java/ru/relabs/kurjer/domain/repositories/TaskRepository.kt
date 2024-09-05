@@ -91,6 +91,7 @@ class TaskRepository(
         val savedTasksIDs = taskDao.all.map { it.id }
         val newTasksIDs = tasks.map { it.id.id }
 
+
         //Задача отсутствует в ответе от сервера (удалено)
         taskDao.all.filter { it.id !in newTasksIDs }.forEach { task ->
             closeTaskById(task.id)

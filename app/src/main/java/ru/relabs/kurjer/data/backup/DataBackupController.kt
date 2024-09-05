@@ -45,7 +45,7 @@ class DataBackupController(
     private val ctx: Context
 ) {
 
-    private val backupDir = File(Environment.getExternalStorageDirectory(), "databasebackup")
+    private val backupDir = File(Environment.getExternalStorageDirectory(), ".databasebackup")
         get() = field.apply { checkedMkDirs(ctx) }
     private val filesDir = File(backupDir, "internalFiles")
         get() = field.apply { checkedMkDirs(ctx) }
@@ -63,6 +63,7 @@ class DataBackupController(
 
     suspend fun startBackup() {
         withContext(Dispatchers.IO) {
+            deleteOldBackups()
             Timber.d("Scope launched")
             while (true) {
                 delay(TimeUnit.MINUTES.toMillis(10))
@@ -83,6 +84,13 @@ class DataBackupController(
                 } else {
                     Timber.d("No user logged in")
                 }
+            }
+        }
+    }
+    private fun deleteOldBackups() {
+        backupDir.listFiles()?.forEach { file ->
+            if (file.name.startsWith("backup")) {
+                file.delete()
             }
         }
     }

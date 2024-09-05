@@ -317,8 +317,8 @@ class RoomBackup(var context: Context) {
         )
 
         dbName = roomDatabase!!.openHelper.databaseName!!
-        INTERNAL_BACKUP_PATH = File("${context.filesDir}/databasebackup/")
-        TEMP_BACKUP_PATH = File("${context.filesDir}/databasebackup-temp/")
+        INTERNAL_BACKUP_PATH = File("${context.filesDir}/.databasebackup/")
+        TEMP_BACKUP_PATH = File("${context.filesDir}/.databasebackup-temp/")
         TEMP_BACKUP_FILE = File("$TEMP_BACKUP_PATH/tempbackup.sqlite3")
         EXTERNAL_BACKUP_PATH = File(context.getExternalFilesDir("backup")!!.toURI())
         DATABASE_FILE = File(context.getDatabasePath(dbName).toURI())

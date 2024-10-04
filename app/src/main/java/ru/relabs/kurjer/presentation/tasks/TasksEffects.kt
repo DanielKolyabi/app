@@ -77,6 +77,10 @@ object TasksEffects {
                             c.deliveryRepository.loadEditionPhoto(it.task)
                             tasksCreated = true
                         }
+                        is MergeResult.TaskRemoved -> {
+                            messages.send(TasksMessages.msgTaskClosed(it.taskId))
+                            tasksUpdated = true
+                        }
 
                         is MergeResult.TaskUpdated -> {
                             c.deliveryRepository.loadTaskMap(it.task)

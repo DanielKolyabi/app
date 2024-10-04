@@ -435,6 +435,8 @@ class TaskRepository(
         entranceWarningDao.insert(EntranceWarningEntity(0, entranceNumber.number, taskId.id, taskItemId.id))
     }
 
+
+
 }
 
 
@@ -443,4 +445,5 @@ sealed class MergeResult {
     data class TaskRemoved(val taskId: TaskId) : MergeResult()
     data class TaskUpdated(val task: Task) : MergeResult()
 }
+
 

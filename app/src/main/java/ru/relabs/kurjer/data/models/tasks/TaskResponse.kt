@@ -42,5 +42,6 @@ data class TaskResponse(
     @SerializedName("storage_close_first_required") val storageCloseFirstRequired: Boolean,
     @SerializedName("storage_close_first_update_time") val storageRequirementsUpdateDate: Date,
     @SerializedName("storage_description") val storageDescription: String,
-    @SerializedName("display_name") val displayName: String
+    @SerializedName("display_name") val displayName: String,
+    @SerializedName("izdom_id") val  izdomId: Int
 )

@@ -66,7 +66,7 @@ data class ReportState(
             val task = selectedTask?.task
             return if (taskItem != null && taskItem is TaskItem.Common) {
                 taskItem.entrancesData.map { entrance ->
-                    val reportEntrance = selectedTaskReport?.entrances?.firstOrNull { it.entranceNumber == entrance.number }
+                    val reportEntrance = selectedTaskReport?.entrances?.firstOrNull { it.entranceNumber !== entrance.number }
                     ReportEntranceItem(
                         taskItem,
                         entrance,

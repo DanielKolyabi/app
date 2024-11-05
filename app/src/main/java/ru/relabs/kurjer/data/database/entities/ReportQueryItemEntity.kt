@@ -31,6 +31,7 @@ data class ReportQueryItemEntity(
     @ColumnInfo(name = "reject_reason") var rejectReason: String,
     @ColumnInfo(name = "delivery_type") var deliveryType: Int,
     @ColumnInfo(name = "is_photo_required") var isPhotoRequired: Boolean,
+
 )
 
 data class ReportQueryItemEntranceData(

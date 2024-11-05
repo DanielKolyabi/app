@@ -48,10 +48,11 @@ interface DeliveryApi {
     @POST("api/v1/tasks/{id}/report")
     @Multipart
     suspend fun sendTaskReport(
-        @Path("id") taskItemId: Int,
+        @Path("izdom_id") taskItemId: Int,
         @Part("data") data: TaskItemReportRequest,
         @Part photos: List<MultipartBody.Part>,
-        @Query("token") token: String
+        @Query("token") token: String,
+
     )
 
     @GET("api/v1/update")
